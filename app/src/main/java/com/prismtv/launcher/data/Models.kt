@@ -61,6 +61,11 @@ data class UriArt(val uri: String) : ArtRef {
     override val key: String get() = uri
 }
 
+/** A full-screen backdrop built from an app's own banner/icon and colour. */
+data class BannerArt(val appId: String) : ArtRef {
+    override val key: String get() = "brand:$appId"
+}
+
 /** A "Top Shelf" item shown in the dynamic hero. */
 @Immutable
 data class HeroItem(

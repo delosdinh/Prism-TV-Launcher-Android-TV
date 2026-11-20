@@ -103,6 +103,15 @@ object DemoContent {
         AppItem(films), AppItem(gamepad),
     )
 
+    val allApps: List<LauncherApp> = items.flatMap {
+        when (it) {
+            is AppItem -> listOf(it.app)
+            is FolderItem -> it.apps
+        }
+    }
+
+    val defaultLayout: GridLayout = GridLayouts.fromItems(items)
+
     val heroes: Map<String, List<HeroItem>> = mapOf(
         prismTv.id to listOf(
             HeroItem(

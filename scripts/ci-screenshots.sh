@@ -64,7 +64,7 @@ shot 03-top-shelf-fullscreen       "${B[@]}" "${DARK[@]}" --es screen hero --ei 
 shot 04-grid-focus-balanced        "${B[@]}" --es appearance balanced --es glass liquid --es screen grid --ei row 1 --ei col 1
 shot 05-grid-folder-focus          "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 3
 shot 06-folder-open                "${B[@]}" "${DARK[@]}" --es screen folder --ei row 1 --ei col 3 --ei focus 0
-shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei row 1 --ei col 2 --ei focus 3
+shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei row 1 --ei col 2 --ei focus 5
 shot 08-control-centre-hero        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei col 3 --ei focus 8
 shot 09-app-switcher               "${B[@]}" "${DARK[@]}" --es screen switcher
 shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher --ez lift true
@@ -74,6 +74,28 @@ shot 13-settings-dialog-light      "${B[@]}" --es appearance light --es glass li
 shot 14-home-frosted-light         "${B[@]}" --es appearance light --es glass frosted --es screen home --ei col 1
 shot 15-grid-frosted-light         "${B[@]}" --es appearance light --es glass frosted --es screen grid --ei row 2 --ei col 2
 shot 16-control-centre-light       "${B[@]}" --es appearance light --es glass liquid --es screen controlcentre --ei row 1 --ei col 1 --ei focus 4
+shot 20-context-menu-grid          "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 0
+shot 21-context-menu-dock          "${B[@]}" "${DARK[@]}" --es screen menu --ei row 0 --ei col 2 --ei focus 3
+shot 22-move-mode                  "${B[@]}" "${DARK[@]}" --es screen move --ei row 1 --ei col 2
+shot 23-sidebar                    "${B[@]}" "${DARK[@]}" --es screen sidebar --ei focus 4
+shot 24-sidebar-light              "${B[@]}" --es appearance light --es glass liquid --es screen sidebar --ei focus 1
+shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass liquid --es screen home --ei col 1
+shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
+shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 0
+# Context menu → Add to Folder picker.
+start "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 1; sleep 3
+key KEYCODE_DPAD_CENTER 2; cap 28-folder-picker
+key KEYCODE_BACK 1
+# Real hold-OK on a tile opens the context menu.
+start "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 2; sleep 3
+adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 2; cap 29-long-press-menu
+key KEYCODE_BACK 1
+# Aerial screensaver: Prism scenes (offline) and Apple TV aerials (network).
+start "${B[@]}" "${DARK[@]}" --es aerial prism --es screen aerial; sleep 6; cap 30-aerial-prism-scenes
+adb shell input keyevent KEYCODE_BACK; sleep 2
+start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple
+sleep 10; cap 32-aerial-apple-later
+adb shell input keyevent KEYCODE_BACK; sleep 2
 
 # Real D-pad navigation (no debug state): right, right, down.
 start "${B[@]}" "${DARK[@]}" --es screen home --ei col 0; sleep 4
@@ -108,9 +130,23 @@ finish motion-switcher
 
 # Motion: launch zoom (demo app zooms to full screen and back).
 start "${B[@]}" "${DARK[@]}" --es screen home --ei col 1; sleep 4
-record motion-launch 6
-key KEYCODE_DPAD_CENTER 4
+record motion-launch 7
+key KEYCODE_DPAD_CENTER 5
 finish motion-launch
+
+# Motion: hold OK → context menu → Move → rearrange → done.
+start "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 1; sleep 4
+record motion-move 12
+adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 1.6
+key KEYCODE_DPAD_CENTER 1.4; key KEYCODE_DPAD_RIGHT 1.0; key KEYCODE_DPAD_RIGHT 1.0; key KEYCODE_DPAD_DOWN 1.2
+key KEYCODE_DPAD_CENTER 1.5
+finish motion-move
+
+# Motion: sidebar capsule (Left from the first tile).
+start "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 0; sleep 4
+record motion-sidebar 7
+key KEYCODE_DPAD_LEFT 1.4; key KEYCODE_DPAD_DOWN 0.8; key KEYCODE_DPAD_DOWN 0.8; key KEYCODE_DPAD_DOWN 1; key KEYCODE_DPAD_RIGHT 1.5
+finish motion-sidebar
 
 # Motion: Control Centre.
 start "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 2; sleep 4

@@ -25,6 +25,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -32,6 +33,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -56,15 +58,20 @@ import com.prismtv.launcher.ui.glass.LocalBackdrop
 import com.prismtv.launcher.ui.glass.SupportsLiveBlur
 import com.prismtv.launcher.ui.glass.backdropSource
 import com.prismtv.launcher.ui.glass.blurRadiusFor
+import com.prismtv.launcher.ui.home.ContextMenuHost
 import com.prismtv.launcher.ui.home.FolderOverlay
 import com.prismtv.launcher.ui.home.HomeScreen
+import com.prismtv.launcher.ui.home.Sidebar
 import com.prismtv.launcher.ui.settings.SettingsScreen
 import com.prismtv.launcher.ui.switcher.AppSwitcher
 import com.prismtv.launcher.ui.theme.Appearance
 import com.prismtv.launcher.ui.theme.LocalPrism
 import com.prismtv.launcher.ui.theme.Palettes
 import com.prismtv.launcher.ui.theme.PrismTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Date
 import kotlin.math.min
 
@@ -223,6 +230,8 @@ fun PrismApp(vm: LauncherViewModel) {
     }
 
     val clock = rememberClock(vm.clockOverride)
+    val scope = rememberCoroutineScope()
+    val keys = remember { RemoteKeys(vm, scope) }
     val focusRequester = remember { FocusRequester() }
     val activity = LocalContext.current as? Activity
     LaunchedEffect(vm.restartTick) {
@@ -244,11 +253,17 @@ fun PrismApp(vm: LauncherViewModel) {
                 .onSizeChanged { backdrop.rootSize = it }
                 .focusRequester(focusRequester)
                 .focusable()
-                .onPreviewKeyEvent { handleKey(vm, it) }
+                .onPreviewKeyEvent { keys.handle(it) }
         ) {
             Box(
                 Modifier
                     .fillMaxSize()
+                    .graphicsLayer {
+                        // Home recedes slightly while an app zooms out of its icon.
+                        val lp = if (vm.launchAnim != null) vm.launchProgress.coerceIn(0f, 1f) else 0f
+                        scaleX = 1f - 0.06f * lp
+                        scaleY = 1f - 0.06f * lp
+                    }
                     .backdropSource(backdrop, GlassSource.Full)
             ) {
                 Box(
@@ -259,10 +274,12 @@ fun PrismApp(vm: LauncherViewModel) {
                     HomeScreen(vm, clock)
                 }
                 FolderOverlay(vm)
+                Sidebar(vm, clock)
                 ControlCentre(vm, clock)
                 AppSwitcher(vm)
                 SettingsScreen(vm)
             }
+            ContextMenuHost(vm)
             DialogHost(vm.dialog, vm.dialogFocus)
             LaunchOverlay(vm)
             BannerHost(vm.banner)
@@ -275,32 +292,78 @@ fun PrismApp(vm: LauncherViewModel) {
     BackHandler { vm.onBack() }
 }
 
-private fun handleKey(vm: LauncherViewModel, e: KeyEvent): Boolean {
-    val native = e.nativeKeyEvent
-    val key = when (native.keyCode) {
-        AndroidKeyEvent.KEYCODE_DPAD_UP -> NavKey.Up
-        AndroidKeyEvent.KEYCODE_DPAD_DOWN -> NavKey.Down
-        AndroidKeyEvent.KEYCODE_DPAD_LEFT -> NavKey.Left
-        AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> NavKey.Right
-        AndroidKeyEvent.KEYCODE_DPAD_CENTER,
-        AndroidKeyEvent.KEYCODE_ENTER,
-        AndroidKeyEvent.KEYCODE_NUMPAD_ENTER,
-        AndroidKeyEvent.KEYCODE_BUTTON_A -> NavKey.Select
-        AndroidKeyEvent.KEYCODE_MENU,
-        AndroidKeyEvent.KEYCODE_BUTTON_Y -> NavKey.Menu
-        AndroidKeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-        AndroidKeyEvent.KEYCODE_MEDIA_PLAY -> NavKey.PlayPause
-        AndroidKeyEvent.KEYCODE_APP_SWITCH -> {
-            if (native.action == AndroidKeyEvent.ACTION_DOWN && native.repeatCount == 0) vm.openSwitcher()
-            return true
+/**
+ * Maps remote keys to [NavKey]s. OK/Select fires on release so that holding it can open the context
+ * menu instead (like tvOS): a hold is detected from key repeats, the long-press flag, or a timer for
+ * remotes that don't auto-repeat.
+ */
+private class RemoteKeys(private val vm: LauncherViewModel, private val scope: CoroutineScope) {
+    private var selectDown = false
+    private var longFired = false
+    private var holdJob: Job? = null
+
+    fun handle(e: KeyEvent): Boolean {
+        val native = e.nativeKeyEvent
+        val key = when (native.keyCode) {
+            AndroidKeyEvent.KEYCODE_DPAD_UP -> NavKey.Up
+            AndroidKeyEvent.KEYCODE_DPAD_DOWN -> NavKey.Down
+            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> NavKey.Left
+            AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> NavKey.Right
+            AndroidKeyEvent.KEYCODE_DPAD_CENTER,
+            AndroidKeyEvent.KEYCODE_ENTER,
+            AndroidKeyEvent.KEYCODE_NUMPAD_ENTER,
+            AndroidKeyEvent.KEYCODE_BUTTON_A -> return handleSelect(native)
+            AndroidKeyEvent.KEYCODE_MENU,
+            AndroidKeyEvent.KEYCODE_BUTTON_Y -> NavKey.Menu
+            AndroidKeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+            AndroidKeyEvent.KEYCODE_MEDIA_PLAY -> NavKey.PlayPause
+            AndroidKeyEvent.KEYCODE_APP_SWITCH -> {
+                if (native.action == AndroidKeyEvent.ACTION_DOWN && native.repeatCount == 0) vm.openSwitcher()
+                return true
+            }
+            else -> return false
         }
-        else -> return false
+        if (native.action == AndroidKeyEvent.ACTION_DOWN) vm.onKey(key)
+        return true
     }
-    if (native.action == AndroidKeyEvent.ACTION_DOWN) {
-        if (key == NavKey.Select && native.repeatCount > 0) return true
-        vm.onKey(key)
+
+    private fun handleSelect(native: AndroidKeyEvent): Boolean {
+        when (native.action) {
+            AndroidKeyEvent.ACTION_DOWN -> {
+                if (native.repeatCount == 0) {
+                    selectDown = true
+                    longFired = false
+                    holdJob?.cancel()
+                    holdJob = scope.launch {
+                        delay(LONG_PRESS_MS)
+                        fireLong()
+                    }
+                } else if (selectDown && (native.isLongPress || native.eventTime - native.downTime >= LONG_PRESS_MS)) {
+                    fireLong()
+                }
+            }
+            AndroidKeyEvent.ACTION_UP -> {
+                holdJob?.cancel()
+                holdJob = null
+                // Ignore a release whose press happened before we had focus (e.g. the press that opened us).
+                if (selectDown && !longFired) vm.onKey(NavKey.Select)
+                selectDown = false
+                longFired = false
+            }
+        }
+        return true
     }
-    return true
+
+    private fun fireLong() {
+        if (!selectDown || longFired) return
+        longFired = true
+        holdJob?.cancel()
+        vm.onKey(NavKey.LongSelect)
+    }
+
+    private companion object {
+        const val LONG_PRESS_MS = 550L
+    }
 }
 
 @Composable

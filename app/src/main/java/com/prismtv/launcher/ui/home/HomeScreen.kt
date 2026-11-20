@@ -6,6 +6,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,6 +81,7 @@ import com.prismtv.launcher.ui.components.HSpace
 import com.prismtv.launcher.ui.components.PIcon
 import com.prismtv.launcher.ui.components.PText
 import com.prismtv.launcher.ui.components.VSpace
+import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.BackdropState
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.LocalBackdrop
@@ -124,9 +131,12 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             rowGap = rowGap,
             focusIndex = focusIndex,
             gridMode = gridMode,
-            showHint = heroOn && !gridMode && !expanded && vm.overlay == Overlay.None,
+            showHint = heroOn && !gridMode && !expanded && vm.overlay == Overlay.None && vm.movingId == null,
             palette = p,
+            movingId = vm.movingId,
         )
+
+        MoveHint(visible = vm.movingId != null, modifier = Modifier.align(Alignment.BottomCenter))
 
         val pillVisible = !gridMode && vm.overlay != Overlay.ControlCentre
         val pillAlpha by animateFloatAsState(if (pillVisible) 1f else 0f, tween(300), label = "pill")
@@ -219,7 +229,7 @@ private fun HeroOverlay(
         ) { h ->
             Box(Modifier.fillMaxSize()) {
                 // Collapsed: title treatment top-left, like tvOS Top Shelf.
-                if (e < 0.99f) {
+                if (e < 0.99f && h.title.isNotBlank()) {
                     Column(
                         Modifier
                             .offset(x = 46.dp, y = 38.dp)
@@ -244,13 +254,15 @@ private fun HeroOverlay(
                             .graphicsLayer { alpha = e; translationY = 26.dp.toPx() * (1f - e) }
                             .widthIn(max = 560.dp)
                     ) {
-                        HeroLogo(h)
-                        PText(h.appLabel.uppercase(), 11.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.72f), letterSpacing = 1.4.sp, shadow = true)
-                        VSpace(4.dp)
-                        val longX = h.title.length > 26
-                        PText(h.title, if (longX) 32.sp else 44.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (longX) (-0.5).sp else (-1).sp, shadow = true, lineHeight = if (longX) 36.sp else 46.sp)
-                        VSpace(8.dp)
-                        MetaRow(h)
+                        if (h.title.isNotBlank()) {
+                            HeroLogo(h)
+                            PText(h.appLabel.uppercase(), 11.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.72f), letterSpacing = 1.4.sp, shadow = true)
+                            VSpace(4.dp)
+                            val longX = h.title.length > 26
+                            PText(h.title, if (longX) 32.sp else 44.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (longX) (-0.5).sp else (-1).sp, shadow = true, lineHeight = if (longX) 36.sp else 46.sp)
+                            VSpace(8.dp)
+                            MetaRow(h)
+                        }
                         if (h.description.isNotEmpty()) {
                             VSpace(12.dp)
                             PText(h.description, 15.sp, FontWeight.Normal, Color.White.copy(alpha = 0.86f), maxLines = 3, shadow = true, lineHeight = 21.sp)
@@ -359,6 +371,7 @@ private fun AppGrid(
     gridMode: Boolean,
     showHint: Boolean,
     palette: PrismPalette,
+    movingId: String?,
 ) {
     val theme = LocalPrism.current
     val iconW = HomeLayout.iconW(cols)
@@ -397,6 +410,10 @@ private fun AppGrid(
             // Cull rows far below the focus.
             if (r > focusRow.coerceAtLeast(0) + 4) return@forEachIndexed
             key(item.id) {
+                // Tiles glide to new slots when apps are moved, hidden or foldered.
+                val slide = spring<Float>(dampingRatio = 0.82f, stiffness = 340f)
+                val ax by animateFloatAsState(HomeLayout.x(cols, c), slide, label = "tileX")
+                val ar by animateFloatAsState(r.toFloat(), slide, label = "tileRow")
                 val focused = i == focusIndex
                 val unfocusedScale = when {
                     focusIndex < 0 -> 1f
@@ -412,6 +429,7 @@ private fun AppGrid(
                 GridTile(
                     item = item,
                     focused = focused,
+                    moving = item.id == movingId,
                     unfocusedScale = unfocusedScale,
                     showLabel = showLabel,
                     labelColor = labelColor,
@@ -419,10 +437,11 @@ private fun AppGrid(
                     tileH = iconH,
                     modifier = Modifier
                         .offset {
-                            IntOffset(
-                                HomeLayout.x(cols, c).dp.roundToPx(),
-                                HomeLayout.y(cols, r, trayTop.value, rowGap.value).dp.roundToPx(),
-                            )
+                            val r0 = ar.toInt().coerceAtLeast(0)
+                            val fr = (ar - r0).coerceIn(0f, 1f)
+                            val y0 = HomeLayout.y(cols, r0, trayTop.value, rowGap.value)
+                            val y1 = HomeLayout.y(cols, r0 + 1, trayTop.value, rowGap.value)
+                            IntOffset(ax.dp.roundToPx(), lerpF(y0, y1, fr).dp.roundToPx())
                         }
                         .size(iconW.dp, iconH.dp),
                 )
@@ -441,12 +460,26 @@ fun GridTile(
     labelOffset: Float,
     modifier: Modifier,
     tileH: Float = 74.4f,
+    moving: Boolean = false,
 ) {
     val theme = LocalPrism.current
     val effect = theme.focusEffect
-    val target = if (focused) (if (effect == FocusEffect.Lift) 1.17f else HomeLayout.FocusScale) else unfocusedScale
+    val target = when {
+        moving -> HomeLayout.FocusScale + 0.06f
+        focused -> if (effect == FocusEffect.Lift) 1.17f else HomeLayout.FocusScale
+        else -> unfocusedScale
+    }
     val scale by animateFloatAsState(target, spring(dampingRatio = 0.62f, stiffness = 300f), label = "tileScale")
-    val elevation by animateDpAsState(if (focused) 26.dp else 4.dp, spring(stiffness = 300f), label = "tileElev")
+    val elevation by animateDpAsState(if (moving) 34.dp else if (focused) 26.dp else 4.dp, spring(stiffness = 300f), label = "tileElev")
+    // Rearranging: the picked-up tile wiggles, as on tvOS.
+    val wiggle = if (moving) {
+        val inf = rememberInfiniteTransition(label = "wiggle")
+        inf.animateFloat(
+            -1f, 1f,
+            infiniteRepeatable(tween(150, easing = LinearEasing), RepeatMode.Reverse),
+            label = "wiggleT",
+        ).value
+    } else 0f
     val labelAlpha by animateFloatAsState(if (showLabel) 1f else 0f, tween(220), label = "label")
     val sheen = remember { Animatable(-1f) }
     LaunchedEffect(focused, effect) {
@@ -475,6 +508,7 @@ fun GridTile(
                     ambientShadowColor = glow
                     spotShadowColor = glow
                     if (effect == FocusEffect.Lift && focused) rotationX = 3f
+                    rotationZ = wiggle * 1.6f
                 }
                 .drawWithContent {
                     drawContent()
@@ -530,6 +564,30 @@ fun GridTile(
                 shadow = labelColor == Color.White,
             )
         }
+    }
+}
+
+// ------------------------------------------------------------------------------------------ move hint
+
+@Composable
+private fun MoveHint(visible: Boolean, modifier: Modifier) {
+    val theme = LocalPrism.current
+    val p = theme.palette
+    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 300f), label = "moveHint")
+    if (t < 0.01f) return
+    Row(
+        modifier
+            .padding(bottom = 22.dp)
+            .graphicsLayer { alpha = t; translationY = (1f - t) * 30.dp.toPx() }
+            .height(38.dp)
+            .glass(Pill, theme.controlGlass(), GlassSource.Background, elevation = 10.dp)
+            .padding(horizontal = 18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val fg = if (p.isDark) Color.White else p.textPrimary
+        PIcon(Icons.Rounded.OpenWith, fg, 18.dp)
+        HSpace(10.dp)
+        PText("Move with the arrows · Press OK when done", 14.sp, FontWeight.Medium, fg)
     }
 }
 

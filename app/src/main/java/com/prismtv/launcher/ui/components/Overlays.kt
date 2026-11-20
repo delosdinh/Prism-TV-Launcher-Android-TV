@@ -1,7 +1,15 @@
 package com.prismtv.launcher.ui.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -144,77 +152,139 @@ fun BannerHost(spec: BannerSpec?) {
     }
 }
 
-private val LaunchEasing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
-
 /**
- * The launch transition: the focused tile expands to fill the screen (and collapses back into
- * place when you return), the way tvOS zooms between an icon and its app.
+ * tvOS-style app launch. The focused icon presses in, then springs open into a full-screen launch
+ * window (the app's backdrop with its icon centred) while the Home Screen recedes behind it. The app
+ * is started part-way through so its own start-up overlaps the motion and it fades in over the
+ * launch window. Coming back runs the same motion in reverse: the window shrinks back into its icon.
  */
 @Composable
 fun LaunchOverlay(vm: LauncherViewModel) {
     val anim = vm.launchAnim ?: return
     val progress = remember(anim.id) { Animatable(if (anim.reverse) 1f else 0f) }
+    val press = remember(anim.id) { Animatable(1f) }
     val art = anim.art
     LaunchedEffect(anim.id) {
         if (art != null) vm.requestArt(art)
-        progress.animateTo(
-            if (anim.reverse) 0f else 1f,
-            tween(if (anim.reverse) 520 else 480, easing = LaunchEasing),
-        )
+        launch { snapshotFlow { progress.value }.collect { vm.launchProgress = it } }
+        if (anim.reverse) {
+            progress.animateTo(0f, spring(dampingRatio = 0.88f, stiffness = 200f, visibilityThreshold = 0.002f))
+        } else {
+            launch {
+                snapshotFlow { progress.value }.first { it >= 0.45f }
+                vm.onLaunchMidpoint(anim)
+            }
+            press.animateTo(0.92f, tween(120, easing = FastOutSlowInEasing))
+            launch { press.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 260f)) }
+            progress.animateTo(1f, spring(dampingRatio = 0.82f, stiffness = 165f, visibilityThreshold = 0.002f))
+        }
         vm.onLaunchZoomComplete(anim)
     }
     val heroArt = art?.let { vm.artCache[it.key] }
     val pr = progress.value
+    val pc = pr.coerceIn(0f, 1f)
+    val ps = press.value
+
+    // The focused tile is drawn enlarged on the grid, so start from its focused size.
+    val fs = HomeLayout.FocusScale
     val from = anim.from
-    val l = lerpF(from.left, 0f, pr)
-    val tp = lerpF(from.top, 0f, pr)
-    val w = lerpF(from.width, HomeLayout.ScreenW, pr)
-    val h = lerpF(from.height, HomeLayout.ScreenH, pr)
-    val radius = lerpF(14f, 0f, pr)
-    val artAlpha = ((pr - 0.25f) / 0.5f).coerceIn(0f, 1f)
-    val blackout = if (anim.app.demo != null) 0f else if (anim.reverse) ((pr - 0.75f) / 0.25f).coerceIn(0f, 1f) else ((pr - 0.82f) / 0.18f).coerceIn(0f, 1f)
+    val fw = from.width * fs
+    val fh = from.height * fs
+    val fl = from.center.x - fw / 2f
+    val ft = from.center.y - fh / 2f
+
+    // Window: tile → full screen (allowed to overshoot a touch for a springy settle).
+    val wp = pr.coerceAtMost(1.015f)
+    val wl = lerpF(fl, 0f, wp)
+    val wt = lerpF(ft, 0f, wp)
+    val ww = lerpF(fw, HomeLayout.ScreenW, wp)
+    val wh = lerpF(fh, HomeLayout.ScreenH, wp)
+    val wRadius = lerpF(13f * fs, 0f, pc)
+
+    // Icon: tile → large centred mark on the launch window.
+    val iw1 = 300f
+    val ih1 = iw1 * fh / fw
+    val il = lerpF(fl, (HomeLayout.ScreenW - iw1) / 2f, pr)
+    val itp = lerpF(ft, (HomeLayout.ScreenH - ih1) / 2f, pr)
+    val iw = lerpF(fw, iw1, pr)
+    val ih = lerpF(fh, ih1, pr)
+    val iRadius = lerpF(13f * fs, 24f, pc)
+
+    // The window's own backdrop fades up behind the icon as it opens.
+    val bgAlpha = (pc / 0.38f).coerceIn(0f, 1f)
+    val dim = 0.42f * pc
 
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.45f * pr))
+                .background(Color.Black.copy(alpha = dim))
         )
+        // Launch window.
         Box(
             Modifier
-                .offset { IntOffset(l.dp.roundToPx(), tp.dp.roundToPx()) }
-                .size(w.dp, h.dp)
+                .offset { IntOffset(wl.dp.roundToPx(), wt.dp.roundToPx()) }
+                .size(ww.dp, wh.dp)
                 .graphicsLayer {
-                    shape = RoundedCornerShape(radius.dp)
+                    scaleX = ps
+                    scaleY = ps
+                    alpha = bgAlpha
+                    shape = RoundedCornerShape(wRadius.dp)
                     clip = true
-                    shadowElevation = 30.dp.toPx() * (1f - pr * 0.6f)
+                    shadowElevation = 40.dp.toPx() * (1f - pc * 0.7f)
                 }
-                .background(anim.app.tint)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(lightenColor(anim.app.tint, 0.10f), darkenColor(anim.app.tint, 0.35f))
+                    )
+                )
         ) {
-            AppArtwork(anim.app)
-            if (heroArt != null && artAlpha > 0f) {
+            if (heroArt != null) {
                 Image(
-                    heroArt.full, null,
+                    heroArt.heavy, null,
                     Modifier
                         .fillMaxSize()
-                        .graphicsLayer { alpha = artAlpha },
+                        .graphicsLayer { alpha = 0.9f },
                     contentScale = ContentScale.Crop,
                 )
-                // App mark settles in the centre of the "launch screen".
-                Box(
-                    Modifier
-                        .align(Alignment.Center)
-                        .size((HomeLayout.iconW(6) * 1.6f).dp, (HomeLayout.iconH(6) * 1.6f).dp)
-                        .graphicsLayer { alpha = artAlpha; shape = RoundedCornerShape(20.dp); clip = true; shadowElevation = 24.dp.toPx() }
-                ) { AppArtwork(anim.app) }
             }
-            if (blackout > 0f) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = blackout))
-                )
-            }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Brush.radialGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.45f))))
+            )
+        }
+        // The icon itself, growing out of the grid.
+        Box(
+            Modifier
+                .offset { IntOffset(il.dp.roundToPx(), itp.dp.roundToPx()) }
+                .size(iw.dp, ih.dp)
+                .graphicsLayer {
+                    scaleX = ps
+                    scaleY = ps
+                    shape = RoundedCornerShape(iRadius.dp)
+                    clip = true
+                    shadowElevation = 28.dp.toPx()
+                    ambientShadowColor = anim.app.tint
+                    spotShadowColor = anim.app.tint
+                }
+                .drawWithContent {
+                    drawContent()
+                    // Glass rim catching the light as it grows.
+                    drawRoundRect(
+                        Brush.linearGradient(
+                            listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.04f), Color.White.copy(alpha = 0.25f)),
+                            start = Offset.Zero, end = Offset(size.width, size.height),
+                        ),
+                        cornerRadius = CornerRadius(iRadius.dp.toPx()),
+                        style = Stroke(1.5.dp.toPx()),
+                    )
+                }
+        ) {
+            AppArtwork(anim.app)
         }
     }
 }
+
+private fun lightenColor(c: Color, f: Float) = Color(c.red + (1f - c.red) * f, c.green + (1f - c.green) * f, c.blue + (1f - c.blue) * f, 1f)
+private fun darkenColor(c: Color, f: Float) = Color(c.red * (1f - f), c.green * (1f - f), c.blue * (1f - f), 1f)

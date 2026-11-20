@@ -168,7 +168,9 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
     val demo = app.demo
     val icon = app.icon
     when {
-        banner != null -> Image(banner, app.label, modifier, contentScale = ContentScale.Crop)
+        banner != null -> Box(modifier.background(app.tint)) {
+            Image(banner, app.label, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        }
         demo != null -> DemoIcon(demo, modifier)
         else -> Box(
             modifier.background(Brush.verticalGradient(listOf(lighten(app.tint, 0.16f), darken(app.tint, 0.12f)))),

@@ -24,6 +24,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -151,6 +152,33 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
     val radius = if (isHome) lerpF(0f, 28f, open) else 28f
     val shape = RoundedCornerShape(radius.dp)
 
+    // Icon (and name) above the card. Drawn outside the card's layer so the deck's stacked icons are
+    // never clipped by a translucent card; icons stack up like the cards, names only where there's room.
+    val labelTop = y + ch * (1f - scale) / 2f - 44f - lift * 640f
+    Row(
+        Modifier
+            .offset { IntOffset(x.dp.roundToPx(), labelTop.dp.roundToPx()) }
+            .graphicsLayer { this.alpha = open * (1f - lift) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier
+                .size(52.dp, 31.dp)
+                .shadow(8.dp, RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF2B2E36))
+        ) {
+            val app = e.app
+            if (app != null) AppArtwork(app) else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                PIcon(Icons.Rounded.Home, Color.White, 20.dp)
+            }
+        }
+        if (rel >= 0) {
+            HSpace(12.dp)
+            PText(e.app?.label ?: "Home", 19.sp, FontWeight.SemiBold, Color.White, shadow = true)
+        }
+    }
+
     Box(
         Modifier
             .offset { IntOffset(x.dp.roundToPx(), (y - lift * 640f).dp.roundToPx()) }
@@ -166,30 +194,6 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
                 clip = false
             }
     ) {
-        // Label above the card (icons stack up in the deck; names only where there's room).
-        Row(
-            Modifier
-                .offset(0.dp, (-44).dp)
-                .graphicsLayer { this.alpha = open },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier
-                    .size(52.dp, 31.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF2B2E36))
-            ) {
-                val app = e.app
-                if (app != null) AppArtwork(app) else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    PIcon(Icons.Rounded.Home, Color.White, 20.dp)
-                }
-            }
-            if (rel >= 0) {
-                HSpace(12.dp)
-                PText(e.app?.label ?: "Home", 19.sp, FontWeight.SemiBold, Color.White, shadow = true)
-            }
-        }
-
         Box(
             Modifier
                 .fillMaxSize()

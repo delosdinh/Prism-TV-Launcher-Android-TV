@@ -6,6 +6,7 @@ activityCompose = "1.10.1"
 coreKtx = "1.15.0"
 lifecycle = "2.8.7"
 coroutines = "1.10.1"
+media3 = "1.5.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -21,6 +22,7 @@ compose-material-icons-extended = { group = "androidx.compose.material", name = 
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

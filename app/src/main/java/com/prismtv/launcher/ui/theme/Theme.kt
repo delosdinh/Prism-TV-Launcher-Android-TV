@@ -110,9 +110,16 @@ data class PrismTheme(
 
     /** Large floating panels: Control Centre, dialogs, banners. */
     fun panelFill(): Color = if (liquid) {
-        palette.panelGlass.copy(alpha = if (palette.isDark) 0.46f else 0.50f)
+        if (palette.isDark) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.22f)
     } else {
         palette.panelGlass.copy(alpha = palette.panelOpacity * 0.86f)
+    }
+
+    /** Floating controls (Control Centre tiles, sidebar, menus): clear glass with a light veil for legibility. */
+    fun controlGlass(): Color = if (liquid) {
+        if (palette.isDark) Color.Black.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.30f)
+    } else {
+        palette.panelGlass.copy(alpha = palette.panelOpacity * 0.9f)
     }
 
     /** Dialogs and banners: denser so text stays legible over bright content. */
@@ -122,14 +129,14 @@ data class PrismTheme(
 
     /** The dock tray on the Home Screen. */
     fun trayFill(): Color = if (liquid) {
-        if (palette.isDark) Color.White.copy(alpha = 0.07f) else Color.White.copy(alpha = 0.26f)
+        if (palette.isDark) Color.White.copy(alpha = 0.04f) else Color.White.copy(alpha = 0.12f)
     } else {
         palette.panelGlass.copy(alpha = 0.55f)
     }
 
     /** Small floating pills (time pill, hero buttons). */
     fun pillFill(): Color = if (liquid) {
-        if (palette.isDark) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.34f)
+        if (palette.isDark) Color.Black.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.22f)
     } else {
         palette.panelGlass.copy(alpha = 0.72f)
     }

@@ -108,6 +108,13 @@ object SystemActions {
         return intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
     }
 
+    fun appInfo(ctx: Context, pkg: String): Boolean =
+        start(ctx, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$pkg")))
+
+    fun uninstall(ctx: Context, pkg: String): Boolean =
+        start(ctx, Intent(Intent.ACTION_DELETE, android.net.Uri.parse("package:$pkg"))) ||
+            appInfo(ctx, pkg)
+
     fun openUri(ctx: Context, uri: String): Boolean = try {
         start(ctx, Intent.parseUri(uri, Intent.URI_INTENT_SCHEME))
     } catch (_: Throwable) {

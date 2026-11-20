@@ -207,7 +207,15 @@ class HeroArt(
 )
 
 class ArtRepository(private val context: Context) {
-    private val cache = LruCache<String, HeroArt>(6)
+    private val cache = LruCache<String, HeroArt>(8)
+
+    private class Brand(val banner: Bitmap?, val icon: Bitmap?, val tint: Int)
+
+    private val brands = java.util.concurrent.ConcurrentHashMap<String, Brand>()
+
+    fun registerBrand(appId: String, banner: Bitmap?, icon: Bitmap?, tint: Int) {
+        brands[appId] = Brand(banner, icon, tint)
+    }
 
     fun cached(ref: ArtRef): HeroArt? = cache.get(ref.key)
 
@@ -233,6 +241,7 @@ class ArtRepository(private val context: Context) {
             context.resources, ref.resId,
             BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
         )
+        is BannerArt -> brands[ref.appId]?.let { brandBackdrop(it.banner, it.icon, it.tint) }
         is UriArt -> {
             val uri = Uri.parse(ref.uri)
             val stream = when (uri.scheme) {
@@ -247,9 +256,70 @@ class ArtRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Top Shelf for apps that publish no artwork: the app's banner large and centred on a field
+     * of its own colours (a heavily blurred, enlarged copy of the banner), like tvOS app Top Shelves.
+     */
+    private fun brandBackdrop(banner: Bitmap?, icon: Bitmap?, tint: Int): Bitmap {
+        val out = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(out)
+        c.drawColor(darken(tint, 0.55f))
+        val src = banner ?: icon
+        if (src != null) {
+            val paint = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG or android.graphics.Paint.ANTI_ALIAS_FLAG)
+            val wash = Blur.blur(src, 48, 3)
+            c.drawBitmap(wash, null, android.graphics.RectF(-160f, -160f, 2080f, 1240f), paint)
+            c.drawColor(0x59000000)
+            val isBanner = banner != null
+            val w = if (isBanner) 760f else 300f
+            val h = w * src.height / src.width
+            val left = (1920f - w) / 2f
+            val top = (1080f - h) / 2f - 30f
+            val rect = android.graphics.RectF(left, top, left + w, top + h)
+            val shadow = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = 0x66000000
+                maskFilter = android.graphics.BlurMaskFilter(48f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+            }
+            val radius = if (isBanner) 44f else w * 0.22f
+            c.drawRoundRect(android.graphics.RectF(rect.left, rect.top + 24f, rect.right, rect.bottom + 24f), radius, radius, shadow)
+            val save = c.save()
+            val clip = android.graphics.Path().apply { addRoundRect(rect, radius, radius, android.graphics.Path.Direction.CW) }
+            c.clipPath(clip)
+            c.drawColor(tint)
+            c.drawBitmap(src, null, rect, paint)
+            c.restoreToCount(save)
+        }
+        return out
+    }
+
+    private fun darken(argb: Int, f: Float): Int {
+        val r = ((argb shr 16) and 0xFF) * (1 - f)
+        val g = ((argb shr 8) and 0xFF) * (1 - f)
+        val b = (argb and 0xFF) * (1 - f)
+        return (0xFF shl 24) or (r.toInt() shl 16) or (g.toInt() shl 8) or b.toInt()
+    }
+
+    /** Portrait/square poster art: poster on the right over a wash of its own colours. */
+    private fun posterBackdrop(src: Bitmap): Bitmap {
+        val out = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(out)
+        val paint = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG or android.graphics.Paint.ANTI_ALIAS_FLAG)
+        c.drawBitmap(Blur.blur(src, 64, 4), null, android.graphics.RectF(-120f, -320f, 2040f, 1400f), paint)
+        c.drawColor(0x40000000)
+        val h = 900f
+        val w = h * src.width / src.height
+        val rect = android.graphics.RectF(1920f - 150f - w, 90f, 1920f - 150f, 90f + h)
+        val save = c.save()
+        c.clipPath(android.graphics.Path().apply { addRoundRect(rect, 28f, 28f, android.graphics.Path.Direction.CW) })
+        c.drawBitmap(src, null, rect, paint)
+        c.restoreToCount(save)
+        return out
+    }
+
     private fun cropTo16x9(src: Bitmap): Bitmap {
         val target = 16f / 9f
         val ratio = src.width.toFloat() / src.height
+        if (ratio < 1.25f) return posterBackdrop(src)
         val cropped = when {
             ratio > target + 0.01f -> {
                 val w = (src.height * target).roundToInt()

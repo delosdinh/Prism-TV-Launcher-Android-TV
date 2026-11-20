@@ -15,16 +15,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccessibilityNew
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SettingsEthernet
-import androidx.compose.material.icons.rounded.Airplay
-import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.SettingsRemote
 import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.ToggleOn
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.ViewCarousel
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.runtime.Composable
@@ -40,7 +40,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prismtv.launcher.CC
@@ -65,10 +65,20 @@ private const val PillW = 111f
 private const val PillH = 50f
 private const val Gutter = 7f
 private const val Circle = 46f
+private const val CirclesTop = TilesTop + Big + Gutter + PillH + 9f
+
+private val circleLabels = mapOf(
+    CC.Recents to "Recent Apps",
+    CC.Remotes to "Remotes & Accessories",
+    CC.Search to "Search",
+    CC.System to "Android Settings",
+    CC.Prism to "Prism Settings",
+    CC.Profile to "Accounts",
+)
 
 /**
- * tvOS 27 Control Centre: a compact cluster of floating glass controls in the top-right corner.
- * No enclosing panel – each control refracts whatever is behind it.
+ * tvOS 27 Control Centre, re-thought for Android TV: a compact cluster of floating glass controls in the
+ * top-right corner. No enclosing panel – each control bends whatever is behind it.
  */
 @Composable
 fun ControlCentre(vm: LauncherViewModel, clock: String) {
@@ -80,6 +90,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
     val ctx = LocalContext.current
     val net = remember(vm.resumeTick, visible) { SystemActions.network(ctx) }
     val f = vm.ccFocus
+    val fg = if (p.isDark) Color.White else p.textPrimary
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -91,7 +102,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
         Box(
             Modifier
                 .offset(ClusterLeft.dp, 24.dp)
-                .size(ClusterW.dp, 270.dp)
+                .size(ClusterW.dp, 300.dp)
                 .graphicsLayer {
                     alpha = t
                     val s = lerpF(0.86f, 1f, t)
@@ -103,22 +114,21 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
             // Header: the time pill unfolds into the Control Centre header.
             Row(
                 Modifier
-                    .offset(0.dp, 0.dp)
                     .size(ClusterW.dp, 32.dp)
                     .padding(start = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PText(clock, 16.sp, FontWeight.SemiBold, if (p.isDark) Color.White else p.textPrimary, Modifier.weight(1f), shadow = p.isDark)
-                HeaderButton(Icons.Rounded.ToggleOn, focused = f == CC.Toggle, active = true)
+                PText(clock, 16.sp, FontWeight.SemiBold, fg, Modifier.weight(1f), shadow = p.isDark)
+                HeaderButton(Icons.Rounded.Tune, focused = f == CC.Prism)
                 HSpace(8.dp)
                 Avatar(30.dp, focused = f == CC.Profile)
             }
 
-            Tile(f == CC.Power, Modifier.offset(0.dp, TilesTop.dp).size(Big.dp, Big.dp), RoundedCornerShape(28.dp)) { fg ->
+            Tile(f == CC.Power, Modifier.offset(0.dp, TilesTop.dp).size(Big.dp, Big.dp), RoundedCornerShape(28.dp)) { c ->
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    PIcon(Icons.Rounded.PowerSettingsNew, fg, 50.dp)
+                    PIcon(Icons.Rounded.PowerSettingsNew, c, 50.dp)
                     VSpace(6.dp)
-                    PText("Power Off", 13.sp, FontWeight.SemiBold, fg)
+                    PText("Power", 13.sp, FontWeight.SemiBold, c)
                 }
             }
             PillTile(
@@ -132,16 +142,16 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 title = net.title, subtitle = if (net.connected && !net.ethernet) "On" else net.subtitle,
             )
             PillTile(
-                f == CC.Dnd, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
-                icon = Icons.Rounded.DarkMode,
-                iconColor = if (vm.dndOn) Color(0xFF5E5CE6) else null,
+                f == CC.Screensaver, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
+                icon = Icons.Rounded.Landscape,
+                iconColor = Color(0xFF30B0C7),
                 circled = true,
-                title = "Do Not", subtitle = "Disturb", subtitleStrong = true,
+                title = "Show", subtitle = "Screensaver", subtitleStrong = true,
             )
             PillTile(
                 f == CC.Audio, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
-                icon = Icons.Rounded.Airplay, iconColor = p.accent,
-                title = "Audio", subtitle = null,
+                icon = Icons.AutoMirrored.Rounded.VolumeUp, iconColor = p.accent,
+                title = "Sound", subtitle = "Output",
             )
             PillTile(
                 f == CC.Sleep, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
@@ -151,29 +161,39 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 title = "Sleep", subtitle = if (vm.sleepMinutes > 0) vm.sleepLabel() else "Timer", subtitleStrong = vm.sleepMinutes == 0,
             )
             val circles = listOf(
-                CC.Game to Icons.Rounded.SportsEsports,
-                CC.Access to Icons.Rounded.AccessibilityNew,
-                CC.Restrict to Icons.Rounded.Lock,
+                CC.Recents to Icons.Rounded.ViewCarousel,
+                CC.Remotes to Icons.Rounded.SettingsRemote,
                 CC.Search to Icons.Rounded.Search,
+                CC.System to Icons.Rounded.Settings,
             )
             val step = (ClusterW - Circle) / 3f
             circles.forEachIndexed { i, (id, icon) ->
                 Tile(
                     f == id,
                     Modifier
-                        .offset((step * i).dp, (TilesTop + Big + Gutter + PillH + 9f).dp)
+                        .offset((step * i).dp, CirclesTop.dp)
                         .size(Circle.dp),
                     CircleShape,
-                ) { fg ->
-                    PIcon(icon, fg, 24.dp, Modifier.align(Alignment.Center))
+                ) { c ->
+                    PIcon(icon, c, 24.dp, Modifier.align(Alignment.Center))
                 }
             }
+            // Caption for icon-only controls, like the tvOS focus label.
+            val caption = circleLabels[f]
+            PText(
+                caption ?: "", 13.sp, FontWeight.SemiBold, fg,
+                Modifier
+                    .offset(0.dp, (CirclesTop + Circle + 12f).dp)
+                    .size(ClusterW.dp, 20.dp)
+                    .graphicsLayer { alpha = if (caption != null) 1f else 0f },
+                align = TextAlign.Center, shadow = p.isDark,
+            )
         }
     }
 }
 
 @Composable
-private fun HeaderButton(icon: ImageVector, focused: Boolean, active: Boolean) {
+private fun HeaderButton(icon: ImageVector, focused: Boolean) {
     val theme = LocalPrism.current
     val scale by animateFloatAsState(if (focused) 1.16f else 1f, spring(dampingRatio = 0.6f, stiffness = 400f), label = "hdr")
     Box(
@@ -181,10 +201,13 @@ private fun HeaderButton(icon: ImageVector, focused: Boolean, active: Boolean) {
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .size(30.dp)
             .then(if (focused) Modifier.shadow(10.dp, CircleShape) else Modifier)
-            .background(if (active || focused) Color.White.copy(alpha = if (focused) 1f else 0.88f) else theme.controlIdle(), CircleShape),
+            .then(
+                if (focused) Modifier.background(theme.controlFocused(), CircleShape)
+                else Modifier.glass(CircleShape, theme.controlGlass(), GlassSource.Scene, elevation = 4.dp)
+            ),
         contentAlignment = Alignment.Center,
     ) {
-        PIcon(icon, Color(0xFF1C1C1E), 20.dp)
+        PIcon(icon, if (focused) theme.palette.textFocused else if (theme.palette.isDark) Color.White else theme.palette.textPrimary, 18.dp)
     }
 }
 
@@ -199,11 +222,7 @@ private fun Tile(
     val p = theme.palette
     val scale by animateFloatAsState(if (focused) 1.07f else 1f, spring(dampingRatio = 0.62f, stiffness = 420f), label = "tile")
     val fg = if (focused) p.textFocused else if (p.isDark) Color.White else p.textPrimary
-    val tint = if (theme.liquid) {
-        if (p.isDark) Color.Black.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.28f)
-    } else {
-        p.panelGlass.copy(alpha = p.panelOpacity * 0.9f)
-    }
+    val tint = theme.controlGlass()
     Box(
         modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
@@ -260,6 +279,3 @@ private fun PillTile(
         }
     }
 }
-
-@Suppress("unused")
-private fun Dp.half(): Dp = this / 2

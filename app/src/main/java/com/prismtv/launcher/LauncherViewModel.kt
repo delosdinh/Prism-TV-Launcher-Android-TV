@@ -1,42 +1,60 @@
 package com.prismtv.launcher
 
 import android.app.Application
+import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PowerSettingsNew
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.prismtv.launcher.aerial.AerialActivity
+import com.prismtv.launcher.data.AerialQuality
+import com.prismtv.launcher.data.AerialSource
 import com.prismtv.launcher.data.AppItem
 import com.prismtv.launcher.data.AppRepository
 import com.prismtv.launcher.data.AppearanceSetting
 import com.prismtv.launcher.data.ArtRef
 import com.prismtv.launcher.data.ArtRepository
+import com.prismtv.launcher.data.BannerArt
 import com.prismtv.launcher.data.DemoContent
 import com.prismtv.launcher.data.FocusEffect
 import com.prismtv.launcher.data.FolderItem
 import com.prismtv.launcher.data.GlassMaterial
 import com.prismtv.launcher.data.GridItem
+import com.prismtv.launcher.data.GridLayout
+import com.prismtv.launcher.data.GridLayouts
 import com.prismtv.launcher.data.HeroArt
 import com.prismtv.launcher.data.HeroItem
 import com.prismtv.launcher.data.HeroSource
 import com.prismtv.launcher.data.LabelMode
 import com.prismtv.launcher.data.LauncherApp
 import com.prismtv.launcher.data.LauncherPrefs
+import com.prismtv.launcher.data.LayoutStore
 import com.prismtv.launcher.data.PrefsStore
 import com.prismtv.launcher.data.RecentEntry
 import com.prismtv.launcher.data.RecentsRepository
@@ -59,15 +77,16 @@ import java.util.Calendar
 const val TV_LISTINGS = "android.permission.READ_TV_LISTINGS"
 
 enum class Zone { TopBar, Hero, Grid }
-enum class Overlay { None, ControlCentre, Switcher, Settings, Folder }
-enum class NavKey { Up, Down, Left, Right, Select, Menu, PlayPause }
+enum class Overlay { None, ControlCentre, Switcher, Settings, Folder, Sidebar }
+enum class NavKey { Up, Down, Left, Right, Select, LongSelect, Menu, PlayPause }
 
 data class DialogButton(val label: String, val action: () -> Unit)
 data class DialogSpec(val title: String, val message: String, val buttons: List<DialogButton>)
 data class BannerSpec(val title: String, val message: String, val icon: ImageVector, val id: Long = System.nanoTime())
 
 enum class SettingsPage(val title: String) {
-    Root("Settings"), Appearance("Appearance"), HomeScreen("Home Screen"), Apps("Apps"), About("About")
+    Root("Settings"), Appearance("Appearance"), HomeScreen("Home Screen"), Screensaver("Screensaver"),
+    Apps("Apps"), About("About")
 }
 
 data class SettingsRow(
@@ -89,25 +108,43 @@ data class LaunchAnim(
     val id: Long = System.nanoTime(),
 )
 
+data class MenuAction(val id: String, val label: String, val icon: ImageVector, val destructive: Boolean = false)
+
+/** The hold-OK context menu for an app or folder. */
+data class ContextMenuState(
+    val title: String,
+    val item: GridItem,
+    val app: LauncherApp?,
+    val parentFolder: FolderItem?,
+    val anchor: Rect,
+    val actions: List<MenuAction>,
+    val id: Long = System.nanoTime(),
+)
+
 /** Control Centre focus targets, in reading order. */
 object CC {
-    const val Home = 0
-    const val Toggle = 1
+    const val Prism = 1
     const val Profile = 2
     const val Power = 3
     const val WiFi = 4
-    const val Dnd = 5
+    const val Screensaver = 5
     const val Audio = 6
     const val Sleep = 7
-    const val Game = 8
-    const val Access = 9
-    const val Restrict = 10
-    const val Search = 11
+    const val Recents = 8
+    const val Remotes = 9
+    const val Search = 10
+    const val System = 11
+}
+
+enum class SidebarEntry(val label: String) {
+    Search("Search"), Home("Home"), Recents("Recent Apps"), Screensaver("Screensaver"),
+    PrismSettings("Prism Settings"), SystemSettings("Android Settings"),
 }
 
 class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private val ctx: Application get() = getApplication()
     private val store = PrefsStore(app)
+    private val layoutStore = LayoutStore(app)
     private val appsRepo = AppRepository(app)
     private val artRepo = ArtRepository(app)
     private val recsRepo = RecommendationsRepository(app)
@@ -118,20 +155,19 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private var realApps by mutableStateOf<List<LauncherApp>>(emptyList())
     private var heroItemsByApp by mutableStateOf<Map<String, List<HeroItem>>>(emptyMap())
+    private var layout by mutableStateOf(layoutStore.load(if (prefs.demoContent) "demo" else "real"))
+    private val layoutKey: String get() = if (prefs.demoContent) "demo" else "real"
 
     /** Visible Home Screen items (apps + folders), in order. */
     val items: List<GridItem> by derivedStateOf {
-        if (prefs.demoContent) DemoContent.items
-        else realApps.filterNot { it.id in prefs.hiddenApps }.map { AppItem(it) }
+        if (prefs.demoContent) {
+            GridLayouts.build(DemoContent.allApps, layout ?: DemoContent.defaultLayout, prefs.hiddenApps)
+        } else {
+            GridLayouts.build(realApps, layout, prefs.hiddenApps)
+        }
     }
 
-    val allApps: List<LauncherApp>
-        get() = if (prefs.demoContent) DemoContent.items.flatMap {
-            when (it) {
-                is AppItem -> listOf(it.app)
-                is FolderItem -> it.apps
-            }
-        } else realApps
+    val allApps: List<LauncherApp> get() = if (prefs.demoContent) DemoContent.allApps else realApps
 
     // ---------------------------------------------------------------- home focus
     var zone by mutableStateOf(Zone.Grid)
@@ -149,15 +185,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     var clockOverride by mutableStateOf<String?>(null)
     var resumeTick by mutableIntStateOf(0)
     var restartTick by mutableIntStateOf(0)
+    var permissionRequestTick by mutableIntStateOf(0)
+
+    // ---------------------------------------------------------------- editing
+    var contextMenu by mutableStateOf<ContextMenuState?>(null)
+    var contextFocus by mutableIntStateOf(0)
+    /** Id of the item being rearranged ("jiggle" mode), or null. */
+    var movingId by mutableStateOf<String?>(null)
 
     // ---------------------------------------------------------------- folder
     var openFolder by mutableStateOf<FolderItem?>(null)
     var folderFocus by mutableIntStateOf(0)
 
+    // ---------------------------------------------------------------- sidebar
+    var sidebarFocus by mutableIntStateOf(1)
+
     // ---------------------------------------------------------------- control centre
     var ccFocus by mutableIntStateOf(CC.Power)
     var sleepMinutes by mutableIntStateOf(0)
-    var dndOn by mutableStateOf(false)
     private var sleepJob: Job? = null
 
     // ---------------------------------------------------------------- switcher
@@ -173,11 +218,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------------------------------------------------------- transitions & art
     var launchAnim by mutableStateOf<LaunchAnim?>(null)
+    /** 0 → 1 as an app zooms out of its icon; drives the Home Screen recede. */
+    var launchProgress by mutableFloatStateOf(0f)
     private var pendingReturn: LaunchAnim? = null
+    private var launchFailed = false
     var currentArt by mutableStateOf<HeroArt?>(null)
         private set
     val artCache = mutableStateMapOf<String, HeroArt>()
     private var heroTimer: Job? = null
+    private var bannerJob: Job? = null
+    private var lastRecsLoad = 0L
 
     val isGridMode: Boolean get() = (zone == Zone.Grid && row > 0) || !prefs.heroEnabled
     val isHeroExpanded: Boolean get() = zone == Zone.Hero || zone == Zone.TopBar
@@ -212,15 +262,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun heroesFor(app: LauncherApp): List<HeroItem> {
-        val fallback = HeroItem(
-            key = "fallback:${app.id}",
-            appId = app.id,
-            appLabel = app.label,
-            title = app.label,
-            meta = if (app.demo != null) "" else "Open ${app.label}",
-            art = ResArt(DemoContent.sceneFor(app.packageName)),
-            logo = app.banner,
-        )
+        // Apps without recommendation cards get a backdrop built from their own branding.
+        val fallback = if (app.demo == null) {
+            HeroItem(
+                key = "brand:${app.id}", appId = app.id, appLabel = app.label, title = "",
+                art = BannerArt(app.id),
+            )
+        } else {
+            HeroItem(
+                key = "fallback:${app.id}", appId = app.id, appLabel = app.label, title = app.label,
+                art = ResArt(DemoContent.sceneFor(app.packageName)),
+            )
+        }
         if (prefs.heroSource == HeroSource.AppArtwork) return listOf(fallback)
         return heroItemsByApp[app.id] ?: DemoContent.heroes[app.id] ?: listOf(fallback)
     }
@@ -235,12 +288,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshApps() {
         if (prefs.demoContent) return
         viewModelScope.launch {
-            realApps = withContext(Dispatchers.IO) { appsRepo.load() }
+            val loaded = withContext(Dispatchers.IO) { appsRepo.load() }
+            loaded.forEach { a ->
+                artRepo.registerBrand(a.id, a.banner?.asAndroidBitmap(), a.icon?.asAndroidBitmap(), a.tint.toArgb())
+            }
+            realApps = loaded
             refreshRecommendations(force = true)
         }
     }
-
-    private var lastRecsLoad = 0L
 
     /** Re-reads other apps' recommendation cards (they change as you watch things). */
     fun refreshRecommendations(force: Boolean = false) {
@@ -257,9 +312,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Incremented to ask the activity to show the system permission prompt. */
-    var permissionRequestTick by mutableIntStateOf(0)
-
     fun hasRecommendationAccess(): Boolean =
         ContextCompat.checkSelfPermission(ctx, TV_LISTINGS) == PackageManager.PERMISSION_GRANTED
 
@@ -269,7 +321,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             while (true) {
                 delay(9_000)
                 val n = currentHeroItems.size
-                val idle = overlay == Overlay.None && dialog == null && launchAnim == null
+                val idle = overlay == Overlay.None && dialog == null && launchAnim == null && contextMenu == null && movingId == null
                 if (prefs.heroAutoRotate && idle && n > 1 && !isGridMode) {
                     heroIndex = (heroIndex + 1) % n
                 }
@@ -282,8 +334,198 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         prefs = p
         store.save(p)
         if (demoChanged) {
+            layout = layoutStore.load(layoutKey)
             row = 0; col = 0; heroAppIndex = 0; heroIndex = 0
             if (!p.demoContent) refreshApps()
+        }
+    }
+
+    // ================================================================= layout editing
+
+    private fun commitItems(newItems: List<GridItem>) {
+        val l: GridLayout = GridLayouts.fromItems(newItems)
+        layout = l
+        layoutStore.save(layoutKey, l)
+    }
+
+    private fun focusIndex(i: Int) {
+        val cols = prefs.columns
+        val idx = i.coerceIn(0, (items.size - 1).coerceAtLeast(0))
+        row = idx / cols
+        col = idx % cols
+        if (row == 0) setDockCol(col)
+    }
+
+    private fun moveFocused(delta: Int) {
+        val id = movingId ?: return
+        val list = items.toMutableList()
+        val from = list.indexOfFirst { it.id == id }
+        if (from < 0) return
+        val to = (from + delta).coerceIn(0, list.size - 1)
+        if (to == from) return
+        val item = list.removeAt(from)
+        list.add(to, item)
+        commitItems(list)
+        focusIndex(to)
+    }
+
+    private fun folderNameFor(app: LauncherApp): String {
+        val base = if (app.demo != null) "Folder" else try {
+            if (Build.VERSION.SDK_INT >= 26) {
+                when (ctx.packageManager.getApplicationInfo(app.packageName, 0).category) {
+                    ApplicationInfo.CATEGORY_GAME -> "Games"
+                    ApplicationInfo.CATEGORY_AUDIO -> "Music"
+                    ApplicationInfo.CATEGORY_VIDEO -> "Entertainment"
+                    ApplicationInfo.CATEGORY_IMAGE -> "Photos"
+                    ApplicationInfo.CATEGORY_NEWS -> "News"
+                    ApplicationInfo.CATEGORY_SOCIAL -> "Social"
+                    ApplicationInfo.CATEGORY_MAPS -> "Travel"
+                    ApplicationInfo.CATEGORY_PRODUCTIVITY -> "Productivity"
+                    else -> "Folder"
+                }
+            } else "Folder"
+        } catch (_: Throwable) {
+            "Folder"
+        }
+        val existing = items.filterIsInstance<FolderItem>().map { it.label }.toSet()
+        if (base !in existing) return base
+        var n = 2
+        while ("$base $n" in existing) n++
+        return "$base $n"
+    }
+
+    private fun addToFolder(app: LauncherApp, folderId: String) {
+        val name = (items.firstOrNull { it.id == folderId } as? FolderItem)?.label ?: "folder"
+        val rest = GridLayouts.withoutApp(items, app.id)
+        commitItems(rest.map { if (it is FolderItem && it.id == folderId) it.copy(apps = it.apps + app) else it })
+        showBanner(app.label, "Moved to $name.", Icons.Rounded.Folder)
+    }
+
+    private fun newFolderWith(app: LauncherApp) {
+        val name = folderNameFor(app)
+        val folder = FolderItem("folder:${System.currentTimeMillis()}", name, listOf(app))
+        val index = GridLayouts.indexOfApp(items, app.id)
+        val rest = GridLayouts.withoutApp(items, app.id).toMutableList()
+        rest.add(index.coerceIn(0, rest.size), folder)
+        commitItems(rest)
+        showBanner(name, "New folder created with ${app.label}.", Icons.Rounded.CreateNewFolder)
+    }
+
+    private fun removeFromFolder(app: LauncherApp, folder: FolderItem) {
+        val folderIndex = items.indexOfFirst { it.id == folder.id }
+        val rest = GridLayouts.withoutApp(items, app.id).toMutableList()
+        val stillThere = rest.any { it.id == folder.id }
+        val insertAt = (if (stillThere) folderIndex + 1 else folderIndex).coerceIn(0, rest.size)
+        rest.add(insertAt, AppItem(app))
+        commitItems(rest)
+        if (openFolder?.id == folder.id) {
+            openFolder = rest.firstOrNull { it.id == folder.id } as? FolderItem
+            if (openFolder == null) overlay = Overlay.None
+            folderFocus = folderFocus.coerceAtMost(((openFolder?.apps?.size ?: 1) - 1).coerceAtLeast(0))
+        }
+    }
+
+    private fun ungroup(folder: FolderItem) {
+        val index = items.indexOfFirst { it.id == folder.id }
+        if (index < 0) return
+        val list = items.toMutableList()
+        list.removeAt(index)
+        list.addAll(index, folder.apps.map { AppItem(it) })
+        commitItems(list)
+    }
+
+    private fun hideApp(app: LauncherApp) {
+        val folderId = openFolder?.id
+        updatePrefs(prefs.copy(hiddenApps = prefs.hiddenApps + app.id))
+        if (folderId != null) {
+            openFolder = items.firstOrNull { it.id == folderId } as? FolderItem
+            if (openFolder == null) overlay = Overlay.None
+            folderFocus = folderFocus.coerceAtMost(((openFolder?.apps?.size ?: 1) - 1).coerceAtLeast(0))
+        }
+        focusIndex(row * prefs.columns + col)
+        showBanner(app.label, "Hidden. Unhide it in Settings › Apps.", Icons.Rounded.VisibilityOff)
+    }
+
+    // ================================================================= context menu
+
+    private fun tileAnchor(index: Int): Rect {
+        val cols = prefs.columns
+        val r = index / cols
+        val trayTop = if (r == 0 && !isGridMode) HomeLayout.TrayTopHero else HomeLayout.gridTrayTop(cols, row)
+        val gap = if (isGridMode) HomeLayout.RowGapGrid else HomeLayout.RowGapHero
+        return HomeLayout.tileRect(cols, index, trayTop, gap)
+    }
+
+    private fun openContextMenu(item: GridItem, anchor: Rect, parent: FolderItem?) {
+        val actions = when (item) {
+            is FolderItem -> listOf(
+                MenuAction("move", "Move", Icons.Rounded.OpenWith),
+                MenuAction("ungroup", "Remove Folder", Icons.Rounded.FolderOpen, destructive = true),
+            )
+            is AppItem -> buildList {
+                if (parent == null) add(MenuAction("move", "Move", Icons.Rounded.OpenWith))
+                add(MenuAction("folder", if (parent == null) "Add to Folder" else "Move to Folder", Icons.Rounded.CreateNewFolder))
+                if (parent != null) add(MenuAction("unfolder", "Remove from Folder", Icons.Rounded.FolderOpen))
+                add(MenuAction("info", "App Info", Icons.Rounded.Info))
+                add(MenuAction("hide", "Hide from Home Screen", Icons.Rounded.VisibilityOff))
+                add(MenuAction("delete", "Delete App", Icons.Rounded.Delete, destructive = true))
+            }
+        }
+        contextMenu = ContextMenuState(item.label, item, (item as? AppItem)?.app, parent, anchor, actions)
+        contextFocus = 0
+    }
+
+    private fun openFolderPicker(app: LauncherApp, base: ContextMenuState) {
+        val folders = items.filterIsInstance<FolderItem>().filter { it.id != base.parentFolder?.id }
+        val actions = folders.map { MenuAction("pick:${it.id}", it.label, Icons.Rounded.Folder) } +
+            MenuAction("pick:new", "New Folder", Icons.Rounded.CreateNewFolder)
+        contextMenu = base.copy(title = "Add ${app.label} to…", actions = actions, id = System.nanoTime())
+        contextFocus = 0
+    }
+
+    private fun contextKey(m: ContextMenuState, k: NavKey): Boolean {
+        when (k) {
+            NavKey.Up, NavKey.Left -> contextFocus = (contextFocus - 1).coerceAtLeast(0)
+            NavKey.Down, NavKey.Right -> contextFocus = (contextFocus + 1).coerceAtMost(m.actions.size - 1)
+            NavKey.Select -> m.actions.getOrNull(contextFocus)?.let { contextAction(m, it) }
+            NavKey.Menu, NavKey.LongSelect -> contextMenu = null
+            NavKey.PlayPause -> Unit
+        }
+        return true
+    }
+
+    private fun contextAction(m: ContextMenuState, a: MenuAction) {
+        val app = m.app
+        val parent = m.parentFolder
+        val demo = app?.demo != null
+        contextMenu = null
+        when {
+            a.id == "move" -> movingId = m.item.id
+            a.id == "ungroup" -> (m.item as? FolderItem)?.let { ungroup(it) }
+            a.id == "folder" && app != null -> openFolderPicker(app, m)
+            a.id == "unfolder" && app != null && parent != null -> removeFromFolder(app, parent)
+            a.id == "pick:new" && app != null -> {
+                if (parent != null) removeFromFolder(app, parent)
+                newFolderWith(app)
+            }
+            a.id.startsWith("pick:") && app != null -> {
+                addToFolder(app, a.id.removePrefix("pick:"))
+                if (parent != null) {
+                    openFolder = items.firstOrNull { it.id == parent.id } as? FolderItem
+                    if (openFolder == null) overlay = Overlay.None
+                }
+            }
+            a.id == "info" && app != null -> if (demo) {
+                showBanner(app.label, "Demo app — App Info opens for installed apps.", Icons.Rounded.Info)
+            } else {
+                SystemActions.appInfo(ctx, app.packageName)
+            }
+            a.id == "hide" && app != null -> hideApp(app)
+            a.id == "delete" && app != null -> if (demo) {
+                showBanner(app.label, "Demo apps can't be deleted. Use Hide instead.", Icons.Rounded.Info)
+            } else {
+                SystemActions.uninstall(ctx, app.packageName)
+            }
         }
     }
 
@@ -292,11 +534,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun onKey(k: NavKey): Boolean {
         if (launchAnim != null) return true
         dialog?.let { return dialogKey(it, k) }
+        contextMenu?.let { return contextKey(it, k) }
         return when (overlay) {
             Overlay.ControlCentre -> ccKey(k)
             Overlay.Switcher -> switcherKey(k)
             Overlay.Settings -> settingsKey(k)
             Overlay.Folder -> folderKey(k)
+            Overlay.Sidebar -> sidebarKey(k)
             Overlay.None -> homeKey(k)
         }
     }
@@ -305,6 +549,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         when {
             launchAnim != null -> Unit
             dialog != null -> dialog = null
+            contextMenu != null -> contextMenu = null
+            movingId != null -> movingId = null
             overlay == Overlay.Settings && settingsStack.size > 1 -> settingsStack = settingsStack.dropLast(1)
             overlay == Overlay.Switcher -> closeSwitcherToHome()
             overlay != Overlay.None -> closeOverlay()
@@ -316,6 +562,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onHomePressed() {
         dialog = null
+        contextMenu = null
+        movingId = null
         if (overlay == Overlay.Switcher) {
             closeSwitcherToHome(); return
         }
@@ -329,7 +577,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onResume() {
         resumeTick++
-        dndOn = SystemActions.dndOn(ctx)
         refreshRecommendations()
         pendingReturn?.let { anim ->
             pendingReturn = null
@@ -346,6 +593,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun homeKey(k: NavKey): Boolean {
         val cols = prefs.columns
+        if (movingId != null) {
+            when (k) {
+                NavKey.Left -> moveFocused(-1)
+                NavKey.Right -> moveFocused(1)
+                NavKey.Up -> moveFocused(-cols)
+                NavKey.Down -> moveFocused(cols)
+                NavKey.Select, NavKey.LongSelect, NavKey.Menu -> movingId = null
+                NavKey.PlayPause -> Unit
+            }
+            return true
+        }
         when (zone) {
             Zone.Grid -> when (k) {
                 NavKey.Up -> when {
@@ -354,9 +612,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     else -> { zone = Zone.TopBar; topIndex = 0 }
                 }
                 NavKey.Down -> if (row < rowCount() - 1) { row++; col = col.coerceAtMost(rowSize(row) - 1) }
-                NavKey.Left -> if (col > 0) { col--; if (row == 0) setDockCol(col) }
+                NavKey.Left -> if (col > 0) {
+                    col--
+                    if (row == 0) setDockCol(col)
+                } else {
+                    openSidebar()
+                }
                 NavKey.Right -> if (col < rowSize(row) - 1) { col++; if (row == 0) setDockCol(col) }
                 NavKey.Select -> items.getOrNull(row * cols + col)?.let { activateItem(it, row * cols + col) }
+                NavKey.LongSelect -> {
+                    val i = row * cols + col
+                    items.getOrNull(i)?.let { openContextMenu(it, tileAnchor(i), null) }
+                }
                 NavKey.Menu -> openControlCentre()
                 NavKey.PlayPause -> if (row == 0) playHero()
             }
@@ -366,6 +633,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 NavKey.Left -> if (heroButton > 0) heroButton-- else stepHero(-1)
                 NavKey.Right -> if (heroButton < 1) heroButton++ else stepHero(1)
                 NavKey.Select, NavKey.PlayPause -> if (heroButton == 0) playHero() else openApp(dockItem)
+                NavKey.LongSelect -> Unit
                 NavKey.Menu -> openControlCentre()
             }
             Zone.TopBar -> when (k) {
@@ -395,13 +663,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun activateItem(item: GridItem, index: Int) {
         when (item) {
             is FolderItem -> { openFolder = item; folderFocus = 0; overlay = Overlay.Folder }
-            is AppItem -> {
-                val cols = prefs.columns
-                val r = index / cols
-                val trayTop = if (r == 0) HomeLayout.TrayTopHero else HomeLayout.gridTrayTop(cols, r)
-                val gap = if (r == 0) HomeLayout.RowGapHero else HomeLayout.RowGapGrid
-                startLaunch(item.app, HomeLayout.tileRect(cols, index, trayTop, gap))
-            }
+            is AppItem -> startLaunch(item.app, tileAnchor(index))
         }
     }
 
@@ -420,33 +682,47 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ================================================================= launching
 
     fun startLaunch(app: LauncherApp, from: Rect) {
+        launchFailed = false
         launchAnim = LaunchAnim(app, from, heroesFor(app).firstOrNull()?.art)
     }
 
-    /** Called by the transition overlay once the zoom-in has filled the screen. */
+    /** Called part-way through the zoom so the app's own start-up overlaps the animation. */
+    fun onLaunchMidpoint(anim: LaunchAnim) {
+        if (anim.reverse || anim.app.demo != null) return
+        val app = anim.app
+        val intent = SystemActions.launchIntent(ctx, app)
+        if (intent != null && SystemActions.start(ctx, intent, SystemActions.fadeOptions(ctx))) {
+            recentsRepo.record(app.packageName)
+            pendingReturn = anim
+            launchFailed = false
+        } else {
+            launchFailed = true
+        }
+    }
+
+    /** Called once the zoom has finished (in either direction). */
     fun onLaunchZoomComplete(anim: LaunchAnim) {
         if (anim.reverse) {
             launchAnim = null
             return
         }
         val app = anim.app
-        if (app.demo != null) {
-            showBanner(app.label, "Demo app — install apps to see them here.", Icons.Rounded.Info)
-            viewModelScope.launch {
-                delay(500)
+        when {
+            app.demo != null -> {
+                showBanner(app.label, "Demo app — install apps to see them here.", Icons.Rounded.Info)
+                viewModelScope.launch {
+                    delay(450)
+                    launchAnim = anim.copy(reverse = true, id = System.nanoTime())
+                }
+            }
+            launchFailed -> {
+                showBanner(app.label, "This app couldn't be opened.", Icons.Rounded.Info)
                 launchAnim = anim.copy(reverse = true, id = System.nanoTime())
             }
-            return
-        }
-        val intent = SystemActions.launchIntent(ctx, app)
-        if (intent != null && SystemActions.start(ctx, intent, SystemActions.fadeOptions(ctx))) {
-            recentsRepo.record(app.packageName)
-            pendingReturn = anim
-            overlay = Overlay.None
-            openFolder = null
-        } else {
-            showBanner(app.label, "This app couldn't be opened.", Icons.Rounded.Info)
-            launchAnim = anim.copy(reverse = true, id = System.nanoTime())
+            else -> {
+                overlay = Overlay.None
+                openFolder = null
+            }
         }
     }
 
@@ -462,34 +738,65 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Up -> if (folderFocus >= c) folderFocus -= c
             NavKey.Down -> if (folderFocus + c < n) folderFocus += c
             NavKey.Select -> folder.apps.getOrNull(folderFocus)?.let { startLaunch(it, FolderLayout.tileRect(folderFocus)) }
+            NavKey.LongSelect -> folder.apps.getOrNull(folderFocus)?.let {
+                openContextMenu(AppItem(it), FolderLayout.tileRect(folderFocus), folder)
+            }
             NavKey.Menu -> openControlCentre()
             NavKey.PlayPause -> Unit
         }
         return true
     }
 
+    // ================================================================= sidebar
+
+    fun openSidebar() {
+        sidebarFocus = SidebarEntry.Home.ordinal
+        overlay = Overlay.Sidebar
+    }
+
+    private fun sidebarKey(k: NavKey): Boolean {
+        val n = SidebarEntry.entries.size
+        when (k) {
+            NavKey.Up -> sidebarFocus = (sidebarFocus - 1).coerceAtLeast(0)
+            NavKey.Down -> sidebarFocus = (sidebarFocus + 1).coerceAtMost(n - 1)
+            NavKey.Right, NavKey.Menu -> closeOverlay()
+            NavKey.Select -> sidebarSelect(SidebarEntry.entries[sidebarFocus])
+            NavKey.Left, NavKey.LongSelect, NavKey.PlayPause -> Unit
+        }
+        return true
+    }
+
+    private fun sidebarSelect(e: SidebarEntry) {
+        when (e) {
+            SidebarEntry.Search -> { closeOverlay(); SystemActions.search(ctx) }
+            SidebarEntry.Home -> { closeOverlay(); zone = Zone.Grid; row = 0; col = 0; setDockCol(0) }
+            SidebarEntry.Recents -> openSwitcher()
+            SidebarEntry.Screensaver -> startScreensaver()
+            SidebarEntry.PrismSettings -> openSettings()
+            SidebarEntry.SystemSettings -> { closeOverlay(); SystemActions.open(ctx, Settings.ACTION_SETTINGS) }
+        }
+    }
+
     // ================================================================= control centre
 
     fun openControlCentre() {
-        dndOn = SystemActions.dndOn(ctx)
         ccFocus = CC.Power
         overlay = Overlay.ControlCentre
     }
 
     private val ccNav: Map<Int, IntArray> = mapOf(
         // up, down, left, right  (-1 = none)
-        CC.Home to intArrayOf(-1, CC.Power, -1, CC.Toggle),
-        CC.Toggle to intArrayOf(-1, CC.WiFi, -1, CC.Profile),
-        CC.Profile to intArrayOf(-1, CC.WiFi, CC.Toggle, -1),
-        CC.Power to intArrayOf(CC.Toggle, CC.Audio, -1, CC.WiFi),
-        CC.WiFi to intArrayOf(CC.Toggle, CC.Dnd, CC.Power, -1),
-        CC.Dnd to intArrayOf(CC.WiFi, CC.Sleep, CC.Power, -1),
-        CC.Audio to intArrayOf(CC.Power, CC.Game, -1, CC.Sleep),
-        CC.Sleep to intArrayOf(CC.Dnd, CC.Restrict, CC.Audio, -1),
-        CC.Game to intArrayOf(CC.Audio, -1, -1, CC.Access),
-        CC.Access to intArrayOf(CC.Audio, -1, CC.Game, CC.Restrict),
-        CC.Restrict to intArrayOf(CC.Sleep, -1, CC.Access, CC.Search),
-        CC.Search to intArrayOf(CC.Sleep, -1, CC.Restrict, -1),
+        CC.Prism to intArrayOf(-1, CC.WiFi, -1, CC.Profile),
+        CC.Profile to intArrayOf(-1, CC.WiFi, CC.Prism, -1),
+        CC.Power to intArrayOf(CC.Prism, CC.Audio, -1, CC.WiFi),
+        CC.WiFi to intArrayOf(CC.Prism, CC.Screensaver, CC.Power, -1),
+        CC.Screensaver to intArrayOf(CC.WiFi, CC.Sleep, CC.Power, -1),
+        CC.Audio to intArrayOf(CC.Power, CC.Recents, -1, CC.Sleep),
+        CC.Sleep to intArrayOf(CC.Screensaver, CC.Search, CC.Audio, -1),
+        CC.Recents to intArrayOf(CC.Audio, -1, -1, CC.Remotes),
+        CC.Remotes to intArrayOf(CC.Audio, -1, CC.Recents, CC.Search),
+        CC.Search to intArrayOf(CC.Sleep, -1, CC.Remotes, CC.System),
+        CC.System to intArrayOf(CC.Sleep, -1, CC.Search, -1),
     )
 
     private fun ccKey(k: NavKey): Boolean {
@@ -501,7 +808,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Right -> nav[3]
             NavKey.Select -> { ccSelect(ccFocus); -1 }
             NavKey.Menu -> { closeOverlay(); -1 }
-            NavKey.PlayPause -> -1
+            NavKey.LongSelect, NavKey.PlayPause -> -1
         }
         if (next >= 0) ccFocus = next
         return true
@@ -509,19 +816,23 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun ccSelect(i: Int) {
         when (i) {
-            CC.Home -> onHomePressed()
-            CC.Toggle -> closeOverlay()
-            CC.Profile -> openSettings()
+            CC.Prism -> openSettings()
+            CC.Profile -> SystemActions.open(ctx, Settings.ACTION_SYNC_SETTINGS)
             CC.Power -> if (PrismAccessibilityService.powerDialog()) closeOverlay() else askForPowerAccess()
             CC.WiFi -> SystemActions.open(ctx, Settings.ACTION_WIFI_SETTINGS)
-            CC.Dnd -> SystemActions.toggleDnd(ctx)?.let { dndOn = it }
+            CC.Screensaver -> startScreensaver()
             CC.Audio -> SystemActions.open(ctx, Settings.ACTION_SOUND_SETTINGS)
             CC.Sleep -> cycleSleepTimer()
-            CC.Game -> SystemActions.open(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
-            CC.Access -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            CC.Restrict -> SystemActions.open(ctx, Settings.ACTION_SECURITY_SETTINGS)
+            CC.Recents -> openSwitcher()
+            CC.Remotes -> SystemActions.open(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
             CC.Search -> { closeOverlay(); SystemActions.search(ctx) }
+            CC.System -> { closeOverlay(); SystemActions.open(ctx, Settings.ACTION_SETTINGS) }
         }
+    }
+
+    fun startScreensaver() {
+        closeOverlay()
+        SystemActions.start(ctx, Intent(ctx, AerialActivity::class.java))
     }
 
     private fun askForPowerAccess() {
@@ -559,6 +870,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openSwitcher() {
         dialog = null
+        contextMenu = null
         openFolder = null
         val apps: List<LauncherApp> = if (prefs.demoContent) {
             listOf("demo:cinema", "demo:arcade", "demo:music", "demo:prism")
@@ -568,8 +880,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
         }
         // Oldest on the left, most recent next to Home.
-        recents = apps.map { RecentEntry(it.id, it, heroesFor(it).firstOrNull()?.art, heroesFor(it).firstOrNull()?.title) } +
-            RecentEntry("home", null, null)
+        recents = apps.map { a ->
+            val hero = heroesFor(a).firstOrNull()
+            RecentEntry(a.id, a, hero?.art, hero?.title?.takeIf { it.isNotBlank() })
+        } + RecentEntry("home", null, null)
         switcherFocus = (recents.size - 2).coerceAtLeast(0)
         switcherLift = false
         switcherClosingToHome = false
@@ -583,14 +897,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Left -> if (switcherFocus > 0) switcherFocus--
             NavKey.Right -> if (switcherFocus < n - 1) switcherFocus++
             NavKey.Up -> dismissRecent()
-            NavKey.Down -> Unit
+            NavKey.Down, NavKey.LongSelect, NavKey.PlayPause -> Unit
             NavKey.Select -> {
                 val e = recents.getOrNull(switcherFocus) ?: return true
                 val app = e.app
                 if (app == null) closeSwitcherToHome() else startLaunch(app, SwitcherLayout.focusedRect())
             }
             NavKey.Menu -> closeSwitcherToHome()
-            NavKey.PlayPause -> Unit
         }
         return true
     }
@@ -646,11 +959,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("appearance", "Appearance", "GENERAL", prefs.appearance.label, chevron = true),
             SettingsRow("material", "Material", "GENERAL", prefs.material.label, chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
+            SettingsRow("screensaver", "Screensaver", "GENERAL", prefs.aerialSource.label, chevron = true),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(recentsRepo.hasUsageAccess()), chevron = true),
-            SettingsRow("a11y", "Power & Home Button", "CONTROL CENTRE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
-            SettingsRow("homeOverride", "Home Button Opens Prism TV", "CONTROL CENTRE", onOff(prefs.homeOverride)),
-            SettingsRow("sleep", "Sleep Timer", "CONTROL CENTRE", sleepLabel()),
+            SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
+            SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
+            SettingsRow("sleep", "Sleep Timer", "REMOTE", sleepLabel()),
             SettingsRow("about", "About", "SYSTEM", chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
@@ -672,9 +986,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
             SettingsRow("source", "Artwork Source", "TOP SHELF", prefs.heroSource.label),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
+            SettingsRow("resetLayout", "Reset Home Screen Layout", "LAYOUT"),
             SettingsRow("demo", "Demo Content", "LAYOUT", onOff(prefs.demoContent)),
         )
-        SettingsPage.Apps -> realApps.map {
+        SettingsPage.Screensaver -> listOf(
+            SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
+            SettingsRow("ss:source", "Video Source", "SCREENSAVER", prefs.aerialSource.label),
+            SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
+            SettingsRow("ss:location", "Show Location", "SCREENSAVER", onOff(prefs.aerialShowLocation)),
+            SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
+        )
+        SettingsPage.Apps -> allApps.sortedBy { it.label.lowercase() }.map {
             SettingsRow("app:${it.id}", it.label, "SHOW ON HOME SCREEN", if (it.id in prefs.hiddenApps) "Hidden" else "Shown")
         }.ifEmpty { listOf(SettingsRow("none", "No Apps Installed", "SHOW ON HOME SCREEN")) }
         SettingsPage.About -> listOf(
@@ -682,7 +1004,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
-            SettingsRow("i:blur", "Live Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 31) "Supported" else "Fallback"),
+            SettingsRow("i:glass", "Liquid Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 33) "Refraction Shader" else "Refraction Bands"),
         )
     }
 
@@ -706,10 +1028,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         when {
             r.id == "appearance" || r.id == "material" -> pushPage(SettingsPage.Appearance)
             r.id == "home" -> pushPage(SettingsPage.HomeScreen)
+            r.id == "screensaver" -> pushPage(SettingsPage.Screensaver)
             r.id == "apps" -> pushPage(SettingsPage.Apps)
             r.id == "about" -> pushPage(SettingsPage.About)
             r.id == "usage" -> SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
             r.id == "a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
             r.id == "sleep" -> cycleSleepTimer()
             r.id == "restart" -> confirm("Restart Prism TV?", "The launcher will close and reopen.", "Restart") { restartTick++ }
             r.id == "reset" -> confirm(
@@ -717,22 +1041,44 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",
                 "Reset",
             ) { resetPrefs() }
+            r.id == "resetLayout" -> confirm(
+                "Reset Home Screen?",
+                "Folders and the order of your apps go back to the default arrangement.",
+                "Reset",
+            ) {
+                layoutStore.clear()
+                layout = null
+            }
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
             r.id == "reduce" -> updatePrefs(p.copy(reduceTransparency = !p.reduceTransparency))
             r.id.startsWith("fx:") -> updatePrefs(p.copy(focusEffect = FocusEffect.valueOf(r.id.removePrefix("fx:"))))
             r.id == "labels" -> updatePrefs(p.copy(labels = LabelMode.entries[(p.labels.ordinal + 1) % LabelMode.entries.size]))
             r.id == "hero" -> updatePrefs(p.copy(heroEnabled = !p.heroEnabled))
-            r.id == "autorotate" -> updatePrefs(p.copy(heroAutoRotate = !p.heroAutoRotate))
-            r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
             r.id == "recs" -> if (hasRecommendationAccess()) {
                 showBanner("Recommendations", "Prism TV can already show cards from your apps.", Icons.Rounded.Info)
             } else {
                 permissionRequestTick++
             }
+            r.id == "autorotate" -> updatePrefs(p.copy(heroAutoRotate = !p.heroAutoRotate))
             r.id == "source" -> updatePrefs(p.copy(heroSource = HeroSource.entries[(p.heroSource.ordinal + 1) % HeroSource.entries.size]))
             r.id == "columns" -> updatePrefs(p.copy(columns = if (p.columns == 6) 5 else 6))
             r.id == "demo" -> updatePrefs(p.copy(demoContent = !p.demoContent))
+            r.id == "ss:show" -> startScreensaver()
+            r.id == "ss:source" -> updatePrefs(p.copy(aerialSource = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]))
+            r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
+            r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
+            r.id == "ss:system" -> {
+                val opened = SystemActions.start(ctx, Intent(Settings.ACTION_DREAM_SETTINGS))
+                dialog = DialogSpec(
+                    "Use as System Screensaver",
+                    (if (opened) "Choose Prism Aerials in the screensaver list. " else "") +
+                        "On Google TV, set it from a computer with: adb shell settings put secure screensaver_components " +
+                        "com.prismtv.launcher/.aerial.AerialDreamService",
+                    listOf(DialogButton("OK") {}),
+                )
+                dialogFocus = 0
+            }
             r.id.startsWith("app:") -> {
                 val id = r.id.removePrefix("app:")
                 updatePrefs(p.copy(hiddenApps = if (id in p.hiddenApps) p.hiddenApps - id else p.hiddenApps + id))
@@ -747,6 +1093,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun resetPrefs() {
         store.clear()
+        layoutStore.clear()
+        layout = null
         updatePrefs(LauncherPrefs())
         settingsStack = listOf(SettingsPage.Root)
         showBanner("Prism TV", "Settings have been reset.", Icons.Rounded.Info)
@@ -767,8 +1115,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         return true
     }
-
-    private var bannerJob: Job? = null
 
     fun showBanner(title: String, message: String, icon: ImageVector = Icons.Rounded.PowerSettingsNew) {
         val spec = BannerSpec(title, message, icon)
@@ -798,12 +1144,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         b.getString("appearance")?.let { v -> AppearanceSetting.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(appearance = it) } }
         b.getString("glass")?.let { v -> p = p.copy(material = if (v.equals("frosted", true) || v.equals("classic", true)) GlassMaterial.Frosted else GlassMaterial.Liquid) }
         b.getString("focusEffect")?.let { v -> FocusEffect.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(focusEffect = it) } }
+        b.getString("aerial")?.let { v -> AerialSource.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(aerialSource = it) } }
         if (b.containsKey("autorotate")) p = p.copy(heroAutoRotate = b.getBoolean("autorotate"))
         if (b.containsKey("columns")) p = p.copy(columns = b.getInt("columns", 6).coerceIn(5, 6))
         updatePrefs(p)
         b.getString("clock")?.let { clockOverride = it }
 
         dialog = null
+        contextMenu = null
+        movingId = null
         launchAnim = null
         pendingReturn = null
         openFolder = null
@@ -826,6 +1175,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     openFolder = it; folderFocus = b.getInt("focus", 0); overlay = Overlay.Folder
                 }
             }
+            "menu" -> {
+                row = r; col = c
+                val i = r * prefs.columns + c
+                items.getOrNull(i)?.let { openContextMenu(it, tileAnchor(i), null) }
+                contextFocus = b.getInt("focus", 0)
+            }
+            "move" -> {
+                row = r; col = c
+                movingId = items.getOrNull(r * prefs.columns + c)?.id
+            }
+            "sidebar" -> { row = r; col = 0; openSidebar(); if (b.containsKey("focus")) sidebarFocus = b.getInt("focus", 1) }
             "controlcentre" -> { row = r; col = c; openControlCentre(); ccFocus = b.getInt("focus", CC.Power) }
             "switcher" -> {
                 openSwitcher()
@@ -840,16 +1200,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "dialog" -> {
                 overlay = Overlay.Settings
-                settingsFocus[SettingsPage.Root] = 9
+                settingsFocus[SettingsPage.Root] = 11
                 confirm(
                     "Reset Prism TV?",
                     "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",
                     "Reset",
                 ) { resetPrefs() }
             }
-            "launch" -> {
-                (items.getOrNull(c) as? AppItem)?.let { activateItem(it, c) }
-            }
+            "launch" -> (items.getOrNull(c) as? AppItem)?.let { activateItem(it, c) }
+            "aerial" -> startScreensaver()
         }
     }
 }

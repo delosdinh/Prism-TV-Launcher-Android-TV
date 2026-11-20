@@ -18,6 +18,14 @@ enum class LabelMode(val label: String) {
     Focused("Focused Only"), Always("Always"), Never("Never")
 }
 
+enum class AerialSource(val label: String) {
+    Apple("Apple TV Aerials"), Prism("Prism Scenes")
+}
+
+enum class AerialQuality(val label: String) {
+    Auto("Automatic"), HD("1080p"), UHD("4K")
+}
+
 enum class HeroSource(val label: String) {
     Recommendations("Recommendations"), AppArtwork("App Artwork")
 }
@@ -36,6 +44,9 @@ data class LauncherPrefs(
     val hiddenApps: Set<String> = emptySet(),
     /** With the accessibility service on, the remote's Home button opens Prism TV. */
     val homeOverride: Boolean = true,
+    val aerialSource: AerialSource = AerialSource.Apple,
+    val aerialQuality: AerialQuality = AerialQuality.Auto,
+    val aerialShowLocation: Boolean = true,
 )
 
 class PrefsStore(context: Context) {
@@ -56,6 +67,9 @@ class PrefsStore(context: Context) {
             demoContent = sp.getBoolean("demoContent", d.demoContent),
             hiddenApps = sp.getStringSet("hiddenApps", emptySet())?.toSet() ?: emptySet(),
             homeOverride = sp.getBoolean("homeOverride", d.homeOverride),
+            aerialSource = enumOr(sp.getString("aerialSource", null), d.aerialSource),
+            aerialQuality = enumOr(sp.getString("aerialQuality", null), d.aerialQuality),
+            aerialShowLocation = sp.getBoolean("aerialShowLocation", d.aerialShowLocation),
         )
     }
 
@@ -73,6 +87,9 @@ class PrefsStore(context: Context) {
             .putBoolean("demoContent", p.demoContent)
             .putStringSet("hiddenApps", p.hiddenApps)
             .putBoolean("homeOverride", p.homeOverride)
+            .putString("aerialSource", p.aerialSource.name)
+            .putString("aerialQuality", p.aerialQuality.name)
+            .putBoolean("aerialShowLocation", p.aerialShowLocation)
             .apply()
     }
 

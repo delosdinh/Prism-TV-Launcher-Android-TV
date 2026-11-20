@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Apple's aerial video host. Some Android TV trust stores reject its certificate chain, so the
+         screensaver falls back to plain HTTP for this one domain only. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">sylvan.apple.com</domain>
+    </domain-config>
+</network-security-config>

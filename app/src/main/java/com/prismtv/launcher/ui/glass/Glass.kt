@@ -28,7 +28,11 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -102,8 +106,12 @@ val LiquidSaturation: ColorFilter = ColorFilter.colorMatrix(ColorMatrix().apply 
 /**
  * Liquid Glass / Frosted Glass surface.
  *
- * Liquid: light blur, saturation boost, a magnified "lens" interior and a refracting rim band
- * with a specular edge highlight. Frosted (classic tvOS): heavier blur, denser tint, hairline edge.
+ * Liquid (iOS / tvOS 27): the content behind stays sharp. The glass is a lens: a rounded bevel
+ * refracts what lies just outside the shape into the rim, with a specular edge. On Android 13+
+ * this is a real refraction shader with chromatic dispersion; on older Android it is built from
+ * concentric refraction bands of the live backdrop.
+ *
+ * Frosted (classic tvOS): blurred backdrop, denser tint, hairline edge.
  */
 fun Modifier.glass(
     shape: Shape,
@@ -116,10 +124,11 @@ fun Modifier.glass(
     val theme = LocalPrism.current
     val backdrop = LocalBackdrop.current
     val liquid = theme.liquid
-    val reduce = theme.reduceTransparency || (!SupportsLiveBlur && source == GlassSource.Full)
+    val reduce = theme.reduceTransparency || (!liquid && !SupportsLiveBlur && source == GlassSource.Full)
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
     val originState = remember { mutableStateOf(Offset.Zero) }
+    val lensLayer = rememberGraphicsLayer()
 
     val base = if (elevation > 0.dp) {
         Modifier.shadow(
@@ -135,22 +144,41 @@ fun Modifier.glass(
         .drawWithCache {
             val outline = shape.createOutline(size, layoutDirection, this)
             val clip = Path().apply { addOutline(outline) }
-            val rimWidth = 7.dp.toPx()
-            val innerOutline = shape.createOutline(
-                Size((size.width - rimWidth * 2).coerceAtLeast(1f), (size.height - rimWidth * 2).coerceAtLeast(1f)),
-                layoutDirection, this
-            )
-            val inner = Path().apply {
-                addOutline(innerOutline)
-                translate(Offset(rimWidth, rimWidth))
+            fun insetPath(inset: Float): Path {
+                val o = shape.createOutline(
+                    Size((size.width - inset * 2).coerceAtLeast(1f), (size.height - inset * 2).coerceAtLeast(1f)),
+                    layoutDirection, this
+                )
+                return Path().apply {
+                    addOutline(o)
+                    translate(Offset(inset, inset))
+                }
             }
+            val minSide = minOf(size.width, size.height)
+            val bevel = minOf(16.dp.toPx(), minSide * 0.42f)
+            val strength = minOf(22.dp.toPx(), minSide * 0.5f)
+            val margin = strength + 4.dp.toPx()
+            // Corner radius in px, for the shader's rounded-rect model.
+            val radius = when (outline) {
+                is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
+                else -> 0f
+            }
+            val useShader = liquid && lens && SupportsLensShader
+            val lensEffect = if (useShader) {
+                LensShader.effect(size.width, size.height, margin, radius, bevel, strength, isDark)
+            } else null
+            val layerSize = IntSize((size.width + margin * 2).roundToInt(), (size.height + margin * 2).roundToInt())
+            // Band approximation (Android < 13): outer bands sample from further outside.
+            val band1 = insetPath(bevel * 0.62f)
+            val band2 = insetPath(bevel * 0.26f)
+
             val strokeW = if (liquid) 1.3.dp.toPx() else 1.dp.toPx()
             val edgeBrush = if (liquid) {
                 Brush.linearGradient(
                     0f to edge.copy(alpha = 0.95f * rimStrength),
-                    0.30f to edge.copy(alpha = 0.18f * rimStrength),
-                    0.62f to edge.copy(alpha = 0.06f * rimStrength),
-                    1f to edge.copy(alpha = 0.55f * rimStrength),
+                    0.30f to edge.copy(alpha = 0.22f * rimStrength),
+                    0.62f to edge.copy(alpha = 0.08f * rimStrength),
+                    1f to edge.copy(alpha = 0.60f * rimStrength),
                     start = Offset.Zero, end = Offset(size.width, size.height),
                 )
             } else {
@@ -160,30 +188,38 @@ fun Modifier.glass(
                 )
             }
             val specular = Brush.verticalGradient(
-                0f to Color.White.copy(alpha = if (isDark) 0.10f else 0.22f),
-                0.42f to Color.Transparent,
+                0f to Color.White.copy(alpha = if (isDark) 0.08f else 0.16f),
+                0.35f to Color.Transparent,
                 startY = 0f, endY = size.height,
             )
-            val rimShade = Brush.verticalGradient(
-                0f to Color.White.copy(alpha = 0.10f),
+            val rimLight = Brush.linearGradient(
+                0f to Color.White.copy(alpha = 0.22f),
                 0.5f to Color.Transparent,
-                1f to Color.Black.copy(alpha = if (isDark) 0.10f else 0.04f),
-                startY = 0f, endY = size.height,
+                1f to Color.White.copy(alpha = 0.08f),
+                start = Offset.Zero, end = Offset(size.width, size.height),
             )
 
             onDrawBehind {
                 val origin = originState.value
 
-                fun DrawScope.drawSource(factor: Float) {
+                fun DrawScope.drawRaw(dx: Float, dy: Float) {
+                    // Non-uniform scale so the displacement is the same on every edge.
+                    val sx = (1f - 2f * dx / size.width).coerceAtLeast(0.2f)
+                    val sy = (1f - 2f * dy / size.height).coerceAtLeast(0.2f)
                     withTransform({
-                        scale(factor, factor, pivot = center)
+                        scale(sx, sy, pivot = center)
                         translate(-origin.x, -origin.y)
                     }) {
+                        drawLayer(backdrop.raw(source))
+                    }
+                }
+
+                fun DrawScope.drawBlurred() {
+                    withTransform({ translate(-origin.x, -origin.y) }) {
                         if (SupportsLiveBlur) {
                             drawLayer(backdrop.blurred(source))
                         } else {
-                            val img = (if (liquid) backdrop.fallbackLight else backdrop.fallbackHeavy)
-                                ?: backdrop.fallbackHeavy
+                            val img = backdrop.fallbackHeavy
                             if (img != null) {
                                 drawImage(
                                     image = img,
@@ -193,27 +229,44 @@ fun Modifier.glass(
                                     dstSize = backdrop.rootSize,
                                     filterQuality = FilterQuality.Low,
                                 )
-                                drawRect(backdrop.fallbackDim, size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()))
+                                drawRect(
+                                    backdrop.fallbackDim,
+                                    size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()),
+                                )
                             }
                         }
                     }
                 }
 
-                if (reduce) {
-                    drawOutline(outline, tint.copy(alpha = 1f))
-                } else {
-                    clipPath(clip) {
-                        // Lens: interior is very slightly magnified, like a thick slab of glass.
-                        drawSource(if (liquid && lens) 1.035f else 1f)
-                        if (liquid && lens) {
-                            // Rim band refracts more strongly.
-                            clipPath(inner, clipOp = ClipOp.Difference) {
-                                drawSource(1.16f)
-                                drawRect(rimShade)
+                when {
+                    reduce -> drawOutline(outline, tint.copy(alpha = 1f))
+                    !liquid -> clipPath(clip) {
+                        drawBlurred()
+                        drawRect(tint)
+                    }
+                    useShader -> {
+                        lensLayer.renderEffect = lensEffect
+                        lensLayer.record(size = layerSize) {
+                            translate(-origin.x + margin, -origin.y + margin) {
+                                drawLayer(backdrop.raw(source))
+                            }
+                        }
+                        clipPath(clip) {
+                            translate(-margin, -margin) { drawLayer(lensLayer) }
+                            drawRect(tint)
+                        }
+                    }
+                    else -> clipPath(clip) {
+                        drawRaw(0f, 0f)
+                        if (lens) {
+                            clipPath(band1, clipOp = ClipOp.Difference) { drawRaw(strength * 0.45f, strength * 0.45f) }
+                            clipPath(band2, clipOp = ClipOp.Difference) {
+                                drawRaw(strength, strength)
+                                drawRect(rimLight)
                             }
                         }
                         drawRect(tint)
-                        if (liquid) drawRect(specular)
+                        drawRect(specular)
                     }
                 }
                 drawOutline(outline, edgeBrush, style = Stroke(strokeW))
