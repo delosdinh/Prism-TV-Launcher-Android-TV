@@ -229,7 +229,8 @@ private fun HeroOverlay(
                         HeroLogo(h)
                         PText(h.appLabel.uppercase(), 11.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.72f), letterSpacing = 1.4.sp, shadow = true)
                         VSpace(2.dp)
-                        PText(h.title, 50.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = (-1.2).sp, shadow = true, lineHeight = 52.sp)
+                        val long = h.title.length > 26
+                        PText(h.title, if (long) 34.sp else 50.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (long) (-0.6).sp else (-1.2).sp, shadow = true, lineHeight = if (long) 38.sp else 52.sp)
                         VSpace(8.dp)
                         MetaRow(h)
                     }
@@ -246,7 +247,8 @@ private fun HeroOverlay(
                         HeroLogo(h)
                         PText(h.appLabel.uppercase(), 11.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.72f), letterSpacing = 1.4.sp, shadow = true)
                         VSpace(4.dp)
-                        PText(h.title, 44.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = (-1).sp, shadow = true, lineHeight = 46.sp)
+                        val longX = h.title.length > 26
+                        PText(h.title, if (longX) 32.sp else 44.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (longX) (-0.5).sp else (-1).sp, shadow = true, lineHeight = if (longX) 36.sp else 46.sp)
                         VSpace(8.dp)
                         MetaRow(h)
                         if (h.description.isNotEmpty()) {

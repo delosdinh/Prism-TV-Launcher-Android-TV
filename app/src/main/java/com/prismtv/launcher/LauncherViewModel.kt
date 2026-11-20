@@ -527,7 +527,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun askForPowerAccess() {
         dialog = DialogSpec(
             "Turn On Power Controls",
-            "To show the power menu and put your TV to sleep, turn on Prism TV Power Controls in Accessibility settings.",
+            "To show the power menu and put your TV to sleep, turn on Prism TV Power & Home Button in Accessibility settings.",
             listOf(
                 DialogButton("Open Settings") { SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS) },
                 DialogButton("Not Now") {},
@@ -648,7 +648,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(recentsRepo.hasUsageAccess()), chevron = true),
-            SettingsRow("a11y", "Power & Sleep Controls", "CONTROL CENTRE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
+            SettingsRow("a11y", "Power & Home Button", "CONTROL CENTRE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
+            SettingsRow("homeOverride", "Home Button Opens Prism TV", "CONTROL CENTRE", onOff(prefs.homeOverride)),
             SettingsRow("sleep", "Sleep Timer", "CONTROL CENTRE", sleepLabel()),
             SettingsRow("about", "About", "SYSTEM", chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
@@ -723,6 +724,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "labels" -> updatePrefs(p.copy(labels = LabelMode.entries[(p.labels.ordinal + 1) % LabelMode.entries.size]))
             r.id == "hero" -> updatePrefs(p.copy(heroEnabled = !p.heroEnabled))
             r.id == "autorotate" -> updatePrefs(p.copy(heroAutoRotate = !p.heroAutoRotate))
+            r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
             r.id == "recs" -> if (hasRecommendationAccess()) {
                 showBanner("Recommendations", "Prism TV can already show cards from your apps.", Icons.Rounded.Info)
             } else {

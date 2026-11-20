@@ -257,7 +257,7 @@ class ArtRepository(private val context: Context) {
             }
             ratio < target - 0.01f -> {
                 val h = (src.width / target).roundToInt()
-                Bitmap.createBitmap(src, 0, (src.height - h) / 4, src.width, h)
+                Bitmap.createBitmap(src, 0, (src.height - h) / 2, src.width, h) // centred: drops 4:3 letterboxing
             }
             else -> src
         }

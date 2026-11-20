@@ -50,8 +50,10 @@ launcher counterpart to the Prism TV skin for Kodi.
   `adb shell pm grant com.prismtv.launcher android.permission.READ_TV_LISTINGS`.
 - **Usage access** (Settings › Apps › Recent Apps Access) — lets the App Switcher list apps you
   opened outside the launcher.
-- **Accessibility › Prism TV Power Controls** — lets Control Centre open the power menu and the
-  Sleep Timer put the TV to sleep. It never reads screen content.
+- **Accessibility › Prism TV Power & Home Button** — makes the remote's Home button open Prism TV
+  (including Google TV boxes and Xiaomi remotes, which send `KEYCODE_ALL_APPS` for Home), and lets
+  Control Centre open the power menu and the Sleep Timer put the TV to sleep. It never reads screen
+  content.
 - **Do Not Disturb access** — for the Control Centre toggle.
 
 ## Build
@@ -61,7 +63,23 @@ launcher counterpart to the Prism TV skin for Kodi.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Then press Home and choose Prism TV (or set it as the default home app in system settings).
+### Sideload with Downloader
+
+Every build of the working branch is published to the `preview` release:
+`github.com/delosdinh/prism-tv-launcher-android-tv/releases/download/preview/prismtv.apk`
+
+### Make it the Home app
+
+```bash
+adb connect <box-ip>
+adb shell cmd package set-home-activity --user 0 com.prismtv.launcher/.MainActivity
+# Accessibility service for the Home button (append if you already use other services):
+adb shell settings put secure enabled_accessibility_services com.prismtv.launcher/.system.PrismAccessibilityService
+adb shell settings put secure accessibility_enabled 1
+```
+
+On Android TV (e.g. NVIDIA SHIELD) you can instead disable the stock launcher:
+`adb shell pm disable-user --user 0 com.google.android.tvlauncher` (undo with `pm enable`).
 
 ### Demo content
 

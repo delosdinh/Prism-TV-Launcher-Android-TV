@@ -34,6 +34,8 @@ data class LauncherPrefs(
     val columns: Int = 6,
     val demoContent: Boolean = false,
     val hiddenApps: Set<String> = emptySet(),
+    /** With the accessibility service on, the remote's Home button opens Prism TV. */
+    val homeOverride: Boolean = true,
 )
 
 class PrefsStore(context: Context) {
@@ -53,6 +55,7 @@ class PrefsStore(context: Context) {
             columns = sp.getInt("columns", d.columns).coerceIn(5, 6),
             demoContent = sp.getBoolean("demoContent", d.demoContent),
             hiddenApps = sp.getStringSet("hiddenApps", emptySet())?.toSet() ?: emptySet(),
+            homeOverride = sp.getBoolean("homeOverride", d.homeOverride),
         )
     }
 
@@ -69,6 +72,7 @@ class PrefsStore(context: Context) {
             .putInt("columns", p.columns)
             .putBoolean("demoContent", p.demoContent)
             .putStringSet("hiddenApps", p.hiddenApps)
+            .putBoolean("homeOverride", p.homeOverride)
             .apply()
     }
 

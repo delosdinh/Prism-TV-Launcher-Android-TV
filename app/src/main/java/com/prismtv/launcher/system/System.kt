@@ -11,18 +11,41 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.prismtv.launcher.data.LauncherApp
 
 /**
  * Optional accessibility service. Third-party launchers can't power off or sleep the device
  * directly; with this enabled, Control Centre can open the system power menu and the Sleep
- * Timer can put the TV to sleep. It never reads window content.
+ * Timer can put the TV to sleep. It also lets the remote's Home button open Prism TV on
+ * Google TV devices that keep Home bound to their own launcher (Xiaomi remotes send
+ * KEYCODE_ALL_APPS for Home). It never reads window content.
  */
 class PrismAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+    }
+
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        val code = event.keyCode
+        if (code != KeyEvent.KEYCODE_HOME && code != KeyEvent.KEYCODE_ALL_APPS) return false
+        val enabled = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).getBoolean("homeOverride", true)
+        if (!enabled) return false
+        if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) {
+            val home = Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+                .setClassName(packageName, "com.prismtv.launcher.MainActivity")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            return try {
+                startActivity(home)
+                true
+            } catch (_: Throwable) {
+                false
+            }
+        }
+        return true
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
