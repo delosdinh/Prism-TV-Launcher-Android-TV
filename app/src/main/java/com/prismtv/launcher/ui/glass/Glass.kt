@@ -116,7 +116,7 @@ fun Modifier.glass(
     val theme = LocalPrism.current
     val backdrop = LocalBackdrop.current
     val liquid = theme.liquid
-    val reduce = theme.reduceTransparency
+    val reduce = theme.reduceTransparency || (!SupportsLiveBlur && source == GlassSource.Full)
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
     val originState = remember { mutableStateOf(Offset.Zero) }

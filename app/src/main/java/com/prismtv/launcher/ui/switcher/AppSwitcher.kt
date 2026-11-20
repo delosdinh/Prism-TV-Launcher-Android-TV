@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -158,6 +159,7 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
                 scaleX = scale
                 scaleY = scale
                 transformOrigin = TransformOrigin(0f, 0.5f)
+                compositingStrategy = CompositingStrategy.ModulateAlpha
                 this.alpha = alpha * (1f - lift * 0.85f) * (if (rel < 0) 0.92f else 1f)
                 shadowElevation = (if (rel == 0) 36.dp else 16.dp).toPx()
                 this.shape = shape

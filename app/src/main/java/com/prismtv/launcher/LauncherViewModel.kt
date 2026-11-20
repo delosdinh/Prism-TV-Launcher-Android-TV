@@ -781,8 +781,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val c = b.getInt("col", 0)
         zone = Zone.Grid
         row = 0
-        col = c
-        heroAppIndex = if (r == 0) c else heroAppIndex
+        col = if (b.containsKey("col")) c else heroAppIndex
+        if (r == 0 && b.containsKey("col")) heroAppIndex = c
         heroIndex = b.getInt("heroIndex", 0)
         when (b.getString("screen") ?: "home") {
             "hero" -> { zone = Zone.Hero; heroButton = b.getInt("button", 0) }

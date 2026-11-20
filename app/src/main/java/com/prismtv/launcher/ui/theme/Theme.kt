@@ -115,6 +115,11 @@ data class PrismTheme(
         palette.panelGlass.copy(alpha = palette.panelOpacity * 0.86f)
     }
 
+    /** Dialogs and banners: denser so text stays legible over bright content. */
+    fun sheetFill(): Color = palette.panelGlass.copy(
+        alpha = if (liquid) (if (palette.isDark) 0.74f else 0.80f) else palette.panelOpacity
+    )
+
     /** The dock tray on the Home Screen. */
     fun trayFill(): Color = if (liquid) {
         if (palette.isDark) Color.White.copy(alpha = 0.07f) else Color.White.copy(alpha = 0.26f)

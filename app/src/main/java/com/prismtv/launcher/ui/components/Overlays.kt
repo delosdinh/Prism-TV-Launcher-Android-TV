@@ -68,7 +68,7 @@ fun DialogHost(spec: DialogSpec?, focus: Int) {
                     scaleY = s
                 }
                 .width(318.dp)
-                .glass(RoundedCornerShape(32.dp), theme.panelFill(), GlassSource.Full, elevation = 40.dp)
+                .glass(RoundedCornerShape(32.dp), theme.sheetFill(), GlassSource.Full, elevation = 40.dp)
                 .padding(horizontal = 20.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -123,7 +123,7 @@ fun BannerHost(spec: BannerSpec?) {
                     translationY = -24.dp.toPx() * (1f - t)
                 }
                 .width(312.dp)
-                .glass(RoundedCornerShape(24.dp), theme.panelFill(), GlassSource.Full, elevation = 24.dp)
+                .glass(RoundedCornerShape(24.dp), theme.sheetFill(), GlassSource.Full, elevation = 24.dp)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

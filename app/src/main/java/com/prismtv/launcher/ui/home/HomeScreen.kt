@@ -1,6 +1,10 @@
 package com.prismtv.launcher.ui.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -208,7 +212,11 @@ private fun HeroOverlay(
     val e by animateFloatAsState(if (expanded) 1f else 0f, tween(520, easing = FastOutSlowInEasing), label = "heroExp")
     if (item == null || vis < 0.01f) return
     Box(Modifier.fillMaxSize().graphicsLayer { alpha = vis }) {
-        Crossfade(targetState = item, animationSpec = tween(700), label = "heroText") { h ->
+        AnimatedContent(
+            targetState = item,
+            transitionSpec = { fadeIn(tween(420, delayMillis = 200)).togetherWith(fadeOut(tween(200))) },
+            label = "heroText",
+        ) { h ->
             Box(Modifier.fillMaxSize()) {
                 // Collapsed: title treatment top-left, like tvOS Top Shelf.
                 if (e < 0.99f) {

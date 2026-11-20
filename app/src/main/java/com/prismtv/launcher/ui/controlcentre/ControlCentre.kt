@@ -16,12 +16,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccessibilityNew
-import androidx.compose.material.icons.rounded.ChildCare
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SettingsEthernet
-import androidx.compose.material.icons.rounded.Speaker
+import androidx.compose.material.icons.rounded.Airplay
 import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.ToggleOn
@@ -57,11 +57,11 @@ import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.glass
 import com.prismtv.launcher.ui.theme.LocalPrism
 
-private const val ClusterW = 219f
-private const val ClusterLeft = 960f - 39f - ClusterW
+private const val ClusterW = 228f
+private const val ClusterLeft = 960f - 34f - ClusterW
 private const val TilesTop = 44f
-private const val Big = 108f
-private const val PillW = 104f
+private const val Big = 110f
+private const val PillW = 111f
 private const val PillH = 50f
 private const val Gutter = 7f
 private const val Circle = 46f
@@ -129,7 +129,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     else -> Icons.Rounded.WifiOff
                 },
                 iconColor = if (net.connected) p.accent else null,
-                title = net.title, subtitle = net.subtitle,
+                title = net.title, subtitle = if (net.connected && !net.ethernet) "On" else net.subtitle,
             )
             PillTile(
                 f == CC.Dnd, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
@@ -140,7 +140,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
             )
             PillTile(
                 f == CC.Audio, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
-                icon = Icons.Rounded.Speaker, iconColor = p.accent,
+                icon = Icons.Rounded.Airplay, iconColor = p.accent,
                 title = "Audio", subtitle = null,
             )
             PillTile(
@@ -153,7 +153,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
             val circles = listOf(
                 CC.Game to Icons.Rounded.SportsEsports,
                 CC.Access to Icons.Rounded.AccessibilityNew,
-                CC.Restrict to Icons.Rounded.ChildCare,
+                CC.Restrict to Icons.Rounded.Lock,
                 CC.Search to Icons.Rounded.Search,
             )
             val step = (ClusterW - Circle) / 3f
@@ -252,7 +252,7 @@ private fun PillTile(
                 PText(title, 12.sp, FontWeight.Medium, fg, lineHeight = 14.sp)
                 if (subtitle != null) {
                     PText(
-                        subtitle, 12.sp, if (subtitleStrong) FontWeight.Medium else FontWeight.Normal,
+                        subtitle, 11.5.sp, if (subtitleStrong) FontWeight.Medium else FontWeight.Normal,
                         if (subtitleStrong) fg else fg.copy(alpha = 0.68f), lineHeight = 14.sp,
                     )
                 }

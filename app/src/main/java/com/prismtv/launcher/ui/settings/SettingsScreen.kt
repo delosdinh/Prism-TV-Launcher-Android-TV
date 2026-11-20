@@ -230,7 +230,7 @@ private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
         }
         if (r.selectable && r.checked) {
             HSpace(8.dp)
-            PIcon(Icons.Rounded.Check, if (focused) p.textFocused else p.accent, 18.dp)
+            PIcon(Icons.Rounded.Check, if (focused) p.textFocused else p.textPrimary, 18.dp)
         }
         if (r.chevron) {
             HSpace(6.dp)
