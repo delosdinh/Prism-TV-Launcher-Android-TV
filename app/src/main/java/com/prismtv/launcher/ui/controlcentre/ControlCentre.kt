@@ -222,7 +222,11 @@ private fun Tile(
     val p = theme.palette
     val scale by animateFloatAsState(if (focused) 1.07f else 1f, spring(dampingRatio = 0.62f, stiffness = 420f), label = "tile")
     val fg = if (focused) p.textFocused else if (p.isDark) Color.White else p.textPrimary
-    val tint = theme.controlGlass()
+    // The lens samples the undimmed Home Screen, so the veil carries the scrim's dimming: controls stay
+    // legible over busy app grids while still bending what's behind them.
+    val tint = if (theme.liquid) {
+        if (p.isDark) Color.Black.copy(alpha = 0.40f) else Color.White.copy(alpha = 0.46f)
+    } else theme.controlGlass()
     Box(
         modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }

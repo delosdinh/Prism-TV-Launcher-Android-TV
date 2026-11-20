@@ -22,6 +22,10 @@ sleep 8
   adb shell wm density
 } > "$OUT/device.txt" 2>&1
 cat "$OUT/device.txt"
+# Android 13+ emulators render the AGSL lens in software and are very slow: take the stills only.
+SDK="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+QUICK=0
+[ "${SDK:-0}" -ge 33 ] && QUICK=1
 
 RELEASE_APK="${3:-}"
 if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
@@ -82,6 +86,8 @@ shot 24-sidebar-light              "${B[@]}" --es appearance light --es glass li
 shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass liquid --es screen home --ei col 1
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 0
+shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
+shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 9
 # Context menu → Add to Folder picker.
 start "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 1; sleep 3
 key KEYCODE_DPAD_CENTER 2; cap 28-folder-picker
@@ -93,9 +99,17 @@ key KEYCODE_BACK 1
 # Aerial screensaver: Prism scenes (offline) and Apple TV aerials (network).
 start "${B[@]}" "${DARK[@]}" --es aerial prism --es screen aerial; sleep 6; cap 30-aerial-prism-scenes
 adb shell input keyevent KEYCODE_BACK; sleep 2
-start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple
-sleep 10; cap 32-aerial-apple-later
-adb shell input keyevent KEYCODE_BACK; sleep 2
+if [ "$QUICK" = 0 ]; then
+  start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple
+  sleep 10; cap 32-aerial-apple-later
+  adb shell input keyevent KEYCODE_BACK; sleep 2
+fi
+
+if [ "$QUICK" = 1 ]; then
+  adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
+  ls -la "$OUT"
+  exit 0
+fi
 
 # Real D-pad navigation (no debug state): right, right, down.
 start "${B[@]}" "${DARK[@]}" --es screen home --ei col 0; sleep 4

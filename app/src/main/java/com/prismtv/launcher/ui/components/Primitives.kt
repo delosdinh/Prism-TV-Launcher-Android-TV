@@ -204,7 +204,7 @@ fun DemoIcon(g: DemoGlyph, modifier: Modifier) {
         val wordmark = g.wordmark
         val vector = g.vector
         when {
-            g.prism -> PrismLogo(Modifier.fillMaxHeight(0.74f).aspectRatio(2.05f))
+            g.prism -> PrismLogo(Modifier.fillMaxHeight(0.56f).aspectRatio(2.05f))
             wordmark != null -> PText(wordmark, 22.sp, FontWeight.Bold, g.fg)
             vector != null -> Image(
                 vector, null,
