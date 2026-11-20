@@ -3,8 +3,9 @@
 An Apple TV–style home screen for Android TV / Google TV boxes, modelled on tvOS 27 — the
 launcher counterpart to the Prism TV skin for Kodi.
 
-> Status: early preview (0.1). Built with Kotlin + Jetpack Compose. Requires Android 7.0+;
-> live Liquid Glass blur needs Android 12+ (older devices fall back to pre-blurred artwork).
+> Status: early preview (0.1). Built with Kotlin + Jetpack Compose. Requires Android 7.0+.
+> Liquid Glass uses a real refraction shader on Android 13+ (e.g. Google TV boxes) and a
+> multi-ring lens approximation on older Android (e.g. NVIDIA SHIELD on Android 11).
 
 ## Features
 
@@ -12,11 +13,18 @@ launcher counterpart to the Prism TV skin for Kodi.
 - Dynamic **Top Shelf hero**: full-bleed backdrop and title treatment for the focused dock app,
   sourced from Android TV *Watch Next* / preview-channel cards where the device allows it, with
   app-banner artwork as the fallback. Swipe up for a full-screen Top Shelf with Play / Info.
-- **Glass dock**: a Liquid Glass tray that refracts the live hero behind it (lens interior,
-  refracting rim, specular edge), 5:3 tiles, 24dp gutters.
+- **Glass dock**: a Liquid Glass tray that bends the live hero behind it like a lens — the
+  content stays sharp, the bevelled rim refracts what's just outside it with a specular edge.
+  5:3 tiles, 24dp gutters.
 - **Focus effects**: Grow, Grow & Shrink, or Lift & Shine — with spring motion and an
   app-coloured glow under the focused tile.
 - **Folders** with mini-icon tiles and a glass folder view with a title pill.
+- **Hold OK** on any app for a context menu: **Move** (the tile wiggles; arrows rearrange it,
+  OK when done), **Add to Folder** / New Folder, **App Info** (opens Android's app info page),
+  **Hide from Home Screen** (unhide in Settings › Apps) and **Delete App**. Folders offer
+  Move and Remove Folder. The layout is saved.
+- **Sidebar capsule**: press **Left** on the first app to slide in a glass capsule with Search,
+  Home, Recent Apps, Screensaver, Prism Settings and Android Settings.
 - **Time pill** (top-right) with profile avatar — opens Control Centre.
 
 **Appearance**
@@ -24,11 +32,19 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Liquid Glass** or **Frosted Glass (Classic)** materials; Reduce Transparency option.
 
 **System UI**
-- **Control Centre**: floating glass controls — Power Off, Wi-Fi/Ethernet, Do Not Disturb,
-  Audio, Sleep Timer, controllers, accessibility, restrictions, search.
+- **Control Centre** (Menu, or the time pill): floating glass controls built for Android TV —
+  Power, Wi-Fi/Ethernet, **Show Screensaver**, Sound Output, Sleep Timer, Recent Apps,
+  Remotes & Accessories, Search and Android Settings. The sliders button in the header opens
+  **Prism Settings**; the avatar opens Accounts.
+- **Aerial screensaver**: Apple TV aerial videos streamed from Apple's own tvOS manifest (the
+  same source as the Kodi Aerial add-on), 4K on 4K TVs with HEVC, with a dip to black between
+  shots and the location shown at the start of each. Falls back to slowly drifting Prism scenes
+  offline. Available on demand and as the system screensaver ("Prism Aerials").
 - **App Switcher**: cascading card deck with Home as the last card; the Home Screen shrinks into
   its card when the switcher opens. Press up to fling an app away.
-- **Launch transitions**: tiles zoom to full screen into the app and collapse back on return.
+- **Launch transitions**: the icon presses in, then springs open into a full-screen launch
+  window while the Home Screen recedes; the app fades in over it, and coming back shrinks the
+  window back into its icon.
 - **Settings** in the tvOS Settings style, with pop-up dialogs and notification banners.
 
 ## Remote controls
@@ -37,6 +53,8 @@ launcher counterpart to the Prism TV skin for Kodi.
 | --- | --- |
 | D-pad | Move focus |
 | OK | Open app / folder / control |
+| Hold OK | Context menu (Move, Add to Folder, App Info, Hide, Delete) |
+| Left on the first app | Sidebar capsule (Search, Recent Apps, Screensaver, Prism Settings…) |
 | Up from the dock | Full-screen Top Shelf → time pill |
 | Menu (or the time pill) | Control Centre |
 | Home twice | App Switcher (or the App Switch key on remotes that have one) |
@@ -54,7 +72,12 @@ launcher counterpart to the Prism TV skin for Kodi.
   (including Google TV boxes and Xiaomi remotes, which send `KEYCODE_ALL_APPS` for Home), and lets
   Control Centre open the power menu and the Sleep Timer put the TV to sleep. It never reads screen
   content.
-- **Do Not Disturb access** — for the Control Centre toggle.
+
+### Prism Aerials as the system screensaver
+
+Settings › System › Ambient mode / Screen saver › choose **Prism Aerials**. On Google TV, where the
+picker is hidden:
+`adb shell settings put secure screensaver_components com.prismtv.launcher/.aerial.AerialDreamService`
 
 ## Build
 
@@ -89,7 +112,7 @@ Settings › Home Screen › Demo Content fills the grid with original placehold
 ### CI
 
 `.github/workflows/android.yml` builds debug and release APKs (downloadable from the workflow
-run), then boots Android TV emulators (API 31 and 30), drives the launcher with real D-pad
+run), then boots Android TV emulators (API 34, 31 and 30), drives the launcher with real D-pad
 events and publishes screenshots and screen recordings to the `ci-results` branch under
 `screenshots/<branch>/api<level>/`.
 

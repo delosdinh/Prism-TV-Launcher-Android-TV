@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.prismtv.launcher.R
 import com.prismtv.launcher.data.DemoGlyph
 import com.prismtv.launcher.data.FolderItem
 import com.prismtv.launcher.data.LauncherApp
@@ -103,7 +105,19 @@ private val Spectrum = listOf(
     Color(0xFF30D158), Color(0xFF0A84FF), Color(0xFFBF5AF2),
 )
 
-/** The Prism mark: a light beam entering a triangular prism and splitting into a spectrum. */
+/** The Prism TV logo: the glass play ribbon and "tv" wordmark. */
+@Composable
+fun PrismLogo(modifier: Modifier) {
+    Image(painterResource(R.drawable.prism_logo), "Prism TV", modifier, contentScale = ContentScale.Fit)
+}
+
+/** The play-ribbon mark on its own (icons, small badges). */
+@Composable
+fun PrismLogoMark(modifier: Modifier) {
+    Image(painterResource(R.drawable.prism_mark), "Prism TV", modifier, contentScale = ContentScale.Fit)
+}
+
+/** Legacy line-art prism (kept for reference; the app uses [PrismLogo]). */
 @Composable
 fun PrismMark(modifier: Modifier, color: Color, beams: Boolean = true) {
     Canvas(modifier) {
@@ -190,7 +204,7 @@ fun DemoIcon(g: DemoGlyph, modifier: Modifier) {
         val wordmark = g.wordmark
         val vector = g.vector
         when {
-            g.prism -> PrismMark(Modifier.fillMaxHeight(0.66f).aspectRatio(1.7f), Color.White)
+            g.prism -> PrismLogo(Modifier.fillMaxHeight(0.74f).aspectRatio(2.05f))
             wordmark != null -> PText(wordmark, 22.sp, FontWeight.Bold, g.fg)
             vector != null -> Image(
                 vector, null,

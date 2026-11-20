@@ -170,16 +170,11 @@ fun Modifier.glass(
                 LensShader.effect(size.width, size.height, margin, radius, bevel, strength, isDark)
             } else null
             val layerSize = IntSize((size.width + margin * 2).roundToInt(), (size.height + margin * 2).roundToInt())
-            // Band approximation (Android < 13): fine concentric rings across the bevel, each sampling a
-            // little further outside than the one inside it, following the same circular profile as the
-            // shader. Many small steps read as a smooth bend rather than visible seams.
-            val ringCount = if (minSide < 60.dp.toPx()) 4 else 6
-            val rings = List(ringCount) { i ->
-                val k = i + 1
-                val t = (k - 0.5f) / ringCount
-                val curve = 1f - kotlin.math.sqrt((1f - t * t).coerceAtLeast(0f))
-                insetPath(bevel * (ringCount - k + 1) / ringCount) to strength * 0.55f * curve
-            }
+            // Approximation for Android < 13 (no runtime shaders), kept to two backdrop draws so it stays
+            // fast on older TV boxes: a sharp, slightly magnified interior plus one refracting rim band
+            // that samples from further outside. On Android 12 the rim uses the shared blurred layer,
+            // which hides the step between interior and rim like a smeared bevel.
+            val rimBand = insetPath(bevel * 0.62f)
 
             val strokeW = if (liquid) 1.3.dp.toPx() else 1.dp.toPx()
             val edgeBrush = if (liquid) {
@@ -223,8 +218,13 @@ fun Modifier.glass(
                     }
                 }
 
-                fun DrawScope.drawBlurred() {
-                    withTransform({ translate(-origin.x, -origin.y) }) {
+                fun DrawScope.drawBlurred(d: Float = 0f) {
+                    val sx = (1f - 2f * d / size.width).coerceAtLeast(0.2f)
+                    val sy = (1f - 2f * d / size.height).coerceAtLeast(0.2f)
+                    withTransform({
+                        if (d != 0f) scale(sx, sy, pivot = center)
+                        translate(-origin.x, -origin.y)
+                    }) {
                         if (SupportsLiveBlur) {
                             drawLayer(backdrop.blurred(source))
                         } else {
@@ -268,10 +268,10 @@ fun Modifier.glass(
                     else -> clipPath(clip) {
                         drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
-                            rings.forEach { (ring, d) ->
-                                clipPath(ring, clipOp = ClipOp.Difference) { drawRaw(d, d) }
+                            clipPath(rimBand, clipOp = ClipOp.Difference) {
+                                if (SupportsLiveBlur) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                drawRect(rimLight)
                             }
-                            clipPath(rings.last().first, clipOp = ClipOp.Difference) { drawRect(rimLight) }
                         }
                         drawRect(tint)
                         drawRect(specular)

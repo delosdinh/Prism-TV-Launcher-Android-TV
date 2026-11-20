@@ -92,6 +92,17 @@ object SystemActions {
         null
     }
 
+    /**
+     * tvOS-style launch: the app's own window zooms out of [rect] (the growing icon, in [source]'s
+     * pixel coordinates), so the real app — its launch screen first — appears to open out of the tile.
+     */
+    fun scaleUpOptions(source: android.view.View, rect: android.graphics.Rect): Bundle? = try {
+        ActivityOptions.makeScaleUpAnimation(source, rect.left, rect.top, rect.width().coerceAtLeast(1), rect.height().coerceAtLeast(1))
+            .toBundle()
+    } catch (_: Throwable) {
+        null
+    }
+
     fun open(ctx: Context, action: String): Boolean =
         start(ctx, Intent(action)) || start(ctx, Intent(Settings.ACTION_SETTINGS))
 

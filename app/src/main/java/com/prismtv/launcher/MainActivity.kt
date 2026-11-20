@@ -33,7 +33,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -258,12 +257,6 @@ fun PrismApp(vm: LauncherViewModel) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .graphicsLayer {
-                        // Home recedes slightly while an app zooms out of its icon.
-                        val lp = if (vm.launchAnim != null) vm.launchProgress.coerceIn(0f, 1f) else 0f
-                        scaleX = 1f - 0.06f * lp
-                        scaleY = 1f - 0.06f * lp
-                    }
                     .backdropSource(backdrop, GlassSource.Full)
             ) {
                 Box(

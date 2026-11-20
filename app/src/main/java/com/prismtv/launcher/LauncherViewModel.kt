@@ -97,6 +97,8 @@ data class SettingsRow(
     val selectable: Boolean = false,
     val checked: Boolean = false,
     val chevron: Boolean = false,
+    /** Apps page: the app this row shows/hides (drawn with its artwork). */
+    val app: LauncherApp? = null,
 )
 
 /** A zoom transition between a tile (in dp) and full screen. */
@@ -686,12 +688,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         launchAnim = LaunchAnim(app, from, heroesFor(app).firstOrNull()?.art)
     }
 
-    /** Called part-way through the zoom so the app's own start-up overlaps the animation. */
-    fun onLaunchMidpoint(anim: LaunchAnim) {
+    /**
+     * Called part-way through the zoom. The app is started with its window scaling up from the icon's
+     * current rect ([source] pixels), so the real app continues the zoom like tvOS.
+     */
+    fun onLaunchMidpoint(anim: LaunchAnim, source: android.view.View?, rect: android.graphics.Rect?) {
         if (anim.reverse || anim.app.demo != null) return
         val app = anim.app
         val intent = SystemActions.launchIntent(ctx, app)
-        if (intent != null && SystemActions.start(ctx, intent, SystemActions.fadeOptions(ctx))) {
+        val options = if (source != null && rect != null) SystemActions.scaleUpOptions(source, rect) else null
+        val starter = source?.context ?: ctx
+        if (intent != null && SystemActions.start(starter, intent, options ?: SystemActions.fadeOptions(ctx))) {
             recentsRepo.record(app.packageName)
             pendingReturn = anim
             launchFailed = false
@@ -997,7 +1004,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
         )
         SettingsPage.Apps -> allApps.sortedBy { it.label.lowercase() }.map {
-            SettingsRow("app:${it.id}", it.label, "SHOW ON HOME SCREEN", if (it.id in prefs.hiddenApps) "Hidden" else "Shown")
+            SettingsRow("app:${it.id}", it.label, "SHOW ON HOME SCREEN", if (it.id in prefs.hiddenApps) "Hidden" else "Shown", app = it)
         }.ifEmpty { listOf(SettingsRow("none", "No Apps Installed", "SHOW ON HOME SCREEN")) }
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
