@@ -14,7 +14,9 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
-    <!-- Lets the launcher read Android TV "Watch Next" / preview channel cards for the dynamic hero. -->
+    <!-- Lets the launcher read other apps' Android TV recommendation cards (preview channels /
+         Watch Next) for the dynamic Top Shelf. Runtime permission; asked once on first launch. -->
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
 
     <application

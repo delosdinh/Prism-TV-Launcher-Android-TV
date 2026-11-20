@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent as AndroidKeyEvent
@@ -88,6 +90,46 @@ class MainActivity : ComponentActivity() {
             addDataScheme("package")
         }
         ContextCompat.registerReceiver(this, packageReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        if (savedInstanceState == null && intent?.let { isDebugIntent(it) } != true) askForRecommendationsOnce()
+    }
+
+    /** First launch: ask once for access to other apps' recommendation cards. */
+    private fun askForRecommendationsOnce() {
+        if (Build.VERSION.SDK_INT < 23 || vm.hasRecommendationAccess()) return
+        val sp = getSharedPreferences("prism_prefs", MODE_PRIVATE)
+        if (sp.getBoolean("askedTvListings", false)) return
+        sp.edit().putBoolean("askedTvListings", true).apply()
+        requestRecommendationAccess()
+    }
+
+    fun requestRecommendationAccess() {
+        if (Build.VERSION.SDK_INT < 23) return
+        if (!shouldShowRequestPermissionRationale(TV_LISTINGS) &&
+            getSharedPreferences("prism_prefs", MODE_PRIVATE).getBoolean("deniedTvListings", false)
+        ) {
+            // Previously denied with "don't ask again": send the user to the app's permission page.
+            runCatching {
+                startActivity(
+                    Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        .setData(android.net.Uri.parse("package:$packageName"))
+                )
+            }
+            return
+        }
+        requestPermissions(arrayOf(TV_LISTINGS), REQ_TV_LISTINGS)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_TV_LISTINGS) {
+            val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+            getSharedPreferences("prism_prefs", MODE_PRIVATE).edit().putBoolean("deniedTvListings", !granted).apply()
+            if (granted) vm.refreshRecommendations(force = true)
+        }
+    }
+
+    private companion object {
+        const val REQ_TV_LISTINGS = 41
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -185,6 +227,9 @@ fun PrismApp(vm: LauncherViewModel) {
     val activity = LocalContext.current as? Activity
     LaunchedEffect(vm.restartTick) {
         if (vm.restartTick > 0) activity?.recreate()
+    }
+    LaunchedEffect(vm.permissionRequestTick) {
+        if (vm.permissionRequestTick > 0) (activity as? MainActivity)?.requestRecommendationAccess()
     }
 
     CompositionLocalProvider(

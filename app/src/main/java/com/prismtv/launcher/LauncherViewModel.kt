@@ -1,6 +1,8 @@
 package com.prismtv.launcher
 
 import android.app.Application
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -53,6 +55,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+
+const val TV_LISTINGS = "android.permission.READ_TV_LISTINGS"
 
 enum class Zone { TopBar, Hero, Grid }
 enum class Overlay { None, ControlCentre, Switcher, Settings, Folder }
@@ -231,14 +235,33 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshApps() {
         if (prefs.demoContent) return
         viewModelScope.launch {
-            val loaded = withContext(Dispatchers.IO) { appsRepo.load() }
-            realApps = loaded
+            realApps = withContext(Dispatchers.IO) { appsRepo.load() }
+            refreshRecommendations(force = true)
+        }
+    }
+
+    private var lastRecsLoad = 0L
+
+    /** Re-reads other apps' recommendation cards (they change as you watch things). */
+    fun refreshRecommendations(force: Boolean = false) {
+        if (prefs.demoContent) return
+        val now = System.currentTimeMillis()
+        if (!force && now - lastRecsLoad < 60_000) return
+        lastRecsLoad = now
+        viewModelScope.launch {
+            val apps = realApps
             val recs = withContext(Dispatchers.IO) { recsRepo.load() }
-            heroItemsByApp = loaded.associate { app ->
+            heroItemsByApp = apps.associate { app ->
                 app.id to (recs[app.packageName] ?: emptyList()).map { it.copy(appId = app.id, appLabel = app.label) }
             }.filterValues { it.isNotEmpty() }
         }
     }
+
+    /** Incremented to ask the activity to show the system permission prompt. */
+    var permissionRequestTick by mutableIntStateOf(0)
+
+    fun hasRecommendationAccess(): Boolean =
+        ContextCompat.checkSelfPermission(ctx, TV_LISTINGS) == PackageManager.PERMISSION_GRANTED
 
     private fun restartHeroTimer() {
         heroTimer?.cancel()
@@ -307,6 +330,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun onResume() {
         resumeTick++
         dndOn = SystemActions.dndOn(ctx)
+        refreshRecommendations()
         pendingReturn?.let { anim ->
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
@@ -643,6 +667,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         } + listOf(
             SettingsRow("labels", "App Names", "APP NAMES", prefs.labels.label),
             SettingsRow("hero", "Top Shelf", "TOP SHELF", onOff(prefs.heroEnabled)),
+            SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
             SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
             SettingsRow("source", "Artwork Source", "TOP SHELF", prefs.heroSource.label),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
@@ -698,6 +723,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "labels" -> updatePrefs(p.copy(labels = LabelMode.entries[(p.labels.ordinal + 1) % LabelMode.entries.size]))
             r.id == "hero" -> updatePrefs(p.copy(heroEnabled = !p.heroEnabled))
             r.id == "autorotate" -> updatePrefs(p.copy(heroAutoRotate = !p.heroAutoRotate))
+            r.id == "recs" -> if (hasRecommendationAccess()) {
+                showBanner("Recommendations", "Prism TV can already show cards from your apps.", Icons.Rounded.Info)
+            } else {
+                permissionRequestTick++
+            }
             r.id == "source" -> updatePrefs(p.copy(heroSource = HeroSource.entries[(p.heroSource.ordinal + 1) % HeroSource.entries.size]))
             r.id == "columns" -> updatePrefs(p.copy(columns = if (p.columns == 6) 5 else 6))
             r.id == "demo" -> updatePrefs(p.copy(demoContent = !p.demoContent))

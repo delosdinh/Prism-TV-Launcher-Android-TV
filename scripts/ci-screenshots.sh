@@ -27,7 +27,7 @@ RELEASE_APK="${3:-}"
 if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
   # Smoke-test the optimised (R8) build as a real user would see it: no demo content.
   echo "smoke testing release build"
-  adb install -r "$RELEASE_APK"
+  adb install -r -g "$RELEASE_APK"
   adb logcat -c || true
   adb shell am start -W -n "$ACT" >/dev/null 2>&1
   sleep 8

@@ -44,6 +44,10 @@ launcher counterpart to the Prism TV skin for Kodi.
 
 ## Optional permissions
 
+- **Recommendations from Apps** (asked once on first launch, or Settings › Home Screen) — lets the
+  Top Shelf show the cards apps publish to the Android TV home screen (Continue Watching, channels).
+  Without it, the hero uses app artwork. Can also be granted with
+  `adb shell pm grant com.prismtv.launcher android.permission.READ_TV_LISTINGS`.
 - **Usage access** (Settings › Apps › Recent Apps Access) — lets the App Switcher list apps you
   opened outside the launcher.
 - **Accessibility › Prism TV Power Controls** — lets Control Centre open the power menu and the
