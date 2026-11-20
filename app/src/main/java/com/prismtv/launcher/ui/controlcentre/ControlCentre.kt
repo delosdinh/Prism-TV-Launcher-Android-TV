@@ -57,11 +57,11 @@ import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.glass
 import com.prismtv.launcher.ui.theme.LocalPrism
 
-private const val ClusterW = 228f
+private const val ClusterW = 252f
 private const val ClusterLeft = 960f - 34f - ClusterW
 private const val TilesTop = 44f
 private const val Big = 110f
-private const val PillW = 111f
+private const val PillW = ClusterW - Big - 7f
 private const val PillH = 50f
 private const val Gutter = 7f
 private const val Circle = 46f

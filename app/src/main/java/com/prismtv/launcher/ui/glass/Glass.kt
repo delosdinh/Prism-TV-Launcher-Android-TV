@@ -120,6 +120,8 @@ fun Modifier.glass(
     elevation: Dp = 0.dp,
     rimStrength: Float = 1f,
     lens: Boolean = true,
+    /** Always blur (full-screen scrims behind the switcher and folders), whatever the material. */
+    frosted: Boolean = false,
 ): Modifier = composed {
     val theme = LocalPrism.current
     val backdrop = LocalBackdrop.current
@@ -163,14 +165,21 @@ fun Modifier.glass(
                 is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
                 else -> 0f
             }
-            val useShader = liquid && lens && SupportsLensShader
+            val useShader = liquid && lens && !frosted && SupportsLensShader
             val lensEffect = if (useShader) {
                 LensShader.effect(size.width, size.height, margin, radius, bevel, strength, isDark)
             } else null
             val layerSize = IntSize((size.width + margin * 2).roundToInt(), (size.height + margin * 2).roundToInt())
-            // Band approximation (Android < 13): outer bands sample from further outside.
-            val band1 = insetPath(bevel * 0.62f)
-            val band2 = insetPath(bevel * 0.26f)
+            // Band approximation (Android < 13): fine concentric rings across the bevel, each sampling a
+            // little further outside than the one inside it, following the same circular profile as the
+            // shader. Many small steps read as a smooth bend rather than visible seams.
+            val ringCount = if (minSide < 60.dp.toPx()) 4 else 6
+            val rings = List(ringCount) { i ->
+                val k = i + 1
+                val t = (k - 0.5f) / ringCount
+                val curve = 1f - kotlin.math.sqrt((1f - t * t).coerceAtLeast(0f))
+                insetPath(bevel * (ringCount - k + 1) / ringCount) to strength * 0.55f * curve
+            }
 
             val strokeW = if (liquid) 1.3.dp.toPx() else 1.dp.toPx()
             val edgeBrush = if (liquid) {
@@ -240,7 +249,7 @@ fun Modifier.glass(
 
                 when {
                     reduce -> drawOutline(outline, tint.copy(alpha = 1f))
-                    !liquid -> clipPath(clip) {
+                    !liquid || frosted -> clipPath(clip) {
                         drawBlurred()
                         drawRect(tint)
                     }
@@ -257,13 +266,12 @@ fun Modifier.glass(
                         }
                     }
                     else -> clipPath(clip) {
-                        drawRaw(0f, 0f)
+                        drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
-                            clipPath(band1, clipOp = ClipOp.Difference) { drawRaw(strength * 0.45f, strength * 0.45f) }
-                            clipPath(band2, clipOp = ClipOp.Difference) {
-                                drawRaw(strength, strength)
-                                drawRect(rimLight)
+                            rings.forEach { (ring, d) ->
+                                clipPath(ring, clipOp = ClipOp.Difference) { drawRaw(d, d) }
                             }
+                            clipPath(rings.last().first, clipOp = ClipOp.Difference) { drawRect(rimLight) }
                         }
                         drawRect(tint)
                         drawRect(specular)

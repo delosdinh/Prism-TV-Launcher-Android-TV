@@ -63,9 +63,32 @@ fun ContextMenuHost(vm: LauncherViewModel) {
     val h = TitleH + m.actions.size * RowH + Pad * 2
     val gap = 16f
     val grow = a.height * (HomeLayout.FocusScale - 1f) / 2f
-    val below = a.bottom + grow + gap + h < HomeLayout.ScreenH - 10f
-    val top = if (below) a.bottom + grow + gap else (a.top - grow - gap - h).coerceAtLeast(10f)
-    val left = (a.center.x - MenuW / 2f).coerceIn(18f, HomeLayout.ScreenW - 18f - MenuW)
+    val growX = a.width * (HomeLayout.FocusScale - 1f) / 2f
+    // Below the tile if it fits, else above, else beside it (vertically centred on the tile).
+    val fitsBelow = a.bottom + grow + gap + h < HomeLayout.ScreenH - 10f
+    val fitsAbove = a.top - grow - gap - h > 10f
+    val beside = !fitsBelow && !fitsAbove
+    val onRight = a.center.x < HomeLayout.ScreenW / 2f
+    val top = when {
+        fitsBelow -> a.bottom + grow + gap
+        fitsAbove -> a.top - grow - gap - h
+        else -> (a.center.y - h / 2f).coerceIn(10f, HomeLayout.ScreenH - 10f - h)
+    }
+    val left = when {
+        !beside -> (a.center.x - MenuW / 2f).coerceIn(18f, HomeLayout.ScreenW - 18f - MenuW)
+        onRight -> a.right + growX + gap
+        else -> a.left - growX - gap - MenuW
+    }
+    val origin = when {
+        beside -> TransformOrigin(if (onRight) 0f else 1f, 0.5f)
+        fitsBelow -> TransformOrigin(0.5f, 0f)
+        else -> TransformOrigin(0.5f, 1f)
+    }
+
+    // The lens samples the undimmed screen, so the veil carries the scrim's dimming for legibility.
+    val menuTint = if (theme.liquid) {
+        if (p.isDark) Color.Black.copy(alpha = 0.52f) else Color.White.copy(alpha = 0.60f)
+    } else theme.controlGlass()
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -103,9 +126,9 @@ fun ContextMenuHost(vm: LauncherViewModel) {
                     val s = lerpF(0.82f, 1f, t)
                     scaleX = s
                     scaleY = s
-                    transformOrigin = TransformOrigin(0.5f, if (below) 0f else 1f)
+                    transformOrigin = origin
                 }
-                .glass(RoundedCornerShape(26.dp), theme.controlGlass(), GlassSource.Full, elevation = 28.dp)
+                .glass(RoundedCornerShape(26.dp), menuTint, GlassSource.Full, elevation = 28.dp)
                 .padding(Pad.dp)
         ) {
             PText(

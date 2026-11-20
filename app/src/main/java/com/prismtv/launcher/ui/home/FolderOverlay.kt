@@ -56,7 +56,7 @@ fun FolderOverlay(vm: LauncherViewModel) {
                 .glass(
                     RectangleShape,
                     if (p.isDark) Color.Black.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.16f),
-                    GlassSource.Scene, rimStrength = 0f, lens = false,
+                    GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true,
                 )
         )
         Box(

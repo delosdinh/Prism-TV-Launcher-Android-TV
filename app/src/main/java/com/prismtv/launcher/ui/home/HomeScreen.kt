@@ -119,11 +119,11 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             count = vm.currentHeroItems.size,
             index = vm.heroIndex,
             expanded = expanded,
-            visible = heroOn && !gridMode,
+            visible = heroOn && !gridMode && vm.overlay != Overlay.Sidebar,
             focusedButton = if (vm.zone == Zone.Hero && vm.overlay == Overlay.None) vm.heroButton else -1,
         )
 
-        val focusIndex = if (vm.zone == Zone.Grid) vm.row * cols + vm.col else -1
+        val focusIndex = if (vm.zone == Zone.Grid && vm.overlay != Overlay.Sidebar) vm.row * cols + vm.col else -1
         AppGrid(
             items = vm.items,
             cols = cols,
@@ -131,7 +131,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             rowGap = rowGap,
             focusIndex = focusIndex,
             gridMode = gridMode,
-            showHint = heroOn && !gridMode && !expanded && vm.overlay == Overlay.None && vm.movingId == null,
+            showHint = heroOn && !gridMode && !expanded && vm.overlay == Overlay.None && vm.movingId == null && vm.contextMenu == null,
             palette = p,
             movingId = vm.movingId,
         )

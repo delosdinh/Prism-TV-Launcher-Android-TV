@@ -76,7 +76,7 @@ fun AppSwitcher(vm: LauncherViewModel) {
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = open }
-                .glass(RectangleShape, Color.Black.copy(alpha = 0.30f), GlassSource.Scene, rimStrength = 0f, lens = false)
+                .glass(RectangleShape, Color.Black.copy(alpha = 0.30f), GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true)
         )
 
         val entries = vm.recents

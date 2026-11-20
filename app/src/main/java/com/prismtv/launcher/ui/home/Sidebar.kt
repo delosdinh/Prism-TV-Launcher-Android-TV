@@ -73,20 +73,24 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
             ?.takeIf { it.isNotBlank() } ?: Build.MODEL
     }
     val fg = if (p.isDark) Color.White else p.textPrimary
+    // Clear lens over the Home Screen, with a veil that matches the scrim so the list stays legible.
+    val panelTint = if (theme.liquid) {
+        if (p.isDark) Color.Black.copy(alpha = 0.44f) else Color.White.copy(alpha = 0.55f)
+    } else theme.controlGlass()
 
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = t }
-                .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.50f), 0.55f to Color.Transparent))
+                .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.62f), 0.38f to Color.Black.copy(alpha = 0.30f), 0.75f to Color.Transparent))
         )
         Column(
             Modifier
                 .offset { IntOffset(lerpF(-300f, 18f, t).dp.roundToPx(), 18.dp.roundToPx()) }
                 .size(264.dp, 504.dp)
                 .graphicsLayer { alpha = t }
-                .glass(RoundedCornerShape(40.dp), theme.controlGlass(), GlassSource.Scene, elevation = 30.dp)
+                .glass(RoundedCornerShape(40.dp), panelTint, GlassSource.Scene, elevation = 30.dp)
                 .padding(horizontal = 12.dp, vertical = 14.dp)
         ) {
             Row(

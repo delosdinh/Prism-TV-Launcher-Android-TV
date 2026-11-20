@@ -50,14 +50,14 @@ class AerialView(context: Context) : FrameLayout(context) {
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
         typeface = ResourcesCompat.getFont(context, R.font.inter_semibold)
         letterSpacing = -0.01f
-        setShadowLayer(dp(10f), 0f, dp(1f), 0x99000000.toInt())
+        setShadowLayer(dp(5f), 0f, dp(1f), 0x77000000)
         alpha = 0f
     }
     private val clock = TextClock(context).apply {
         setTextColor(Color.WHITE)
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
         typeface = ResourcesCompat.getFont(context, R.font.inter_medium)
-        setShadowLayer(dp(10f), 0f, dp(1f), 0x99000000.toInt())
+        setShadowLayer(dp(4f), 0f, dp(1f), 0x66000000)
         alpha = 0.92f
     }
 
@@ -215,7 +215,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         location.alpha = 0f
         location.text = text
         location.animate().alpha(1f).setStartDelay(1600).setDuration(900).withEndAction {
-            location.animate().alpha(0f).setStartDelay(9000).setDuration(900).start()
+            location.animate().alpha(0f).setStartDelay(14_000).setDuration(900).start()
         }.start()
     }
 
