@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
         requestPermissions(arrayOf(TV_LISTINGS), REQ_TV_LISTINGS)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQ_TV_LISTINGS) {
             val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
