@@ -23,7 +23,27 @@ sleep 8
 } > "$OUT/device.txt" 2>&1
 cat "$OUT/device.txt"
 
-adb install -r -g "$APK" || adb install -r "$APK"
+RELEASE_APK="${3:-}"
+if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
+  # Smoke-test the optimised (R8) build as a real user would see it: no demo content.
+  echo "smoke testing release build"
+  adb install -r "$RELEASE_APK"
+  adb logcat -c || true
+  adb shell am start -W -n "$ACT" >/dev/null 2>&1
+  sleep 8
+  adb exec-out screencap -p > "$OUT/00-release-real-apps.png"
+  adb shell input keyevent KEYCODE_DPAD_DOWN; sleep 2
+  adb exec-out screencap -p > "$OUT/00-release-real-apps-grid.png"
+  adb shell input keyevent KEYCODE_DPAD_UP; sleep 1
+  adb shell input keyevent KEYCODE_DPAD_UP; sleep 2
+  adb exec-out screencap -p > "$OUT/00-release-top-shelf.png"
+  PID="$(adb shell pidof "$PKG" | tr -d '\r')"
+  adb logcat -d -b crash > "$OUT/release-crash.txt" 2>&1 || true
+  if [ -n "$PID" ] && ! grep -q "$PKG" "$OUT/release-crash.txt"; then echo "RELEASE OK (pid $PID)" | tee "$OUT/release-smoke.txt"; else echo "RELEASE FAILED" | tee "$OUT/release-smoke.txt"; fi
+  adb shell am force-stop "$PKG"
+fi
+
+adb install -r -g "$APK" || { adb uninstall "$PKG"; adb install -r -g "$APK"; }
 # Dismiss anything the TV setup flow left on screen.
 adb shell input keyevent KEYCODE_WAKEUP || true
 

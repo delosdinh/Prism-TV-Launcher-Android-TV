@@ -42,6 +42,34 @@ jobs:
           name: prism-tv-apks
           path: app/build/outputs/apk/**/*.apk
 
+      # A stable direct-download link for sideloading (e.g. the Downloader app on Android TV):
+      # https://github.com/<owner>/<repo>/releases/download/preview/prismtv.apk
+      - name: Publish preview release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/prismtv-debug.apk
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk dist/prismtv.apk
+          else
+            cp dist/prismtv-debug.apk dist/prismtv.apk
+          fi
+          NOTES="Latest build of \`${GITHUB_REF_NAME}\` (${GITHUB_SHA::7}).
+
+          Install on Android TV with Downloader: \`https://github.com/${GITHUB_REPOSITORY}/releases/download/preview/prismtv.apk\`
+
+          - prismtv.apk: optimised build (recommended)
+          - prismtv-debug.apk: debug build"
+          if gh release view preview >/dev/null 2>&1; then
+            gh release edit preview --prerelease --title "Preview build" --notes "$NOTES"
+          else
+            gh release create preview --prerelease --title "Preview build" --target "$GITHUB_SHA" --notes "$NOTES"
+          fi
+          gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk --clobber
+
       - name: Publish build log on failure
         if: failure()
         env:
@@ -84,7 +112,7 @@ jobs:
           disable-animations: false
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
-          script: bash scripts/ci-screenshots.sh apks/debug/app-debug.apk shots
+          script: bash scripts/ci-screenshots.sh apks/debug/app-debug.apk shots apks/release/app-release.apk
 
       - name: Convert recordings to GIF
         if: always()
