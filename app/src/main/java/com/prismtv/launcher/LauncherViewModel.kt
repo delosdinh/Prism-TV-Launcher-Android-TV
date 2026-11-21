@@ -481,7 +481,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------------------------------------------------------- notifications
     var notifications by mutableStateOf<List<PrismNotification>>(emptyList())
+        private set
     /** What another app is playing (Control Centre's Now Playing tile); null when nothing is. */
+    var nowPlaying by mutableStateOf<com.prismtv.launcher.system.NowPlaying?>(null)
+        private set
+    /** Notifications Control Centre has room for (two when Now Playing is showing). */
+    val ccNotificationsShown: Int get() = notifications.size.coerceAtMost(if (nowPlaying != null) 2 else 3)
+
     /** Settings › Backup & Restore: backups found on this TV, newest first. */
     var backups by mutableStateOf<List<com.prismtv.launcher.data.Backup.Entry>>(emptyList())
         private set
@@ -491,11 +497,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Settings › Banner: the app whose banner is being chosen. */
     var bannerAppId by mutableStateOf<String?>(null)
-        private set
-    var nowPlaying by mutableStateOf<com.prismtv.launcher.system.NowPlaying?>(null)
-        private set
-    /** Notifications Control Centre has room for (two when Now Playing is showing). */
-    val ccNotificationsShown: Int get() = notifications.size.coerceAtMost(if (nowPlaying != null) 2 else 3)
         private set
 
     /** CI: a title logo for the demo Top Shelf (demo titles have no IMDb id). */
