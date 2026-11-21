@@ -99,7 +99,7 @@ Created by CI run ${GITHUB_RUN_ID:-?} for ${GITHUB_SHA:-?}."
     fetch_draft_key "$WINNER"
     PW="$(cat "$PW_FILE")"
   fi
-  SOURCE="draft release $WINNER (created by this run)"
+  SOURCE="draft release ${WINNER:-$TAG} (created by this run)"
   use_key "$PW"
   exit 0
 fi
