@@ -76,6 +76,13 @@ launcher counterpart to the Prism TV skin for Kodi.
   Control Centre open the power menu and the Sleep Timer put the TV to sleep. It never reads screen
   content.
 
+### HDR aerials
+
+Settings › Screensaver › Dynamic Range: **Automatic** (Dolby Vision when the box has a Dolby Vision
+decoder and the TV reports Dolby Vision, otherwise SDR), **SDR**, or **Dolby Vision**. Apple
+publishes its HDR aerials in Dolby Vision (profile 5) only, so HDR10-only TVs stay on SDR. Turn on
+the box's "match content dynamic range" option so the TV switches into Dolby Vision for them.
+
 ### Prism Aerials as the system screensaver
 
 Settings › System › Ambient mode / Screen saver › choose **Prism Aerials**. On Google TV, where the
@@ -106,6 +113,22 @@ adb shell settings put secure accessibility_enabled 1
 
 On Android TV (e.g. NVIDIA SHIELD) you can instead disable the stock launcher:
 `adb shell pm disable-user --user 0 com.google.android.tvlauncher` (undo with `pm enable`).
+
+Tools such as TV Box Tools do the same `set-home-activity` step for you. Uninstalling Prism TV
+resets the Home app, so run it again after a reinstall; in-place updates keep it.
+
+### Software Update
+
+Prism TV updates itself from the `preview` release. On the Home Screen it checks every few hours
+(Settings › About › Check Automatically) and asks **Update Now / Later**; Settings › About ›
+Software Update checks on demand. The first update asks you to allow Prism TV to install apps.
+On Android 12+ the update then installs straight away; Android 11 (e.g. SHIELD) also shows the
+system's install confirmation.
+
+Updates only install over a build signed with the same key. CI signs with a permanent key from
+the repository secrets `PRISM_KEYSTORE_B64` (base64 PKCS12 keystore, alias `prism`) and
+`PRISM_KEYSTORE_PASSWORD`, and publishes `update.json` only for those builds. Without the secrets,
+builds use a throwaway key and must be uninstalled before installing a newer one.
 
 ### Demo content
 
