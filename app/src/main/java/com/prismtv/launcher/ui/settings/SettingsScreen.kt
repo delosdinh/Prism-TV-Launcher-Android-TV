@@ -50,6 +50,14 @@ import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.RocketLaunch
+import androidx.compose.material.icons.rounded.Input
+import androidx.compose.material.icons.rounded.SettingsBackupRestore
+import androidx.compose.material.icons.rounded.Style
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.ManageAccounts
 import com.prismtv.launcher.ui.components.Avatar
@@ -180,7 +188,10 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 val art: Any = when (pg) {
                     SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard ->
                         rows.getOrNull(focus)?.let { if (it.id == "profile") vm.avatarLook else glyphFor(it.id) } ?: pageGlyph(pg)
-                    SettingsPage.Apps, SettingsPage.WidgetApps -> rows.getOrNull(focus)?.app ?: pageGlyph(pg)
+                    SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions ->
+                        rows.getOrNull(focus)?.app ?: rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
+                    SettingsPage.Banner -> rows.getOrNull(focus)?.let { vm.bannerPreview(it.id) } ?: pageGlyph(pg)
+                    SettingsPage.Profiles -> rows.getOrNull(focus)?.let { vm.profileListPreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Wallpaper -> rows.getOrNull(focus)?.let { vm.wallpaperPreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Profile -> rows.getOrNull(focus)?.let { vm.profilePreview(it.id) } ?: vm.avatarLook
                     else -> pageGlyph(pg)
@@ -252,6 +263,14 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "ui:Medium" to glyph(Icons.Rounded.Opacity, 0xFF5AA9FF, 0xFF1A6CE0),
     "ui:Low" to glyph(Icons.Rounded.Opacity, 0xFF7C86A8, 0xFF4A5170),
     "lite" to glyph(Icons.Rounded.Speed, 0xFF4CD964, 0xFF239B3E),
+    "ss:media" to glyph(Icons.Rounded.MusicNote, 0xFFFF6482, 0xFFE0264A),
+    "startupApp" to glyph(Icons.Rounded.RocketLaunch, 0xFFFF9F0A, 0xFFE06A00),
+    "inputs" to glyph(Icons.Rounded.Input, 0xFF5AC8FA, 0xFF0A6CFF),
+    "backup" to glyph(Icons.Rounded.SettingsBackupRestore, 0xFF4CD964, 0xFF239B3E),
+    "iconPack" to glyph(Icons.Rounded.Style, 0xFFFF6482, 0xFFE0264A),
+    "banner" to glyph(Icons.Rounded.Image, 0xFFFF9F0A, 0xFFE06A00),
+    "profiles" to glyph(Icons.Rounded.Groups, 0xFF3D9BFF, 0xFF0A5FE0),
+    "restrictions" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -268,6 +287,13 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Widgets, SettingsPage.WidgetApps, SettingsPage.WidgetOrder -> Glyphs.getValue("widgets")
     SettingsPage.Keyboard -> Glyphs.getValue("keyboard")
     SettingsPage.Profile -> Glyphs.getValue("pf:name")
+    SettingsPage.Startup -> Glyphs.getValue("startupApp")
+    SettingsPage.Inputs -> Glyphs.getValue("inputs")
+    SettingsPage.Backup -> Glyphs.getValue("backup")
+    SettingsPage.IconPack -> Glyphs.getValue("iconPack")
+    SettingsPage.Banner -> Glyphs.getValue("banner")
+    SettingsPage.Profiles -> Glyphs.getValue("profiles")
+    SettingsPage.Restrictions -> Glyphs.getValue("restrictions")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */

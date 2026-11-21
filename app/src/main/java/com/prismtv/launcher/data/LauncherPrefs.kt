@@ -149,6 +149,10 @@ data class LauncherPrefs(
      * and smaller artwork in memory. For slower or 2 GB boxes.
      */
     val liteMode: Boolean = false,
+    /** An app opened once each time the TV starts (its id); empty = stay on the Home Screen. */
+    val startupApp: String = "",
+    /** Seconds to wait before opening [startupApp]. */
+    val startupDelay: Int = 0,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -160,6 +164,9 @@ data class LauncherPrefs(
 
     val textScale: Float get() = TextScales[textSize.coerceIn(0, TextScales.size - 1)]
 }
+
+/** Settings › Open at Startup › Wait choices, in seconds. */
+val StartupDelays = listOf(0, 5, 10, 20, 30)
 
 /** Settings › Screensaver › Start After choices, in minutes (0 = Never). */
 val StartAfterChoices = listOf(0, 2, 5, 10, 15, 30)
@@ -216,6 +223,8 @@ class PrefsStore(context: Context) {
             sounds = sp.getBoolean("sounds", d.sounds),
             screensaverAfter = sp.getInt("screensaverAfter", d.screensaverAfter).takeIf { it in StartAfterChoices } ?: d.screensaverAfter,
             screensaverWaitForMedia = sp.getBoolean("screensaverWaitForMedia", d.screensaverWaitForMedia),
+            startupApp = sp.getString("startupApp", d.startupApp).orEmpty(),
+            startupDelay = sp.getInt("startupDelay", d.startupDelay).takeIf { it in StartupDelays } ?: d.startupDelay,
         )
     }
 
@@ -245,6 +254,8 @@ class PrefsStore(context: Context) {
             .putString("glassColour", p.glassColour.name)
             .putInt("screensaverAfter", p.screensaverAfter)
             .putBoolean("screensaverWaitForMedia", p.screensaverWaitForMedia)
+            .putString("startupApp", p.startupApp)
+            .putInt("startupDelay", p.startupDelay)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)

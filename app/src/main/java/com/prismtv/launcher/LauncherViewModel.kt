@@ -144,6 +144,8 @@ enum class SettingsPage(val title: String) {
     Apps("Apps"), SoftwareUpdate("Software Update"), About("About"),
     TextSize("Text Size"), Wallpaper("Wallpaper"), Widgets("Widgets"),
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
+    Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
+    Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"),
 }
 
 data class SettingsRow(
@@ -477,6 +479,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ---------------------------------------------------------------- notifications
     var notifications by mutableStateOf<List<PrismNotification>>(emptyList())
     /** What another app is playing (Control Centre's Now Playing tile); null when nothing is. */
+    /** Settings › Banner: the app whose banner is being chosen. */
+    var bannerAppId by mutableStateOf<String?>(null)
+        private set
     var nowPlaying by mutableStateOf<com.prismtv.launcher.system.NowPlaying?>(null)
         private set
     /** Notifications Control Centre has room for (two when Now Playing is showing). */
@@ -1326,6 +1331,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         refreshWeather()
         // Picks up Notification access granted while Prism was away.
         com.prismtv.launcher.system.MediaWatcher.start(ctx)
+        maybeOpenAtStartup()
         pendingReturn?.let { anim ->
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
@@ -1833,6 +1839,41 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         homeVisible = false
     }
 
+    private fun startupAppLabel(): String =
+        prefs.startupApp.takeIf { it.isNotEmpty() }?.let { id -> allApps.firstOrNull { it.id == id }?.label } ?: "Off"
+
+    private fun startupDelayLabel(): String = when (val s = prefs.startupDelay) {
+        0 -> "None"
+        else -> "$s Seconds"
+    }
+
+    /**
+     * Settings › Open at Startup: the first time Prism appears after the TV starts, open the chosen app
+     * (once per start, only in the first few minutes, and not if you've already moved on).
+     */
+    private fun maybeOpenAtStartup() {
+        val id = prefs.startupApp
+        if (id.isEmpty() || debugDriven) return
+        val uptime = SystemClock.elapsedRealtime()
+        if (uptime > 5 * 60_000L) return
+        val bootedAt = System.currentTimeMillis() - uptime
+        val sp = ctx.getSharedPreferences("prism_prefs", android.content.Context.MODE_PRIVATE)
+        if (kotlin.math.abs(sp.getLong("startupAppBootAt", 0L) - bootedAt) < 60_000L) return
+        sp.edit().putLong("startupAppBootAt", bootedAt).apply()
+        viewModelScope.launch {
+            // Apps load in the background just after startup; give them a moment.
+            var waited = 0
+            while (allApps.none { it.id == id } && waited < 15_000) { delay(250); waited += 250 }
+            val app = allApps.firstOrNull { it.id == id } ?: return@launch
+            val pressesBefore = lastInteraction
+            delay(prefs.startupDelay * 1000L)
+            // Someone picked up the remote while we waited, or Prism isn't on screen: leave it be.
+            if (!isResumed || lastInteraction != pressesBefore || overlay != Overlay.None) return@launch
+            val idx = items.indexOfFirst { it is com.prismtv.launcher.data.AppItem && it.app.id == app.id }
+            startLaunch(app, if (idx >= 0) tileAnchor(idx) else SwitcherLayout.focusedRect(focusIsLast = true))
+        }
+    }
+
     /** Settings › Screensaver › Start After: aerials after that long without a button press on Home. */
     private fun watchForIdle() {
         viewModelScope.launch {
@@ -1994,6 +2035,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("profile", "Profile", "GENERAL", profileName(), chevron = true),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(status().usage), chevron = true),
+            SettingsRow("startupApp", "Open at Startup", "APPS", startupAppLabel(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
             SettingsRow("startup", "Open Prism TV at Startup", "REMOTE", onOff(prefs.openAtStartup)),
@@ -2166,6 +2208,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 SettingsRow("pf:photo:$uri", name, "YOUR PICTURES", selectable = true, checked = prefs.avatar == "photo:$uri")
             }
         }
+        SettingsPage.Startup -> listOf(
+            SettingsRow("su:delay", "Wait Before Opening", "WHEN THE TV STARTS", startupDelayLabel()),
+            SettingsRow("su:off", "Stay on the Home Screen", "WHEN THE TV STARTS", selectable = true, checked = prefs.startupApp.isEmpty()),
+        ) + allApps.filter { it.demo == null }.sortedBy { it.label.lowercase() }.map {
+            SettingsRow("su:app:${it.id}", it.label, "OPEN AN APP", selectable = true, checked = prefs.startupApp == it.id, app = it)
+        }
+        SettingsPage.Inputs -> inputRows()
+        SettingsPage.Backup -> backupRows()
+        SettingsPage.IconPack -> iconPackRows()
+        SettingsPage.Banner -> bannerRows()
+        SettingsPage.Profiles -> profileRows()
+        SettingsPage.Restrictions -> restrictionRows()
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
@@ -2385,6 +2439,19 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val i = StartAfterChoices.indexOf(p.screensaverAfter)
                 updatePrefs(p.copy(screensaverAfter = StartAfterChoices[(i + 1) % StartAfterChoices.size]))
             }
+            r.id == "startupApp" -> pushPage(SettingsPage.Startup)
+            r.id == "su:delay" -> {
+                val i = com.prismtv.launcher.data.StartupDelays.indexOf(p.startupDelay)
+                updatePrefs(p.copy(startupDelay = com.prismtv.launcher.data.StartupDelays[(i + 1) % com.prismtv.launcher.data.StartupDelays.size]))
+            }
+            r.id == "su:off" -> updatePrefs(p.copy(startupApp = ""))
+            r.id.startsWith("su:app:") -> {
+                val id = r.id.removePrefix("su:app:")
+                updatePrefs(p.copy(startupApp = id))
+                allApps.firstOrNull { it.id == id }?.let {
+                    showBanner("Open at Startup", "${it.label} will open when the TV starts.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                }
+            }
             r.id == "ss:media" -> updatePrefs(p.copy(screensaverWaitForMedia = !p.screensaverWaitForMedia))
             r.id == "ss:source" -> updatePrefs(p.copy(aerialSource = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]))
             r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
@@ -2462,6 +2529,23 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Settings › Profile: a preview of the focused avatar or picture. */
+    // Pages filled in by later features.
+    private fun inputRows(): List<SettingsRow> = emptyList()
+    private fun backupRows(): List<SettingsRow> = emptyList()
+    private fun iconPackRows(): List<SettingsRow> = emptyList()
+    private fun bannerRows(): List<SettingsRow> = emptyList()
+    private fun profileRows(): List<SettingsRow> = emptyList()
+    private fun restrictionRows(): List<SettingsRow> = emptyList()
+
+    /** Settings › Banner: the picture on the focused row. */
+    fun bannerPreview(rowId: String): Any? = when {
+        rowId.startsWith("bn:photo:") -> thumb(UriArt(rowId.removePrefix("bn:photo:")))
+        else -> allApps.firstOrNull { it.id == bannerAppId }
+    }
+
+    /** Settings › Profiles: the focused profile's picture. */
+    fun profileListPreview(rowId: String): Any? = avatarLook
+
     fun profilePreview(rowId: String): Any? = when {
         rowId.startsWith("pf:preset:") -> com.prismtv.launcher.ui.components.AvatarLook.Preset(rowId.removePrefix("pf:preset:").toIntOrNull() ?: 0)
         rowId.startsWith("pf:photo:") -> thumb(UriArt(rowId.removePrefix("pf:photo:")))?.let { com.prismtv.launcher.ui.components.AvatarLook.Photo(it) }
