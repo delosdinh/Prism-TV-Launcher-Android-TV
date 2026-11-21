@@ -152,8 +152,11 @@ fun Modifier.glass(
 ): Modifier = composed {
     val theme = LocalPrism.current
     val backdrop = LocalBackdrop.current
-    val liquid = theme.liquid
-    val reduce = theme.reduceTransparency || (!liquid && !SupportsLiveBlur && source == GlassSource.Full)
+    // Lite Mode draws every glass as frosted over pre-blurred artwork: no live blur, no refraction.
+    val lite = theme.lite
+    val liquid = theme.liquid && !lite
+    val liveBlur = SupportsLiveBlur && !lite
+    val reduce = theme.reduceTransparency || (!liquid && !liveBlur && source == GlassSource.Full)
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
     val originState = remember { mutableStateOf(Offset.Zero) }
@@ -256,7 +259,7 @@ fun Modifier.glass(
                         if (d != 0f) scale(sx, sy, pivot = center)
                         translate(-origin.x, -origin.y)
                     }) {
-                        if (SupportsLiveBlur) {
+                        if (liveBlur) {
                             drawLayer(backdrop.blurred(source))
                         } else {
                             val img = backdrop.fallbackHeavy
@@ -319,7 +322,7 @@ fun Modifier.glass(
                         drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                if (SupportsLiveBlur) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                if (liveBlur) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
                                 drawRect(rimLight)
                             }
                         }

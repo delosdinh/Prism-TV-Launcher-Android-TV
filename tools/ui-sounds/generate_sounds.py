@@ -340,75 +340,91 @@ def poster_focus():
     return np.column_stack((direct+halo+side,direct+halo-side))*release(t,.025)[:,None]
 
 
-def chord_room(direct, t, delays=((.025, .032), (.067, .075)), gains=(.13, .09), tail=.021):
-    """The same short early reflections Select uses, so new cues sit in the same room."""
-    stereo = direct.copy()
-    for ch in (0, 1):
-        stereo[:, ch] += gains[0]*delayed(direct[:, 1-ch], delays[0][ch])
-        stereo[:, ch] += gains[1]*delayed(direct[:, ch], delays[1][ch])
-    return stereo*release(t, tail)[:, None]
-
-
 def open_navigation():
-    # Launcher addition: Control Centre, the sidebar, the switcher and menus opening. Select's chord a
-    # whole tone higher, rising gently into pitch, blooming outward a little faster.
-    length = .90
+    # Launcher addition: Control Centre, the sidebar, the switcher and menus opening. Select's own
+    # instrument (the same four voices, pitches, bends and room), played as a quick upward roll and on a
+    # tighter timeline, so it unfolds where Select blooms.
+    k = .66                                   # timeline scale against Select
+    roll = {205.4: 0, 237.7: .022, 302.8: .044, 360.8: .066}
+    length = 1.046*k + .066
     t = timeline(length)
-    crest = .128
-    env = contour(t, [(0,-61),(.016,-22.5),(.048,-11.8),(.083,-6.6),(.112,-1.6),(crest,0),
-                      (crest+.06,-.8),(.27,-4.4),(.37,-11.2),(.49,-17.5),(.64,-29),(.78,-43),(length,-74)])
-    bloom = smooth((t-.045)/.15)
-    settle = smooth((t-.21)/.26)
-    tone_up = 2 ** (2/12)
+    crest = .179
+    attack = [(0,-61),(.022,-22.5),(.068,-11.8),(.116,-6.6),(.156,-1.6)]
+    tail = [(crest,0),(crest+.077,-.7),(.35,-3.8),(.46,-10.7),(.59,-16.7),(.78,-28),(.96,-42),(1.046,-73)]
     voices = [
-        (205.4*tone_up, -5.5, .25, .75+.30*bloom, -.05-.14*bloom, .25+1.02*bloom),
-        (237.7*tone_up, -6.0, 1.54, 1.05-.45*bloom-.05*settle, .025+.15*bloom-.22*settle, -.29-.66*bloom),
-        (360.8*tone_up, -4.2, .74, .54+.25*bloom-.13*settle, .10-.08*settle, .12+.30*bloom),
-        (302.8*tone_up, -3.8, 2.62, .10*(1-.54*settle), .10, -.60),
+        (205.4,3.4,.25), (237.7,3.9,1.54), (360.8,-2.8,.74), (302.8,-3.3,2.62),
     ]
     direct = silence(length)
-    for hz, bend, initial, gain, pan, spread in voices:
-        oscillator = phase(t, hz, bend, .085, initial)
+    for i, (hz, bend, initial) in enumerate(voices):
+        d = roll[hz]
+        u = np.maximum(t - d, 0) / k           # Select's own time, scaled and delayed per voice
+        env = contour(u, attack+tail) * (t >= d)
+        bloom = smooth((u-.069)/.191)
+        settle = smooth((u-.263)/.28)
+        gain, pan, spread = [
+            (.75+.30*bloom, -.05-.12*bloom, .25+.92*bloom),
+            (1.05-.45*bloom-.05*settle, .025+.13*bloom-.22*settle, -.29-.57*bloom),
+            (.54+.25*bloom-.13*settle, .10-.08*settle, .12+.25*bloom),
+            (.10*(1-.54*settle), .10, -.60),
+        ][i]
+        oscillator = phase(np.maximum(t - d, 0), hz, bend, .10*k, initial)
         drift = .065*np.sin(TAU*1.19*t+initial)
-        for ch, position in enumerate((-1, 1)):
+        for ch, position in enumerate((-1,1)):
             angle = oscillator + position*(.55*spread+drift)
             weight = np.sqrt(1-position*pan)
             tone = np.sin(angle) + .020*np.sin(2*angle+.52)*(1-.54*bloom)
-            direct[:, ch] += env*gain*weight*tone
-    return chord_room(direct, t)*np.array([.97, 1.03])
+            direct[:,ch] += env*gain*weight*tone
+    stereo = direct.copy()
+    for ch in (0,1):
+        stereo[:,ch] += .13*delayed(direct[:,1-ch], (.025,.032)[ch])
+        stereo[:,ch] += .09*delayed(direct[:,ch], (.067,.075)[ch])
+    stereo *= release(t,.021)[:,None]*np.array([.964,1.036])
+    return stereo
 
 
 def dismiss_navigation():
-    # Launcher addition: an app card flicked up and away in the App Switcher. Back's chord, gliding up a
-    # fourth as it leaves, its width opening then drawing in to the centre as it fades out.
-    length = .74
+    # Launcher addition: an app card flicked up and away in the App Switcher. Back's own instrument (the
+    # same voices, pitches and room), rolled upward quickly and on a shorter timeline; its width opens
+    # and then draws in to the centre as it fades, like the card leaving.
+    k = .52
+    roll = {181.8: 0, 214.9: .018, 271.2: .036, 322.9: .054}
+    length = 1.068*k + .054
     t = timeline(length)
-    env = contour(t, [(0,-60),(.014,-24),(.040,-9.5),(.068,-1.8),(.090,0),(.13,-1.4),(.20,-5.5),
-                      (.29,-12.5),(.40,-21.5),(.52,-33),(.64,-48),(length,-76)])
-    glide = 1 + (2**(5/12) - 1)*(1 - np.exp(-t/.11))
-    opening = smooth((t-.02)/.12)
-    closing = smooth((t-.16)/.30)
-    width = opening*(1-.8*closing)
-    voices = [  # hz, initial phase, level, seat (pan), spread
-        (181.8, .41, .84, .035-.60*width, .13+1.10*width),
-        (214.9, 2.06, 1.00, .125+.50*width, .065-.25*width),
-        (322.9, -.88, .50, -.06-.40*width, .13+.90*width),
-        (271.2, 1.36, .15, .13+.10*width, -.20+.60*width),
+    knots = [(0,-60),(.026,-26),(.073,-16.7),(.126,-9.1),(.186,-2.1),
+             (.233,-.15),(.283,0),(.316,-.50),(.358,-3.3),(.438,-8.85),
+             (.548,-14.7),(.692,-23.7),(.849,-33.8),(.989,-43.0),(1.068,-56)]
+    U = t / k
+    opening = smooth((U-.080)/.240)
+    closing = smooth((U-.317)/.223)
+    late = smooth((U-.54)/.43)
+    width = opening*(1-.36*closing)*(1-.64*late)
+    grow = smooth((U-.13)/.17)
+    dim = smooth((U-.375)/.27)
+    voices = [
+        (181.8,1.9,.41, .84+.055*grow+.18*dim, .035-.86*width, .13+1.28*opening-.28*closing-.41*late),
+        (214.9,1.25,2.06, 1.04-.20*dim, .125+.70*width, .065-.29*opening+.12*closing+.57*late),
+        (322.9,.78,-.88, .51-.045*grow+.16*dim,
+         -.06-.60*smooth((U-.047)/.141)*(1-.85*smooth((U-.205)/.213)),
+         .13+.34*smooth((U-.04)/.14)+2.48*smooth((U-.173)/.123)+1.83*closing+.45*late),
+        (271.2,-1.1,1.36, .15-.09*grow-.025*dim, .13+.16*opening, -.20+.83*closing),
     ]
-    direct = np.zeros((len(t), 2))
-    for hz, initial, level, seat, spread in voices:
-        carrier = np.cumsum(TAU*hz*glide/RATE) + initial
+    direct = np.zeros((len(t),2))
+    for hz,bend,initial,level,seat,spread in voices:
+        d = roll[hz]
+        tv = np.maximum(t - d, 0)
+        env = contour(tv / k, knots) * (t >= d)
+        carrier = phase(tv,hz,bend,.093*k,initial)
         drift = .043*np.sin(TAU*1.32*t+initial)
-        for ch, position in enumerate((-1, 1)):
+        for ch, position in enumerate((-1,1)):
             angle = carrier + .42*drift + (spread+drift if ch else 0)
             tone = np.sin(angle)+.009*np.sin(2*angle+.36)
-            direct[:, ch] += env*level*np.sqrt(np.maximum(1+position*seat, 0))*tone
+            direct[:,ch] += env*level*np.sqrt(np.maximum(1+position*seat, 0))*tone
     stereo = direct.copy()
-    for ch in (0, 1):
-        stereo[:, ch] += .086*delayed(direct[:, ch], (.041, .036)[ch])
-        stereo[:, ch] += .060*delayed(direct[:, 1-ch], (.073, .087)[ch])
-        stereo[:, ch] += .039*delayed(direct[:, ch], (.134, .142)[ch])
-    return stereo*release(t, .03)[:, None]
+    for ch in (0,1):
+        stereo[:,ch] += .086*delayed(direct[:,ch],(.041,.036)[ch])
+        stereo[:,ch] += .060*delayed(direct[:,1-ch],(.073,.087)[ch])
+        stereo[:,ch] += .039*delayed(direct[:,ch],(.134,.142)[ch])
+    return stereo*release(t,.025)[:,None]
 
 
 INSTRUMENTS = {
@@ -440,8 +456,8 @@ def cues():
     yield "capture", -17.3, shutter()
     yield "swish", -14.3, swish()
     # Prism TV launcher additions.
-    yield "open", -24.5, open_navigation()
-    yield "dismiss", -24.5, dismiss_navigation()
+    yield "open", -24.0, open_navigation()
+    yield "dismiss", -24.0, dismiss_navigation()
 
 
 

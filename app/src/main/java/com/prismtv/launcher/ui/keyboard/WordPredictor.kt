@@ -10,34 +10,46 @@ import kotlin.math.ln
  * meant, so neighbouring-key mistakes are the cheapest corrections.
  */
 class WordPredictor private constructor(private val context: Context) {
-    /** Lower-case word -> frequency rank (0 = most common). */
-    private val rank = HashMap<String, Int>(80_000)
-    /** Known words that are never suggested. */
-    private val quiet = HashSet<String>()
-    /** Every suggestible word, alphabetical, for prefix look-ups. */
+    /**
+     * Every word, alphabetical, with its frequency rank (0 = most common) alongside. Two flat arrays
+     * instead of a hash map: a few MB less in memory, and look-ups are a binary search.
+     */
     private lateinit var sorted: Array<String>
+    private lateinit var sortedRank: IntArray
+    /** By rank: known words that are never suggested. */
+    private lateinit var quietByRank: BooleanArray
     private val userWords = HashSet<String>()
+
+    /** Frequency rank of [w], or -1 if it isn't in the list. */
+    private fun rankOf(w: String): Int {
+        val i = sorted.binarySearch(w)
+        return if (i >= 0) sortedRank[i] else -1
+    }
     private val sp = context.getSharedPreferences("prism_keyboard", Context.MODE_PRIVATE)
 
     private fun load() {
+        val words = ArrayList<String>(60_000)
+        val quietList = ArrayList<Boolean>(60_000)
         context.resources.openRawResource(R.raw.en_words).bufferedReader().useLines { lines ->
-            var i = 0
             lines.forEach { raw ->
                 if (raw.isBlank()) return@forEach
                 val q = raw.startsWith("!")
-                val w = if (q) raw.substring(1) else raw
-                if (!rank.containsKey(w)) rank[w] = i
-                if (q) quiet += w
-                i++
+                words += if (q) raw.substring(1) else raw
+                quietList += q
             }
         }
-        sorted = rank.keys.filter { it !in quiet }.sorted().toTypedArray()
+        val order = words.indices.sortedBy { words[it] }
+        // Keep the first (most common) rank of any duplicate.
+        val keep = order.filterIndexed { k, idx -> k == 0 || words[order[k - 1]] != words[idx] }
+        sorted = Array(keep.size) { words[keep[it]] }
+        sortedRank = IntArray(keep.size) { keep[it] }
+        quietByRank = BooleanArray(words.size) { quietList[it] }
         userWords += sp.getStringSet("userWords", emptySet()).orEmpty()
     }
 
     fun isWord(word: String): Boolean {
         val w = word.lowercase()
-        return rank.containsKey(w) || w in userWords || w.all { it.isDigit() }
+        return rankOf(w) >= 0 || w in userWords || w.all { it.isDigit() }
     }
 
     /** Remembers a word the user kept as typed, so it's never corrected again. */
@@ -48,20 +60,21 @@ class WordPredictor private constructor(private val context: Context) {
         sp.edit().putStringSet("userWords", HashSet(userWords)).apply()
     }
 
-    private fun score(w: String): Double = ln((rank[w] ?: 200_000) + 10.0)
+    private fun score(w: String): Double = ln(rankOf(w).let { if (it < 0) 200_000 else it } + 10.0)
 
     /** Most common words starting with [prefix] (not the prefix itself). */
     fun complete(prefix: String, n: Int): List<String> {
         val p = prefix.lowercase()
         if (p.isEmpty()) return emptyList()
         var lo = sorted.binarySearch(p).let { if (it < 0) -it - 1 else it }
-        val found = ArrayList<String>()
+        val found = ArrayList<Pair<String, Int>>()
         while (lo < sorted.size && sorted[lo].startsWith(p)) {
-            if (sorted[lo] != p) found += sorted[lo]
+            val r = sortedRank[lo]
+            if (sorted[lo] != p && !quietByRank[r]) found += sorted[lo] to r
             lo++
         }
-        userWords.filter { it.startsWith(p) && it != p }.forEach { found += it }
-        return found.sortedBy { rank[it] ?: 150_000 }.take(n)
+        userWords.filter { it.startsWith(p) && it != p }.forEach { found += it to 150_000 }
+        return found.sortedBy { it.second }.take(n).map { it.first }
     }
 
     /**
@@ -74,7 +87,9 @@ class WordPredictor private constructor(private val context: Context) {
         Contractions[w]?.let { return listOf(it) }
         val best = HashMap<String, Double>()
         fun offer(c: String, cost: Double) {
-            if (c == w || !rank.containsKey(c) || c in quiet) return
+            if (c == w) return
+            val r = rankOf(c)
+            if (r < 0 || quietByRank[r]) return
             val s = score(c) + cost
             if (s < (best[c] ?: Double.MAX_VALUE)) best[c] = s
         }
@@ -106,7 +121,7 @@ class WordPredictor private constructor(private val context: Context) {
         if (w.length < 2 || isWord(w) || w.any { !it.isLetter() && it != '\'' }) return null
         Contractions[w]?.let { return it }
         val c = corrections(w, 1).firstOrNull() ?: return null
-        return c.takeIf { (rank[it] ?: Int.MAX_VALUE) < 30_000 }
+        return c.takeIf { rankOf(it).let { r -> r in 0 until 30_000 } }
     }
 
     companion object {

@@ -226,7 +226,8 @@ private fun HomeBackdrop(
             .backdropSource(backdrop, GlassSource.Background)
     ) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(palette.bgAccent, palette.bgBase))))
-        Crossfade(targetState = art, animationSpec = tween(900), label = "heroArt") { a ->
+        // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).
+        Crossfade(targetState = art, animationSpec = tween(if (LocalPrism.current.lite) 350 else 900), label = "heroArt") { a ->
             if (a != null) {
                 Box(Modifier.fillMaxSize()) {
                     Image(a.full, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
@@ -664,7 +665,7 @@ fun GridTile(
     val labelAlpha by animateFloatAsState(if (showLabel) 1f else 0f, tween(220), label = "label")
     val sheen = remember { Animatable(-1f) }
     LaunchedEffect(focused, effect) {
-        if (focused && effect == FocusEffect.Lift) {
+        if (focused && effect == FocusEffect.Lift && !theme.lite) {
             sheen.snapTo(0f)
             sheen.animateTo(1f, tween(1100, easing = FastOutSlowInEasing))
         } else {

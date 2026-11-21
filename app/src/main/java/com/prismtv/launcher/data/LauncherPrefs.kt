@@ -141,6 +141,11 @@ data class LauncherPrefs(
     val avatar: String = "preset:0",
     /** Name in the sidebar and Settings › Profile; blank = the TV's device name. */
     val profileName: String = "",
+    /**
+     * Lite Mode: pre-blurred artwork instead of live blur and Liquid Glass refraction, no extra motion,
+     * and smaller artwork in memory. For slower or 2 GB boxes.
+     */
+    val liteMode: Boolean = false,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -180,6 +185,7 @@ class PrefsStore(context: Context) {
             titleLogos = sp.getBoolean("titleLogos", d.titleLogos),
             avatar = sp.getString("avatar", null) ?: d.avatar,
             profileName = sp.getString("profileName", null) ?: d.profileName,
+            liteMode = sp.getBoolean("liteMode", d.liteMode),
             textSize = sp.getInt("textSize", d.textSize).coerceIn(0, TextScales.size - 1),
             topShelfStyle = enumOr(sp.getString("topShelfStyle", null), d.topShelfStyle),
             wallpaper = sp.getString("wallpaper", null) ?: d.wallpaper,
@@ -246,6 +252,7 @@ class PrefsStore(context: Context) {
             .putBoolean("titleLogos", p.titleLogos)
             .putString("avatar", p.avatar)
             .putString("profileName", p.profileName)
+            .putBoolean("liteMode", p.liteMode)
             .putInt("textSize", p.textSize)
             .putString("topShelfStyle", p.topShelfStyle.name)
             .putString("wallpaper", p.wallpaper)

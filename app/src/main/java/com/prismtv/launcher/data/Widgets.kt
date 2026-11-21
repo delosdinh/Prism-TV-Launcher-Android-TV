@@ -44,12 +44,12 @@ class WidgetRepository(private val context: Context) {
             val iCh = c.getColumnIndex("channel_id")
             val iPkg = c.getColumnIndex("package_name")
             var n = 0
-            while (c.moveToNext() && n < 600) {
+            while (c.moveToNext() && n < 2000) {
                 n++
                 val item = program(c) ?: continue
                 val ch = if (iCh >= 0) c.getLong(iCh) else -1L
                 val list = byChannel.getOrPut(ch) { mutableListOf() }
-                if (list.size < 20) list += item
+                if (list.size < 40) list += item
                 if (iPkg >= 0) c.getString(iPkg)?.let { channelPkg[ch] = it }
             }
         }
@@ -59,14 +59,14 @@ class WidgetRepository(private val context: Context) {
             val iPkg = c.getColumnIndex("package_name")
             val iType = c.getColumnIndex("watch_next_type")
             var n = 0
-            while (c.moveToNext() && n < 300) {
+            while (c.moveToNext() && n < 800) {
                 n++
                 val pkg = if (iPkg >= 0) c.getString(iPkg) else null
                 val item = program(c) ?: continue
                 if (pkg == null) continue
                 val type = if (iType >= 0) c.getInt(iType) else 0
                 val list = byWatchNext.getOrPut(pkg to type) { mutableListOf() }
-                if (list.size < 20) list += item
+                if (list.size < 40) list += item
             }
         }
 
@@ -81,7 +81,9 @@ class WidgetRepository(private val context: Context) {
             rows += WidgetRow("ch:$pkg:$title", pkg, title, items)
         }
 
-        // Rows gathered from every app, newest first, taking turns between apps.
+        // Rows gathered from every app, newest first, taking turns between apps. Kept whole here: the
+        // ViewModel narrows them to the apps you picked and only then takes the first few dozen, so
+        // choosing one app (Nuvio) shows all of its cards rather than its share of everyone's.
         val continueAll = byWatchNext.filterKeys { it.second == 0 }.values.toList()
         if (continueAll.isNotEmpty()) rows.add(0, WidgetRow("all:continue", "", "Continue Watching", interleave(continueAll)))
         if (byChannel.isNotEmpty()) rows.add(minOf(1, rows.size), WidgetRow("all:recommended", "", "Recommended for You", interleave(byChannel.values.toList())))
@@ -91,13 +93,13 @@ class WidgetRepository(private val context: Context) {
     private fun interleave(lists: List<List<HeroItem>>): List<HeroItem> {
         val out = ArrayList<HeroItem>()
         var i = 0
-        while (out.size < 20) {
+        while (out.size < 400) {
             var added = false
             lists.forEach { l -> l.getOrNull(i)?.let { out += it; added = true } }
             if (!added) break
             i++
         }
-        return out.take(20)
+        return out
     }
 
     private fun program(c: android.database.Cursor): HeroItem? {

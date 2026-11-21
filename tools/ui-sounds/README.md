@@ -15,8 +15,8 @@ GPL-2.0-or-later (see `COPYING`). The pack's startup arrangement and its noise-b
 | ui_toggle | toggle.wav | A setting changes |
 | ui_key | key.wav | A key pressed on Prism's keyboard |
 | ui_focus_key | focus-key.wav | Focus moving across keyboard keys |
-| ui_open | open.wav (launcher addition) | Control Centre, sidebar, switcher and menus opening: Select's chord a tone higher, rising into pitch and blooming outward |
-| ui_dismiss | dismiss.wav (launcher addition) | Swiping an app away in the App Switcher: Back's chord gliding up a fourth and narrowing as it fades |
+| ui_open | open.wav (launcher addition) | Control Centre, sidebar, switcher and menus opening: Select's own chord and voices, rolled quickly upward |
+| ui_dismiss | dismiss.wav (launcher addition) | Swiping an app away in the App Switcher: Back's own chord and voices, rolled upward on a shorter timeline, narrowing as it fades |
 | ui_confirm | confirm.wav | Something completed (folder created, update ready) |
 | ui_error | error.wav | Something failed |
 | ui_notify | notify.wav | A banner or prompt appears |

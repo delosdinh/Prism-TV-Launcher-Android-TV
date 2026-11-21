@@ -126,6 +126,15 @@ shot 46b-settings-widget-order     "${B[@]}" "${DARK[@]}" --es widgets both --es
 shot 47-settings-wallpaper-shuffle "${B[@]}" "${DARK[@]}" --ei shuffle 300 --es screen settings --es page Wallpaper --ei focus 0
 shot 48-top-shelf-title-logo       "${B[@]}" "${DARK[@]}" --es logoId tt0944947 --es screen home --ei col 1
 shot 48b-spotlight-title-logo      "${B[@]}" "${DARK[@]}" --es logoId tt0944947 --es topShelf spotlight --es wallpaper prism-dusk --es screen hero --ei col 1
+# Banners follow Material; switches; the Liquid Glass keyboard field; Lite Mode.
+shot 51-banner-liquid-balanced     "${B[@]}" --es appearance balanced --es glass liquid --es banner "'Liquid Glass banners and switches'" --es screen home --ei col 2
+shot 51b-banner-frosted-dark       "${B[@]}" "${DARK[@]}" --es glass frosted --es banner "'Liquid Glass banners and switches'" --es screen grid --ei row 1 --ei col 2
+shot 52-settings-switches          "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 3
+shot 52b-settings-apps-switches    "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page Apps --ei focus 1
+shot 53-keyboard-field-balanced    "${B[@]}" --es appearance balanced --es glass liquid --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 1
+shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
+shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
+shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14
 # Spotlight: a real Up from the dock into the Top Shelf (the spring used to overshoot and crash Prism).
 start "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 1; sleep 4
 adb logcat -c || true

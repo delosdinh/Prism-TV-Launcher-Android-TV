@@ -20,6 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Shop
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.runtime.Composable
@@ -56,6 +58,7 @@ private fun SidebarEntry.icon(): ImageVector = when (this) {
     SidebarEntry.Recents -> Icons.Rounded.ViewCarousel
     SidebarEntry.PrismSettings -> Icons.Rounded.Tune
     SidebarEntry.SystemSettings -> Icons.Rounded.Settings
+    SidebarEntry.Store -> Icons.Rounded.Shop
 }
 
 /** Left-hand glass capsule (as in the tvOS 27 TV app sidebar). Press Left on the first app to open. */
@@ -101,19 +104,26 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
                 PText(clock, 14.sp, FontWeight.Medium, fg.copy(alpha = 0.7f))
             }
             VSpace(14.dp)
-            SidebarEntry.entries.forEachIndexed { i, e ->
+            vm.sidebarEntries.forEachIndexed { i, e ->
                 if (e == SidebarEntry.PrismSettings) {
                     VSpace(10.dp)
                     PText("Settings", 13.sp, FontWeight.SemiBold, fg.copy(alpha = 0.55f), Modifier.padding(start = 16.dp, bottom = 6.dp))
                 }
-                SidebarRow(e.icon(), e.label, focused = visible && i == vm.sidebarFocus)
+                if (e == SidebarEntry.Store) {
+                    // The store's own coloured icon, like an app.
+                    val store = vm.storeApp
+                    SidebarRow(e.icon(), if (store?.packageName == "com.android.vending") e.label else store?.label ?: e.label,
+                        focused = visible && i == vm.sidebarFocus, image = store?.icon)
+                } else {
+                    SidebarRow(e.icon(), e.label, focused = visible && i == vm.sidebarFocus)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SidebarRow(icon: ImageVector, label: String, focused: Boolean) {
+private fun SidebarRow(icon: ImageVector, label: String, focused: Boolean, image: androidx.compose.ui.graphics.ImageBitmap? = null) {
     val theme = LocalPrism.current
     val p = theme.palette
     val scale by animateFloatAsState(if (focused) 1.04f else 1f, spring(dampingRatio = 0.7f, stiffness = 420f), label = "sideRow")
@@ -128,7 +138,16 @@ private fun SidebarRow(icon: ImageVector, label: String, focused: Boolean) {
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PIcon(icon, fg, 24.dp)
+        if (image != null) {
+            androidx.compose.foundation.Image(
+                image, null,
+                Modifier
+                    .size(26.dp)
+                    .clip(RoundedCornerShape(7.dp)),
+            )
+        } else {
+            PIcon(icon, fg, 24.dp)
+        }
         HSpace(14.dp)
         PText(label, 17.sp, if (focused) FontWeight.SemiBold else FontWeight.Medium, fg)
     }

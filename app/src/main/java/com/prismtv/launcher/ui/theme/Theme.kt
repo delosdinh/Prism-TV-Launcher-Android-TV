@@ -114,6 +114,10 @@ data class PrismTheme(
     val ui: UiTransparency = UiTransparency.Medium,
     /** tvOS focus motion (springy settle, lean, edge nudge). */
     val wobble: Boolean = true,
+    /** Controls (switches) morph like Liquid Glass; false = classic. Follows Material even in Settings. */
+    val liquidControls: Boolean = true,
+    /** Lite Mode: glass uses pre-blurred artwork (no live blur, no refraction) and motion is pared back. */
+    val lite: Boolean = false,
 ) {
     /** Lens materials (Liquid and Clear) bend the backdrop instead of blurring it. */
     val liquid: Boolean get() = material == GlassMaterial.Liquid || material == GlassMaterial.Clear
@@ -168,6 +172,13 @@ data class PrismTheme(
         val base = if (liquid) (if (palette.isDark) 0.74f else 0.80f) else palette.panelOpacity
         val k = when (ui) { UiTransparency.High -> 0.80f; UiTransparency.Medium -> 0.93f; UiTransparency.Low -> 1.08f }
         return palette.panelGlass.copy(alpha = (base * k).coerceAtMost(0.96f))
+    }
+
+    /** Notification banners: they follow Material (a Liquid Glass lens with a legible veil, or frosted). */
+    fun bannerFill(): Color = if (liquid) {
+        liquidVeil(0.56f, 0.64f, 0.68f)
+    } else {
+        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.94f))
     }
 
     /** The dock tray on the Home Screen. */

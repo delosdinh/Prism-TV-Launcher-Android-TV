@@ -138,8 +138,46 @@ object SystemActions {
         null
     }
 
-    fun open(ctx: Context, action: String): Boolean =
-        start(ctx, Intent(action)) || start(ctx, Intent(Settings.ACTION_SETTINGS))
+    fun open(ctx: Context, action: String): Boolean {
+        if (action == Settings.ACTION_ACCESSIBILITY_SETTINGS) return openAccessibility(ctx)
+        val intent = Intent(action)
+        return (canHandle(ctx, intent) && start(ctx, intent)) || start(ctx, Intent(Settings.ACTION_SETTINGS))
+    }
+
+    /**
+     * True when a real screen handles [intent]. Some TV boxes resolve settings actions to Android's
+     * chooser with nothing in it ("No apps can perform this action") instead of failing, which hid the
+     * fallback.
+     */
+    fun canHandle(ctx: Context, intent: Intent): Boolean = try {
+        val ri = ctx.packageManager.resolveActivity(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+        val pkg = ri?.activityInfo?.packageName
+        ri != null && pkg != null && pkg != "android" && !ri.activityInfo.name.endsWith("ResolverActivity")
+    } catch (_: Throwable) {
+        false
+    }
+
+    /**
+     * Accessibility settings. The standard action works on Google TV; the SHIELD's TV Settings doesn't
+     * register it, so look for TV Settings' own accessibility screen, then fall back to Settings.
+     */
+    fun openAccessibility(ctx: Context): Boolean {
+        val standard = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        if (canHandle(ctx, standard) && start(ctx, standard)) return true
+        for (pkg in listOf("com.android.tv.settings", "com.google.android.tv.settings", "com.nvidia.tvsettings", "com.android.settings")) {
+            val activities = try {
+                @Suppress("DEPRECATION")
+                ctx.packageManager.getPackageInfo(pkg, android.content.pm.PackageManager.GET_ACTIVITIES).activities.orEmpty()
+            } catch (_: Throwable) {
+                emptyArray<android.content.pm.ActivityInfo>()
+            }
+            val screen = activities
+                .filter { it.exported && it.enabled && it.name.contains("ccessibility") && !it.name.contains("Shortcut") && !it.name.contains("Dialog") }
+                .minByOrNull { it.name.length }
+            if (screen != null && start(ctx, Intent().setClassName(pkg, screen.name))) return true
+        }
+        return start(ctx, Intent(Settings.ACTION_SETTINGS))
+    }
 
     fun launchIntent(ctx: Context, app: LauncherApp): Intent? {
         val pm = ctx.packageManager

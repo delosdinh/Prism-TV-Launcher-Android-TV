@@ -49,6 +49,7 @@ import androidx.compose.material.icons.rounded.Animation
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.ManageAccounts
 import com.prismtv.launcher.ui.components.Avatar
@@ -250,6 +251,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "ui:High" to glyph(Icons.Rounded.Opacity, 0xFF64D2FF, 0xFF1A8CFF),
     "ui:Medium" to glyph(Icons.Rounded.Opacity, 0xFF5AA9FF, 0xFF1A6CE0),
     "ui:Low" to glyph(Icons.Rounded.Opacity, 0xFF7C86A8, 0xFF4A5170),
+    "lite" to glyph(Icons.Rounded.Speed, 0xFF4CD964, 0xFF239B3E),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -559,7 +561,11 @@ private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
         }
         PText(r.title, 15.sp, if (focused) FontWeight.SemiBold else FontWeight.Medium, fg, Modifier.weight(1f))
         val value = r.value
-        if (value != null) {
+        // On/off settings are switches, as on iOS; text values stay text.
+        val toggle = r.toggle ?: if (!r.chevron && !r.selectable && (value == "On" || value == "Off")) value == "On" else null
+        if (toggle != null) {
+            Switch(toggle)
+        } else if (value != null) {
             PText(value, 14.sp, FontWeight.Normal, if (focused) p.textFocused.copy(alpha = 0.55f) else p.textSecondary)
         }
         if (r.selectable && r.checked) {
@@ -573,3 +579,59 @@ private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
     }
 }
 
+/**
+ * An iOS 26 switch. With Liquid Glass the knob turns into a clear glass lens and stretches as it slides
+ * across, then settles back into a white knob; Frosted (classic) just slides.
+ */
+@Composable
+private fun Switch(on: Boolean) {
+    val theme = LocalPrism.current
+    val p = theme.palette
+    val pos by animateFloatAsState(if (on) 1f else 0f, spring(dampingRatio = 0.72f, stiffness = 380f), label = "switchPos")
+    val morph = remember { Animatable(0f) }
+    var first by remember { mutableStateOf(true) }
+    LaunchedEffect(on) {
+        if (first) { first = false; return@LaunchedEffect }
+        if (!theme.liquidControls) return@LaunchedEffect
+        morph.animateTo(1f, tween(130, easing = FastOutLinearInEasing))
+        morph.animateTo(0f, spring(dampingRatio = 0.5f, stiffness = 260f))
+    }
+    val trackW = 46f
+    val trackH = 28f
+    val onColour = p.toggleOn
+    val offColour = if (p.isDark) Color.White.copy(alpha = 0.22f) else Color(0xFF787880).copy(alpha = 0.24f)
+    val track = androidx.compose.ui.graphics.lerp(offColour, onColour, pos)
+    Box(
+        Modifier
+            .size(trackW.dp, trackH.dp)
+            .background(track, RoundedCornerShape(50)),
+    ) {
+        val m = morph.value.coerceIn(0f, 1.2f)
+        val knobW = 24f + 14f * m
+        val knobH = 24f + 6f * m
+        val x = 2f + (trackW - 4f - knobW) * pos
+        val y = (trackH - knobH) / 2f
+        val shape = RoundedCornerShape(50)
+        Box(
+            Modifier
+                .offset(x.dp, y.dp)
+                .size(knobW.dp, knobH.dp)
+                .shadow(lerpF(3f, 8f, m).dp, shape, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = Color.Black.copy(alpha = 0.3f))
+                .background(Color.White.copy(alpha = lerpF(1f, 0.18f, m.coerceAtMost(1f))), shape)
+                .border(
+                    lerpF(0f, 1.4f, m.coerceAtMost(1f)).dp,
+                    Brush.linearGradient(listOf(Color.White.copy(alpha = 0.95f), Color.White.copy(alpha = 0.15f), Color.White.copy(alpha = 0.6f))),
+                    shape,
+                )
+                .drawBehind {
+                    if (m > 0.01f) {
+                        // The lens catches light along its top edge.
+                        drawRoundRect(
+                            Brush.verticalGradient(0f to Color.White.copy(alpha = 0.45f * m.coerceAtMost(1f)), 0.5f to Color.Transparent),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
+                        )
+                    }
+                }
+        )
+    }
+}

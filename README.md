@@ -40,7 +40,8 @@ launcher counterpart to the Prism TV skin for Kodi.
   Settings › Apps). Hold OK on a folder for **Rename Folder**, Move and Remove Folder. The layout
   is saved.
 - **Sidebar capsule**: press **Left** on the first app, or **Back** on the Home Screen, for a glass
-  capsule (sized to its entries) with Search, Home, Recent Apps, Prism Settings and Android Settings.
+  capsule (sized to its entries) with Search, Home, Recent Apps, Prism Settings, Android Settings
+  and **Play Store** (with its own icon; Amazon Appstore or Aptoide TV on boxes without Google Play).
 - **Time pill** (top-right) with the current weather, a **notification bell with a badge** (only
   when something's waiting) and the profile avatar — opens Control Centre, which lists the
   notifications (OK opens one, hold OK clears it). Needs Notification access for Prism TV
@@ -60,6 +61,11 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Settings & Pop-ups Transparency**: High, Medium or Low. Settings and pop-ups are always frosted
   glass; High shows the most of the Home Screen through them, Low the least.
 - **Text Size**: a tvOS-style slider that scales Prism's text. Reduce Transparency option.
+- **Lite Mode** (Performance): glass uses pre-blurred artwork instead of live blur and Liquid Glass
+  refraction, the extra motion is off, and backdrops are kept at 720p in 16-bit colour (about a fifth
+  of the memory). For slower or 2 GB boxes. Everything else works the same.
+- On/off settings are **switches**; with Liquid Glass the knob turns into a clear glass lens as it
+  slides, like iOS 26. Notification **banners** follow Material (Liquid Glass or Frosted).
 
 **Prism Keyboard** (Settings › Keyboard)
 - The iOS keyboard for **every app**, driven by the D-pad: letters, 123, #+=, **emoji** (with

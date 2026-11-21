@@ -152,7 +152,8 @@ fun BannerHost(spec: BannerSpec?) {
                     translationY = -24.dp.toPx() * (1f - t)
                 }
                 .width(312.dp)
-                .glass(RoundedCornerShape(24.dp), theme.sheetFill(), GlassSource.Full, elevation = 24.dp)
+                // Banners follow Material: Liquid Glass bends what's behind them, Frosted blurs it.
+                .glass(RoundedCornerShape(24.dp), theme.bannerFill(), GlassSource.Full, elevation = 24.dp, rimStrength = 1.1f)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -166,8 +167,10 @@ fun BannerHost(spec: BannerSpec?) {
             }
             HSpace(12.dp)
             Column {
-                PText(shown.title, 14.sp, FontWeight.SemiBold, p.textPrimary)
-                PText(shown.message, 12.sp, FontWeight.Normal, p.textSecondary, maxLines = 2, lineHeight = 16.sp)
+                // Over see-through glass, light text gets a soft shadow so it reads on bright content.
+                val lift = theme.liquid && p.isDark
+                PText(shown.title, 14.sp, FontWeight.SemiBold, p.textPrimary, shadow = lift)
+                PText(shown.message, 12.sp, FontWeight.Normal, p.textSecondary, maxLines = 2, lineHeight = 16.sp, shadow = lift)
             }
         }
     }
@@ -183,6 +186,7 @@ fun BannerHost(spec: BannerSpec?) {
 @Composable
 fun LaunchOverlay(vm: LauncherViewModel) {
     val anim = vm.launchAnim ?: return
+    val lite = LocalPrism.current.lite
     val progress = remember(anim.id) { Animatable(if (anim.reverse) 1f else 0f) }
     val press = remember(anim.id) { Animatable(1f) }
     val backdrop = LocalBackdrop.current
@@ -226,7 +230,7 @@ fun LaunchOverlay(vm: LauncherViewModel) {
                 .fillMaxSize()
                 .graphicsLayer { alpha = blur }
                 .drawBehind {
-                    if (SupportsLiveBlur) {
+                    if (SupportsLiveBlur && !lite) {
                         drawLayer(backdrop.fullBlur)
                     } else {
                         val img = backdrop.fallbackHeavy

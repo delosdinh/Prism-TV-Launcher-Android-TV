@@ -48,6 +48,10 @@ import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.glass
 import com.prismtv.launcher.ui.theme.Appearance
+import com.prismtv.launcher.ui.theme.LocalPrism
+import com.prismtv.launcher.ui.theme.Palettes
+import com.prismtv.launcher.data.GlassMaterial
+import androidx.compose.runtime.CompositionLocalProvider
 
 /** Key and panel colours for each keyboard look (Balanced is Prism's own indigo variant). */
 data class KeyColours(
@@ -369,28 +373,37 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
             Box(Modifier.height(8.dp))
             val caret = rememberInfiniteTransition(label = "caret")
             val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
-            Row(
-                Modifier
-                    .width(560.dp)
-                    .height(48.dp)
-                    .shadow(18.dp, RoundedCornerShape(16.dp))
-                    .background(c.field, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 18.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val text = vm.keyboardText
-                if (text.isEmpty()) {
-                    PText(req.placeholder, 18.sp, FontWeight.Normal, c.fieldInk.copy(alpha = 0.4f))
-                } else {
-                    PText(text, 18.sp, FontWeight.Medium, c.fieldInk, maxLines = 1)
-                }
-                Box(
+            // The text field is Liquid Glass in the keyboard's colour: frosty, lavender or smoked.
+            val base = LocalPrism.current
+            val fieldTheme = base.copy(palette = Palettes.of(look), material = GlassMaterial.Liquid, clearTint = false)
+            val fieldInk = if (look == Appearance.Light) Color(0xFF111318) else Color.White
+            CompositionLocalProvider(LocalPrism provides fieldTheme) {
+                Row(
                     Modifier
-                        .padding(start = 2.dp)
-                        .size(2.dp, 24.dp)
-                        .graphicsLayer { alpha = if (blink > 0.5f) 1f else 0f }
-                        .background(Color(0xFF0A84FF), RoundedCornerShape(1.dp))
-                )
+                        .width(560.dp)
+                        .height(50.dp)
+                        .glass(
+                            RoundedCornerShape(25.dp),
+                            fieldTheme.palette.liquidTint.copy(alpha = if (look == Appearance.Light) 0.58f else 0.50f),
+                            GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f,
+                        )
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val text = vm.keyboardText
+                    if (text.isEmpty()) {
+                        PText(req.placeholder, 18.sp, FontWeight.Normal, fieldInk.copy(alpha = 0.45f), shadow = fieldInk == Color.White)
+                    } else {
+                        PText(text, 18.sp, FontWeight.Medium, fieldInk, maxLines = 1, shadow = fieldInk == Color.White)
+                    }
+                    Box(
+                        Modifier
+                            .padding(start = 2.dp)
+                            .size(2.dp, 24.dp)
+                            .graphicsLayer { alpha = if (blink > 0.5f) 1f else 0f }
+                            .background(Color(0xFF0A84FF), RoundedCornerShape(1.dp))
+                    )
+                }
             }
             Box(Modifier.height(16.dp))
             Box(

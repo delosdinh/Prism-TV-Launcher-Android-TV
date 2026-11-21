@@ -59,8 +59,10 @@ class AppRepository(private val context: Context) {
                 val label = ri.loadLabel(pm)?.toString() ?: pkg
                 val bannerDrawable = info.loadBanner(pm) ?: info.applicationInfo?.loadBanner(pm)
                 val banner = bannerDrawable?.let { d ->
-                    val w = if (d.intrinsicWidth > 0) d.intrinsicWidth.coerceAtMost(640) else 320
-                    val h = if (d.intrinsicHeight > 0) d.intrinsicHeight.coerceAtMost(360) else 180
+                    // Settings shows a banner at most ~460 px wide, so 512 × 288 looks the same as the
+                    // full-size 640 × 360 some apps ship, for a third less memory per app.
+                    val w = if (d.intrinsicWidth > 0) d.intrinsicWidth.coerceAtMost(512) else 320
+                    val h = if (d.intrinsicHeight > 0) d.intrinsicHeight.coerceAtMost(288) else 180
                     d.toBitmap(w, h, Bitmap.Config.ARGB_8888).asImageBitmap()
                 }
                 val iconBitmap = ri.loadIcon(pm).toBitmap(144, 144, Bitmap.Config.ARGB_8888)
@@ -129,7 +131,7 @@ class RecommendationsRepository(private val context: Context) {
                         val title = s(iTitle) ?: continue
                         val art = s(iThumb) ?: s(iPoster) ?: continue
                         val list = out.getOrPut(pkg) { mutableListOf() }
-                        if (list.size >= 6) continue
+                        if (list.size >= 10) continue
                         list += HeroItem(
                             key = "$pkg:$title:${list.size}",
                             appId = pkg,
@@ -274,10 +276,23 @@ class ArtRepository(private val context: Context) {
         am.isLowRamDevice || am.memoryClass <= 192 || info.totalMem < 2_500_000_000L
     }
 
-    /** Full-screen artwork, limited by size: about five 1080p backdrops (three on small boxes). */
-    private val cache = object : LruCache<String, HeroArt>(if (lowRam) 28 * MB else 52 * MB) {
+    /** Full-screen artwork, limited by size: about four 1080p backdrops (three on small boxes). */
+    private val cache = object : LruCache<String, HeroArt>(if (lowRam) 26 * MB else 44 * MB) {
         override fun sizeOf(key: String, value: HeroArt): Int = bytes(value.full) + bytes(value.light) + bytes(value.heavy)
     }
+
+    /**
+     * Lite Mode: backdrops at 1280 × 720 in 16-bit colour (a fifth of the memory of 1080p) and smaller
+     * caches. Artwork already loaded is dropped so it reloads at the new size.
+     */
+    var lite: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            cache.evictAll()
+            cache.resize(if (value || lowRam) 18 * MB else 44 * MB)
+            thumbs.resize(if (value || lowRam) 20 * MB else 40 * MB)
+        }
 
     private fun bytes(b: ImageBitmap): Int = runCatching { b.asAndroidBitmap().allocationByteCount }.getOrDefault(b.width * b.height * 4)
 
@@ -321,12 +336,16 @@ class ArtRepository(private val context: Context) {
         } catch (_: Throwable) {
             null
         } ?: return@withContext null
-        val frame = cropTo16x9(bmp)
-        if (frame !== bmp) bmp.recycle()
+        val frame = cropTo16x9(bmp).let { f ->
+            if (f !== bmp) bmp.recycle()
+            if (lite && f.width > 1280) Bitmap.createScaledBitmap(f, 1280, 720, true).also { if (it !== f) f.recycle() } else f
+        }
         val heavy = Blur.blur(frame, 96, 4)
-        val light = Blur.blur(frame, 240, 3)
+        // The lightly blurred copy is only the glass fallback where live blur isn't used.
+        val light = if (Build.VERSION.SDK_INT < 31 || lite) Blur.blur(frame, 240, 3) else heavy
+        val shown = if (lite) frame.copy(Bitmap.Config.RGB_565, false)?.also { frame.recycle() } ?: frame else frame
         val art = HeroArt(
-            full = gpuOnly(frame).asImageBitmap(),
+            full = gpuOnly(shown).asImageBitmap(),
             light = light.asImageBitmap(),
             heavy = heavy.asImageBitmap(),
             luma = lowerLuma(heavy),
@@ -336,7 +355,7 @@ class ArtRepository(private val context: Context) {
     }
 
     /** Cards, logos and previews, limited by size. */
-    private val thumbs = object : LruCache<String, ImageBitmap>(if (lowRam) 24 * MB else 48 * MB) {
+    private val thumbs = object : LruCache<String, ImageBitmap>(if (lowRam) 20 * MB else 40 * MB) {
         override fun sizeOf(key: String, value: ImageBitmap): Int = bytes(value)
     }
 

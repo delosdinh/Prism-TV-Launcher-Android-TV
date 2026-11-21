@@ -264,7 +264,9 @@ fun PrismApp(vm: LauncherViewModel) {
         labels = vm.prefs.labels,
         clearTint = vm.prefs.glassColour == GlassColour.Clear,
         ui = vm.prefs.uiTransparency,
-        wobble = vm.prefs.focusWobble,
+        wobble = vm.prefs.focusWobble && !vm.prefs.liteMode,
+        liquidControls = vm.prefs.material != GlassMaterial.Frosted && !vm.prefs.liteMode,
+        lite = vm.prefs.liteMode,
     )
     val uiTheme = theme.copy(palette = Palettes.of(appearance), material = GlassMaterial.Frosted, clearTint = false)
 
@@ -284,7 +286,13 @@ fun PrismApp(vm: LauncherViewModel) {
     val gridMode = vm.isGridMode
 
     SideEffect {
-        if (SupportsLiveBlur) {
+        if (SupportsLiveBlur && theme.lite) {
+            // Lite Mode: nothing blurs live, so the blurred twins cost nothing even if drawn.
+            listOf(backdrop.bgBlur, backdrop.sceneBlur, backdrop.fullBlur, backdrop.sceneUiBlur).forEach {
+                it.renderEffect = null
+                it.colorFilter = null
+            }
+        } else if (SupportsLiveBlur) {
             listOf(backdrop.bgBlur, backdrop.sceneBlur).forEach {
                 it.renderEffect = BlurEffect(blurPx, blurPx, TileMode.Clamp)
                 it.colorFilter = if (theme.liquid) LiquidSaturation else null
@@ -361,7 +369,8 @@ fun PrismApp(vm: LauncherViewModel) {
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
             CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook) }
             LaunchOverlay(vm)
-            CompositionLocalProvider(LocalPrism provides uiTheme) { BannerHost(vm.banner) }
+            // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.
+            BannerHost(vm.banner)
         }
     }
 
