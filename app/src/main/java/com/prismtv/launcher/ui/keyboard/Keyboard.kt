@@ -378,9 +378,10 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
             val fieldTheme = base.copy(palette = Palettes.of(look), material = GlassMaterial.Liquid, clearTint = false)
             val fieldInk = if (look == Appearance.Light) Color(0xFF111318) else Color.White
             CompositionLocalProvider(LocalPrism provides fieldTheme) {
+                // As wide as the keyboard below it.
                 Row(
                     Modifier
-                        .width(560.dp)
+                        .width(m.width.dp)
                         .height(50.dp)
                         .glass(
                             RoundedCornerShape(25.dp),
@@ -392,9 +393,9 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
                 ) {
                     val text = vm.keyboardText
                     if (text.isEmpty()) {
-                        PText(req.placeholder, 18.sp, FontWeight.Normal, fieldInk.copy(alpha = 0.45f), shadow = fieldInk == Color.White)
+                        PText(req.placeholder, 18.sp, FontWeight.Normal, fieldInk.copy(alpha = 0.45f), Modifier.weight(1f, fill = false), shadow = fieldInk == Color.White)
                     } else {
-                        PText(text, 18.sp, FontWeight.Medium, fieldInk, maxLines = 1, shadow = fieldInk == Color.White)
+                        PText(text, 18.sp, FontWeight.Medium, fieldInk, Modifier.weight(1f, fill = false), maxLines = 1, shadow = fieldInk == Color.White)
                     }
                     Box(
                         Modifier

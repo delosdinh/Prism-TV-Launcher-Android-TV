@@ -51,7 +51,7 @@ launcher counterpart to the Prism TV skin for Kodi.
   °C/°F in Settings › Home Screen.
 
 **Appearance** (Settings › Appearance)
-- **Colour Mode**: Light / Balanced / Dark / Automatic, using the tvOS design-sheet tokens. It
+- **Colour Mode**: Light / Balanced (the default) / Dark / Automatic, using the tvOS design-sheet tokens. It
   colours Settings and pop-ups. **Automatic** is dark from sunset to sunrise where you are (from the
   weather), else 7 PM – 7 AM.
 - **Material** for the Home Screen glass: **Liquid Glass** or **Frosted Glass**.
@@ -145,7 +145,7 @@ Settings › System › Ambient mode / Screen saver › choose **Prism Aerials**
 picker is hidden:
 `adb shell settings put secure screensaver_components com.prismtv.launcher/.aerial.AerialDreamService`
 
-Or let Prism TV start them itself: Settings › Screensaver › **Start After** (Never, 2–30 minutes) shows
+Or let Prism TV start them itself: Settings › Screensaver › **Start After** (Never, 2–30 minutes; 2 minutes by default) shows
 the aerials when the Home Screen has been left alone that long. After 30 minutes the screensaver
 stops holding the screen on, so the TV's own sleep timer still applies.
 

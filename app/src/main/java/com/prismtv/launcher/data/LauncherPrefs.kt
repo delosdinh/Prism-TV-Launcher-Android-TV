@@ -80,7 +80,7 @@ enum class HeroSource(val label: String) {
 }
 
 data class LauncherPrefs(
-    val appearance: AppearanceSetting = AppearanceSetting.Dark,
+    val appearance: AppearanceSetting = AppearanceSetting.Balanced,
     val material: GlassMaterial = GlassMaterial.Liquid,
     val focusEffect: FocusEffect = FocusEffect.GrowShrink,
     val labels: LabelMode = LabelMode.Focused,
@@ -111,7 +111,7 @@ data class LauncherPrefs(
     /** Settings & Pop-ups Transparency. */
     val uiTransparency: UiTransparency = UiTransparency.Medium,
     /** Minutes without a button press on the Home Screen before the aerials start; 0 = Never. */
-    val screensaverAfter: Int = 0,
+    val screensaverAfter: Int = 2,
     /** Index into [TextScales]. */
     val textSize: Int = DefaultTextSize,
     val topShelfStyle: TopShelfStyle = TopShelfStyle.FullScreen,
