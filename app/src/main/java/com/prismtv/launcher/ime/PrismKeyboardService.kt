@@ -67,6 +67,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
     private lateinit var dictation: Dictation
     private var soundsOn = true
     private var look by mutableStateOf(Appearance.Dark)
+    private var clear by mutableStateOf(false)
     private var info: EditorInfo? = null
     private val handler = Handler(Looper.getMainLooper())
     private var unlisten: (() -> Unit)? = null
@@ -166,15 +167,19 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         val px = remember(cfg) { canvasDensity() }
             ?: base.density * (min(cfg.screenWidthDp / 960f, cfg.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f)
         CompositionLocalProvider(LocalDensity provides Density(px, base.fontScale)) {
-            val c = keyColoursFor(look)
+            val c = keyColoursFor(look, clear)
             val m = KeyboardMetrics.System
             val solid = c.panel.copy(alpha = 1f)
+            // Clear: an app's screen can't be read by a keyboard, so there's no lens or blur here, just
+            // smoked see-through glass with a bright top edge.
+            val fill = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
+            else Brush.verticalGradient(listOf(lift(solid), solid))
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(lift(solid), solid)))
+                    .background(fill)
                     // A hairline along the top edge, where the keyboard meets the app.
-                    .drawBehind { drawRect(Color.White.copy(alpha = 0.10f), size = Size(size.width, 1.dp.toPx())) }
+                    .drawBehind { drawRect(Color.White.copy(alpha = if (clear) 0.28f else 0.10f), size = Size(size.width, 1.dp.toPx())) }
                     .padding(top = m.pad.dp, bottom = (m.pad + 8f).dp),
                 contentAlignment = Alignment.TopCenter,
             ) {
@@ -205,7 +210,9 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         val prefs = PrefsStore(this).load()
         soundsOn = prefs.sounds
         sounds.enabled = prefs.sounds
+        clear = prefs.keyboardColour == KeyboardColour.Clear
         look = when (prefs.keyboardColour) {
+            KeyboardColour.Clear -> Appearance.Dark
             KeyboardColour.Light -> Appearance.Light
             KeyboardColour.Balanced -> Appearance.Balanced
             KeyboardColour.Dark -> Appearance.Dark

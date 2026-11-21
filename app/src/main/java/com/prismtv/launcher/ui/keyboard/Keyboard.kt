@@ -64,9 +64,18 @@ data class KeyColours(
     val field: Color,
     val fieldInk: Color,
     val bar: Color,
+    /** Clear Liquid Glass: see-through keys, so labels carry a soft shadow. */
+    val clear: Boolean = false,
 )
 
-fun keyColoursFor(look: Appearance): KeyColours = when (look) {
+/** Clear Liquid Glass keys: barely-there glass with white labels. */
+val ClearKeyColours = KeyColours(
+    panel = Color.White.copy(alpha = 0.05f), key = Color.White.copy(alpha = 0.17f), function = Color.White.copy(alpha = 0.10f),
+    ink = Color.White, focus = Color.White.copy(alpha = 0.95f), focusInk = Color(0xFF111318),
+    field = Color.White.copy(alpha = 0.10f), fieldInk = Color.White, bar = Color.White.copy(alpha = 0.35f), clear = true,
+)
+
+fun keyColoursFor(look: Appearance, clear: Boolean = false): KeyColours = if (clear) ClearKeyColours else when (look) {
     Appearance.Light -> KeyColours(
         panel = Color(0xFFD3D6DE).copy(alpha = 0.78f), key = Color.White, function = Color(0xFFF3F4F7),
         ink = Color(0xFF0B0C0F), focus = Color(0xFF1C1D22), focusInk = Color.White,
@@ -322,11 +331,11 @@ private fun KeyCap(
         contentAlignment = Alignment.Center,
     ) {
         when (key.kind) {
-            KeyKind.Char -> PText(if (shift) key.label.uppercase() else key.label, 21.sp, FontWeight.Normal, ink)
+            KeyKind.Char -> PText(if (shift) key.label.uppercase() else key.label, 21.sp, FontWeight.Normal, ink, shadow = c.clear && !focused)
             KeyKind.Shift -> PIcon(if (capsLock) Icons.Rounded.KeyboardCapslock else Icons.Rounded.ArrowUpward, ink, 21.dp)
             KeyKind.Delete -> PIcon(Icons.AutoMirrored.Rounded.Backspace, ink, 21.dp)
             KeyKind.Layer -> PText(key.label, 16.sp, FontWeight.Medium, ink)
-            KeyKind.Space -> PText("space", 15.sp, FontWeight.Medium, ink.copy(alpha = 0.75f))
+            KeyKind.Space -> PText("space", 15.sp, FontWeight.Medium, ink.copy(alpha = 0.75f), shadow = c.clear && !focused)
             KeyKind.Emoji -> PIcon(Icons.Rounded.EmojiEmotions, ink, 22.dp)
             KeyKind.Mic -> PIcon(Icons.Rounded.Mic, ink, 22.dp)
             KeyKind.EmojiCategory -> Unit
@@ -343,14 +352,14 @@ private fun KeyCap(
 
 /** Prism TV's own text entry (Rename Folder, Profile Name): a field over the keyboard, sliding up. */
 @Composable
-fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
+fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance, clear: Boolean = false) {
     val live = vm.keyboard
     val holder = remember { arrayOfNulls<com.prismtv.launcher.KeyboardRequest>(1) }
     if (live != null) holder[0] = live
     val req = holder[0] ?: return
     val t by animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "kb")
     if (t < 0.002f) return
-    val c = keyColoursFor(look)
+    val c = keyColoursFor(look, clear)
     val m = KeyboardMetrics.Overlay
     val kb = vm.keyboardController
 
@@ -375,8 +384,8 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
             val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
             // The text field is Liquid Glass in the keyboard's colour: frosty, lavender or smoked.
             val base = LocalPrism.current
-            val fieldTheme = base.copy(palette = Palettes.of(look), material = GlassMaterial.Liquid, clearTint = false)
-            val fieldInk = if (look == Appearance.Light) Color(0xFF111318) else Color.White
+            val fieldTheme = base.copy(palette = Palettes.of(look), material = GlassMaterial.Liquid, clearTint = clear)
+            val fieldInk = if (look == Appearance.Light && !clear) Color(0xFF111318) else Color.White
             CompositionLocalProvider(LocalPrism provides fieldTheme) {
                 // As wide as the keyboard below it.
                 Row(
@@ -385,7 +394,8 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
                         .height(50.dp)
                         .glass(
                             RoundedCornerShape(25.dp),
-                            fieldTheme.palette.liquidTint.copy(alpha = if (look == Appearance.Light) 0.58f else 0.50f),
+                            if (clear) Color.White.copy(alpha = 0.08f)
+                            else fieldTheme.palette.liquidTint.copy(alpha = if (look == Appearance.Light) 0.58f else 0.50f),
                             GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f,
                         )
                         .padding(horizontal = 20.dp),
@@ -407,13 +417,17 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance) {
                 }
             }
             Box(Modifier.height(16.dp))
-            Box(
-                Modifier
-                    .size(m.width.dp, m.height.dp)
-                    .glass(RoundedCornerShape(30.dp), c.panel, GlassSource.Full, elevation = 26.dp, frosted = true)
-                    .padding(m.pad.dp)
-            ) {
-                KeyboardKeys(kb, c, m, active = live != null)
+            // Clear is a clear Liquid Glass lens over the Home Screen; the other colours are frosted.
+            val panelTheme = if (clear) base.copy(palette = Palettes.of(Appearance.Dark), material = GlassMaterial.Liquid, clearTint = true) else base
+            CompositionLocalProvider(LocalPrism provides panelTheme) {
+                Box(
+                    Modifier
+                        .size(m.width.dp, m.height.dp)
+                        .glass(RoundedCornerShape(30.dp), c.panel, GlassSource.Full, elevation = 26.dp, frosted = !clear, rimStrength = if (clear) 1.3f else 1f)
+                        .padding(m.pad.dp)
+                ) {
+                    KeyboardKeys(kb, c, m, active = live != null)
+                }
             }
         }
     }

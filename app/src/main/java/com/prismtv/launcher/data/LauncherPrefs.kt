@@ -41,7 +41,8 @@ enum class GlassMaterial(val label: String) {
 enum class TopShelfStyle(val label: String) { FullScreen("Full Screen"), Spotlight("Card Spotlight") }
 
 /** Colour of Prism TV's on-screen keyboard; Automatic follows Appearance. */
-enum class KeyboardColour(val label: String) { Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark") }
+/** Keyboard colour; Clear is clear Liquid Glass (over the Home Screen) or smoked see-through glass (other apps). */
+enum class KeyboardColour(val label: String) { Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark"), Clear("Clear") }
 
 /** Where a widget row sits on the Home Screen. */
 enum class WidgetPlace(val label: String) { Off("Off"), Above("Above Dock"), Below("Below Dock") }

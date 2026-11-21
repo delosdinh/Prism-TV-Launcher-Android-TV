@@ -134,6 +134,7 @@ shot 51b-banner-frosted-dark       "${B[@]}" "${DARK[@]}" --es glass frosted --e
 shot 52-settings-switches          "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 3
 shot 52b-settings-apps-switches    "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page Apps --ei focus 1
 shot 53-keyboard-field-balanced    "${B[@]}" --es appearance balanced --es glass liquid --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 1
+shot 53b-keyboard-clear            "${B[@]}" --es appearance balanced --es glass liquid --es keyboardColour clear --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 3
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14
@@ -158,6 +159,10 @@ key KEYCODE_DPAD_DOWN 0.5; key KEYCODE_DPAD_DOWN 0.5; key KEYCODE_DPAD_CENTER 1.
 cap 50c-ime-autocorrected
 key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_CENTER 1.5   # emoji (left of space)
 cap 50d-ime-emoji
+# Clear (smoked see-through) system keyboard: Prism saves the colour, then the test screen again.
+start "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es screen home; sleep 2
+timeout 60 adb shell am start -W -n "$PKG/.ImeTestActivity" >/dev/null 2>&1; sleep 4
+cap 50e-ime-clear
 adb shell ime reset >/dev/null 2>&1 || true
 adb shell am force-stop "$PKG"
 adb logcat -d -b crash > "$OUT/crash-ime.txt" 2>&1 || true

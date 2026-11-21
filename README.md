@@ -75,8 +75,10 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Dictation**: the mic key (or the remote's Search / mic button while the keyboard is up) listens
   through the remote's microphone once Dictation Microphone is allowed, or opens Android's voice
   input screen.
-- Light, Balanced or Dark — **Keyboard Colour** follows Colour Mode or is set by hand. Prism uses
-  the same keyboard for its own text entry (Rename Folder, Profile Name).
+- Light, Balanced, Dark or **Clear** — **Keyboard Colour** follows Colour Mode or is set by hand.
+  Clear is clear Liquid Glass over the Home Screen; in other apps (which a keyboard can't see
+  through to blur or bend) it's smoked see-through glass. Prism uses the same keyboard for its own
+  text entry (Rename Folder, Profile Name).
 - Turn it on: Settings › Keyboard › Prism Keyboard, or from a computer / ATV Connect's Shell:
   `ime enable com.prismtv.launcher/.ime.PrismKeyboardService` then
   `ime set com.prismtv.launcher/.ime.PrismKeyboardService` (`ime reset` goes back).

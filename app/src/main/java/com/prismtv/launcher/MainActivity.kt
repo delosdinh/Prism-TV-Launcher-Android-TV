@@ -343,6 +343,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
         KeyboardColour.Light -> Appearance.Light
         KeyboardColour.Balanced -> Appearance.Balanced
         KeyboardColour.Dark -> Appearance.Dark
+        KeyboardColour.Clear -> Appearance.Dark
     }
 
     CompositionLocalProvider(
@@ -381,7 +382,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             }
             ContextMenuHost(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
-            CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook) }
+            CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = vm.prefs.keyboardColour == KeyboardColour.Clear) }
             LaunchOverlay(vm)
             // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.
             BannerHost(vm.banner)
