@@ -1,39 +1,40 @@
-11-21 12:33:35.618   491  3303 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.ImeTestActivity} from uid 2000
-11-21 12:33:35.824   491   521 I ActivityTaskManager: Displayed com.prismtv.launcher/.ImeTestActivity: +206ms
-11-21 12:33:53.968   491  3833 I ActivityManager: Force stopping com.prismtv.launcher appid=10080 user=0: from pid 5448
-11-21 12:33:53.972   491  3833 I ActivityManager: Killing 3666:com.prismtv.launcher/u0a80 (adj 0): stop com.prismtv.launcher due to from pid 5448
-11-21 12:33:53.973   491  3833 W ActivityTaskManager: Force removing ActivityRecord{852384f u0 com.prismtv.launcher/.ImeTestActivity t6 f}}: app died, no saved state
-11-21 12:33:53.975   491  3833 W InputManager-JNI: Input channel object '2c979e0 com.prismtv.launcher/com.prismtv.launcher.ImeTestActivity (client)' was disposed without first being removed with the input manager!
-11-21 12:33:53.978   491  3833 W ActivityTaskManager: Force removing ActivityRecord{76629bd u0 com.prismtv.launcher/.MainActivity t6 f}}: app died, no saved state
-11-21 12:33:53.978   491  3833 W InputManager-JNI: Input channel object 'f82a0f6 com.prismtv.launcher/com.prismtv.launcher.MainActivity (client)' was disposed without first being removed with the input manager!
-11-21 12:33:53.987   491   531 W UsageStatsService: Unexpected activity event reported! (com.prismtv.launcher/com.prismtv.launcher.MainActivity event : 23 instanceId : 247495292)
-11-21 12:33:54.009   491  3750 V ActivityManager: Got obituary of 3666:com.prismtv.launcher
-11-21 12:33:54.061   491  3833 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:33:54.083   491   533 I ActivityManager: Start proc 5463:com.prismtv.launcher/u0a80 for pre-top-activity {com.prismtv.launcher/com.prismtv.launcher.MainActivity}
-11-21 12:33:54.618  5463  5463 V GraphicsEnvironment: ANGLE Developer option for 'com.prismtv.launcher' set to: 'default'
-11-21 12:33:56.858   491   521 I ActivityTaskManager: Displayed com.prismtv.launcher/.MainActivity: +2s796ms
-11-21 12:33:57.202   491  3303 W InputManager-JNI: Input channel object 'f707baa Splash Screen com.prismtv.launcher (client)' was disposed without first being removed with the input manager!
-11-21 12:34:00.937  5463  5563 D ProfileInstaller: Installing profile for com.prismtv.launcher
-11-21 12:34:03.980   491  3358 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:34:10.736   491   519 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:34:10.740   491   519 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity (has extras)} from uid 10080
-11-21 12:34:10.956   491   521 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +210ms
-11-21 12:34:20.499   491  3358 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{c91b9a0 u0 com.prismtv.launcher/.aerial.AerialActivity t7 f}}
-11-21 12:34:20.502   491  3358 W InputManager-JNI: Input channel object 'e8cfcc com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
-11-21 12:34:21.617   491  3358 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:34:21.620   491  3358 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity (has extras)} from uid 10080
-11-21 12:34:21.848   491   521 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +223ms
-11-21 12:34:22.316  5463  5515 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.fetch(AerialCatalog.kt:62)
-11-21 12:34:22.316  5463  5515 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.entriesJson(AerialCatalog.kt:48)
-11-21 12:34:22.316  5463  5515 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.access$entriesJson(AerialCatalog.kt:30)
-11-21 12:34:22.316  5463  5515 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog$load$2.invokeSuspend(AerialCatalog.kt:37)
-11-21 12:35:11.849   491  3416 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{e7bbce1 u0 com.prismtv.launcher/.aerial.AerialActivity t7 f}}
-11-21 12:35:11.852   491  3416 W InputManager-JNI: Input channel object 'd12eef4 com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
-11-21 12:35:12.780   491  3416 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:35:28.901   491  3750 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:35:49.238   491  3416 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:35:54.479   491  3303 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:36:05.595   491  3833 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:36:18.013   491  3750 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:36:35.363   491  3358 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 12:36:47.774   491  3517 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:04:02.192   493  1801 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.ImeTestActivity} from uid 2000
+11-21 13:04:02.364   493   523 I ActivityTaskManager: Displayed com.prismtv.launcher/.ImeTestActivity: +171ms
+11-21 13:04:20.471   493  2514 I ActivityManager: Force stopping com.prismtv.launcher appid=10080 user=0: from pid 5459
+11-21 13:04:20.472   493  2514 I ActivityManager: Killing 3612:com.prismtv.launcher/u0a80 (adj 0): stop com.prismtv.launcher due to from pid 5459
+11-21 13:04:20.473   493  2514 W ActivityTaskManager: Force removing ActivityRecord{4625232 u0 com.prismtv.launcher/.ImeTestActivity t6 f}}: app died, no saved state
+11-21 13:04:20.475   493  2514 W InputManager-JNI: Input channel object '456e8d7 com.prismtv.launcher/com.prismtv.launcher.ImeTestActivity (client)' was disposed without first being removed with the input manager!
+11-21 13:04:20.476   493  2514 W ActivityTaskManager: Force removing ActivityRecord{9816e4d u0 com.prismtv.launcher/.MainActivity t6 f}}: app died, no saved state
+11-21 13:04:20.477   493  2514 W InputManager-JNI: Input channel object '54c6c0 com.prismtv.launcher/com.prismtv.launcher.MainActivity (client)' was disposed without first being removed with the input manager!
+11-21 13:04:20.486   493   533 W UsageStatsService: Unexpected activity event reported! (com.prismtv.launcher/com.prismtv.launcher.MainActivity event : 23 instanceId : 76999031)
+11-21 13:04:20.554   493   582 V ActivityManager: Got obituary of 3612:com.prismtv.launcher
+11-21 13:04:20.574   493  1659 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:04:20.589   493   535 I ActivityManager: Start proc 5481:com.prismtv.launcher/u0a80 for pre-top-activity {com.prismtv.launcher/com.prismtv.launcher.MainActivity}
+11-21 13:04:21.341  5481  5481 V GraphicsEnvironment: ANGLE Developer option for 'com.prismtv.launcher' set to: 'default'
+11-21 13:04:23.859   493   523 I ActivityTaskManager: Displayed com.prismtv.launcher/.MainActivity: +3s282ms
+11-21 13:04:24.200   493   832 W InputManager-JNI: Input channel object '6db439 Splash Screen com.prismtv.launcher (client)' was disposed without first being removed with the input manager!
+11-21 13:04:27.901  5481  5586 D ProfileInstaller: Installing profile for com.prismtv.launcher
+11-21 13:04:31.598   493   521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:04:38.353   493   521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:04:38.357   493   832 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity (has extras)} from uid 10080
+11-21 13:04:38.610   493   523 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +251ms
+11-21 13:04:47.278   493   596 W InputDispatcher: Waiting because no window has focus but ActivityRecord{aa9413d u0 com.prismtv.launcher/.MainActivity t7} may eventually add a window when it finishes starting up. Will wait for 5000ms
+11-21 13:04:48.142   493   832 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{40f2d80 u0 com.prismtv.launcher/.aerial.AerialActivity t7 f}}
+11-21 13:04:48.149   493   832 W InputManager-JNI: Input channel object '3f9a1ac com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
+11-21 13:04:49.638   493   832 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:04:49.642   493   832 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity (has extras)} from uid 10080
+11-21 13:04:49.888   493   523 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +246ms
+11-21 13:04:50.259  5481  5537 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.fetch(AerialCatalog.kt:62)
+11-21 13:04:50.259  5481  5537 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.entriesJson(AerialCatalog.kt:48)
+11-21 13:04:50.259  5481  5537 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.access$entriesJson(AerialCatalog.kt:30)
+11-21 13:04:50.259  5481  5537 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog$load$2.invokeSuspend(AerialCatalog.kt:37)
+11-21 13:05:35.278   493  3521 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{f6ed4e6 u0 com.prismtv.launcher/.aerial.AerialActivity t7 f}}
+11-21 13:05:35.280   493  3521 W InputManager-JNI: Input channel object '907967d com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
+11-21 13:05:35.949   493  3521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:05:51.968   493  3521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:06:12.295   493  1340 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:06:17.530   493  1340 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:06:28.637   493   832 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:06:40.998   493   832 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:06:58.186   493  3521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 13:07:10.414   493  1659 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
