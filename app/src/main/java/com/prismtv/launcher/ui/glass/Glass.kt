@@ -134,6 +134,11 @@ fun Modifier.glass(
      * rim, like iOS menus and folders (frosted for legibility, Liquid Glass at the edge).
      */
     bentRim: Boolean = false,
+    /**
+     * Liquid Glass over a blurred backdrop (open folders): the lens bends the *blurred* scene, so the
+     * panel reads as glass over a soft background rather than over sharp icons.
+     */
+    blurredLens: Boolean = false,
 ): Modifier = composed {
     val theme = LocalPrism.current
     val backdrop = LocalBackdrop.current
@@ -281,13 +286,24 @@ fun Modifier.glass(
                         lensLayer.renderEffect = lensEffect
                         lensLayer.record(size = layerSize) {
                             translate(-origin.x + margin, -origin.y + margin) {
-                                drawLayer(backdrop.raw(source))
+                                drawLayer(if (blurredLens) backdrop.blurred(source) else backdrop.raw(source))
                             }
                         }
                         clipPath(clip) {
                             translate(-margin, -margin) { drawLayer(lensLayer) }
                             drawRect(tint)
                         }
+                    }
+                    blurredLens -> clipPath(clip) {
+                        drawBlurred(-strength * 0.04f)
+                        if (lens) {
+                            clipPath(rimBand, clipOp = ClipOp.Difference) {
+                                drawBlurred(strength * 0.40f)
+                                drawRect(rimLight)
+                            }
+                        }
+                        drawRect(tint)
+                        drawRect(specular)
                     }
                     else -> clipPath(clip) {
                         drawRaw(-strength * 0.04f, -strength * 0.04f)

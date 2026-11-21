@@ -22,6 +22,9 @@
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <!-- Software Update: Prism TV installs its own new versions (after asking). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Settings › Wallpaper › Your Pictures. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Android 12+: Prism TV's own updates install without the system's extra "Update?" prompt. -->
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
@@ -81,6 +84,17 @@
         <receiver
             android:name=".update.UpdateReceiver"
             android:exported="false" />
+
+        <!-- Notifications in the time pill and Control Centre (needs Notification access). -->
+        <service
+            android:name=".system.PrismNotificationListener"
+            android:exported="true"
+            android:label="@string/notifications_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <service
             android:name=".system.PrismAccessibilityService"

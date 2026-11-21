@@ -12,13 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import com.prismtv.launcher.system.PrismNotification
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AccessibilityNew
 import androidx.compose.material.icons.rounded.Bluetooth
-import androidx.compose.material.icons.rounded.Landscape
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.SettingsEthernet
@@ -69,10 +71,11 @@ private const val PillH = 50f
 private const val Gutter = 7f
 private const val Circle = 46f
 private const val CirclesTop = TilesTop + Big + Gutter + PillH + 9f
+private const val NotesTop = CirclesTop + Circle + 40f
+private const val NoteH = 54f
 
 private val captions = mapOf(
     CC.Picture to "Picture & Display",
-    CC.Sound to "Sound",
     CC.Memory to "Free Up Memory",
     CC.Access to "Accessibility",
     CC.Profile to "Accounts",
@@ -114,7 +117,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
         Box(
             Modifier
                 .offset(ClusterLeft.dp, 24.dp)
-                .size(ClusterW.dp, 300.dp)
+                .size(ClusterW.dp, 500.dp)
                 .graphicsLayer {
                     alpha = t
                     val s = lerpF(0.86f, 1f, t)
@@ -170,10 +173,11 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 circled = true,
                 title = "Bluetooth", subtitle = "Remotes & More",
             )
+            val output = remember(vm.resumeTick, visible) { SystemActions.audioOutput(ctx) }
             PillTile(
-                f == CC.Screensaver, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
-                icon = Icons.Rounded.Landscape, iconColor = Color(0xFF30B0C7), circled = true,
-                title = "Show", subtitle = "Screensaver", subtitleStrong = true,
+                f == CC.Sound, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
+                icon = Icons.AutoMirrored.Rounded.VolumeUp, iconColor = Color(0xFFFF375F), circled = true,
+                title = "Sound", subtitle = output,
             )
             PillTile(
                 f == CC.Sleep, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
@@ -184,11 +188,10 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
             )
             val circles = listOf(
                 CC.Picture to Icons.Rounded.Tv,
-                CC.Sound to Icons.AutoMirrored.Rounded.VolumeUp,
                 CC.Memory to Icons.Rounded.Memory,
                 CC.Access to Icons.Rounded.AccessibilityNew,
             )
-            val step = (ClusterW - Circle) / 3f
+            val step = (ClusterW - Circle) / 2f
             circles.forEachIndexed { i, (id, icon) ->
                 Tile(
                     f == id,
@@ -210,6 +213,22 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     .graphicsLayer { alpha = if (caption != null) 1f else 0f },
                 align = TextAlign.Center, shadow = true,
             )
+            // Notifications: the latest three, newest first. Select opens one; hold OK clears it.
+            vm.notifications.take(3).forEachIndexed { i, n ->
+                NotificationTile(
+                    n, f == CC.Notification + i,
+                    Modifier
+                        .offset(0.dp, (NotesTop + i * (NoteH + Gutter)).dp)
+                        .size(ClusterW.dp, NoteH.dp),
+                )
+            }
+            val more = vm.notifications.size - 3
+            if (more > 0) {
+                PText(
+                    "$more more", 12.sp, FontWeight.Medium, ink.copy(alpha = 0.75f),
+                    Modifier.offset(6.dp, (NotesTop + 3 * (NoteH + Gutter)).dp), shadow = true,
+                )
+            }
         }
     }
 }
@@ -299,6 +318,40 @@ private fun PillTile(
                         if (subtitleStrong) fg else fg.copy(alpha = 0.68f), lineHeight = 14.sp,
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationTile(n: PrismNotification, focused: Boolean, modifier: Modifier) {
+    Tile(focused, modifier, RoundedCornerShape(20.dp)) { c ->
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val icon = n.icon
+            if (icon != null) {
+                androidx.compose.foundation.Image(
+                    icon, null,
+                    Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                )
+            } else {
+                Box(
+                    Modifier
+                        .size(30.dp)
+                        .background(Color(0xFFFF3B30), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center,
+                ) { PIcon(Icons.Rounded.Notifications, Color.White, 18.dp) }
+            }
+            HSpace(10.dp)
+            Column(Modifier.weight(1f)) {
+                PText(n.title, 12.sp, FontWeight.SemiBold, c)
+                PText(n.text.ifBlank { n.appLabel }, 11.sp, FontWeight.Normal, c.copy(alpha = 0.72f))
             }
         }
     }

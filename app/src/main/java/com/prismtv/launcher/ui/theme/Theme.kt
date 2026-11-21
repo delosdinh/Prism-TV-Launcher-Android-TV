@@ -113,16 +113,30 @@ data class PrismTheme(
     /** Veil strength for lens glass: Clear keeps very little of it. */
     private fun veil(a: Float): Float = if (clear) a * 0.35f else a
 
+    /**
+     * Liquid Glass tint for this appearance, from the control library: frosty #F4F6FF (Light),
+     * translucent lavender #8F8FB5 (Balanced), smoked #30343D (Dark).
+     */
+    private fun liquidVeil(light: Float, balanced: Float, dark: Float): Color = palette.liquidTint.copy(
+        alpha = veil(
+            when (palette.appearance) {
+                Appearance.Light -> light
+                Appearance.Balanced -> balanced
+                Appearance.Dark -> dark
+            }
+        )
+    )
+
     /** Large floating panels: Control Centre, dialogs, banners. */
     fun panelFill(): Color = if (liquid) {
-        if (palette.isDark) Color.Black.copy(alpha = veil(0.16f)) else Color.White.copy(alpha = veil(0.22f))
+        liquidVeil(0.30f, 0.42f, 0.48f)
     } else {
         palette.panelGlass.copy(alpha = palette.panelOpacity * 0.86f)
     }
 
     /** Floating controls (Control Centre tiles, sidebar, menus): clear glass with a light veil for legibility. */
     fun controlGlass(): Color = if (liquid) {
-        if (palette.isDark) Color.Black.copy(alpha = veil(0.22f)) else Color.White.copy(alpha = veil(0.30f))
+        liquidVeil(0.38f, 0.50f, 0.56f)
     } else {
         palette.panelGlass.copy(alpha = palette.panelOpacity * 0.9f)
     }
@@ -134,14 +148,14 @@ data class PrismTheme(
 
     /** The dock tray on the Home Screen. */
     fun trayFill(): Color = if (liquid) {
-        if (palette.isDark) Color.White.copy(alpha = veil(0.04f)) else Color.White.copy(alpha = veil(0.12f))
+        liquidVeil(0.16f, 0.22f, 0.20f)
     } else {
         palette.panelGlass.copy(alpha = 0.55f)
     }
 
     /** Small floating pills (time pill, hero buttons). */
     fun pillFill(): Color = if (liquid) {
-        if (palette.isDark) Color.Black.copy(alpha = veil(0.12f)) else Color.White.copy(alpha = veil(0.22f))
+        liquidVeil(0.30f, 0.40f, 0.42f)
     } else {
         palette.panelGlass.copy(alpha = 0.72f)
     }
@@ -156,10 +170,11 @@ data class PrismTheme(
      * Veil for lens panels drawn over a dimmed screen (menus, sidebar, Control Centre). The lens samples
      * the undimmed screen, so Liquid carries the scrim's dimming for legibility; Clear stays see-through.
      */
-    fun overlayVeil(dark: Float, light: Float): Color = when {
-        !liquid -> controlGlass()
-        clear -> if (palette.isDark) Color.Black.copy(alpha = dark * 0.45f) else Color.White.copy(alpha = light * 0.5f)
-        else -> if (palette.isDark) Color.Black.copy(alpha = dark) else Color.White.copy(alpha = light)
+    fun overlayVeil(dark: Float, light: Float): Color {
+        if (!liquid) return controlGlass()
+        // The tint is lighter than black, so it needs a little more of it to carry the same dimming.
+        val a = if (palette.isDark) (dark * 1.45f).coerceAtMost(0.85f) else light
+        return palette.liquidTint.copy(alpha = if (clear) a * 0.45f else a)
     }
 
     fun edgeBrush(strength: Float = 1f): Brush = if (liquid) {

@@ -1,4 +1,4 @@
-"""Render the fifteen Prism TV interface cues using Python 3 and NumPy."""
+"""Render the Prism TV interface cues (the fifteen pack cues plus the launcher's open and dismiss) using Python 3 and NumPy."""
 
 from pathlib import Path
 import sys
@@ -340,6 +340,74 @@ def poster_focus():
     return np.column_stack((direct+halo+side,direct+halo-side))*release(t,.025)[:,None]
 
 
+def crystal_voice(t, hz, bend, start, level, decay, sparkle, seed):
+    """One glass-like voice: a soft sine body plus fast-fading inharmonic glass partials."""
+    u = np.maximum(t - start, 0)
+    on = smooth(u / .012) * (t >= start)
+    body = np.exp(-u / decay)
+    carrier = phase(u, hz, bend, .05, seed)
+    tone = np.sin(carrier) + .10*np.sin(2*carrier + .3)*np.exp(-u/(decay*.5))
+    # Partials at glass/bell ratios ring briefly above the note: the "crystal" in the cue.
+    glass = (.34*np.sin(2.756*carrier + seed)*np.exp(-u/.060)
+             + .16*np.sin(5.404*carrier + 2*seed)*np.exp(-u/.032)
+             + .07*np.sin(8.933*carrier + 3*seed)*np.exp(-u/.018))
+    # A gentle shimmer once the note has bloomed: the prism "vibrating".
+    shimmer = 1 + .11*smooth((u - .05)/.08)*np.sin(TAU*5.7*u + seed)
+    return level * on * shimmer * (body*tone + sparkle*glass)
+
+
+def crystal_open():
+    # Launcher addition: overlays (Control Centre, sidebar, switcher, menus) open with a quick upward
+    # arpeggio of glassy voices in the register of Select and Back, sweeping left to right.
+    length = .74
+    t = timeline(length)
+    voices = [  # hz, bend, start, level, decay, sparkle, pan
+        (241.0, 2.2, .000, .80, .30, .55, -.42),
+        (302.5, 2.6, .024, .66, .27, .60, -.12),
+        (361.5, 2.4, .047, .56, .24, .70, .16),
+        (482.0, 1.8, .072, .38, .20, .85, .40),
+    ]
+    direct = np.zeros((len(t), 2))
+    for i, (hz, bend, start, level, decay, sparkle, pan) in enumerate(voices):
+        v = crystal_voice(t, hz, bend, start, level, decay, sparkle, .37 + .9*i)
+        direct[:, 0] += v*np.sqrt(1 - pan)
+        direct[:, 1] += v*np.sqrt(1 + pan)
+    stereo = direct.copy()
+    for ch in (0, 1):
+        stereo[:, ch] += .14*delayed(direct[:, 1-ch], (.027, .034)[ch])
+        stereo[:, ch] += .09*delayed(direct[:, ch], (.069, .078)[ch])
+        stereo[:, ch] += .05*delayed(direct[:, 1-ch], (.121, .133)[ch])
+    return stereo*release(t, .05)[:, None]
+
+
+def crystal_dismiss():
+    # Launcher addition: an app card flicked up and away in the App Switcher. A glassy note glides up
+    # (easing out as it leaves), a fifth above follows it, and a faint glint closes it.
+    length = .56
+    t = timeline(length)
+    glide = 1 - np.exp(-t/.085)                       # 0 -> 1, fast then easing out
+    env = contour(t, [(0, -70), (.010, -18), (.028, -4), (.050, 0), (.11, -5),
+                      (.18, -13), (.26, -22), (.38, -36), (length, -80)])
+    def gliding(hz0, hz1, offset):
+        hz = (hz0 + (hz1 - hz0)*glide) * (1 + .006*np.sin(TAU*6.3*t))
+        return np.cumsum(TAU*hz/RATE) + offset
+    low = gliding(300.0, 760.0, .2)
+    high = gliding(450.0, 1140.0, 1.1)
+    tone = np.sin(low) + .55*np.sin(high) + .07*np.sin(2*low + .4)
+    glass = (.22*np.sin(2.756*low + .7)*np.exp(-t/.05) + .10*np.sin(5.404*low + 1.9)*np.exp(-t/.03))
+    dry = env*(tone + glass)
+    # The glint: a soft, high crystal ping as the card leaves the top of the screen.
+    glint = crystal_voice(t, 1520.0, 1.0, .135, .16, .11, .9, 2.3)
+    # A breath of air along the glide, kept very low so it reads as motion, not a whoosh.
+    air = .035*grain(t, 3400, .45, 977)*contour(t, [(0, -60), (.03, -6), (.09, 0), (.20, -14), (.32, -40), (length, -90)])
+    mono = dry + glint + air
+    side = .22*delayed(dry, .0071) - .12*delayed(glint, .013) + .5*air*np.sin(TAU*3.1*t)
+    out = np.column_stack((mono + side, mono - side))
+    for ch in (0, 1):
+        out[:, ch] += .10*delayed(mono, (.031, .038)[ch])
+    return out*release(t, .04)[:, None]
+
+
 INSTRUMENTS = {
     "horn_f": ("MOHorn_sus_F2_v1_1.wav", 53),
     "cello_g": ("susvib_G1_v1_1.wav", 43),
@@ -368,6 +436,9 @@ def cues():
     yield "notify", -9.1, tick(True)
     yield "capture", -17.3, shutter()
     yield "swish", -14.3, swish()
+    # Prism TV launcher additions.
+    yield "open", -21.0, crystal_open()
+    yield "dismiss", -20.0, crystal_dismiss()
 
 
 

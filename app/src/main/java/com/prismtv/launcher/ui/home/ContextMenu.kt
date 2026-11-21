@@ -39,6 +39,7 @@ import com.prismtv.launcher.ui.components.PText
 import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.glass
+import com.prismtv.launcher.ui.theme.Appearance
 import com.prismtv.launcher.ui.theme.LocalPrism
 
 private const val MenuW = 296f
@@ -92,8 +93,15 @@ fun ContextMenuHost(vm: LauncherViewModel) {
     }
 
     // Clear: a light, see-through sheet with dark text. Liquid (tinted): dark frosted glass. Frosted: classic.
-    val lightSheet = theme.clear || !p.isDark
+    // Balanced gets its own sheet: translucent indigo with white text, lavender focus.
+    val balanced = p.appearance == Appearance.Balanced
+    val lightSheet = !balanced && (theme.clear || !p.isDark)
     val sheetTint = when {
+        balanced -> when {
+            theme.clear -> Color(0xFF8F8FB5).copy(alpha = 0.40f)
+            theme.liquid -> Color(0xFF3E4370).copy(alpha = 0.64f)
+            else -> Color(0xFF5C6192).copy(alpha = 0.88f)
+        }
         theme.clear -> Color.White.copy(alpha = if (p.isDark) 0.34f else 0.42f)
         theme.liquid -> if (p.isDark) Color(0xFF1C1C22).copy(alpha = 0.58f) else Color.White.copy(alpha = 0.62f)
         else -> theme.controlGlass()
@@ -175,7 +183,11 @@ private fun MenuRow(action: MenuAction, focused: Boolean, ink: Color) {
             .fillMaxWidth()
             .height(RowH.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .then(if (focused) Modifier.background(Color.White.copy(alpha = 0.94f), shape) else Modifier)
+            .then(
+                if (focused) {
+                    Modifier.background(if (p.appearance == Appearance.Balanced) p.liquidFocus else Color.White.copy(alpha = 0.94f), shape)
+                } else Modifier
+            )
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

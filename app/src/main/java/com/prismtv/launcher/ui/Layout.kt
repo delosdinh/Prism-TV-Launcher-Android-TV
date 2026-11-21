@@ -29,22 +29,59 @@ object HomeLayout {
     fun pitch(cols: Int): Float = iconH(cols) + LabelSpace
     fun x(cols: Int, c: Int): Float = left() + (iconW(cols) + Gap) * c
 
-    fun y(cols: Int, r: Int, trayTop: Float, rowGap: Float): Float =
-        if (r == 0) trayTop + TrayPad else trayTop + trayH(cols) + rowGap + pitch(cols) * (r - 1)
+    /** [below]: height of the widget rows between the dock and the first grid row. */
+    fun y(cols: Int, r: Int, trayTop: Float, rowGap: Float, below: Float = 0f): Float =
+        if (r == 0) trayTop + TrayPad else trayTop + trayH(cols) + rowGap + below + pitch(cols) * (r - 1)
 
     /** Tray top when browsing the grid with [focusRow] focused (scrolls for deep rows). */
-    fun gridTrayTop(cols: Int, focusRow: Int): Float {
-        val bottom = y(cols, focusRow, TrayTopGrid, RowGapGrid) + iconH(cols) + 44f
+    fun gridTrayTop(cols: Int, focusRow: Int, below: Float = 0f): Float {
+        val bottom = y(cols, focusRow, TrayTopGrid, RowGapGrid, below) + iconH(cols) + 44f
         return TrayTopGrid - max(0f, bottom - (ScreenH - 8f))
     }
 
-    fun tileRect(cols: Int, index: Int, trayTop: Float, rowGap: Float): Rect {
+    /** Tray top with widget row [index] (below the dock) focused. */
+    fun widgetTrayTop(cols: Int, index: Int): Float {
+        val bottom = TrayTopGrid + trayH(cols) + RowGapGrid + WidgetLayout.RowH * (index + 1) + 10f
+        return TrayTopGrid - max(0f, bottom - (ScreenH - 8f))
+    }
+
+    fun tileRect(cols: Int, index: Int, trayTop: Float, rowGap: Float, below: Float = 0f): Rect {
         val r = index / cols
         val c = index % cols
         val x = x(cols, c)
-        val y = y(cols, r, trayTop, rowGap)
+        val y = y(cols, r, trayTop, rowGap, below)
         return Rect(x, y, x + iconW(cols), y + iconH(cols))
     }
+}
+
+/** Widget rows: a title over a row of 16:9 cards. */
+object WidgetLayout {
+    const val CardW = 168f
+    const val CardH = 94.5f
+    const val CardGap = 20f
+    const val TitleH = 24f
+    const val RowH = TitleH + CardH + 30f
+
+    /** Top of above-dock row [i] of [count], stacked up from the dock. */
+    fun aboveTop(trayTop: Float, i: Int, count: Int): Float = trayTop - 8f - RowH * (count - i)
+
+    /** Top of below-dock row [j]. */
+    fun belowTop(trayTop: Float, cols: Int, rowGap: Float, j: Int): Float =
+        trayTop + HomeLayout.trayH(cols) + rowGap + RowH * j
+
+    /** First card shown so the focused one stays on screen. */
+    fun firstVisible(focus: Int, count: Int): Int {
+        val fit = ((HomeLayout.GridW + CardGap) / (CardW + CardGap)).toInt()
+        return (focus - fit + 2).coerceIn(0, (count - fit).coerceAtLeast(0))
+    }
+}
+
+/** Spotlight Top Shelf: the hero as a large inset card over the wallpaper. */
+object SpotlightLayout {
+    const val Left = 48f
+    const val Top = 34f
+    const val W = HomeLayout.ScreenW - Left * 2
+    const val H = HomeLayout.TrayTopHero - Top - 26f
 }
 
 /** Folder panel geometry (centred glass panel, 3 columns). */

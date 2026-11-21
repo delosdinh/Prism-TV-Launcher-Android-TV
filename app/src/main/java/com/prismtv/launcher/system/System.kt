@@ -157,6 +157,31 @@ object SystemActions {
         NetStatus("Wi-Fi", "Unavailable", connected = false, ethernet = false)
     }
 
+    /** Where sound is going: a connected Bluetooth/USB device's name, or HDMI / TV Speakers. */
+    fun audioOutput(ctx: Context): String = try {
+        val am = ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+        val outs = am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS)
+        val wireless = outs.firstOrNull {
+            it.type == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                (Build.VERSION.SDK_INT >= 31 && it.type == android.media.AudioDeviceInfo.TYPE_BLE_HEADSET)
+        }
+        val usb = outs.firstOrNull { it.type == android.media.AudioDeviceInfo.TYPE_USB_DEVICE || it.type == android.media.AudioDeviceInfo.TYPE_USB_HEADSET }
+        val hdmi = outs.firstOrNull {
+            it.type == android.media.AudioDeviceInfo.TYPE_HDMI || it.type == android.media.AudioDeviceInfo.TYPE_HDMI_ARC ||
+                (Build.VERSION.SDK_INT >= 30 && it.type == android.media.AudioDeviceInfo.TYPE_HDMI_EARC)
+        }
+        when {
+            wireless != null -> wireless.productName?.toString()?.takeIf { it.isNotBlank() } ?: "Bluetooth"
+            usb != null -> usb.productName?.toString()?.takeIf { it.isNotBlank() } ?: "USB Audio"
+            hdmi?.type == android.media.AudioDeviceInfo.TYPE_HDMI_ARC -> "HDMI ARC"
+            hdmi != null && hdmi.type != android.media.AudioDeviceInfo.TYPE_HDMI -> "HDMI eARC"
+            hdmi != null -> "HDMI"
+            else -> "TV Speakers"
+        }
+    } catch (_: Throwable) {
+        "TV Speakers"
+    }
+
     fun dndOn(ctx: Context): Boolean = try {
         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL

@@ -69,7 +69,7 @@ shot 03b-top-shelf-info            "${B[@]}" "${DARK[@]}" --es screen heroinfo -
 shot 04-grid-focus-balanced        "${B[@]}" --es appearance balanced --es glass liquid --es screen grid --ei row 1 --ei col 1
 shot 05-grid-folder-focus          "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 3
 shot 06-folder-open                "${B[@]}" "${DARK[@]}" --es screen folder --ei row 1 --ei col 3 --ei focus 0
-shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei row 1 --ei col 2 --ei focus 5
+shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei row 1 --ei col 2 --ei focus 6
 shot 08-control-centre-hero        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei col 3 --ei focus 13
 if [ "$QUICK" = 0 ]; then
 shot 09-app-switcher               "${B[@]}" "${DARK[@]}" --es screen switcher
@@ -77,7 +77,7 @@ shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher -
 fi
 shot 11-settings-dark              "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0
 shot 12-settings-appearance-bal    "${B[@]}" --es appearance balanced --es glass liquid --es screen settings --es page Appearance --ei focus 1
-shot 12b-settings-glass-colour     "${B[@]}" --es appearance dark --es glassColour light --es glass liquid --es screen settings --es page Appearance --ei focus 8
+shot 12b-settings-glass-colour     "${B[@]}" --es appearance dark --es glassColour light --es glass liquid --es screen settings --es page Appearance --ei focus 9
 shot 12c-cc-dark-ui-light-glass     "${B[@]}" --es appearance dark --es glassColour light --es glass liquid --es screen controlcentre --ei focus 4
 shot 13-settings-dialog-light      "${B[@]}" --es appearance light --es glass liquid --es screen dialog
 shot 14-home-frosted-light         "${B[@]}" --es appearance light --es glass frosted --es screen home --ei col 1
@@ -96,6 +96,20 @@ shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings -
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
 shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 11
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
+# Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
+shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
+shot 33b-spotlight-expanded        "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen hero --ei col 1
+shot 34-widgets-above-dock         "${B[@]}" "${DARK[@]}" --es widgets above --es screen widget --ei widget 0 --ei focus 1
+shot 34b-widgets-below-dock        "${B[@]}" "${DARK[@]}" --es widgets below --es screen widget --ei widget 0 --ei focus 2
+shot 35-keyboard-dark              "${B[@]}" "${DARK[@]}" --es screen keyboard --ei keyRow 1 --ei keyCol 4
+shot 35b-keyboard-light            "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --ei keyRow 3 --ei keyCol 2
+shot 35c-keyboard-balanced-123     "${B[@]}" --es appearance balanced --es glass liquid --es screen keyboard --ei layer 1 --ei keyRow 0 --ei keyCol 3
+shot 36-settings-text-size         "${B[@]}" "${DARK[@]}" --es screen settings --es page TextSize --ei textSize 4
+shot 37-cc-notifications           "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 100
+shot 37b-time-pill-badge           "${B[@]}" "${DARK[@]}" --ei notify 2 --es screen top --ei button 0
+shot 38-settings-wallpaper         "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 1
+shot 39-context-menu-balanced      "${B[@]}" --es appearance balanced --es glass liquid --es screen menu --ei row 1 --ei col 1 --ei focus 1
+shot 40-grid-liquid-dark-labels    "${B[@]}" "${DARK[@]}" --es screen grid --ei row 2 --ei col 0
 # Context menu → Add to Folder picker.
 start "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 1; sleep 3
 key KEYCODE_DPAD_CENTER 2; cap 28-folder-picker

@@ -32,6 +32,7 @@ import com.prismtv.launcher.Overlay
 import com.prismtv.launcher.data.AppItem
 import com.prismtv.launcher.data.FolderItem
 import com.prismtv.launcher.ui.FolderLayout
+import com.prismtv.launcher.ui.HomeLayout
 import com.prismtv.launcher.ui.components.PText
 import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
@@ -60,10 +61,18 @@ fun FolderOverlay(vm: LauncherViewModel) {
     val scroll by animateFloatAsState(first.toFloat(), spring(dampingRatio = 0.86f, stiffness = 320f), label = "folderScroll")
     val panelShape = RoundedCornerShape(44.dp)
     val panelTint = when {
-        theme.clear -> Color.White.copy(alpha = if (p.isDark) 0.06f else 0.18f)
-        theme.liquid -> Color.White.copy(alpha = if (p.isDark) 0.10f else 0.32f)
+        theme.clear -> p.liquidTint.copy(alpha = if (p.isDark) 0.10f else 0.18f)
+        theme.liquid -> p.liquidTint.copy(alpha = if (p.isDark) 0.34f else 0.36f)
         else -> p.panelGlass.copy(alpha = 0.55f)
     }
+    // iOS: the folder grows out of its tile and shrinks back into it.
+    val anchor = vm.folderAnchor
+    val panelCx = panelLeft + FolderLayout.PanelW / 2f
+    val panelCy = FolderLayout.PanelTop + panelH / 2f
+    val fromScaleX = anchor?.let { (it.width * HomeLayout.FocusScale / FolderLayout.PanelW).coerceIn(0.05f, 1f) } ?: 0.9f
+    val fromScaleY = anchor?.let { (it.height * HomeLayout.FocusScale / panelH).coerceIn(0.05f, 1f) } ?: 0.9f
+    val fromDx = anchor?.let { it.center.x - panelCx } ?: 0f
+    val fromDy = anchor?.let { it.center.y - panelCy } ?: 0f
 
     Box(Modifier.fillMaxSize()) {
         // The Home Screen, blurred and dimmed so the folder reads clearly.
@@ -77,27 +86,50 @@ fun FolderOverlay(vm: LauncherViewModel) {
                     GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true,
                 )
         )
+        PText(
+            folder.label, 34.sp, FontWeight.Bold, Color.White,
+            Modifier
+                .offset((panelLeft + 10f).dp, FolderLayout.TitleTop.dp)
+                .graphicsLayer { alpha = ((t - 0.35f) / 0.65f).coerceIn(0f, 1f); translationY = (1f - t) * 14.dp.toPx() },
+            letterSpacing = (-0.5).sp, shadow = true,
+        )
+        Box(
+            Modifier
+                .offset(panelLeft.dp, FolderLayout.PanelTop.dp)
+                .size(FolderLayout.PanelW.dp, panelH.dp)
+                .graphicsLayer {
+                    alpha = (t * 3f).coerceIn(0f, 1f)
+                    scaleX = lerpF(fromScaleX, 1f, t)
+                    scaleY = lerpF(fromScaleY, 1f, t)
+                    translationX = lerpF(fromDx, 0f, t).dp.toPx()
+                    translationY = lerpF(fromDy, 0f, t).dp.toPx()
+                }
+        ) {
+            // Liquid Glass bends the blurred Home Screen behind it; Frosted is the classic blur.
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (theme.liquid) {
+                            Modifier.glass(panelShape, panelTint, GlassSource.Scene, elevation = 22.dp, blurredLens = true)
+                        } else {
+                            Modifier.glass(panelShape, panelTint, GlassSource.Scene, elevation = 22.dp, frosted = true)
+                        }
+                    )
+            )
+        }
         Box(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    alpha = t
-                    val s = lerpF(0.9f, 1f, t)
-                    scaleX = s
-                    scaleY = s
+                    alpha = ((t - 0.25f) / 0.75f).coerceIn(0f, 1f)
+                    val k = lerpF(0.92f, 1f, t)
+                    scaleX = k
+                    scaleY = k
+                    translationX = lerpF(fromDx * 0.25f, 0f, t).dp.toPx()
+                    translationY = lerpF(fromDy * 0.25f, 0f, t).dp.toPx()
                 }
         ) {
-            PText(
-                folder.label, 34.sp, FontWeight.Bold, Color.White,
-                Modifier.offset((panelLeft + 10f).dp, FolderLayout.TitleTop.dp),
-                letterSpacing = (-0.5).sp, shadow = true,
-            )
-            Box(
-                Modifier
-                    .offset(panelLeft.dp, FolderLayout.PanelTop.dp)
-                    .size(FolderLayout.PanelW.dp, panelH.dp)
-                    .glass(panelShape, panelTint, GlassSource.Scene, elevation = 22.dp, frosted = true, bentRim = theme.liquid)
-            )
             // Tiles, clipped to the panel so scrolled rows never spill outside it.
             Box(
                 Modifier

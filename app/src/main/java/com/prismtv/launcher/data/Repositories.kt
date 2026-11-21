@@ -1,6 +1,7 @@
 package com.prismtv.launcher.data
 
 import android.app.AppOpsManager
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -186,25 +187,65 @@ class RecentsRepository(private val context: Context) {
         false
     }
 
-    /** Most recent first. */
+    /**
+     * Most recent first. Only apps that were really on screen count: Android's usage totals also
+     * move for apps that just ran in the background (updates, jobs, the Assistant), which made random
+     * apps show up in the App Switcher.
+     */
     fun recentPackages(): List<String> {
         val hist = history()
         if (!hasUsageAccess()) return hist
         return try {
             val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
             val now = System.currentTimeMillis()
-            val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, now - 3L * 24 * 3600 * 1000, now)
-            val fromUsage = stats
-                .filter {
-                    it.lastTimeUsed > 0 && it.totalTimeInForeground > 0 && it.packageName != context.packageName &&
-                        it.lastTimeUsed > dismissedAt(it.packageName)
+            val events = usm.queryEvents(now - 3L * 24 * 3600 * 1000, now)
+            val e = UsageEvents.Event()
+            val openedAt = HashMap<String, Long>()
+            val since = HashMap<String, Long>()
+            val shownFor = HashMap<String, Long>()
+            while (events.hasNextEvent()) {
+                events.getNextEvent(e)
+                val pkg = e.packageName ?: continue
+                @Suppress("DEPRECATION")
+                when (e.eventType) {
+                    UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                        since[pkg] = e.timeStamp
+                        openedAt[pkg] = e.timeStamp
+                    }
+                    UsageEvents.Event.MOVE_TO_BACKGROUND -> since.remove(pkg)?.let { t ->
+                        shownFor[pkg] = (shownFor[pkg] ?: 0L) + (e.timeStamp - t)
+                    }
                 }
-                .sortedByDescending { it.lastTimeUsed }
-                .map { it.packageName }
-            (fromUsage + hist).distinct()
+            }
+            since.forEach { (pkg, t) -> shownFor[pkg] = (shownFor[pkg] ?: 0L) + (now - t) }
+            val skip = ignoredPackages()
+            val fromUsage = openedAt.entries
+                .filter { (pkg, t) ->
+                    pkg != context.packageName && pkg !in skip && (shownFor[pkg] ?: 0L) >= 2500L && t > dismissedAt(pkg)
+                }
+                .sortedByDescending { it.value }
+                .map { it.key }
+            (fromUsage + hist.filter { it !in skip }).distinct()
         } catch (_: Throwable) {
             hist
         }
+    }
+
+    /** Launchers, system UI, settings and the Assistant: never "apps" in the switcher. */
+    private fun ignoredPackages(): Set<String> {
+        val out = hashSetOf(
+            "com.android.systemui", "com.android.settings", "com.android.tv.settings", "com.google.android.katniss",
+            "com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher", "com.google.android.leanbacklauncher",
+            "com.android.packageinstaller", "com.google.android.packageinstaller", "com.google.android.backdrop",
+            "com.google.android.apps.tv.dreamx", "com.google.android.tvrecommendations", "com.android.permissioncontroller",
+            "com.google.android.permissioncontroller", "com.google.android.inputmethod.latin", "com.google.android.leanback.ime",
+        )
+        try {
+            val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            context.packageManager.queryIntentActivities(home, 0).forEach { out += it.activityInfo.packageName }
+        } catch (_: Throwable) {
+        }
+        return out
     }
 }
 
@@ -216,6 +257,8 @@ class HeroArt(
     val light: ImageBitmap,
     /** Heavily blurred, low-res copy (grid wallpaper, frosted fallback). */
     val heavy: ImageBitmap,
+    /** Average brightness (0..1) of the lower part, where app names sit over it. */
+    val luma: Float = 0.3f,
 )
 
 class ArtRepository(private val context: Context) {
@@ -239,19 +282,60 @@ class ArtRepository(private val context: Context) {
             null
         } ?: return@withContext null
         val frame = cropTo16x9(bmp)
+        val heavy = Blur.blur(frame, 96, 4)
         val art = HeroArt(
             full = frame.asImageBitmap(),
             light = Blur.blur(frame, 240, 3).asImageBitmap(),
-            heavy = Blur.blur(frame, 96, 4).asImageBitmap(),
+            heavy = heavy.asImageBitmap(),
+            luma = lowerLuma(heavy),
         )
         cache.put(ref.key, art)
         art
     }
 
-    private fun decode(ref: ArtRef): Bitmap? = when (ref) {
+    private val thumbs = LruCache<String, ImageBitmap>(80)
+
+    fun cachedThumb(ref: ArtRef): ImageBitmap? = thumbs.get(ref.key)
+
+    /** A small copy (about [width] px wide) for cards and previews. */
+    suspend fun thumb(ref: ArtRef, width: Int = 400): ImageBitmap? = withContext(Dispatchers.IO) {
+        thumbs.get(ref.key)?.let { return@withContext it }
+        val bmp = try {
+            decode(ref, maxSide = width * 2)
+        } catch (_: Throwable) {
+            null
+        } ?: return@withContext null
+        val h = (width * bmp.height.toFloat() / bmp.width).roundToInt().coerceAtLeast(1)
+        val out = if (bmp.width > width) Bitmap.createScaledBitmap(bmp, width, h, true) else bmp
+        out.asImageBitmap().also { thumbs.put(ref.key, it) }
+    }
+
+    /** Mean luminance of the lower 70% of a (small) bitmap. */
+    private fun lowerLuma(b: Bitmap): Float = try {
+        val w = b.width
+        val h = b.height
+        val top = (h * 0.3f).toInt()
+        val px = IntArray(w * (h - top))
+        b.getPixels(px, 0, w, 0, top, w, h - top)
+        var sum = 0.0
+        for (c in px) {
+            val r = (c shr 16) and 0xFF
+            val g = (c shr 8) and 0xFF
+            val bl = c and 0xFF
+            sum += (0.2126 * r + 0.7152 * g + 0.0722 * bl) / 255.0
+        }
+        (sum / px.size.coerceAtLeast(1)).toFloat()
+    } catch (_: Throwable) {
+        0.3f
+    }
+
+    private fun decode(ref: ArtRef, maxSide: Int = 2400): Bitmap? = when (ref) {
         is ResArt -> BitmapFactory.decodeResource(
             context.resources, ref.resId,
-            BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+            BitmapFactory.Options().apply {
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+                if (maxSide < 1200) inSampleSize = 4
+            }
         )
         is BannerArt -> brands[ref.appId]?.let { brandBackdrop(it.banner, it.icon, it.tint) }
         is UriArt -> {
@@ -262,9 +346,19 @@ class ArtRepository(private val context: Context) {
                     readTimeout = 8000
                     instanceFollowRedirects = true
                 }.inputStream
-                else -> context.contentResolver.openInputStream(uri)
+                else -> null
             }
-            stream?.use { BitmapFactory.decodeStream(it) }
+            if (stream != null) {
+                stream.use { BitmapFactory.decodeStream(it) }
+            } else {
+                // The user's own pictures can be huge: read the size first and sample down.
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+                var sample = 1
+                while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
+                val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+                context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+            }
         }
     }
 

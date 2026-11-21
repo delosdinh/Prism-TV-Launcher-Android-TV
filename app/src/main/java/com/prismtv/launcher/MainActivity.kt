@@ -48,6 +48,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.prismtv.launcher.data.AppearanceSetting
 import com.prismtv.launcher.data.GlassColour
 import com.prismtv.launcher.data.GlassMaterial
+import com.prismtv.launcher.data.KeyboardColour
+import com.prismtv.launcher.ui.keyboard.KeyboardOverlay
 import com.prismtv.launcher.ui.components.BannerHost
 import com.prismtv.launcher.ui.components.DialogHost
 import com.prismtv.launcher.ui.components.LaunchOverlay
@@ -110,6 +112,17 @@ class MainActivity : ComponentActivity() {
         requestRecommendationAccess()
     }
 
+    /** Settings › Wallpaper › Your Pictures. */
+    fun requestPhotoAccess() {
+        if (Build.VERSION.SDK_INT < 23) return
+        val perm = if (Build.VERSION.SDK_INT >= 33) android.Manifest.permission.READ_MEDIA_IMAGES else android.Manifest.permission.READ_EXTERNAL_STORAGE
+        if (checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) {
+            vm.loadPhotos()
+            return
+        }
+        requestPermissions(arrayOf(perm), REQ_PHOTOS)
+    }
+
     fun requestRecommendationAccess() {
         if (Build.VERSION.SDK_INT < 23) return
         if (!shouldShowRequestPermissionRationale(TV_LISTINGS) &&
@@ -134,10 +147,12 @@ class MainActivity : ComponentActivity() {
             getSharedPreferences("prism_prefs", MODE_PRIVATE).edit().putBoolean("deniedTvListings", !granted).apply()
             if (granted) vm.refreshRecommendations(force = true)
         }
+        if (requestCode == REQ_PHOTOS) vm.loadPhotos()
     }
 
     private companion object {
         const val REQ_TV_LISTINGS = 41
+        const val REQ_PHOTOS = 42
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -202,7 +217,8 @@ fun PrismApp(vm: LauncherViewModel) {
     val base = LocalDensity.current
     // Design canvas is 960×540dp (1080p @ xhdpi). Normalise so every TV renders the same layout.
     val scale = min(config.screenWidthDp / 960f, config.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f
-    val density = Density(base.density * scale, base.fontScale)
+    // Settings › Appearance › Text Size scales Prism's text on top of the system font size.
+    val density = Density(base.density * scale, base.fontScale * vm.prefs.textScale)
 
     val appearance = when (vm.prefs.appearance) {
         AppearanceSetting.Light -> Appearance.Light
@@ -220,7 +236,7 @@ fun PrismApp(vm: LauncherViewModel) {
     }
     val theme = PrismTheme(
         palette = Palettes.of(glassAppearance),
-        material = vm.prefs.material,
+        material = vm.prefs.glass,
         reduceTransparency = vm.prefs.reduceTransparency,
         focusEffect = vm.prefs.focusEffect,
         labels = vm.prefs.labels,
@@ -261,37 +277,14 @@ fun PrismApp(vm: LauncherViewModel) {
     LaunchedEffect(vm.permissionRequestTick) {
         if (vm.permissionRequestTick > 0) (activity as? MainActivity)?.requestRecommendationAccess()
     }
-    // Rename Folder: a small system dialog so the TV's own keyboard (and voice typing) can be used.
-    val rename = vm.renameRequest
-    LaunchedEffect(rename) {
-        val folder = rename ?: return@LaunchedEffect
-        val act = activity ?: return@LaunchedEffect
-        val input = android.widget.EditText(act).apply {
-            setText(folder.label)
-            setSelection(text.length)
-            setSingleLine()
-            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
-        }
-        val pad = (24 * act.resources.displayMetrics.density).toInt()
-        val frame = android.widget.FrameLayout(act).apply {
-            setPadding(pad, pad / 2, pad, 0)
-            addView(input)
-        }
-        val dialog = android.app.AlertDialog.Builder(act, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("Rename Folder")
-            .setView(frame)
-            .setPositiveButton("Done") { _, _ -> vm.renameFolder(folder.id, input.text.toString()) }
-            .setNegativeButton("Cancel") { _, _ -> vm.renameRequest = null }
-            .setOnCancelListener { vm.renameRequest = null }
-            .create()
-        input.setOnEditorActionListener { _, _, _ ->
-            vm.renameFolder(folder.id, input.text.toString())
-            dialog.dismiss()
-            true
-        }
-        dialog.show()
-        input.requestFocus()
-        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+    LaunchedEffect(vm.photoPermissionTick) {
+        if (vm.photoPermissionTick > 0) (activity as? MainActivity)?.requestPhotoAccess()
+    }
+    val keyboardLook = when (vm.prefs.keyboardColour) {
+        KeyboardColour.Automatic -> appearance
+        KeyboardColour.Light -> Appearance.Light
+        KeyboardColour.Balanced -> Appearance.Balanced
+        KeyboardColour.Dark -> Appearance.Dark
     }
 
     CompositionLocalProvider(
@@ -328,6 +321,7 @@ fun PrismApp(vm: LauncherViewModel) {
             }
             ContextMenuHost(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
+            CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook) }
             LaunchOverlay(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { BannerHost(vm.banner) }
         }

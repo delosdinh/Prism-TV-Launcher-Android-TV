@@ -46,6 +46,10 @@ import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.AcUnit
 import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.graphics.luminance
+import com.prismtv.launcher.ui.SpotlightLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -117,17 +121,30 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
     val expanded = vm.isHeroExpanded
     val heroOn = vm.prefs.heroEnabled
 
+    val above = vm.aboveRows
+    val below = vm.belowRows
+    val belowH = vm.belowHeight
+    val widgetBelowFocus = vm.zone == Zone.Widget && !vm.widgetFocusAbove
     val trayTopTarget = when {
         expanded -> HomeLayout.TrayTopHidden
-        gridMode -> HomeLayout.gridTrayTop(cols, vm.row)
+        widgetBelowFocus -> HomeLayout.widgetTrayTop(cols, vm.widgetIndex - above.size)
+        gridMode -> HomeLayout.gridTrayTop(cols, vm.row, belowH)
         else -> HomeLayout.TrayTopHero
     }
     val motion = spring<Float>(dampingRatio = 0.86f, stiffness = 160f)
     val trayTop = animateFloatAsState(trayTopTarget, motion, label = "trayTop")
     val rowGap = animateFloatAsState(if (gridMode) HomeLayout.RowGapGrid else HomeLayout.RowGapHero, motion, label = "rowGap")
+    val below0 = animateFloatAsState(belowH, motion, label = "belowH")
+    val spotlight = vm.spotlight
+    // Spotlight shows the wallpaper behind the Top Shelf card; with the Top Shelf off it's the wallpaper too.
+    val backdropArt = if (spotlight || !heroOn) vm.wallpaperArt ?: vm.currentArt else vm.currentArt
+    val luma = backdropArt?.luma ?: if (p.isDark) 0.15f else 0.7f
 
     Box(Modifier.fillMaxSize()) {
-        HomeBackdrop(vm.currentArt, blurred = gridMode, palette = p, backdrop = LocalBackdrop.current)
+        HomeBackdrop(
+            backdropArt, blurred = gridMode, palette = p, backdrop = LocalBackdrop.current,
+            card = if (spotlight) vm.currentArt else null, expanded = expanded,
+        )
 
         HeroOverlay(
             item = vm.currentHeroItem,
@@ -136,6 +153,20 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             expanded = expanded,
             visible = heroOn && !gridMode && vm.overlay != Overlay.Sidebar,
             focusedButton = if (vm.zone == Zone.Hero && vm.overlay == Overlay.None) vm.heroButton else -1,
+            spotlight = spotlight,
+            compact = above.size >= 2 && !spotlight,
+        )
+
+        WidgetRows(
+            vm = vm,
+            above = above,
+            below = below,
+            cols = cols,
+            trayTop = trayTop,
+            rowGap = rowGap,
+            gridMode = gridMode,
+            hidden = expanded || vm.overlay == Overlay.Sidebar,
+            labelColor = if (gridMode && luma > 0.55f) Color(0xFF15171E) else Color.White,
         )
 
         val focusIndex = if (vm.zone == Zone.Grid && vm.overlay != Overlay.Sidebar) vm.row * cols + vm.col else -1
@@ -144,11 +175,14 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             cols = cols,
             trayTop = trayTop,
             rowGap = rowGap,
+            below = below0,
             focusIndex = focusIndex,
             gridMode = gridMode,
-            showHint = heroOn && !gridMode && !expanded && vm.overlay == Overlay.None && vm.movingId == null && vm.contextMenu == null,
+            showHint = heroOn && !gridMode && !expanded && above.isEmpty() && vm.zone != Zone.Widget &&
+                vm.overlay == Overlay.None && vm.movingId == null && vm.contextMenu == null,
             palette = p,
             movingId = vm.movingId,
+            backdropLuma = luma,
         )
 
         MoveHint(visible = vm.movingId != null, modifier = Modifier.align(Alignment.BottomCenter))
@@ -158,6 +192,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
         TimePill(
             time = clock,
             weather = if (vm.prefs.weather) vm.weather else null,
+            notifications = vm.notifications.size,
             unit = vm.prefs.temperatureUnit,
             focus = if (vm.zone == Zone.TopBar && vm.overlay == Overlay.None) vm.topIndex else -1,
             modifier = Modifier
@@ -171,8 +206,16 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
 // ------------------------------------------------------------------------------------------ backdrop
 
 @Composable
-private fun HomeBackdrop(art: HeroArt?, blurred: Boolean, palette: PrismPalette, backdrop: BackdropState) {
+private fun HomeBackdrop(
+    art: HeroArt?,
+    blurred: Boolean,
+    palette: PrismPalette,
+    backdrop: BackdropState,
+    card: HeroArt? = null,
+    expanded: Boolean = false,
+) {
     val blur = animateFloatAsState(if (blurred) 1f else 0f, tween(650, easing = FastOutSlowInEasing), label = "wallBlur")
+    val spot = card != null
     Box(
         Modifier
             .fillMaxSize()
@@ -194,32 +237,84 @@ private fun HomeBackdrop(art: HeroArt?, blurred: Boolean, palette: PrismPalette,
                 }
             }
         }
-        // Hero scrims keep type legible without looking "dimmed".
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = 1f - blur.value }
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Black.copy(alpha = 0.30f),
-                        0.28f to Color.Transparent,
-                        0.6f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.42f),
+        if (!spot) {
+            // Hero scrims keep type legible without looking "dimmed".
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 1f - blur.value }
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Black.copy(alpha = 0.30f),
+                            0.28f to Color.Transparent,
+                            0.6f to Color.Transparent,
+                            1f to Color.Black.copy(alpha = 0.42f),
+                        )
                     )
-                )
-        )
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = 1f - blur.value }
-                .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.22f), 0.5f to Color.Transparent))
-        )
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = 1f - blur.value }
+                    .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.22f), 0.5f to Color.Transparent))
+            )
+        }
         // Wallpaper tint while browsing the grid.
         Box(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = blur.value }
                 .background(palette.bgBase.copy(alpha = palette.backgroundDim * 0.6f))
+        )
+        if (spot) SpotlightCard(card, expanded, visible = !blurred)
+    }
+}
+
+/**
+ * Spotlight Top Shelf: the title's artwork as a large inset card over the wallpaper. Going up into the
+ * Top Shelf grows the card to full screen (and back down into the card).
+ */
+@Composable
+private fun SpotlightCard(art: HeroArt?, expanded: Boolean, visible: Boolean) {
+    val e by animateFloatAsState(if (expanded) 1f else 0f, spring(dampingRatio = 0.88f, stiffness = 170f), label = "spotGrow")
+    val vis by animateFloatAsState(if (visible) 1f else 0f, tween(450), label = "spotVis")
+    if (vis < 0.01f) return
+    val left = lerpF(SpotlightLayout.Left, 0f, e)
+    val top = lerpF(SpotlightLayout.Top, 0f, e)
+    val w = lerpF(SpotlightLayout.W, HomeLayout.ScreenW, e)
+    val h = lerpF(SpotlightLayout.H, HomeLayout.ScreenH, e)
+    val shape = RoundedCornerShape(lerpF(28f, 0f, e).dp)
+    Box(
+        Modifier
+            .offset(left.dp, top.dp)
+            .size(w.dp, h.dp)
+            .graphicsLayer {
+                alpha = vis
+                shadowElevation = lerpF(28f, 0f, e).dp.toPx()
+                this.shape = shape
+                clip = true
+            }
+            .background(Color.Black)
+    ) {
+        Crossfade(targetState = art, animationSpec = tween(700), label = "spotArt") { a ->
+            if (a != null) Image(a.full, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        }
+        // Scrims for the title (bottom-left) at both sizes.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.55f)))
+        )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.30f), 0.55f to Color.Transparent))
+        )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = 1f - e }
+                .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0.06f))), shape)
         )
     }
 }
@@ -234,6 +329,8 @@ private fun HeroOverlay(
     expanded: Boolean,
     visible: Boolean,
     focusedButton: Int,
+    spotlight: Boolean = false,
+    compact: Boolean = false,
 ) {
     val vis by animateFloatAsState(if (visible) 1f else 0f, tween(450), label = "heroVis")
     val e by animateFloatAsState(if (expanded) 1f else 0f, tween(520, easing = FastOutSlowInEasing), label = "heroExp")
@@ -245,11 +342,20 @@ private fun HeroOverlay(
             label = "heroText",
         ) { h ->
             Box(Modifier.fillMaxSize()) {
-                // Collapsed: title treatment top-left, like tvOS Top Shelf.
-                if (e < 0.99f && h.title.isNotBlank()) {
+                // Collapsed: title treatment top-left, like tvOS Top Shelf (inside the card in Spotlight).
+                if (e < 0.99f && h.title.isNotBlank() && !compact) {
                     Column(
                         Modifier
-                            .offset(x = 46.dp, y = 38.dp)
+                            .then(
+                                if (spotlight) {
+                                    Modifier
+                                        .offset(x = (SpotlightLayout.Left + 30f).dp, y = SpotlightLayout.Top.dp)
+                                        .height((SpotlightLayout.H - 26f).dp)
+                                        .wrapContentHeight(Alignment.Bottom)
+                                } else {
+                                    Modifier.offset(x = 46.dp, y = 38.dp)
+                                }
+                            )
                             .graphicsLayer { alpha = 1f - e; translationY = -18.dp.toPx() * e }
                             .widthIn(max = 600.dp)
                     ) {
@@ -384,18 +490,24 @@ private fun AppGrid(
     cols: Int,
     trayTop: State<Float>,
     rowGap: State<Float>,
+    below: State<Float>,
     focusIndex: Int,
     gridMode: Boolean,
     showHint: Boolean,
     palette: PrismPalette,
     movingId: String?,
+    backdropLuma: Float,
 ) {
     val theme = LocalPrism.current
     val iconW = HomeLayout.iconW(cols)
     val iconH = HomeLayout.iconH(cols)
     val trayH = HomeLayout.trayH(cols)
     val focusRow = if (focusIndex >= 0) focusIndex / cols else -1
-    val labelColor = if (gridMode && !palette.isDark) palette.textPrimary else Color.White
+    // App names follow what's actually behind them while browsing: the blurred wallpaper, tinted by
+    // the glass colour. Dark ink only over a bright backdrop; white (with a shadow) otherwise.
+    val tintAlpha = palette.backgroundDim * 0.6f
+    val bgLuma = backdropLuma * (1f - tintAlpha) + palette.bgBase.luminance() * tintAlpha
+    val labelColor = if (gridMode && bgLuma > 0.55f) Color(0xFF15171E) else Color.White
 
     Box(Modifier.fillMaxSize()) {
         // "Swipe up" affordance above the dock.
@@ -432,11 +544,8 @@ private fun AppGrid(
                 val ax by animateFloatAsState(HomeLayout.x(cols, c), slide, label = "tileX")
                 val ar by animateFloatAsState(r.toFloat(), slide, label = "tileRow")
                 val focused = i == focusIndex
-                val unfocusedScale = when {
-                    focusIndex < 0 -> 1f
-                    theme.focusEffect == FocusEffect.GrowShrink -> if (r == focusRow) 0.94f else 0.97f
-                    else -> 1f
-                }
+                // Like tvOS, only the focused tile changes size; its neighbours stay put.
+                val unfocusedScale = 1f
                 val dockHidden = r == 0 && !gridMode
                 val showLabel = when (theme.labels) {
                     LabelMode.Always -> !dockHidden
@@ -456,8 +565,8 @@ private fun AppGrid(
                         .offset {
                             val r0 = ar.toInt().coerceAtLeast(0)
                             val fr = (ar - r0).coerceIn(0f, 1f)
-                            val y0 = HomeLayout.y(cols, r0, trayTop.value, rowGap.value)
-                            val y1 = HomeLayout.y(cols, r0 + 1, trayTop.value, rowGap.value)
+                            val y0 = HomeLayout.y(cols, r0, trayTop.value, rowGap.value, below.value)
+                            val y1 = HomeLayout.y(cols, r0 + 1, trayTop.value, rowGap.value, below.value)
                             IntOffset(ax.dp.roundToPx(), lerpF(y0, y1, fr).dp.roundToPx())
                         }
                         .size(iconW.dp, iconH.dp),
@@ -486,8 +595,20 @@ fun GridTile(
         focused -> if (effect == FocusEffect.Lift) 1.17f else HomeLayout.FocusScale
         else -> unfocusedScale
     }
-    val scale by animateFloatAsState(target, spring(dampingRatio = 0.62f, stiffness = 300f), label = "tileScale")
-    val elevation by animateDpAsState(if (moving) 34.dp else if (focused) 26.dp else 4.dp, spring(stiffness = 300f), label = "tileElev")
+    // Grow & Shrink matches tvOS: a quick, settled grow (a hint of give, no wobble) and an even
+    // quicker, fully damped shrink back as focus moves on. Grow keeps a springier pop.
+    val spec = when {
+        effect == FocusEffect.Grow -> spring<Float>(dampingRatio = 0.62f, stiffness = 300f)
+        focused || moving -> spring(dampingRatio = 0.82f, stiffness = 520f)
+        else -> spring(dampingRatio = 1f, stiffness = 620f)
+    }
+    val scale by animateFloatAsState(target, spec, label = "tileScale")
+    val elevation by animateDpAsState(
+        if (moving) 34.dp else if (focused) 28.dp else 3.dp,
+        if (focused) tween(220, easing = FastOutSlowInEasing) else tween(140),
+        label = "tileElev",
+    )
+    val lift by animateFloatAsState(if (focused && effect == FocusEffect.GrowShrink) 1f else 0f, tween(200, easing = FastOutSlowInEasing), label = "lift")
     // Rearranging: the picked-up tile wiggles, as on tvOS.
     val wiggle = if (moving) {
         val inf = rememberInfiniteTransition(label = "wiggle")
@@ -526,9 +647,16 @@ fun GridTile(
                     spotShadowColor = glow
                     if (effect == FocusEffect.Lift && focused) rotationX = 3f
                     rotationZ = wiggle * 1.6f
+                    translationY = -3.dp.toPx() * lift
                 }
                 .drawWithContent {
                     drawContent()
+                    if (lift > 0.01f) {
+                        // tvOS: light catches the top of the focused tile.
+                        drawRect(
+                            Brush.verticalGradient(0f to Color.White.copy(alpha = 0.16f * lift), 0.5f to Color.Transparent)
+                        )
+                    }
                     if (focused && liquid) {
                         // Specular sheen + rim, like light catching the edge of a glass tile.
                         drawRect(
@@ -562,10 +690,20 @@ fun GridTile(
                 is AppItem -> AppArtwork(item.app)
                 is FolderItem -> FolderArtwork(
                     item,
-                    plate = if (theme.palette.isDark) Color.White.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.42f),
+                    plate = Color.Transparent,
                     modifier = Modifier
                         .fillMaxSize()
-                        .border(1.dp, Color.White.copy(alpha = 0.22f), TileShape),
+                        .glass(
+                            TileShape,
+                            when {
+                                theme.clear -> theme.palette.liquidTint.copy(alpha = 0.10f)
+                                theme.liquid -> theme.palette.liquidTint.copy(alpha = if (theme.palette.isDark) 0.30f else 0.34f)
+                                else -> theme.palette.panelGlass.copy(alpha = 0.62f)
+                            },
+                            GlassSource.Background,
+                            rimStrength = 0.9f,
+                            frosted = !theme.liquid,
+                        ),
                 )
             }
         }
@@ -636,7 +774,7 @@ private fun MoveHint(visible: Boolean, modifier: Modifier) {
 // ------------------------------------------------------------------------------------------ time pill
 
 @Composable
-private fun TimePill(time: String, weather: Weather?, unit: TemperatureUnit, focus: Int, modifier: Modifier) {
+private fun TimePill(time: String, weather: Weather?, notifications: Int, unit: TemperatureUnit, focus: Int, modifier: Modifier) {
     val theme = LocalPrism.current
     val p = theme.palette
     val pillFocused = focus == 0
@@ -661,6 +799,24 @@ private fun TimePill(time: String, weather: Weather?, unit: TemperatureUnit, foc
             WeatherGlyph(weather, 17.dp, monochrome = pillFocused, ink = ink)
             HSpace(4.dp)
             PText(weather.label(unit), 14.sp, FontWeight.SemiBold, ink)
+        }
+        if (notifications > 0) {
+            HSpace(10.dp)
+            Box(Modifier.size(22.dp)) {
+                PIcon(Icons.Rounded.Notifications, ink, 19.dp, Modifier.align(Alignment.Center))
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(5.dp, (-4).dp)
+                        .height(14.dp)
+                        .widthIn(min = 14.dp)
+                        .background(Color(0xFFFF3B30), Pill)
+                        .padding(horizontal = 3.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PText(if (notifications > 9) "9+" else notifications.toString(), 9.sp, FontWeight.Bold, Color.White)
+                }
+            }
         }
         HSpace(9.dp)
         Avatar(26.dp, focused = focus == 1)

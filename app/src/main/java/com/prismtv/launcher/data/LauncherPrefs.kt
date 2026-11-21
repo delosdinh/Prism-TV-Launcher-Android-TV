@@ -20,6 +20,22 @@ enum class GlassMaterial(val label: String) {
     Frosted("Frosted Glass"),
 }
 
+/** Liquid Glass look, as in iOS 26 (Settings › Display & Brightness › Liquid Glass). */
+enum class LiquidTint(val label: String) { Clear("Clear"), Tinted("Tinted") }
+
+/** How the Top Shelf shows the focused app's titles. */
+enum class TopShelfStyle(val label: String) { FullScreen("Full Screen"), Spotlight("Card Spotlight") }
+
+/** Colour of Prism TV's on-screen keyboard; Automatic follows Appearance. */
+enum class KeyboardColour(val label: String) { Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark") }
+
+/** Where a widget row sits on the Home Screen. */
+enum class WidgetPlace(val label: String) { Off("Off"), Above("Above Dock"), Below("Below Dock") }
+
+/** Settings › Appearance › Text Size steps; index [DefaultTextSize] is the standard size. */
+val TextScales = listOf(0.9f, 1f, 1.05f, 1.1f, 1.15f, 1.2f, 1.27f, 1.33f, 1.4f)
+const val DefaultTextSize = 1
+
 enum class FocusEffect(val label: String) {
     Grow("Grow"), GrowShrink("Grow & Shrink"), Lift("Lift & Shine")
 }
@@ -80,7 +96,27 @@ data class LauncherPrefs(
     val glassColour: GlassColour = GlassColour.Automatic,
     /** Minutes without a button press on the Home Screen before the aerials start; 0 = Never. */
     val screensaverAfter: Int = 0,
-)
+    /** Liquid Glass: Clear or Tinted (ignored when [material] is Frosted). */
+    val liquidTint: LiquidTint = LiquidTint.Tinted,
+    /** Index into [TextScales]. */
+    val textSize: Int = DefaultTextSize,
+    val topShelfStyle: TopShelfStyle = TopShelfStyle.FullScreen,
+    /** "scene:<name>" (a Prism wallpaper) or "photo:<content uri>" (one of the user's pictures). */
+    val wallpaper: String = "scene:aurora",
+    /** Widget rows (by row key) placed above or below the dock. */
+    val widgets: Map<String, WidgetPlace> = emptyMap(),
+    val keyboardColour: KeyboardColour = KeyboardColour.Automatic,
+) {
+    /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
+    val glass: GlassMaterial
+        get() = when {
+            material == GlassMaterial.Frosted -> GlassMaterial.Frosted
+            liquidTint == LiquidTint.Clear -> GlassMaterial.Clear
+            else -> GlassMaterial.Liquid
+        }
+
+    val textScale: Float get() = TextScales[textSize.coerceIn(0, TextScales.size - 1)]
+}
 
 /** Settings › Screensaver › Start After choices, in minutes (0 = Never). */
 val StartAfterChoices = listOf(0, 2, 5, 10, 15, 30)
@@ -90,9 +126,18 @@ class PrefsStore(context: Context) {
 
     fun load(): LauncherPrefs {
         val d = LauncherPrefs()
+        // Clear used to be its own material; it's now Liquid Glass with the Clear look.
+        val storedMaterial = enumOr(sp.getString("material", null), d.material)
         return LauncherPrefs(
             appearance = enumOr(sp.getString("appearance", null), d.appearance),
-            material = enumOr(sp.getString("material", null), d.material),
+            material = if (storedMaterial == GlassMaterial.Clear) GlassMaterial.Liquid else storedMaterial,
+            liquidTint = sp.getString("liquidTint", null)?.let { enumOr(it, d.liquidTint) }
+                ?: if (storedMaterial == GlassMaterial.Clear) LiquidTint.Clear else d.liquidTint,
+            textSize = sp.getInt("textSize", d.textSize).coerceIn(0, TextScales.size - 1),
+            topShelfStyle = enumOr(sp.getString("topShelfStyle", null), d.topShelfStyle),
+            wallpaper = sp.getString("wallpaper", null) ?: d.wallpaper,
+            widgets = parseWidgets(sp.getString("widgets", null)),
+            keyboardColour = enumOr(sp.getString("keyboardColour", null), d.keyboardColour),
             focusEffect = enumOr(sp.getString("focusEffect", null), d.focusEffect),
             labels = enumOr(sp.getString("labels", null), d.labels),
             reduceTransparency = sp.getBoolean("reduceTransparency", d.reduceTransparency),
@@ -142,11 +187,30 @@ class PrefsStore(context: Context) {
             .putBoolean("sounds", p.sounds)
             .putString("glassColour", p.glassColour.name)
             .putInt("screensaverAfter", p.screensaverAfter)
+            .putString("liquidTint", p.liquidTint.name)
+            .putInt("textSize", p.textSize)
+            .putString("topShelfStyle", p.topShelfStyle.name)
+            .putString("wallpaper", p.wallpaper)
+            .putString("widgets", p.widgets.entries.joinToString("\n") { "${it.key}\t${it.value.name}" })
+            .putString("keyboardColour", p.keyboardColour.name)
             .apply()
     }
 
     fun clear() {
         sp.edit().clear().apply()
+    }
+
+    private fun parseWidgets(raw: String?): Map<String, WidgetPlace> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        val out = LinkedHashMap<String, WidgetPlace>()
+        raw.split('\n').forEach { line ->
+            val tab = line.lastIndexOf('\t')
+            if (tab > 0) {
+                val place = enumOr(line.substring(tab + 1), WidgetPlace.Off)
+                if (place != WidgetPlace.Off) out[line.substring(0, tab)] = place
+            }
+        }
+        return out
     }
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, default: T): T =

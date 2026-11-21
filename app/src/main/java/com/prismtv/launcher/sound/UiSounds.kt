@@ -15,7 +15,10 @@ enum class Cue(@RawRes val res: Int, val volume: Float) {
     Click(R.raw.ui_click, 0.6f),
     Back(R.raw.ui_back, 0.55f),
     Toggle(R.raw.ui_toggle, 0.6f),
-    Swish(R.raw.ui_swish, 0.45f),
+    Open(R.raw.ui_open, 0.55f),
+    Dismiss(R.raw.ui_dismiss, 0.55f),
+    Key(R.raw.ui_key, 0.5f),
+    FocusKey(R.raw.ui_focus_key, 0.45f),
     Confirm(R.raw.ui_confirm, 0.6f),
     Error(R.raw.ui_error, 0.6f),
     Notify(R.raw.ui_notify, 0.6f),
@@ -53,7 +56,7 @@ class UiSounds(context: Context) {
         val id = ids[cue] ?: return
         if (id !in ready) return
         // Holding an arrow repeats fast; keep focus ticks from piling up.
-        if (cue == Cue.FocusApp || cue == Cue.FocusSmall || cue == Cue.FocusLarge) {
+        if (cue == Cue.FocusApp || cue == Cue.FocusSmall || cue == Cue.FocusLarge || cue == Cue.FocusKey) {
             val now = System.nanoTime()
             if (now - lastFocusAt < 45_000_000L) return
             lastFocusAt = now

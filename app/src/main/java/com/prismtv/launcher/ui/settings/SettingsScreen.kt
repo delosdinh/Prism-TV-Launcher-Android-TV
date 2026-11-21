@@ -35,6 +35,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.FormatSize
+import androidx.compose.material.icons.rounded.Keyboard
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.ViewCarousel
+import androidx.compose.material.icons.rounded.Wallpaper
+import androidx.compose.material.icons.rounded.Widgets
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import com.prismtv.launcher.data.TextScales
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dashboard
@@ -135,6 +149,10 @@ fun SettingsScreen(vm: LauncherViewModel) {
             },
             label = "settingsPage",
         ) { pg ->
+            if (pg == SettingsPage.TextSize) {
+                TextSizePage(vm.prefs.textSize, p)
+                return@AnimatedContent
+            }
             Box(Modifier.fillMaxSize()) {
                 PText(
                     pg.title, 26.sp, FontWeight.SemiBold, p.textPrimary,
@@ -146,8 +164,10 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 val focus = (vm.settingsFocus[pg] ?: 0).coerceIn(0, (rows.size - 1).coerceAtLeast(0))
                 // Each tab has its own glyph; on the main list it follows focus, like tvOS.
                 val art: Any = when (pg) {
-                    SettingsPage.Root -> rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: LogoGlyph
+                    SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen ->
+                        rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Apps -> rows.getOrNull(focus)?.app ?: pageGlyph(pg)
+                    SettingsPage.Wallpaper -> rows.getOrNull(focus)?.let { vm.wallpaperPreview(it.id) } ?: pageGlyph(pg)
                     else -> pageGlyph(pg)
                 }
                 PageArt(
@@ -194,6 +214,13 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "upd:check" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
     "update" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
     "ss:range" to glyph(Icons.Rounded.HdrOn, 0xFFFFC94D, 0xFFE08A00),
+    "kbColour" to glyph(Icons.Rounded.Keyboard, 0xFF9C9CA3, 0xFF5E5E64),
+    "textSize" to glyph(Icons.Rounded.FormatSize, 0xFF3D9BFF, 0xFF0A5FE0),
+    "reduce" to glyph(Icons.Rounded.Contrast, 0xFF3D9BFF, 0xFF0A5FE0),
+    "notif" to glyph(Icons.Rounded.Notifications, 0xFFFF6961, 0xFFD63A31),
+    "widgets" to glyph(Icons.Rounded.Widgets, 0xFF5E5CE6, 0xFF3634A3),
+    "wallpaper" to glyph(Icons.Rounded.Wallpaper, 0xFF4CD0DF, 0xFF1C8AA6),
+    "topShelf" to glyph(Icons.Rounded.ViewCarousel, 0xFFFF9F0A, 0xFFE06A00),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -205,33 +232,45 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Screensaver -> Glyphs.getValue("screensaver")
     SettingsPage.Apps -> Glyphs.getValue("apps")
     SettingsPage.SoftwareUpdate -> Glyphs.getValue("update")
+    SettingsPage.TextSize -> Glyphs.getValue("textSize")
+    SettingsPage.Wallpaper -> Glyphs.getValue("wallpaper")
+    SettingsPage.Widgets -> Glyphs.getValue("widgets")
 }
 
-/** The large artwork on the left of Settings: the tab's glyph, the logo, or an app's artwork. */
+/** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */
 @Composable
 private fun PageArt(art: Any, modifier: Modifier, p: PrismPalette) {
-    // A quick dip-and-pop between glyphs (tvOS swaps the artwork the same way). Drawn without
-    // offscreen layers or elevation shadows so nothing gets clipped mid-animation.
-    var shown by remember { mutableStateOf(art) }
-    val v = remember { Animatable(1f) }
+    // Glyph changes cross-fade, as on tvOS. Each layer fades per draw (ModulateAlpha) rather than in an
+    // offscreen buffer, so the glows outside the tile are never clipped mid-fade.
+    var current by remember { mutableStateOf(art) }
+    var previous by remember { mutableStateOf<Any?>(null) }
+    val fade = remember { Animatable(1f) }
     LaunchedEffect(art) {
-        if (art == shown && v.value == 1f) return@LaunchedEffect
-        v.animateTo(0f, tween(100, easing = FastOutLinearInEasing))
-        shown = art
-        v.animateTo(1f, spring(dampingRatio = 0.72f, stiffness = 440f))
+        if (art == current) return@LaunchedEffect
+        previous = current
+        current = art
+        fade.snapTo(0f)
+        fade.animateTo(1f, tween(320, easing = LinearOutSlowInEasing))
+        previous = null
     }
-    Box(
-        modifier.graphicsLayer {
-            val k = v.value
-            alpha = k.coerceIn(0f, 1f)
-            val s = 0.9f + 0.1f * k
-            scaleX = s
-            scaleY = s
+    Box(modifier, contentAlignment = Alignment.Center) {
+        previous?.let { old ->
+            ArtContent(old, p, Modifier.graphicsLayer {
+                alpha = 1f - fade.value
+                compositingStrategy = CompositingStrategy.ModulateAlpha
+            })
+        }
+        ArtContent(current, p, Modifier.graphicsLayer {
+            alpha = fade.value
             compositingStrategy = CompositingStrategy.ModulateAlpha
-        },
-        contentAlignment = Alignment.Center,
-    ) {
-        when (val a = shown) {
+        })
+    }
+}
+
+@Composable
+private fun ArtContent(a: Any, p: PrismPalette, modifier: Modifier) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when (a) {
             is Glyph -> GlyphTile(a, Modifier.size(228.dp), corner = 54.dp, iconSize = 116.dp)
             is LauncherApp -> {
                 val shape = RoundedCornerShape(26.dp)
@@ -242,7 +281,83 @@ private fun PageArt(art: Any, modifier: Modifier, p: PrismPalette) {
                         .clip(shape)
                 ) { AppArtwork(a) }
             }
+            is ImageBitmap -> {
+                val shape = RoundedCornerShape(20.dp)
+                Image(
+                    a, null,
+                    Modifier
+                        .size(300.dp, 169.dp)
+                        .shadow(24.dp, shape)
+                        .clip(shape)
+                        .border(1.dp, Color.White.copy(alpha = 0.25f), shape),
+                    contentScale = ContentScale.Crop,
+                )
+            }
             else -> LogoTile(Modifier.size(228.dp), p)
+        }
+    }
+}
+
+/** Settings › Appearance › Text Size: a tvOS-style slider from small to large type. */
+@Composable
+private fun TextSizePage(step: Int, p: PrismPalette) {
+    val steps = TextScales.size
+    Box(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 120.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            PText("Text Size", 38.sp, FontWeight.Bold, p.textPrimary)
+            VSpace(12.dp)
+            PText(
+                "Prism TV's text adjusts to your preferred reading size below.",
+                16.sp, FontWeight.Normal, p.textSecondary,
+                Modifier.width(520.dp), maxLines = 2, align = TextAlign.Center, lineHeight = 22.sp,
+            )
+            VSpace(64.dp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.width(40.dp), contentAlignment = Alignment.Center) { PText("A", 14.sp, FontWeight.SemiBold, p.textPrimary) }
+                HSpace(18.dp)
+                val trackW = 460f
+                val knobX by animateFloatAsState(trackW * step / (steps - 1).toFloat(), spring(dampingRatio = 0.8f, stiffness = 420f), label = "knob")
+                Box(Modifier.size(trackW.dp, 56.dp)) {
+                    // Track: filled up to the knob.
+                    Box(
+                        Modifier
+                            .offset(0.dp, 25.dp)
+                            .size(trackW.dp, 6.dp)
+                            .background(p.textSecondary.copy(alpha = 0.32f), RoundedCornerShape(3.dp))
+                    )
+                    Box(
+                        Modifier
+                            .offset(0.dp, 25.dp)
+                            .size(knobX.dp.coerceAtLeast(6.dp), 6.dp)
+                            .background(p.textPrimary.copy(alpha = 0.85f), RoundedCornerShape(3.dp))
+                    )
+                    // Step dots.
+                    for (i in 0 until steps) {
+                        Box(
+                            Modifier
+                                .offset((trackW * i / (steps - 1) - 2f).dp, 44.dp)
+                                .size(4.dp)
+                                .background(p.textSecondary.copy(alpha = 0.7f), RoundedCornerShape(2.dp))
+                        )
+                    }
+                    // Knob: a little glass capsule.
+                    Box(
+                        Modifier
+                            .offset((knobX - 24f).dp, 13.dp)
+                            .size(48.dp, 30.dp)
+                            .shadow(10.dp, RoundedCornerShape(15.dp))
+                            .background(Brush.verticalGradient(listOf(Color.White, Color(0xFFE6E8EE))), RoundedCornerShape(15.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.9f), RoundedCornerShape(15.dp))
+                    )
+                }
+                HSpace(18.dp)
+                Box(Modifier.width(40.dp), contentAlignment = Alignment.Center) { PText("A", 30.sp, FontWeight.SemiBold, p.textPrimary) }
+            }
         }
     }
 }
