@@ -25,11 +25,12 @@ object KeyboardLayout {
 
     private fun chars(s: String) = s.map { Key(it.toString()) }
 
+    /** 123 · emoji · space · mic · return — the mic sits between space and the return key. */
     private fun bottom(switchLabel: String, switchTarget: Int) = listOf(
         Key(switchLabel, KeyKind.Layer, 1.5f, target = switchTarget),
         Key("emoji", KeyKind.Emoji, 1.25f),
-        Key("mic", KeyKind.Mic, 1.25f),
         Key("space", KeyKind.Space, 4f),
+        Key("mic", KeyKind.Mic, 1.25f),
         Key("return", KeyKind.Done, 2f),
     )
 

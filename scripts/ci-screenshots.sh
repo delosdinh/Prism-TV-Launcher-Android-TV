@@ -145,7 +145,7 @@ key KEYCODE_DPAD_DOWN 0.5; for _ in 1 2 3 4; do key KEYCODE_DPAD_RIGHT 0.4; done
 cap 50b-ime-suggestions
 key KEYCODE_DPAD_DOWN 0.5; key KEYCODE_DPAD_DOWN 0.5; key KEYCODE_DPAD_CENTER 1.5   # space: "Teh" -> "The"
 cap 50c-ime-autocorrected
-key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_CENTER 1.5   # emoji
+key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_CENTER 1.5   # emoji (left of space)
 cap 50d-ime-emoji
 adb shell ime reset >/dev/null 2>&1 || true
 adb shell am force-stop "$PKG"
