@@ -1,0 +1,244 @@
+package com.prismtv.launcher.ui.theme
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.prismtv.launcher.R
+import com.prismtv.launcher.data.FocusEffect
+import com.prismtv.launcher.data.GlassMaterial
+import com.prismtv.launcher.data.LabelMode
+import com.prismtv.launcher.data.UiTransparency
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+
+enum class Appearance { Light, Balanced, Dark }
+
+/**
+ * Colour tokens, taken from the Light / Balanced / Dark design sheets
+ * (Settings UI component libraries + Liquid Glass and Classic control libraries).
+ */
+@Immutable
+data class PrismPalette(
+    val appearance: Appearance,
+    val isDark: Boolean,
+    // Surfaces
+    val bgBase: Color,
+    val bgAccent: Color,
+    val panelGlass: Color,
+    val panelOpacity: Float,
+    val backgroundDim: Float,
+    // Settings buttons
+    val buttonUnfocused: Color,
+    val buttonFocused: Color,
+    // Text
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textFocused: Color,
+    // Liquid Glass controls
+    val liquidIdle: Color,
+    val liquidFocus: Color,
+    val liquidTint: Color,
+    val liquidEdge: Color,
+    // Classic (frosted) controls
+    val classicBase: Color,
+    val classicFocused: Color,
+    val classicSecondary: Color,
+    val classicDisabled: Color,
+    // Semantic
+    val accent: Color,
+    val toggleOn: Color,
+)
+
+object Palettes {
+    val Light = PrismPalette(
+        appearance = Appearance.Light, isDark = false,
+        bgBase = Color(0xFFD6D9E8), bgAccent = Color(0xFFB8C5E3),
+        panelGlass = Color(0xFFE4E7EF), panelOpacity = 0.85f, backgroundDim = 0.30f,
+        buttonUnfocused = Color(0xFFB9C0D1), buttonFocused = Color(0xFFF5F6FA),
+        textPrimary = Color(0xFF161923), textSecondary = Color(0xFF626879), textFocused = Color(0xFF11131A),
+        liquidIdle = Color(0xFFB9C0D1), liquidFocus = Color(0xFFFFFFFF), liquidTint = Color(0xFFF4F6FF), liquidEdge = Color(0xFFFFFFFF),
+        classicBase = Color(0xFFE8EAF3), classicFocused = Color(0xFFFFFFFF), classicSecondary = Color(0xFFF2F4F9), classicDisabled = Color(0xFFD5D8E1),
+        accent = Color(0xFF007AFF), toggleOn = Color(0xFF007AFF),
+    )
+
+    val Balanced = PrismPalette(
+        appearance = Appearance.Balanced, isDark = true,
+        bgBase = Color(0xFF454B76), bgAccent = Color(0xFF71628E),
+        panelGlass = Color(0xFF777BA5), panelOpacity = 0.75f, backgroundDim = 0.35f,
+        buttonUnfocused = Color(0xFF666D94), buttonFocused = Color(0xFFDADCF0),
+        textPrimary = Color(0xFFF4F4FA), textSecondary = Color(0xFFC4C7DE), textFocused = Color(0xFF181B30),
+        liquidIdle = Color(0xFF666D94), liquidFocus = Color(0xFFE6E7FF), liquidTint = Color(0xFF8F8FB5), liquidEdge = Color(0xFFD8D9F5),
+        classicBase = Color(0xFF757BA7), classicFocused = Color(0xFFF2F2F7), classicSecondary = Color(0xFF8F8FB5), classicDisabled = Color(0xFF666D94),
+        accent = Color(0xFF007AFF), toggleOn = Color(0xFF7B6CF6),
+    )
+
+    val Dark = PrismPalette(
+        appearance = Appearance.Dark, isDark = true,
+        bgBase = Color(0xFF101319), bgAccent = Color(0xFF292E39),
+        panelGlass = Color(0xFF30343D), panelOpacity = 0.85f, backgroundDim = 0.45f,
+        buttonUnfocused = Color(0xFF454951), buttonFocused = Color(0xFFE4E5E9),
+        textPrimary = Color(0xFFF5F5F7), textSecondary = Color(0xFFA1A5AF), textFocused = Color(0xFF111318),
+        liquidIdle = Color(0xFF454951), liquidFocus = Color(0xFFE4E5E9), liquidTint = Color(0xFF30343D), liquidEdge = Color(0xFFA5AEC8),
+        classicBase = Color(0xFF3A3C45), classicFocused = Color(0xFFE4E5E9), classicSecondary = Color(0xFF4A4D57), classicDisabled = Color(0xFF30343D),
+        accent = Color(0xFF0A84FF), toggleOn = Color(0xFF0A84FF),
+    )
+
+    fun of(a: Appearance): PrismPalette = when (a) {
+        Appearance.Light -> Light
+        Appearance.Balanced -> Balanced
+        Appearance.Dark -> Dark
+    }
+}
+
+val Inter = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
+
+@Immutable
+data class PrismTheme(
+    val palette: PrismPalette,
+    val material: GlassMaterial,
+    val reduceTransparency: Boolean,
+    val focusEffect: FocusEffect,
+    val labels: LabelMode,
+    /** Material Colour › Clear with Frosted Glass: the blur without most of the tint. */
+    val clearTint: Boolean = false,
+    /** Settings & Pop-ups Transparency. */
+    val ui: UiTransparency = UiTransparency.Medium,
+    /** tvOS focus motion (springy settle, lean, edge nudge). */
+    val wobble: Boolean = true,
+    /** Controls (switches) morph like Liquid Glass; false = classic. Follows Material even in Settings. */
+    val liquidControls: Boolean = true,
+    /** Lite Mode: glass uses pre-blurred artwork (no live blur, no refraction) and motion is pared back. */
+    val lite: Boolean = false,
+) {
+    /** Lens materials (Liquid and Clear) bend the backdrop instead of blurring it. */
+    val liquid: Boolean get() = material == GlassMaterial.Liquid || material == GlassMaterial.Clear
+    val clear: Boolean get() = material == GlassMaterial.Clear || clearTint
+
+    /** Veil strength for lens glass: Clear keeps very little of it. */
+    private fun veil(a: Float): Float = if (clear) a * 0.35f else a
+
+    /** Frosted tint strength: Clear halves it. */
+    private fun frost(a: Float): Float = if (clear) a * 0.5f else a
+
+    /**
+     * Settings' full-screen frosted backdrop: High shows the most of the Home Screen (lighter tint, a
+     * shorter blur), Low the least.
+     */
+    fun settingsVeil(): Color = if (palette.isDark) {
+        palette.bgBase.copy(alpha = when (ui) { UiTransparency.High -> 0.50f; UiTransparency.Medium -> 0.64f; UiTransparency.Low -> 0.80f })
+    } else {
+        Color.White.copy(alpha = when (ui) { UiTransparency.High -> 0.42f; UiTransparency.Medium -> 0.56f; UiTransparency.Low -> 0.72f })
+    }
+
+    /**
+     * Liquid Glass tint for this appearance, from the control library: frosty #F4F6FF (Light),
+     * translucent lavender #8F8FB5 (Balanced), smoked #30343D (Dark).
+     */
+    private fun liquidVeil(light: Float, balanced: Float, dark: Float): Color = palette.liquidTint.copy(
+        alpha = veil(
+            when (palette.appearance) {
+                Appearance.Light -> light
+                Appearance.Balanced -> balanced
+                Appearance.Dark -> dark
+            }
+        )
+    )
+
+    /** Large floating panels: Control Centre, dialogs, banners. */
+    fun panelFill(): Color = if (liquid) {
+        liquidVeil(0.30f, 0.42f, 0.48f)
+    } else {
+        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.86f))
+    }
+
+    /** Floating controls (Control Centre tiles, sidebar, menus): clear glass with a light veil for legibility. */
+    fun controlGlass(): Color = if (liquid) {
+        liquidVeil(0.38f, 0.50f, 0.56f)
+    } else {
+        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.9f))
+    }
+
+    /** Dialogs, banners and the keyboard: denser so text stays legible; Settings & Pop-ups Transparency sets how much. */
+    fun sheetFill(): Color {
+        val base = if (liquid) (if (palette.isDark) 0.74f else 0.80f) else palette.panelOpacity
+        val k = when (ui) { UiTransparency.High -> 0.80f; UiTransparency.Medium -> 0.93f; UiTransparency.Low -> 1.08f }
+        return palette.panelGlass.copy(alpha = (base * k).coerceAtMost(0.96f))
+    }
+
+    /** Notification banners: they follow Material (a Liquid Glass lens with a legible veil, or frosted). */
+    fun bannerFill(): Color = if (liquid) {
+        liquidVeil(0.56f, 0.64f, 0.68f)
+    } else {
+        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.94f))
+    }
+
+    /** The dock tray on the Home Screen. */
+    fun trayFill(): Color = if (liquid) {
+        liquidVeil(0.16f, 0.22f, 0.20f)
+    } else {
+        palette.panelGlass.copy(alpha = frost(0.55f))
+    }
+
+    /** Small floating pills (time pill, hero buttons). */
+    fun pillFill(): Color = if (liquid) {
+        liquidVeil(0.30f, 0.40f, 0.42f)
+    } else {
+        palette.panelGlass.copy(alpha = frost(0.72f))
+    }
+
+    fun controlIdle(): Color = if (liquid) palette.liquidIdle.copy(alpha = 0.42f) else palette.classicBase.copy(alpha = 0.78f)
+
+    fun controlFocused(): Color = if (liquid) palette.liquidFocus else palette.classicFocused
+
+    fun rowFill(): Color = if (liquid) palette.liquidIdle.copy(alpha = 0.40f) else palette.buttonUnfocused.copy(alpha = 0.58f)
+
+    /**
+     * Veil for lens panels drawn over a dimmed screen (menus, sidebar, Control Centre). The lens samples
+     * the undimmed screen, so Liquid carries the scrim's dimming for legibility; Clear stays see-through.
+     */
+    fun overlayVeil(dark: Float, light: Float): Color {
+        if (!liquid) return controlGlass()
+        // The tint is lighter than black, so it needs a little more of it to carry the same dimming.
+        val a = if (palette.isDark) (dark * 1.45f).coerceAtMost(0.85f) else light
+        return palette.liquidTint.copy(alpha = if (clear) a * 0.45f else a)
+    }
+
+    fun edgeBrush(strength: Float = 1f): Brush = if (liquid) {
+        Brush.linearGradient(
+            0f to palette.liquidEdge.copy(alpha = 0.70f * strength),
+            0.45f to palette.liquidEdge.copy(alpha = 0.06f * strength),
+            1f to palette.liquidEdge.copy(alpha = 0.32f * strength),
+        )
+    } else {
+        Brush.linearGradient(
+            listOf(Color.White.copy(alpha = 0.10f * strength), Color.White.copy(alpha = 0.05f * strength))
+        )
+    }
+}
+
+/** Blur behind Settings and pop-ups for each transparency level. */
+fun uiBlurRadius(level: UiTransparency): Dp = when (level) {
+    UiTransparency.High -> 18.dp
+    UiTransparency.Medium -> 28.dp
+    UiTransparency.Low -> 40.dp
+}
+
+/** Colour lift behind Settings and pop-ups: High is the most vivid, like Liquid Glass. */
+fun uiSaturation(level: UiTransparency): Float = when (level) {
+    UiTransparency.High -> 1.38f
+    UiTransparency.Medium -> 1.18f
+    UiTransparency.Low -> 1.0f
+}
+
+val LocalPrism = staticCompositionLocalOf {
+    PrismTheme(Palettes.Dark, GlassMaterial.Liquid, false, FocusEffect.GrowShrink, LabelMode.Focused)
+}

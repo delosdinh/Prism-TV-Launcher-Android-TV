@@ -1,0 +1,186 @@
+name: Android CI
+
+on:
+  push:
+    branches-ignore: [ci-results]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build APKs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Version
+        run: |
+          VC=$((1000 + GITHUB_RUN_NUMBER))
+          VN="0.2.${GITHUB_RUN_NUMBER}"
+          echo "PRISM_VC=$VC" >> "$GITHUB_ENV"
+          echo "PRISM_VN=$VN" >> "$GITHUB_ENV"
+          echo "GRADLE_VERSION_ARGS=-PprismVersionCode=$VC -PprismVersionName=$VN" >> "$GITHUB_ENV"
+          echo "Version $VN ($VC)"
+
+      # The permanent key that lets each build install over the last one (see the script for where
+      # it's kept). Only push builds may create it, so a push and its PR build can't race to make two.
+      - name: Signing key
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          CAN_CREATE: ${{ github.event_name != 'pull_request' }}
+          PRISM_KEYSTORE_B64: ${{ secrets.PRISM_KEYSTORE_B64 }}
+          PRISM_KEYSTORE_PASSWORD: ${{ secrets.PRISM_KEYSTORE_PASSWORD }}
+        run: bash scripts/signing-key.sh
+
+      - name: Build debug APK
+        run: |
+          set -o pipefail
+          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt; then exit 0; fi
+          # Fresh runners sometimes fail to download a dependency ("Could not find …"); try once more.
+          grep -qE "Could not (find|resolve|GET|HEAD)" build-log.txt || exit 1
+          echo "::warning::Dependency download failed; retrying the build once"
+          sleep 20
+          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt
+
+      - name: Build release APK
+        continue-on-error: true
+        run: ./gradlew --no-daemon $GRADLE_VERSION_ARGS assembleRelease
+
+      # Belt and braces: Software Update is only offered for APKs that really carry the permanent key.
+      - name: Check APK signatures
+        if: env.PRISM_SIGNED == 'true'
+        run: |
+          WANT="$(echo "$PRISM_SIGNER_SHA256" | tr -d ':' | tr 'A-F' 'a-f')"
+          for apk in app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/app-release.apk; do
+            [ -f "$apk" ] || continue
+            GOT="$(python3 -I scripts/apk-signer.py "$apk" || true)"
+            echo "$apk → $GOT"
+            if [ "$GOT" != "$WANT" ]; then
+              echo "::error::$apk isn't signed with the permanent key"
+              echo "PRISM_SIGNED=false" >> "$GITHUB_ENV"
+            fi
+          done
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: prism-tv-apks
+          path: app/build/outputs/apk/**/*.apk
+
+      # A stable direct-download link for sideloading (e.g. the Downloader app on Android TV):
+      # https://github.com/<owner>/<repo>/releases/download/preview/prismtv.apk
+      - name: Publish preview release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/prismtv-debug.apk
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk dist/prismtv.apk
+          else
+            cp dist/prismtv-debug.apk dist/prismtv.apk
+          fi
+          NOTES="Latest build of \`${GITHUB_REF_NAME}\` (${GITHUB_SHA::7}).
+
+          Install on Android TV with Downloader: \`https://github.com/${GITHUB_REPOSITORY}/releases/download/preview/prismtv.apk\`
+
+          - prismtv.apk: optimised build (recommended)
+          - prismtv-debug.apk: debug build"
+          if gh release view preview >/dev/null 2>&1; then
+            gh release edit preview --prerelease --title "Preview build" --notes "$NOTES"
+          else
+            gh release create preview --prerelease --title "Preview build" --target "$GITHUB_SHA" --notes "$NOTES"
+          fi
+          gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk --clobber
+          # Software Update manifest — only for builds signed with the permanent key, so the app
+          # never offers an update Android would refuse to install over it.
+          if [ "$PRISM_SIGNED" = "true" ]; then
+            NOTES="$(bash scripts/update-notes.sh)"
+            python3 - "$NOTES" > dist/update.json <<'PY'
+          import json, os, sys
+          print(json.dumps({
+              "versionCode": int(os.environ["PRISM_VC"]),
+              "versionName": os.environ["PRISM_VN"],
+              "commit": os.environ["GITHUB_SHA"][:7],
+              "notes": sys.argv[1],
+              "apk": "prismtv.apk",
+              "debugApk": "prismtv-debug.apk",
+              "signer": os.environ.get("PRISM_SIGNER_SHA256", ""),
+          }, indent=2))
+          PY
+            cat dist/update.json
+            gh release upload preview dist/update.json --clobber
+          fi
+
+      - name: Publish build log on failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p out
+          cp build-log.txt out/ || true
+          grep -E "^e: |error:|What went wrong|FAILURE" -A4 build-log.txt > out/errors.txt || true
+          bash scripts/publish-ci-results.sh out "build/${GITHUB_REF_NAME}"
+
+  screenshots:
+    name: TV emulator screenshots (API ${{ matrix.api }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34, 31, 30]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prism-tv-apks
+          path: apks
+
+      - name: Boot Android TV emulator and capture
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          disable-animations: false
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: bash scripts/ci-screenshots.sh apks/debug/app-debug.apk shots apks/release/app-release.apk
+
+      - name: Convert recordings to GIF
+        if: always()
+        run: |
+          which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          bash scripts/make-gifs.sh shots || true
+
+      - name: Publish screenshots
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/publish-ci-results.sh shots "screenshots/${GITHUB_REF_NAME}/api${{ matrix.api }}"
