@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.HdrOn
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SettingsRemote
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -173,6 +175,8 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "about" to glyph(Icons.Rounded.Info, 0xFF9C9CA3, 0xFF5E5E64),
     "restart" to glyph(Icons.Rounded.RestartAlt, 0xFF9C9CA3, 0xFF5E5E64),
     "reset" to glyph(Icons.Rounded.Restore, 0xFFFF6961, 0xFFD63A31),
+    "upd:check" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
+    "ss:range" to glyph(Icons.Rounded.HdrOn, 0xFFFFC94D, 0xFFE08A00),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]

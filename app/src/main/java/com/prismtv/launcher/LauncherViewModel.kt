@@ -1,6 +1,7 @@
 package com.prismtv.launcher
 
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -8,13 +9,16 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PowerSettingsNew
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.derivedStateOf
@@ -33,7 +37,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.prismtv.launcher.aerial.AerialActivity
+import com.prismtv.launcher.aerial.AerialCatalog
 import com.prismtv.launcher.data.AerialQuality
+import com.prismtv.launcher.data.AerialRange
 import com.prismtv.launcher.data.AerialSource
 import com.prismtv.launcher.data.AppItem
 import com.prismtv.launcher.data.AppRepository
@@ -62,9 +68,13 @@ import com.prismtv.launcher.data.RecommendationsRepository
 import com.prismtv.launcher.data.ResArt
 import com.prismtv.launcher.system.PrismAccessibilityService
 import com.prismtv.launcher.system.SystemActions
+import com.prismtv.launcher.update.InstallEvent
+import com.prismtv.launcher.update.UpdateInfo
+import com.prismtv.launcher.update.Updater
 import com.prismtv.launcher.ui.FolderLayout
 import com.prismtv.launcher.ui.HomeLayout
 import com.prismtv.launcher.ui.SwitcherLayout
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -261,7 +271,163 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 }
         }
         restartHeroTimer()
+        viewModelScope.launch {
+            Updater.events.collect { e ->
+                when (e) {
+                    InstallEvent.Installing -> {
+                        updateStatus = "Installing…"
+                        showBanner("Installing Update", "Prism TV will restart in a moment.", Icons.Rounded.SystemUpdate)
+                    }
+                    is InstallEvent.NeedsConfirmation -> {
+                        updateStatus = "Waiting to Install"
+                        SystemActions.start(ctx, e.intent)
+                    }
+                    is InstallEvent.Failed -> {
+                        updateStatus = "Update Failed"
+                        dialog = DialogSpec("Software Update", e.message, listOf(DialogButton("OK") {}))
+                        dialogFocus = 0
+                    }
+                }
+            }
+        }
     }
+
+    // ================================================================= software update
+
+    /** A newer build found on GitHub (shown in Settings › About and offered once per version). */
+    var availableUpdate by mutableStateOf<UpdateInfo?>(null)
+        private set
+    var updateStatus by mutableStateOf("Check Now")
+        private set
+    private var updateJob: Job? = null
+    private var pendingAfterPermission: UpdateInfo? = null
+    /** Set when CI drives the UI through debug intents; update prompts would cover the screenshots. */
+    private var debugDriven = false
+    /** CI's Android TV emulators never prompt (their builds race the published ones). */
+    private val isEmulator = Build.HARDWARE.contains("ranchu") || Build.HARDWARE.contains("goldfish") || Build.FINGERPRINT.startsWith("generic")
+    private val updateSp = ctx.getSharedPreferences("prism_update", Context.MODE_PRIVATE)
+
+    private fun maybeAutoCheckForUpdate() {
+        pendingAfterPermission?.let { info ->
+            if (Updater.canInstall(ctx)) {
+                pendingAfterPermission = null
+                startUpdate(info)
+                return
+            }
+        }
+        if (!prefs.updateCheck || debugDriven || isEmulator) return
+        val last = updateSp.getLong("lastCheck", 0L)
+        if (System.currentTimeMillis() - last < UPDATE_INTERVAL_MS) {
+            // Re-offer a found update that the user hasn't declined yet.
+            availableUpdate?.let { if (it.versionCode != prefs.skippedUpdate) offerUpdate(it) }
+            return
+        }
+        checkForUpdates(manual = false)
+    }
+
+    fun checkForUpdates(manual: Boolean) {
+        if (updateJob?.isActive == true) return
+        updateJob = viewModelScope.launch {
+            updateStatus = "Checking…"
+            val result = Updater.check()
+            updateSp.edit().putLong("lastCheck", System.currentTimeMillis()).apply()
+            result.onSuccess { info ->
+                availableUpdate = info
+                if (info == null) {
+                    updateStatus = "Up to Date"
+                    if (manual) showBanner("Software Update", "Prism TV ${BuildConfig.VERSION_NAME} is up to date.", Icons.Rounded.CheckCircle)
+                } else {
+                    updateStatus = "${info.versionName} Available"
+                    if (manual || info.versionCode != prefs.skippedUpdate) offerUpdate(info)
+                }
+            }.onFailure {
+                updateStatus = "Couldn't Check"
+                if (manual) showBanner("Software Update", "Couldn't reach GitHub. Check your internet connection.", Icons.Rounded.Info)
+            }
+        }
+    }
+
+    /** "Prism TV x is available" — Update Now / Later. Only shown on a quiet Home Screen. */
+    private fun offerUpdate(info: UpdateInfo) {
+        if (debugDriven || dialog != null || launchAnim != null || (overlay != Overlay.None && overlay != Overlay.Settings)) return
+        val notes = info.notes.takeIf { it.isNotBlank() }?.let { "\n\nWhat's new: $it" } ?: ""
+        dialog = DialogSpec(
+            "Software Update",
+            "Prism TV ${info.versionName} is available. You have ${BuildConfig.VERSION_NAME}.$notes",
+            listOf(
+                DialogButton("Update Now") { startUpdate(info) },
+                DialogButton("Later") { updatePrefs(prefs.copy(skippedUpdate = info.versionCode)) },
+            ),
+        )
+        dialogFocus = 0
+    }
+
+    private fun startUpdate(info: UpdateInfo) {
+        if (!Updater.canInstall(ctx)) {
+            dialog = DialogSpec(
+                "Allow Updates",
+                "To update itself, Prism TV needs permission to install apps. Turn on Prism TV on the next screen, then press Back — the update continues automatically.",
+                listOf(
+                    DialogButton("Open Settings") {
+                        pendingAfterPermission = info
+                        if (!SystemActions.start(ctx, Updater.permissionIntent(ctx))) {
+                            SystemActions.start(ctx, Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        }
+                    },
+                    DialogButton("Cancel") {},
+                ),
+            )
+            dialogFocus = 0
+            return
+        }
+        updateJob?.cancel()
+        updateJob = viewModelScope.launch {
+            val bannerId = System.nanoTime()
+            bannerJob?.cancel()
+            fun progressBanner(pct: Int) {
+                banner = BannerSpec("Downloading Update", "Prism TV ${info.versionName} · $pct%", Icons.Rounded.Download, bannerId)
+                updateStatus = "Downloading $pct%"
+            }
+            progressBanner(0)
+            val file = try {
+                Updater.download(ctx, info) { p -> progressBanner((p * 100).toInt()) }
+            } catch (t: CancellationException) {
+                throw t
+            } catch (t: Throwable) {
+                updateStatus = "Update Failed"
+                showBanner("Software Update", "The download didn't finish. Try again from Settings › About.", Icons.Rounded.Info)
+                return@launch
+            }
+            when (withContext(Dispatchers.IO) { Updater.verify(ctx, file) }) {
+                Updater.Verdict.Ok -> runCatching { Updater.install(ctx, file) }.onFailure {
+                    updateStatus = "Update Failed"
+                    showBanner("Software Update", "Android couldn't start the install.", Icons.Rounded.Info)
+                }
+                Updater.Verdict.DifferentSigner -> {
+                    banner = null
+                    updateStatus = "Reinstall Needed"
+                    dialog = DialogSpec(
+                        "Reinstall Needed",
+                        "This update is signed with Prism TV's permanent key, but the version you have was signed with a temporary one. " +
+                            "Uninstall Prism TV and install it again from Downloader once — after that, updates install right here.",
+                        listOf(DialogButton("OK") {}),
+                    )
+                    dialogFocus = 0
+                }
+                Updater.Verdict.NotAnUpdate -> {
+                    updateStatus = "Up to Date"
+                    showBanner("Software Update", "Prism TV is up to date.", Icons.Rounded.CheckCircle)
+                }
+                Updater.Verdict.Unreadable -> {
+                    updateStatus = "Update Failed"
+                    showBanner("Software Update", "The downloaded update was damaged. Try again later.", Icons.Rounded.Info)
+                }
+            }
+        }
+    }
+
+    /** Dolby Vision support (box decoder + TV), checked once when the Screensaver page is shown. */
+    private val dolbyVision by lazy { AerialCatalog.dolbyVisionSupport(ctx) }
 
     fun heroesFor(app: LauncherApp): List<HeroItem> {
         // Apps without recommendation cards get a backdrop built from their own branding.
@@ -580,6 +746,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun onResume() {
         resumeTick++
         refreshRecommendations()
+        maybeAutoCheckForUpdate()
         pendingReturn?.let { anim ->
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
@@ -972,7 +1139,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
             SettingsRow("sleep", "Sleep Timer", "REMOTE", sleepLabel()),
-            SettingsRow("about", "About", "SYSTEM", chevron = true),
+            SettingsRow("about", "About", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
         )
@@ -1000,6 +1167,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
             SettingsRow("ss:source", "Video Source", "SCREENSAVER", prefs.aerialSource.label),
             SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
+            SettingsRow("ss:range", "Dynamic Range", "SCREENSAVER", rangeLabel()),
             SettingsRow("ss:location", "Show Location", "SCREENSAVER", onOff(prefs.aerialShowLocation)),
             SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
         )
@@ -1009,6 +1177,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
+            SettingsRow("upd:check", "Software Update", "SOFTWARE UPDATE", availableUpdate?.let { "Install ${it.versionName}" } ?: updateStatus, chevron = true),
+            SettingsRow("upd:auto", "Check Automatically", "SOFTWARE UPDATE", onOff(prefs.updateCheck)),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
             SettingsRow("i:glass", "Liquid Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 33) "Refraction Shader" else "Refraction Bands"),
@@ -1075,6 +1245,19 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "ss:source" -> updatePrefs(p.copy(aerialSource = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]))
             r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
+            r.id == "ss:range" -> {
+                val next = AerialRange.entries[(p.aerialRange.ordinal + 1) % AerialRange.entries.size]
+                updatePrefs(p.copy(aerialRange = next))
+                if (next == AerialRange.DolbyVision) {
+                    val dv = dolbyVision
+                    when {
+                        !dv.decoder -> showBanner("Dolby Vision", "This box has no Dolby Vision decoder, so aerials will play in SDR.", Icons.Rounded.Info)
+                        !dv.display -> showBanner("Dolby Vision", "Your TV didn't report Dolby Vision. Aerials will play in Dolby Vision anyway — switch back if colours look wrong.", Icons.Rounded.Info)
+                    }
+                }
+            }
+            r.id == "upd:check" -> availableUpdate?.let { offerUpdate(it) } ?: checkForUpdates(manual = true)
+            r.id == "upd:auto" -> updatePrefs(p.copy(updateCheck = !p.updateCheck))
             r.id == "ss:system" -> {
                 val opened = SystemActions.start(ctx, Intent(Settings.ACTION_DREAM_SETTINGS))
                 dialog = DialogSpec(
@@ -1091,6 +1274,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 updatePrefs(p.copy(hiddenApps = if (id in p.hiddenApps) p.hiddenApps - id else p.hiddenApps + id))
             }
         }
+    }
+
+    private fun rangeLabel(): String = when (prefs.aerialRange) {
+        AerialRange.Auto -> if (dolbyVision.full) "Automatic (Dolby Vision)" else "Automatic (SDR)"
+        else -> prefs.aerialRange.label
     }
 
     private fun confirm(title: String, message: String, action: String, onConfirm: () -> Unit) {
@@ -1146,6 +1334,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      * `adb shell am start -n com.prismtv.launcher/.MainActivity --ez demo true --es screen controlcentre`.
      */
     fun applyDebug(b: Bundle) {
+        debugDriven = true
         var p = prefs
         if (b.containsKey("demo")) p = p.copy(demoContent = b.getBoolean("demo"))
         b.getString("appearance")?.let { v -> AppearanceSetting.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(appearance = it) } }
@@ -1219,3 +1408,5 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 }
+
+private const val UPDATE_INTERVAL_MS = 6L * 60 * 60 * 1000

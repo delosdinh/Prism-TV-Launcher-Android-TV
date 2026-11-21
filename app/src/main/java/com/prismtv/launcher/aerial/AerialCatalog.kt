@@ -1,12 +1,15 @@
 package com.prismtv.launcher.aerial
 
 import android.content.Context
+import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.os.Build
 import android.util.Log
 import android.hardware.display.DisplayManager
 import android.view.Display
+import androidx.annotation.RequiresApi
 import com.prismtv.launcher.data.AerialQuality
+import com.prismtv.launcher.data.AerialRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -30,9 +33,9 @@ object AerialCatalog {
     private const val CACHE = "aerial-entries.json"
     private const val MAX_AGE = 7L * 24 * 60 * 60 * 1000
 
-    suspend fun load(ctx: Context, quality: AerialQuality): List<AerialVideo> = withContext(Dispatchers.IO) {
+    suspend fun load(ctx: Context, quality: AerialQuality, range: AerialRange): List<AerialVideo> = withContext(Dispatchers.IO) {
         val json = entriesJson(ctx) ?: return@withContext emptyList()
-        runCatching { parse(json, urlKeys(ctx, quality)) }
+        runCatching { parse(json, urlKeys(ctx, quality, range)) }
             .onFailure { Log.w(TAG, "Couldn't parse aerial manifest", it) }
             .getOrDefault(emptyList())
     }
@@ -127,7 +130,7 @@ object AerialCatalog {
     }
 
     /** Best stream for this TV: 4K HEVC on 4K panels with a hardware HEVC decoder, else 1080p. */
-    private fun urlKeys(ctx: Context, quality: AerialQuality): List<String> {
+    private fun urlKeys(ctx: Context, quality: AerialQuality, range: AerialRange): List<String> {
         val hevc = hasHardwareHevc()
         val uhdPanel = displayWidth(ctx) >= 3000
         val want4k = when (quality) {
@@ -135,12 +138,59 @@ object AerialCatalog {
             AerialQuality.HD -> false
             AerialQuality.Auto -> uhdPanel && hevc
         }
-        return when {
+        val sdr = when {
             want4k -> listOf("url-4K-SDR", "url-4K-SDR-120FPS", "url-1080-SDR", "url-1080-H264")
             hevc -> listOf("url-1080-SDR", "url-1080-H264", "url-4K-SDR")
             else -> listOf("url-1080-H264", "url-1080-SDR", "url-4K-SDR")
         }
+        if (!useDolbyVision(ctx, range)) return sdr
+        // Dolby Vision first; a clip without an HDR master still plays in SDR.
+        val dv = if (want4k) listOf("url-4K-HDR", "url-1080-HDR") else listOf("url-1080-HDR", "url-4K-HDR")
+        return dv + sdr
     }
+
+    /** What this box and TV report for Dolby Vision (Apple's HDR aerials are Dolby Vision profile 5). */
+    data class DolbyVisionSupport(val decoder: Boolean, val display: Boolean) {
+        val full: Boolean get() = decoder && display
+    }
+
+    fun dolbyVisionSupport(ctx: Context): DolbyVisionSupport = DolbyVisionSupport(hasDolbyVisionDecoder(), displaySupportsDolbyVision(ctx))
+
+    /**
+     * Automatic plays Dolby Vision only when both the box and the TV support it. Choosing Dolby Vision
+     * still needs a Dolby Vision decoder (without one the clips can't be decoded at all), but trusts
+     * the user about the TV, as some TVs and receivers under-report their HDR formats.
+     */
+    fun useDolbyVision(ctx: Context, range: AerialRange): Boolean = when (range) {
+        AerialRange.SDR -> false
+        AerialRange.Auto -> dolbyVisionSupport(ctx).full
+        AerialRange.DolbyVision -> hasDolbyVisionDecoder()
+    }
+
+    private fun hasDolbyVisionDecoder(): Boolean = runCatching {
+        MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+            !info.isEncoder && info.supportedTypes.any { type ->
+                type.equals("video/dolby-vision", ignoreCase = true) &&
+                    runCatching {
+                        val levels = info.getCapabilitiesForType(type).profileLevels
+                        // Profile 5 (DvheStn); some decoders list no profiles at all.
+                        levels.isEmpty() || levels.any { it.profile == MediaCodecInfo.CodecProfileLevel.DolbyVisionProfileDvheStn }
+                    }.getOrDefault(true)
+            }
+        }
+    }.getOrDefault(false)
+
+    @Suppress("DEPRECATION")
+    private fun displaySupportsDolbyVision(ctx: Context): Boolean = runCatching {
+        val dm = ctx.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        val display = dm.getDisplay(Display.DEFAULT_DISPLAY)
+        val viaMode = if (Build.VERSION.SDK_INT >= 34) modesSupportDolbyVision(display) else false
+        viaMode || display.hdrCapabilities?.supportedHdrTypes?.contains(Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION) == true
+    }.getOrDefault(false)
+
+    @RequiresApi(34)
+    private fun modesSupportDolbyVision(display: Display): Boolean =
+        display.supportedModes.any { Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION in it.supportedHdrTypes }
 
     private fun hasHardwareHevc(): Boolean = runCatching {
         MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->

@@ -17,6 +17,11 @@ jobs:
   build:
     name: Build APKs
     runs-on: ubuntu-latest
+    env:
+      # Optional permanent signing key (repo secrets). Without it, builds are signed with the
+      # runner's throwaway debug key and the in-app Software Update can't install them.
+      PRISM_KEYSTORE_B64: ${{ secrets.PRISM_KEYSTORE_B64 }}
+      PRISM_KEYSTORE_PASSWORD: ${{ secrets.PRISM_KEYSTORE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,14 +32,31 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Version and signing
+        run: |
+          VC=$((1000 + GITHUB_RUN_NUMBER))
+          VN="0.2.${GITHUB_RUN_NUMBER}"
+          echo "PRISM_VC=$VC" >> "$GITHUB_ENV"
+          echo "PRISM_VN=$VN" >> "$GITHUB_ENV"
+          echo "GRADLE_VERSION_ARGS=-PprismVersionCode=$VC -PprismVersionName=$VN" >> "$GITHUB_ENV"
+          if [ -n "$PRISM_KEYSTORE_B64" ]; then
+            echo "$PRISM_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/prism.jks"
+            echo "PRISM_KEYSTORE=$RUNNER_TEMP/prism.jks" >> "$GITHUB_ENV"
+            echo "PRISM_SIGNED=true" >> "$GITHUB_ENV"
+            echo "Signing with the permanent Prism key; version $VN ($VC)"
+          else
+            echo "PRISM_SIGNED=false" >> "$GITHUB_ENV"
+            echo "::warning::PRISM_KEYSTORE_B64 isn't set, so this build uses a throwaway key and Software Update won't offer it."
+          fi
+
       - name: Build debug APK
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace assembleDebug 2>&1 | tee build-log.txt
+          ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt
 
-      - name: Build release APK (debug-signed)
+      - name: Build release APK
         continue-on-error: true
-        run: ./gradlew --no-daemon assembleRelease
+        run: ./gradlew --no-daemon $GRADLE_VERSION_ARGS assembleRelease
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
@@ -69,6 +91,24 @@ jobs:
             gh release create preview --prerelease --title "Preview build" --target "$GITHUB_SHA" --notes "$NOTES"
           fi
           gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk --clobber
+          # Software Update manifest — only for builds signed with the permanent key, so the app
+          # never offers an update Android would refuse to install over it.
+          if [ "$PRISM_SIGNED" = "true" ]; then
+            SUBJECT="$(git log -1 --format=%s)"
+            python3 - "$SUBJECT" > dist/update.json <<'PY'
+          import json, os, sys
+          print(json.dumps({
+              "versionCode": int(os.environ["PRISM_VC"]),
+              "versionName": os.environ["PRISM_VN"],
+              "commit": os.environ["GITHUB_SHA"][:7],
+              "notes": sys.argv[1],
+              "apk": "prismtv.apk",
+              "debugApk": "prismtv-debug.apk",
+          }, indent=2))
+          PY
+            cat dist/update.json
+            gh release upload preview dist/update.json --clobber
+          fi
 
       - name: Publish build log on failure
         if: failure()

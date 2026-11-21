@@ -101,7 +101,7 @@ class AerialView(context: Context) : FrameLayout(context) {
             return
         }
         scope.launch {
-            val list = AerialCatalog.load(context, prefs.aerialQuality).shuffled().take(40)
+            val list = AerialCatalog.load(context, prefs.aerialQuality, prefs.aerialRange).shuffled().take(40)
             if (!started) return@launch
             if (list.isEmpty()) startScenes() else startVideos(list)
         }

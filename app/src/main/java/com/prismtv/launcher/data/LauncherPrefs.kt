@@ -26,6 +26,11 @@ enum class AerialQuality(val label: String) {
     Auto("Automatic"), HD("1080p"), UHD("4K")
 }
 
+/** Apple publishes its HDR aerials in Dolby Vision (profile 5) only, so HDR here means Dolby Vision. */
+enum class AerialRange(val label: String) {
+    Auto("Automatic"), SDR("SDR"), DolbyVision("Dolby Vision")
+}
+
 enum class HeroSource(val label: String) {
     Recommendations("Recommendations"), AppArtwork("App Artwork")
 }
@@ -47,6 +52,11 @@ data class LauncherPrefs(
     val aerialSource: AerialSource = AerialSource.Apple,
     val aerialQuality: AerialQuality = AerialQuality.Auto,
     val aerialShowLocation: Boolean = true,
+    val aerialRange: AerialRange = AerialRange.Auto,
+    /** Look for new Prism TV builds and offer to install them. */
+    val updateCheck: Boolean = true,
+    /** A version the user chose "Later" for; not offered again automatically. */
+    val skippedUpdate: Int = 0,
 )
 
 class PrefsStore(context: Context) {
@@ -70,6 +80,9 @@ class PrefsStore(context: Context) {
             aerialSource = enumOr(sp.getString("aerialSource", null), d.aerialSource),
             aerialQuality = enumOr(sp.getString("aerialQuality", null), d.aerialQuality),
             aerialShowLocation = sp.getBoolean("aerialShowLocation", d.aerialShowLocation),
+            aerialRange = enumOr(sp.getString("aerialRange", null), d.aerialRange),
+            updateCheck = sp.getBoolean("updateCheck", d.updateCheck),
+            skippedUpdate = sp.getInt("skippedUpdate", d.skippedUpdate),
         )
     }
 
@@ -90,6 +103,9 @@ class PrefsStore(context: Context) {
             .putString("aerialSource", p.aerialSource.name)
             .putString("aerialQuality", p.aerialQuality.name)
             .putBoolean("aerialShowLocation", p.aerialShowLocation)
+            .putString("aerialRange", p.aerialRange.name)
+            .putBoolean("updateCheck", p.updateCheck)
+            .putInt("skippedUpdate", p.skippedUpdate)
             .apply()
     }
 

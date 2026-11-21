@@ -12,17 +12,34 @@ android {
         applicationId = "com.prismtv.launcher"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // CI passes a version per build so Software Update can tell builds apart.
+        versionCode = (project.findProperty("prismVersionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = (project.findProperty("prismVersionName") as String?) ?: "0.1.0"
+    }
+
+    // A permanent signing key (from CI secrets) lets each new build install over the last one.
+    // Without it, builds fall back to the machine's debug key and can't update each other.
+    val prismKeystore = System.getenv("PRISM_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (prismKeystore != null) {
+            create("prism") {
+                storeFile = prismKeystore
+                storePassword = System.getenv("PRISM_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("PRISM_KEY_ALIAS") ?: "prism"
+                keyPassword = System.getenv("PRISM_KEY_PASSWORD") ?: System.getenv("PRISM_KEYSTORE_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            if (prismKeystore != null) signingConfig = signingConfigs.getByName("prism")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the debug key so CI release builds are installable for testing.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (prismKeystore != null) "prism" else "debug")
         }
     }
 
