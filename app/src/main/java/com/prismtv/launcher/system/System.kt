@@ -26,6 +26,41 @@ class PrismAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        openAtStartup()
+    }
+
+    /**
+     * Google TV keeps its own launcher as Home, so after a restart that's what appears first. When
+     * Prism TV isn't the system's Home app, bring it up once, just after the TV starts (Android
+     * connects this service during startup). Never later, so nothing you're watching gets interrupted.
+     */
+    private fun openAtStartup() {
+        try {
+            val sp = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE)
+            if (!sp.getBoolean("homeOverride", true) || !sp.getBoolean("openAtStartup", true)) return
+            val uptime = android.os.SystemClock.elapsedRealtime()
+            if (uptime > 4 * 60_000L) return
+            val bootedAt = System.currentTimeMillis() - uptime
+            if (kotlin.math.abs(sp.getLong("startupBootAt", 0L) - bootedAt) < 60_000L) return // once per start
+            sp.edit().putLong("startupBootAt", bootedAt).apply()
+            val home = packageManager.resolveActivity(
+                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+                android.content.pm.PackageManager.MATCH_DEFAULT_ONLY,
+            )
+            if (home?.activityInfo?.packageName == packageName) return // already the Home app
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                try {
+                    startActivity(
+                        Intent(Intent.ACTION_MAIN)
+                            .addCategory(Intent.CATEGORY_HOME)
+                            .setClassName(packageName, "com.prismtv.launcher.MainActivity")
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                    )
+                } catch (_: Throwable) {
+                }
+            }, 2500)
+        } catch (_: Throwable) {
+        }
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {

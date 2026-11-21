@@ -59,6 +59,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SettingsRemote
@@ -207,6 +208,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "usage" to glyph(Icons.Rounded.History, 0xFFFFB340, 0xFFE07A0B),
     "a11y" to glyph(Icons.Rounded.SettingsRemote, 0xFF9C9CA3, 0xFF5E5E64),
     "homeOverride" to glyph(Icons.Rounded.Home, 0xFF8E8BFF, 0xFF5E5BDA),
+    "startup" to glyph(Icons.Rounded.PowerSettingsNew, 0xFF4CD964, 0xFF239B3E),
     "sleep" to glyph(Icons.Rounded.Timer, 0xFFC27BFF, 0xFF8A3FD1),
     "about" to glyph(Icons.Rounded.Info, 0xFF9C9CA3, 0xFF5E5E64),
     "restart" to glyph(Icons.Rounded.RestartAlt, 0xFF9C9CA3, 0xFF5E5E64),

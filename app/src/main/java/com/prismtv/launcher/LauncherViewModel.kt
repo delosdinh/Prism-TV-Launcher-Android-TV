@@ -1771,6 +1771,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(recentsRepo.hasUsageAccess()), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
+            SettingsRow("startup", "Open Prism TV at Startup", "REMOTE", onOff(prefs.openAtStartup)),
             SettingsRow("sleep", "Sleep Timer", "REMOTE", sleepLabel()),
             SettingsRow("update", "Software Update", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
             SettingsRow("about", "About", "SYSTEM", chevron = true),
@@ -1926,6 +1927,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "usage" -> SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
             r.id == "a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
             r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
+            r.id == "startup" -> {
+                updatePrefs(p.copy(openAtStartup = !p.openAtStartup))
+                if (prefs.openAtStartup && !PrismAccessibilityService.isEnabled) {
+                    showBanner("Open at Startup", "Turn on Power & Home Button too, so Prism TV can open when the TV starts.", Icons.Rounded.Info)
+                }
+            }
             r.id == "sounds" -> updatePrefs(p.copy(sounds = !p.sounds))
             r.id == "sleep" -> cycleSleepTimer()
             r.id == "restart" -> confirm("Restart Prism TV?", "The launcher will close and reopen.", "Restart") { restartTick++ }
@@ -2248,7 +2255,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "dialog" -> {
                 overlay = Overlay.Settings
-                settingsFocus[SettingsPage.Root] = 13
+                settingsFocus[SettingsPage.Root] = 14
                 confirm(
                     "Reset Prism TV?",
                     "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",

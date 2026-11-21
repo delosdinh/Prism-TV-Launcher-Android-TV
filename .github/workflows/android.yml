@@ -50,7 +50,12 @@ jobs:
       - name: Build debug APK
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt
+          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt; then exit 0; fi
+          # Fresh runners sometimes fail to download a dependency ("Could not find …"); try once more.
+          grep -qE "Could not (find|resolve|GET|HEAD)" build-log.txt || exit 1
+          echo "::warning::Dependency download failed; retrying the build once"
+          sleep 20
+          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt
 
       - name: Build release APK
         continue-on-error: true

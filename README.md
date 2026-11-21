@@ -13,13 +13,21 @@ launcher counterpart to the Prism TV skin for Kodi.
 - Dynamic **Top Shelf hero**: full-bleed backdrop and title treatment for the focused dock app,
   sourced from Android TV *Watch Next* / preview-channel cards where the device allows it, with
   app-banner artwork as the fallback. Swipe up for a full-screen Top Shelf with Play / Info.
+  **Top Shelf Style › Card Spotlight** shows the title as a large inset card over a wallpaper
+  (Prism wallpapers, the scenes, or your own pictures from the TV's Pictures/Download folders);
+  going up grows the card to full screen. Info opens the title's own page where the app supports
+  it (Nuvio: `nuvio://detail/…`).
+- **Widgets** (Settings › Home Screen › Widgets): rows of cards from your apps — Continue Watching,
+  Up Next, each app's recommendation channels, and Recommended for You / Continue Watching across
+  all apps — placed **above** or **below** the dock.
 - **Glass dock**: a Liquid Glass tray that bends the live hero behind it like a lens — the
   content stays sharp, the bevelled rim refracts what's just outside it with a specular edge.
   5:3 tiles, 24dp gutters.
-- **Focus effects**: Grow, Grow & Shrink, or Lift & Shine — with spring motion and an
-  app-coloured glow under the focused tile.
-- **Folders** with mini-icon tiles; opening one frosts the Home Screen behind a large title and a
-  glass panel, like tvOS 27.
+- **Focus effects**: Grow, Grow & Shrink (tvOS: a quick, settled grow and lift; neighbours stay
+  put), or Lift & Shine — with an app-coloured glow under the focused tile. App names switch to
+  dark ink over bright backdrops.
+- **Folders** are glass tiles (Liquid or Frosted, following Material); opening one grows it out of
+  its tile over the blurred Home Screen, like iOS, and it shrinks back when closed.
 - **Hold OK** on any app for an iOS-style context menu (icons on the left, destructive actions in
   red): **Delete App**, **Move** (the tile wiggles; arrows rearrange it, OK when done),
   **Add to Folder** / New Folder, **App Info**, and **Hide from Home Screen** (unhide in
@@ -27,7 +35,11 @@ launcher counterpart to the Prism TV skin for Kodi.
   is saved.
 - **Sidebar capsule**: press **Left** on the first app, or **Back** on the Home Screen, for a glass
   capsule with Search, Home, Recent Apps, Prism Settings and Android Settings.
-- **Time pill** (top-right) with the current weather and profile avatar — opens Control Centre.
+- **Time pill** (top-right) with the current weather, a **notification bell with a badge** (only
+  when something's waiting) and the profile avatar — opens Control Centre, which lists the
+  notifications (OK opens one, hold OK clears it). Needs Notification access for Prism TV
+  (Settings › Home Screen › Notifications, or
+  `adb shell cmd notification allow_listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener`).
   Weather comes from Open-Meteo, located from your internet connection; turn it off or change
   °C/°F in Settings › Home Screen.
 
@@ -35,17 +47,22 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Light / Balanced / Dark / Automatic** modes using the tvOS design-sheet tokens.
 - **Appearance** (Light / Balanced / Dark / Automatic) colours Settings and pop-ups, which are
   always frosted glass, like tvOS.
-- **Material** for the Home Screen glass: **Liquid Glass (Tinted)**, **Liquid Glass (Clear)** or
-  **Frosted Glass (Classic)**, with its own **Glass Colour** (Automatic follows Appearance, or
-  Light / Balanced / Dark). Reduce Transparency option.
+- **Automatic** is dark from sunset to sunrise where you are (from the weather), else 7 PM – 7 AM.
+- **Material** for the Home Screen glass: **Liquid Glass** (look: **Clear** or **Tinted**, as in
+  iOS 26) or **Frosted Glass (Classic)**, with its own **Glass Colour** (Automatic follows
+  Appearance, or Light / Balanced / Dark). Liquid Glass takes the control-library tints: frosty
+  #F4F6FF, lavender #8F8FB5, smoked #30343D. Reduce Transparency option.
+- **Text Size** (Settings › Appearance): a tvOS-style slider that scales Prism's text.
+- **Prism keyboard** for typing in Prism (Rename Folder): the iOS layout (letters, 123, #+=) in
+  Light, Balanced or Dark — **Keyboard Colour** follows Appearance or is set by hand.
 - **Navigation sounds** from the Prism TV Originals pack (focus, select, back, toggles,
   notifications); turn them off in Settings › Navigation Sounds.
 
 **System UI**
 - **Control Centre** (Menu, or the time pill): floating glass controls built for Android TV —
-  Power, Wi-Fi/Ethernet, Remotes & More (Bluetooth), Sleep Timer, **Show Screensaver**, Picture,
-  Sound, **Free Up Memory** and Accessibility, with the time and weather in the header. The
-  avatar opens Accounts.
+  Power, Wi-Fi/Ethernet, Remotes & More (Bluetooth), Sleep Timer, **Sound** (shows where audio is
+  going), Picture, **Free Up Memory** and Accessibility, with the time and weather in the header,
+  and your latest notifications. The avatar opens Accounts.
 - **Aerial screensaver**: Apple TV aerial videos streamed from Apple's own tvOS manifest (the
   same source as the Kodi Aerial add-on), 4K on 4K TVs with HEVC, with a dip to black between
   shots and the location shown at the start of each. Falls back to slowly drifting Prism scenes
@@ -128,6 +145,10 @@ On Android TV (e.g. NVIDIA SHIELD) you can instead disable the stock launcher:
 
 Tools such as TV Box Tools do the same `set-home-activity` step for you. Uninstalling Prism TV
 resets the Home app, so run it again after a reinstall; in-place updates keep it.
+
+Without a computer (Google TV): turn on Prism Settings › **Power & Home Button** (the
+accessibility service). The Home button then opens Prism TV, and **Open Prism TV at Startup**
+brings it up once after the TV restarts.
 
 ### Software Update
 

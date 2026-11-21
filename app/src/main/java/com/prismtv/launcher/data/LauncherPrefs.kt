@@ -106,6 +106,8 @@ data class LauncherPrefs(
     /** Widget rows (by row key) placed above or below the dock. */
     val widgets: Map<String, WidgetPlace> = emptyMap(),
     val keyboardColour: KeyboardColour = KeyboardColour.Automatic,
+    /** With the Power & Home Button service on: show Prism TV after the TV restarts (Google TV). */
+    val openAtStartup: Boolean = true,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -138,6 +140,7 @@ class PrefsStore(context: Context) {
             wallpaper = sp.getString("wallpaper", null) ?: d.wallpaper,
             widgets = parseWidgets(sp.getString("widgets", null)),
             keyboardColour = enumOr(sp.getString("keyboardColour", null), d.keyboardColour),
+            openAtStartup = sp.getBoolean("openAtStartup", d.openAtStartup),
             focusEffect = enumOr(sp.getString("focusEffect", null), d.focusEffect),
             labels = enumOr(sp.getString("labels", null), d.labels),
             reduceTransparency = sp.getBoolean("reduceTransparency", d.reduceTransparency),
@@ -193,6 +196,7 @@ class PrefsStore(context: Context) {
             .putString("wallpaper", p.wallpaper)
             .putString("widgets", p.widgets.entries.joinToString("\n") { "${it.key}\t${it.value.name}" })
             .putString("keyboardColour", p.keyboardColour.name)
+            .putBoolean("openAtStartup", p.openAtStartup)
             .apply()
     }
 

@@ -265,7 +265,7 @@ private fun Tile(
     val fg = if (focused) p.textFocused else if (p.isDark) Color.White else p.textPrimary
     // The lens samples the undimmed Home Screen, so the veil carries the scrim's dimming: controls stay
     // legible over busy app grids while still bending what's behind them.
-    val tint = theme.overlayVeil(dark = 0.40f, light = 0.46f)
+    val tint = theme.overlayVeil(dark = 0.40f, light = 0.56f)
     Box(
         modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
