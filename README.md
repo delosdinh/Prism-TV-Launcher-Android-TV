@@ -94,11 +94,19 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Control Centre** (Menu, or the time pill): floating glass controls built for Android TV —
   Power, Wi-Fi/Ethernet, Remotes & More (Bluetooth), Sleep Timer, **Sound** (shows where audio is
   going), Picture, **Free Up Memory**, Accessibility and **Show Screensaver**, with the time and
-  weather in the header, and your latest notifications. The avatar opens your Profile.
+  weather in the header, and your latest notifications. The avatar opens your Profile. **Now
+  Playing** shows what another app is playing (artwork, title, previous / play-pause / next; hold
+  OK to go to the app; the remote's play/pause key works anywhere in Control Centre). It needs
+  Notification access, like the notifications.
 - **Aerial screensaver**: Apple TV aerial videos streamed from Apple's own tvOS manifest (the
   same source as the Kodi Aerial add-on), 4K on 4K TVs with HEVC, with a dip to black between
   shots and the location shown at the start of each. Falls back to slowly drifting Prism scenes
-  offline. Available on demand and as the system screensaver ("Prism Aerials").
+  offline. Other sources: **Your Pictures** (the same slow pan and zoom over your photos) and
+  **Shuffle** (like tvOS 27.2: an aerial, then a few of your pictures and Prism's scenes, then the
+  next aerial). **Wait While Media Plays** (on by default) holds the screensaver back while music
+  or a video is playing. Available on demand and as the system screensaver ("Prism Aerials").
+- **Open at Startup**: pick an app (and an optional wait) to open each time the TV starts, such
+  as Kodi. It opens once per start, only if nobody has pressed anything in the meantime.
 - **App Switcher**, laid out like tvOS: the Home Screen shrinks into a centred card, recent apps
   recede in a stacked deck to its left with their icon and name above each card, and the newer card
   lies over the focused one's edge. Press up to fling an app away.

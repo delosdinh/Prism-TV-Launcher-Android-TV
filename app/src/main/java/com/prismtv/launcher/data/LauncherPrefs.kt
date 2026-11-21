@@ -59,8 +59,9 @@ enum class LabelMode(val label: String) {
     Focused("Focused Only"), Always("Always"), Never("Never")
 }
 
+/** Screensaver source. Shuffle takes turns between aerials, your pictures and Prism's scenes. */
 enum class AerialSource(val label: String) {
-    Apple("Apple TV Aerials"), Prism("Prism Scenes")
+    Apple("Apple TV Aerials"), Prism("Prism Scenes"), Pictures("Your Pictures"), Shuffle("Shuffle")
 }
 
 enum class AerialQuality(val label: String) {

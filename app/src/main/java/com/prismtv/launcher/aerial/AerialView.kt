@@ -1,7 +1,12 @@
 package com.prismtv.launcher.aerial
 
+import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.Uri
+import android.provider.MediaStore
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -29,12 +34,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The aerial screensaver surface, shared by [AerialActivity] (Show Screensaver) and
  * [AerialDreamService] (the system screensaver). Plays Apple TV aerials full screen with a soft dip to
  * black between shots and the location shown briefly at the start of each one, like the Kodi Aerial
  * add-on. With no network (or "Prism Scenes" chosen) it pans slowly across Prism's own scenes instead.
+ * "Your Pictures" is the same slow pan-and-zoom slideshow over your own photos, and "Shuffle" (like tvOS
+ * 27.2) plays an aerial, then a few of your pictures and Prism's scenes, then the next aerial.
  */
 class AerialView(context: Context) : FrameLayout(context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -67,8 +75,17 @@ class AerialView(context: Context) : FrameLayout(context) {
     private var errors = 0
     private var fadedOut = false
     private var started = false
-    private var sceneIndex = 0
+    private var stillIndex = 0
     private var frontIsA = true
+
+    /** A still for the slideshows: one of Prism's scenes or one of your pictures. */
+    private data class Still(val res: Int = 0, val uri: Uri? = null, val label: String = "")
+
+    private var stills: List<Still> = emptyList()
+    /** Shuffle: aerials take turns with short runs of stills. */
+    private var shuffle = false
+    private var showingStills = false
+    private var stillsLeft = 0
 
     init {
         setBackgroundColor(Color.BLACK)
@@ -96,14 +113,31 @@ class AerialView(context: Context) : FrameLayout(context) {
     fun start() {
         if (started) return
         started = true
-        if (prefs.aerialSource == AerialSource.Prism) {
-            startScenes()
+        val source = prefs.aerialSource
+        if (source == AerialSource.Prism) {
+            startStills(sceneStills())
             return
         }
         scope.launch {
+            val photos = if (source == AerialSource.Pictures || source == AerialSource.Shuffle) {
+                withContext(Dispatchers.IO) { photoStills() }
+            } else emptyList()
+            if (!started) return@launch
+            if (source == AerialSource.Pictures) {
+                startStills(photos.ifEmpty { sceneStills() })
+                return@launch
+            }
             val list = AerialCatalog.load(context, prefs.aerialQuality, prefs.aerialRange).shuffled().take(40)
             if (!started) return@launch
-            if (list.isEmpty()) startScenes() else startVideos(list)
+            shuffle = source == AerialSource.Shuffle
+            val mixed = (photos + sceneStills()).shuffled()
+            when {
+                list.isEmpty() -> startStills(if (shuffle) mixed else sceneStills())
+                else -> {
+                    stills = mixed
+                    startVideos(list)
+                }
+            }
         }
     }
 
@@ -128,7 +162,13 @@ class AerialView(context: Context) : FrameLayout(context) {
         p.setVideoSurfaceView(surface)
         p.volume = 0f
         p.repeatMode = Player.REPEAT_MODE_ALL
+        // Shuffle pauses at the end of each aerial for a run of stills.
+        p.pauseAtEndOfMediaItems = shuffle && stills.isNotEmpty()
         p.addListener(object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) interlude()
+            }
+
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 onNewShot(mediaItem)
             }
@@ -164,7 +204,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         if (errors > 6) {
             p.release()
             player = null
-            startScenes()
+            startStills(if (shuffle) stills.ifEmpty { sceneStills() } else sceneStills())
             return
         }
         val index = p.currentMediaItemIndex.coerceAtLeast(0)
@@ -219,7 +259,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         }.start()
     }
 
-    // ------------------------------------------------------------------------------------ scenes
+    // ------------------------------------------------------------------------------------ stills
 
     private val scenes = listOf(
         R.drawable.hero_glacier to "Glacier Bay",
@@ -229,50 +269,145 @@ class AerialView(context: Context) : FrameLayout(context) {
         R.drawable.hero_nebula to "Nebula",
     )
 
-    private fun startScenes() {
+    private fun sceneStills(): List<Still> = scenes.map { (res, label) -> Still(res = res, label = label) }.shuffled()
+
+    /** Your pictures, newest first (needs the same photo access as Settings › Wallpaper). */
+    private fun photoStills(): List<Still> {
+        val out = ArrayList<Still>()
+        runCatching {
+            val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            val proj = arrayOf(MediaStore.Images.Media._ID)
+            context.contentResolver.query(uri, proj, null, null, MediaStore.Images.Media.DATE_ADDED + " DESC")?.use { c ->
+                while (c.moveToNext() && out.size < 120) out += Still(uri = ContentUris.withAppendedId(uri, c.getLong(0)))
+            }
+        }
+        return out.shuffled()
+    }
+
+    /** A slideshow of [list] (Prism Scenes, Your Pictures, or Shuffle without a network). */
+    private fun startStills(list: List<Still>) {
+        stills = list.ifEmpty { sceneStills() }
+        shuffle = false
         surface.visibility = GONE
         sceneA.visibility = VISIBLE
         sceneB.visibility = VISIBLE
         sceneB.alpha = 0f
-        sceneIndex = (0 until scenes.size).random()
-        showScene(sceneA)
-        curtain.animate().alpha(0f).setStartDelay(0).setDuration(1400).start()
-        handler.postDelayed(nextScene, SCENE_MS)
+        sceneA.alpha = 1f
+        stillIndex = (stills.indices).random()
+        showStill(sceneA) { curtain.animate().alpha(0f).setStartDelay(0).setDuration(1400).start() }
+        handler.postDelayed(nextStill, SCENE_MS)
     }
 
-    private val nextScene = object : Runnable {
+    /** Shuffle: an aerial has ended, so show a few stills before the next one. */
+    private fun interlude() {
+        val p = player ?: return
+        if (!started) return
+        if (stills.isEmpty()) {
+            p.seekToNextMediaItem()
+            p.play()
+            return
+        }
+        showingStills = true
+        stillsLeft = STILLS_PER_RUN
+        sceneA.visibility = VISIBLE
+        sceneB.visibility = VISIBLE
+        sceneB.alpha = 0f
+        sceneA.alpha = 1f
+        frontIsA = true
+        sceneA.bringToFront()
+        curtain.bringToFront()
+        location.bringToFront()
+        clock.bringToFront()
+        stillIndex = (stillIndex + 1) % stills.size
+        showStill(sceneA) { curtain.animate().alpha(0f).setStartDelay(0).setDuration(1400).start() }
+        handler.postDelayed(nextStill, SCENE_MS)
+    }
+
+    /** Shuffle: back from the stills to the next aerial, through black. */
+    private fun backToVideo() {
+        val p = player ?: return
+        curtain.bringToFront()
+        location.bringToFront()
+        clock.bringToFront()
+        location.animate().cancel()
+        location.animate().alpha(0f).setStartDelay(0).setDuration(500).start()
+        curtain.animate().alpha(1f).setStartDelay(0).setDuration(1000).withEndAction {
+            showingStills = false
+            sceneA.animate().cancel()
+            sceneB.animate().cancel()
+            sceneA.visibility = GONE
+            sceneB.visibility = GONE
+            p.seekToNextMediaItem()
+            p.play()
+        }.start()
+    }
+
+    private val nextStill = object : Runnable {
         override fun run() {
-            sceneIndex = (sceneIndex + 1) % scenes.size
+            if (!started) return
+            if (player != null && showingStills && --stillsLeft <= 0) {
+                backToVideo()
+                return
+            }
+            stillIndex = (stillIndex + 1) % stills.size
             val incoming = if (frontIsA) sceneB else sceneA
             val outgoing = if (frontIsA) sceneA else sceneB
             frontIsA = !frontIsA
             incoming.bringToFront()
+            curtain.bringToFront()
             location.bringToFront()
             clock.bringToFront()
             incoming.alpha = 0f
-            showScene(incoming)
-            incoming.animate().alpha(1f).setDuration(1800).withEndAction { outgoing.animate().cancel() }.start()
+            showStill(incoming) {
+                incoming.animate().alpha(1f).setDuration(1800).withEndAction { outgoing.animate().cancel() }.start()
+            }
             handler.postDelayed(this, SCENE_MS)
         }
     }
 
-    /** Slow Ken Burns drift across a still. */
-    private fun showScene(view: ImageView) {
-        val (res, label) = scenes[sceneIndex]
-        view.setImageResource(res)
-        view.animate().cancel()
-        val dir = if (sceneIndex % 2 == 0) 1f else -1f
-        view.scaleX = 1.04f
-        view.scaleY = 1.04f
-        view.translationX = -dir * dp(28f)
-        view.animate()
-            .scaleX(1.16f).scaleY(1.16f)
-            .translationX(dir * dp(28f))
-            .setDuration(SCENE_MS + 2500)
-            .setInterpolator(LinearInterpolator())
-            .start()
-        showLocation(label)
+    /** Puts the current still on [view] (pictures load in the background) with a slow Ken Burns drift. */
+    private fun showStill(view: ImageView, ready: () -> Unit) {
+        val still = stills.getOrNull(stillIndex) ?: return
+        val index = stillIndex
+        fun drift() {
+            view.animate().cancel()
+            val dir = if (index % 2 == 0) 1f else -1f
+            view.scaleX = 1.04f
+            view.scaleY = 1.04f
+            view.translationX = -dir * dp(28f)
+            view.animate()
+                .scaleX(1.16f).scaleY(1.16f)
+                .translationX(dir * dp(28f))
+                .setDuration(SCENE_MS + 2500)
+                .setInterpolator(LinearInterpolator())
+                .start()
+            showLocation(still.label)
+            ready()
+        }
+        val uri = still.uri
+        if (uri == null) {
+            view.setImageResource(still.res)
+            drift()
+            return
+        }
+        scope.launch {
+            val bitmap = withContext(Dispatchers.IO) { decode(uri) }
+            if (!started) return@launch
+            if (bitmap != null) view.setImageBitmap(bitmap) else view.setImageResource(scenes[index % scenes.size].first)
+            drift()
+        }
     }
+
+    /** A picture at about screen size (never the full camera resolution). */
+    private fun decode(uri: Uri): Bitmap? = runCatching {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        val target = maxOf(resources.displayMetrics.widthPixels, 1280)
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= target && bounds.outHeight / (sample * 2) >= target * 9 / 16) sample *= 2
+        val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+    }.getOrNull()
 
     private fun sceneImage() = ImageView(context).apply {
         scaleType = ImageView.ScaleType.CENTER_CROP
@@ -283,5 +418,7 @@ class AerialView(context: Context) : FrameLayout(context) {
 
     private companion object {
         const val SCENE_MS = 14_000L
+        /** Shuffle: stills between two aerials. */
+        const val STILLS_PER_RUN = 3
     }
 }

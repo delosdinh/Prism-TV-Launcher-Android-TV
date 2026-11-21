@@ -2102,7 +2102,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
             SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
             SettingsRow("ss:media", "Wait While Media Plays", "SCREENSAVER", onOff(prefs.screensaverWaitForMedia)),
-            SettingsRow("ss:source", "Video Source", "SCREENSAVER", prefs.aerialSource.label),
+            SettingsRow("ss:source", "Source", "SCREENSAVER", prefs.aerialSource.label),
             SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
             SettingsRow("ss:range", "Dynamic Range", "SCREENSAVER", rangeLabel()),
             SettingsRow("ss:location", "Show Location", "SCREENSAVER", onOff(prefs.aerialShowLocation)),
@@ -2453,7 +2453,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             r.id == "ss:media" -> updatePrefs(p.copy(screensaverWaitForMedia = !p.screensaverWaitForMedia))
-            r.id == "ss:source" -> updatePrefs(p.copy(aerialSource = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]))
+            r.id == "ss:source" -> {
+                val next = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]
+                updatePrefs(p.copy(aerialSource = next))
+                // Your pictures need photo access; ask once when a source that uses them is picked.
+                if ((next == AerialSource.Pictures || next == AerialSource.Shuffle) && !hasPhotoAccess()) photoPermissionTick++
+            }
             r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
             r.id == "ss:range" -> {
