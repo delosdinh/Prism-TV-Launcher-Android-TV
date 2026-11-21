@@ -1,44 +1,48 @@
-11-21 04:22:08.437   490  3678 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:13.421   490   918 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:17.923   490   918 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:22.449   490   918 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:26.872   490  3678 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:31.660   490  3678 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:35.870   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:40.118   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:44.381   490   918 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:49.131   490   918 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:53.976   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:22:58.767   490  1341 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:04.147   490  3523 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:09.055   490  3328 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:13.936   490  3328 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:18.778   490  3328 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:23.245   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:27.735   490  2789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:32.219   490  2789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:36.764   490  2789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:43.939   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:50.606   490  2789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:23:50.609   490  1234 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity} from uid 10080
-11-21 04:23:50.804   490   519 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +189ms
-11-21 04:23:59.614   490  3568 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{de1237e u0 com.prismtv.launcher/.aerial.AerialActivity t6 f}}
-11-21 04:23:59.619   490  3568 W InputManager-JNI: Input channel object 'be7f98a com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
-11-21 04:24:00.757   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:24:00.759   490  1317 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity} from uid 10080
-11-21 04:24:00.973   490   519 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +212ms
-11-21 04:24:01.423  3710  4616 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.fetch(AerialCatalog.kt:62)
-11-21 04:24:01.423  3710  4616 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.entriesJson(AerialCatalog.kt:48)
-11-21 04:24:01.423  3710  4616 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.access$entriesJson(AerialCatalog.kt:30)
-11-21 04:24:01.423  3710  4616 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog$load$2.invokeSuspend(AerialCatalog.kt:37)
-11-21 04:24:34.271   490   590 W InputDispatcher: Waiting because no window has focus but ActivityRecord{94ccb03 u0 com.prismtv.launcher/.MainActivity t6} may eventually add a window when it finishes starting up. Will wait for 5000ms
-11-21 04:24:35.446   490  2789 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{64ea454 u0 com.prismtv.launcher/.aerial.AerialActivity t6 f}}
-11-21 04:24:35.449   490  2789 W InputManager-JNI: Input channel object 'a500743 com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
-11-21 04:24:36.890   490  2789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:24:52.571   490  2789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:25:12.141   490   980 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:25:17.372   490   980 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:25:28.432   490  2713 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:25:40.741   490  2838 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:25:57.941   490  2838 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-21 04:26:10.190   490  2838 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:54:55.439   492   991 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:00.590   492   573 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:05.813   492   573 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:11.225   492  3388 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:15.960   492  3388 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:20.732   492  3388 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:25.461   492  3254 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:30.727   492  2441 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:35.336   492  2441 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:40.572   492  2441 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:44.893   492  2345 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:49.279   492  2441 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:53.635   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:55:58.730   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:03.963   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:09.035   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:14.030   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:19.301   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:24.562   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:29.799   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:34.498   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:39.185   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:43.854   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:48.577   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:56:53.281   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:57:01.135   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:57:07.940   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:57:07.942   492  1118 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity} from uid 10080
+11-21 04:57:08.237   492   521 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +287ms
+11-21 04:57:18.583   492  2903 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{25a63f1 u0 com.prismtv.launcher/.aerial.AerialActivity t6 f}}
+11-21 04:57:18.585   492  2903 W InputManager-JNI: Input channel object 'ee12f62 com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
+11-21 04:57:19.678   492  2903 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:57:19.680   492  3254 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.aerial.AerialActivity} from uid 10080
+11-21 04:57:19.956   492   521 I ActivityTaskManager: Displayed com.prismtv.launcher/.aerial.AerialActivity: +275ms
+11-21 04:57:20.407  3548  3584 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.fetch(AerialCatalog.kt:62)
+11-21 04:57:20.407  3548  3584 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.entriesJson(AerialCatalog.kt:48)
+11-21 04:57:20.407  3548  3584 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog.access$entriesJson(AerialCatalog.kt:30)
+11-21 04:57:20.407  3548  3584 W PrismAerial: 	at com.prismtv.launcher.aerial.AerialCatalog$load$2.invokeSuspend(AerialCatalog.kt:37)
+11-21 04:58:07.682   492  3254 W ActivityTaskManager: Duplicate finish request for r=ActivityRecord{800cd6c u0 com.prismtv.launcher/.aerial.AerialActivity t6 f}}
+11-21 04:58:07.684   492  3254 W InputManager-JNI: Input channel object '42cb53b com.prismtv.launcher/com.prismtv.launcher.aerial.AerialActivity (client)' was disposed without first being removed with the input manager!
+11-21 04:58:08.022   492  3254 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:58:24.738   492  3254 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:58:45.133   492  2441 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:58:50.374   492  2345 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:59:01.988   492  2200 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:59:14.256   492   704 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:59:31.550   492  2345 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-21 04:59:43.924   492   520 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
