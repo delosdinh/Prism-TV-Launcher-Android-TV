@@ -42,10 +42,13 @@ launcher counterpart to the Prism TV skin for Kodi.
   offline. Available on demand and as the system screensaver ("Prism Aerials").
 - **App Switcher**: cascading card deck with Home as the last card; the Home Screen shrinks into
   its card when the switcher opens. Press up to fling an app away.
-- **Launch transitions**: the icon presses in, then springs open into a full-screen launch
-  window while the Home Screen recedes; the app fades in over it, and coming back shrinks the
-  window back into its icon.
-- **Settings** in the tvOS Settings style, with pop-up dialogs and notification banners.
+- **Launch transitions** (matched to tvOS): the icon presses in, then grows out of its slot into a
+  full-screen window while the Home Screen blurs, its artwork dissolving into the app's launch
+  colour. Part-way through, the real app window scales up from the icon's rect
+  (`ActivityOptions.makeScaleUpAnimation`), so the app itself appears to open out of the tile.
+  Coming back shrinks the window into its icon.
+- **Settings** in the tvOS Settings style: each tab has its own glyph, the large artwork on the
+  left follows focus, and the Apps page shows each app's artwork; pop-up dialogs and banners.
 
 ## Remote controls
 
