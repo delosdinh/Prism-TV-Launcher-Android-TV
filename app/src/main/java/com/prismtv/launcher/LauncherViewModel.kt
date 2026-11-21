@@ -665,6 +665,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 if (parent == null) add(MenuAction("move", "Move", Icons.Rounded.OpenWith))
                 add(MenuAction("folder", if (parent == null) "Add to Folder" else "Move to Folder", Icons.Rounded.CreateNewFolder))
                 if (parent != null) add(MenuAction("unfolder", "Remove from Folder", Icons.Rounded.FolderOpen))
+                if (parent != null) add(MenuAction("renameParent", "Rename Folder", Icons.Rounded.Edit))
                 add(MenuAction("info", "App Info", Icons.Rounded.Info))
                 add(MenuAction("hide", "Hide from Home Screen", Icons.Rounded.VisibilityOff))
             }
@@ -711,6 +712,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         when {
             a.id == "move" -> movingId = m.item.id
             a.id == "rename" -> renameRequest = m.item as? FolderItem
+            a.id == "renameParent" -> renameRequest = parent
             a.id == "ungroup" -> (m.item as? FolderItem)?.let { ungroup(it) }
             a.id == "folder" && app != null -> openFolderPicker(app, m)
             a.id == "unfolder" && app != null && parent != null -> removeFromFolder(app, parent)

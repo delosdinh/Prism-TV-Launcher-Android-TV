@@ -243,18 +243,21 @@ private fun PageArt(art: Any, modifier: Modifier, p: PrismPalette) {
     }
 }
 
-/** A soft coloured glow under a tile (drawn, not an elevation shadow). */
+/** A soft coloured glow under a tile (drawn, not an elevation shadow), fading fully to nothing. */
+@Suppress("UNUSED_PARAMETER")
 private fun Modifier.glow(color: Color, corner: Dp): Modifier = drawBehind {
-    val spread = size.minDimension * 0.18f
-    drawRoundRect(
+    val r = size.maxDimension * 0.78f
+    val c = Offset(size.width / 2f, size.height / 2f + size.height * 0.08f)
+    drawCircle(
         Brush.radialGradient(
-            listOf(color.copy(alpha = 0.45f), color.copy(alpha = 0.0f)),
-            center = Offset(size.width / 2f, size.height / 2f + spread * 0.35f),
-            radius = size.maxDimension * 0.72f,
+            0f to color.copy(alpha = 0.32f),
+            0.55f to color.copy(alpha = 0.12f),
+            1f to Color.Transparent,
+            center = c,
+            radius = r,
         ),
-        topLeft = Offset(-spread, -spread * 0.6f),
-        size = androidx.compose.ui.geometry.Size(size.width + spread * 2, size.height + spread * 2),
-        cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner.toPx() + spread),
+        radius = r,
+        center = c,
     )
 }
 

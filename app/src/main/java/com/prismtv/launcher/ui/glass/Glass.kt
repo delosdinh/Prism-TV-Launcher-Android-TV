@@ -187,14 +187,18 @@ fun Modifier.glass(
             // that samples from further outside. On Android 12 the rim uses the shared blurred layer,
             // which hides the step between interior and rim like a smeared bevel.
             val rimBand = insetPath(bevel * 0.62f)
+            // Frosted panels with a bent rim keep the bend subtle: a narrow band and a softer edge.
+            val softRim = liquid && frosted && bentRim
+            val bentBand = if (softRim) insetPath(bevel * 0.36f) else rimBand
+            val edgeScale = if (softRim) 0.5f else 1f
 
             val strokeW = if (liquid) 1.3.dp.toPx() else 1.dp.toPx()
             val edgeBrush = if (liquid) {
                 Brush.linearGradient(
-                    0f to edge.copy(alpha = 0.95f * rimStrength),
-                    0.30f to edge.copy(alpha = 0.22f * rimStrength),
-                    0.62f to edge.copy(alpha = 0.08f * rimStrength),
-                    1f to edge.copy(alpha = 0.60f * rimStrength),
+                    0f to edge.copy(alpha = 0.72f * rimStrength * edgeScale),
+                    0.30f to edge.copy(alpha = 0.18f * rimStrength * edgeScale),
+                    0.62f to edge.copy(alpha = 0.06f * rimStrength * edgeScale),
+                    1f to edge.copy(alpha = 0.42f * rimStrength * edgeScale),
                     start = Offset.Zero, end = Offset(size.width, size.height),
                 )
             } else {
@@ -267,12 +271,10 @@ fun Modifier.glass(
                         if (liquid && bentRim) {
                             // Bend the (blurred) backdrop around the rim: thick-glass edges without
                             // sharp fragments of what's behind showing through.
-                            clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                drawBlurred(strength * 0.45f)
+                            clipPath(bentBand, clipOp = ClipOp.Difference) {
+                                drawBlurred(strength * 0.30f)
                                 drawRect(tint)
-                                drawRect(rimLight)
                             }
-                            drawRect(specular)
                         }
                     }
                     useShader -> {
