@@ -107,8 +107,8 @@ jobs:
           # Software Update manifest — only for builds signed with the permanent key, so the app
           # never offers an update Android would refuse to install over it.
           if [ "$PRISM_SIGNED" = "true" ]; then
-            SUBJECT="$(git log -1 --format=%s)"
-            python3 - "$SUBJECT" > dist/update.json <<'PY'
+            NOTES="$(bash scripts/update-notes.sh)"
+            python3 - "$NOTES" > dist/update.json <<'PY'
           import json, os, sys
           print(json.dumps({
               "versionCode": int(os.environ["PRISM_VC"]),
