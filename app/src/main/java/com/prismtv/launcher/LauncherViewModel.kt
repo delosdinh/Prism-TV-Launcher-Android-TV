@@ -3315,6 +3315,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun applyDebug(b: Bundle) {
         debugDriven = true
+        // Each shot starts clean: no picker or passcode left over from the last one.
+        passcode = null
+        passcodeEntry = ""
+        profilePicker = false
+        pickerForced = false
         refreshWeather()
         var p = prefs
         if (b.containsKey("demo")) p = p.copy(demoContent = b.getBoolean("demo"))
