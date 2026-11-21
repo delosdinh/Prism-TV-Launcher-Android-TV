@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOpen
@@ -206,6 +207,10 @@ object CC {
     const val Notification = 100
 }
 
+/** The passcode keypad, left to right (as on tvOS: one row of digits, then delete). */
+val PasscodeKeys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "⌫")
+const val PasscodeDelete = "⌫"
+
 /** Cards in a widget row (after narrowing an all-app row to the chosen apps). */
 const val WidgetRowMax = 30
 
@@ -264,9 +269,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Visible Home Screen items (apps + folders), in order. */
     val items: List<GridItem> by derivedStateOf {
         if (prefs.demoContent) {
-            GridLayouts.build(DemoContent.allApps + inputApps, layout ?: DemoContent.defaultLayout, prefs.hiddenApps)
+            GridLayouts.build(DemoContent.allApps + inputApps, layout ?: DemoContent.defaultLayout, prefs.hiddenApps + blockedApps)
         } else {
-            GridLayouts.build(realApps + inputApps, layout, prefs.hiddenApps)
+            GridLayouts.build(realApps + inputApps, layout, prefs.hiddenApps + blockedApps)
         }
     }
 
@@ -314,7 +319,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     val widgetRows: List<WidgetRow> by derivedStateOf {
         val order = prefs.widgetOrder
         val chosen = prefs.widgetApps
+        // Apps the profile in use can't see don't show their cards either.
+        val blocked = blockedApps.let { ids -> allApps.filter { it.id in ids }.map { it.packageName }.toSet() }
         widgetRowsAll
+            .filter { r -> r.pkg !in blocked }
+            .map { r -> if (blocked.isEmpty()) r else r.copy(items = r.items.filter { it.appId.substringBefore('/') !in blocked }) }
             .map { r ->
                 val only = chosen[r.key]
                 val items = if (only.isNullOrEmpty()) r.items else r.items.filter { it.appId.substringBefore('/') in only }
@@ -1262,12 +1271,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         widgetIndex, widgetCol,
         folderFocus, switcherFocus, settingsFocus[settingsStack.last()],
         movingId?.let { id -> items.indexOfFirst { it.id == id } },
+        pickerFocus, passcodeFocus,
     )
 
     /** What's on screen: overlays, menus, dialogs, Settings pages, a card being dismissed. */
     private fun surfaceSignature(): List<Any?> = listOf(
         overlay, dialog, contextMenu?.id, openFolder?.id, movingId != null, dismissingKey, keyboard,
         if (overlay == Overlay.Settings) settingsStack.size else 0,
+        profilePicker, passcode,
     )
 
     /** How many layers are open — more after a key press plays Swish, fewer plays Back. */
@@ -1277,10 +1288,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             (if (contextMenu != null) 1 else 0) +
             (if (dialog != null) 1 else 0) +
             (if (keyboard != null) 1 else 0) +
-            (if (movingId != null) 1 else 0)
+            (if (movingId != null) 1 else 0) +
+            (if (profilePicker) 1 else 0) +
+            (if (passcode != null) 1 else 0)
 
     /** tvOS-style contextual focus: app tiles, large cards and small controls each have a cue. */
     private fun focusCue(heroStepped: Boolean): Cue = when {
+        passcode != null -> Cue.FocusKey
+        profilePicker -> Cue.FocusLarge
         keyboard != null -> Cue.FocusKey
         dialog != null || contextMenu != null -> Cue.FocusSmall
         overlay == Overlay.Switcher -> Cue.FocusLarge
@@ -1293,7 +1308,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun routeKey(k: NavKey): Boolean {
+        passcode?.let { return passcodeKey(it, k) }
         keyboard?.let { return keyboardKey(it, k) }
+        if (profilePicker) return pickerKey(k)
         dialog?.let { return dialogKey(it, k) }
         contextMenu?.let { return contextKey(it, k) }
         return when (overlay) {
@@ -1328,6 +1345,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onBack() {
         if (launchAnim != null) return
+        if (passcode != null) {
+            sounds.play(Cue.Back)
+            cancelPasscode()
+            return
+        }
+        if (profilePicker && keyboard == null) {
+            if (!pickerForced) {
+                sounds.play(Cue.Back)
+                closePicker()
+            }
+            return
+        }
         if (keyboard != null) {
             sounds.play(Cue.Back)
             closeKeyboard()
@@ -1359,6 +1388,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onHomePressed() {
+        if (passcode != null) cancelPasscode()
+        if (profilePicker && !pickerForced) closePicker()
         if (dialog != null || contextMenu != null || movingId != null) sounds.play(Cue.Back)
         else when (overlay) {
             Overlay.None -> Unit
@@ -1392,6 +1423,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // Picks up Notification access granted while Prism was away.
         com.prismtv.launcher.system.MediaWatcher.start(ctx)
         maybeOpenAtStartup()
+        if (pickerOnResume) {
+            pickerOnResume = false
+            showProfilePicker()
+        }
         pendingReturn?.let { anim ->
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
@@ -1704,7 +1739,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Sidebar entries; the store only when the box has one. */
     val sidebarEntries: List<SidebarEntry>
-        get() = SidebarEntry.entries.filter { it != SidebarEntry.Store || storeApp != null }
+        get() {
+            val restricted = activeProfileSpec.restricted
+            return SidebarEntry.entries.filter {
+                when (it) {
+                    SidebarEntry.Store -> storeApp != null && storeApp?.id !in blockedApps
+                    // A profile with restrictions doesn't get a way round them.
+                    SidebarEntry.SystemSettings -> !restricted
+                    else -> true
+                }
+            }
+        }
 
     fun openSidebar() {
         sidebarFocus = sidebarEntries.indexOf(SidebarEntry.Home).coerceAtLeast(0)
@@ -1837,7 +1882,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun ccSelect(i: Int) {
         when (i) {
-            CC.Profile -> openProfilePage()
+            CC.Profile -> if (profileList.size >= 2) {
+                closeOverlay()
+                showProfilePicker()
+            } else openProfilePage()
             CC.Power -> if (PrismAccessibilityService.powerDialog()) closeOverlay() else askForPowerAccess()
             CC.WiFi -> SystemActions.open(ctx, Settings.ACTION_WIFI_SETTINGS)
             CC.Bluetooth -> SystemActions.open(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
@@ -1925,6 +1973,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             var waited = 0
             while (allApps.none { it.id == id } && waited < 15_000) { delay(250); waited += 250 }
             val app = allApps.firstOrNull { it.id == id } ?: return@launch
+            if (app.id in blockedApps) return@launch
             val pressesBefore = lastInteraction
             delay(prefs.startupDelay * 1000L)
             // Someone picked up the remote while we waited, or Prism isn't on screen: leave it be.
@@ -1998,6 +2047,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         } else {
             recentsRepo.recentPackages().take(8).reversed()
                 .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
+                .filter { it.id !in blockedApps }
         }
         // Oldest on the left, most recent next to Home.
         recents = apps.map { a ->
@@ -2058,9 +2108,266 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // ================================================================= profiles
+
+    /** CI screenshots: three people, one with a passcode and one with restrictions. */
+    private fun demoProfiles(): List<com.prismtv.launcher.data.ProfileSpec> = listOf(
+        com.prismtv.launcher.data.ProfileSpec(com.prismtv.launcher.data.Profiles.MainId, "Sam", "preset:0"),
+        com.prismtv.launcher.data.ProfileSpec("p-alex", "Alex", "preset:1", passcode = com.prismtv.launcher.data.Profiles.hash("1234")),
+        com.prismtv.launcher.data.ProfileSpec("p-kids", "Kids", "preset:2", blocked = setOf("demo:arcade", "demo:prism")),
+    )
+
+    /** A passcode being asked for (switching to a profile, opening locked Settings, choosing one). */
+    class PasscodeRequest(
+        val title: String,
+        val message: String,
+        val check: (String) -> Boolean,
+        val onDone: (String) -> Unit,
+        val onCancel: () -> Unit = {},
+    )
+
+    var passcode by mutableStateOf<PasscodeRequest?>(null)
+        private set
+    var passcodeEntry by mutableStateOf("")
+        private set
+    var passcodeFocus by mutableIntStateOf(0)
+        private set
+    /** Bumped on a wrong passcode, so the dots shake. */
+    var passcodeShake by mutableIntStateOf(0)
+        private set
+
+    /** "Who's Watching?" is showing. */
+    var profilePicker by mutableStateOf(false)
+        private set
+    var pickerFocus by mutableIntStateOf(0)
+        private set
+    /** The picker can't be closed without choosing (after deleting the profile in use). */
+    private var pickerForced = false
+    private var pickerOnResume = false
+
+    private val activeId: String
+        get() = prefs.activeProfile.ifEmpty { prefs.profiles.firstOrNull()?.id ?: com.prismtv.launcher.data.Profiles.MainId }
+
+    /** Every profile; the one in use carries the live name and picture. */
+    val profileList: List<com.prismtv.launcher.data.ProfileSpec>
+        get() {
+            val saved = prefs.profiles.ifEmpty {
+                listOf(com.prismtv.launcher.data.ProfileSpec(com.prismtv.launcher.data.Profiles.MainId, prefs.profileName, prefs.avatar))
+            }
+            val id = activeId
+            return saved.map { if (it.id == id) it.copy(name = prefs.profileName, avatar = prefs.avatar) else it }
+        }
+
+    val activeProfileSpec: com.prismtv.launcher.data.ProfileSpec
+        get() = profileList.let { list -> list.firstOrNull { it.id == activeId } ?: list.first() }
+
+    /** Apps the profile in use can't see (Settings › Profiles › Restrictions). */
+    val blockedApps: Set<String> get() = activeProfileSpec.blocked
+
+    fun nameOf(p: com.prismtv.launcher.data.ProfileSpec): String =
+        p.name.ifBlank { if (p.id == com.prismtv.launcher.data.Profiles.MainId) deviceName() else "Profile" }
+
+    fun lookOf(p: com.prismtv.launcher.data.ProfileSpec): com.prismtv.launcher.ui.components.AvatarLook {
+        val a = p.avatar
+        if (a.startsWith("photo:")) thumb(UriArt(a.removePrefix("photo:")))?.let { return com.prismtv.launcher.ui.components.AvatarLook.Photo(it) }
+        val i = a.removePrefix("preset:").toIntOrNull() ?: 0
+        return com.prismtv.launcher.ui.components.AvatarLook.Preset(i.coerceIn(0, com.prismtv.launcher.ui.components.AvatarPresets.size - 1))
+    }
+
+    private fun saveProfiles(list: List<com.prismtv.launcher.data.ProfileSpec>, active: com.prismtv.launcher.data.ProfileSpec) {
+        updatePrefs(prefs.copy(profiles = list, activeProfile = active.id, profileName = active.name, avatar = active.avatar))
+    }
+
+    private fun updateActive(change: (com.prismtv.launcher.data.ProfileSpec) -> com.prismtv.launcher.data.ProfileSpec) {
+        val id = activeId
+        val list = profileList.map { if (it.id == id) change(it) else it }
+        saveProfiles(list, list.first { it.id == id })
+    }
+
+    /** Switches to [p], asking for its passcode when it has one. */
+    fun chooseProfile(p: com.prismtv.launcher.data.ProfileSpec, then: () -> Unit = {}) {
+        if (p.id == activeId && !(pickerForced && p.locked)) {
+            then()
+            return
+        }
+        val go = {
+            saveProfiles(profileList, p)
+            cue(Cue.Confirm)
+            then()
+        }
+        if (p.locked) askPasscode("Enter Passcode", "Enter ${nameOf(p)}'s passcode.", { code -> com.prismtv.launcher.data.Profiles.matches(p, code) }) { go() }
+        else go()
+    }
+
+    /** tvOS's "Who's Watching?": shown on wake and from Control Centre's profile picture. */
+    fun showProfilePicker(forced: Boolean = false) {
+        if (profileList.size < 2 && !forced) return
+        dialog = null
+        contextMenu = null
+        if (overlay != Overlay.None) closeOverlay()
+        pickerFocus = profileList.indexOfFirst { it.id == activeId }.coerceAtLeast(0)
+        pickerForced = forced
+        profilePicker = true
+    }
+
+    private fun closePicker() {
+        profilePicker = false
+        pickerForced = false
+    }
+
+    private fun pickerKey(k: NavKey): Boolean {
+        val list = profileList
+        when (k) {
+            NavKey.Left -> pickerFocus = (pickerFocus - 1).coerceAtLeast(0)
+            NavKey.Right -> pickerFocus = (pickerFocus + 1).coerceAtMost(list.size - 1)
+            NavKey.Select -> list.getOrNull(pickerFocus)?.let { p -> chooseProfile(p) { closePicker() } }
+            NavKey.Menu -> if (!pickerForced) closePicker()
+            else -> Unit
+        }
+        return true
+    }
+
+    /** The screen went off: offer "Who's Watching?" when it's back (Settings › Profiles). */
+    fun onScreenOff() {
+        if (prefs.profilePickerOnWake && profileList.size >= 2) pickerOnResume = true
+    }
+
+    fun onScreenOn() {
+        if (pickerOnResume && isResumed) {
+            pickerOnResume = false
+            showProfilePicker()
+        }
+    }
+
+    private fun askPasscode(title: String, message: String, check: (String) -> Boolean, onCancel: () -> Unit = {}, onDone: (String) -> Unit) {
+        passcodeEntry = ""
+        passcodeFocus = 0
+        passcode = PasscodeRequest(title, message, check, onDone, onCancel)
+    }
+
+    private fun passcodeKey(r: PasscodeRequest, k: NavKey): Boolean {
+        when (k) {
+            NavKey.Left -> passcodeFocus = (passcodeFocus - 1).coerceAtLeast(0)
+            NavKey.Right -> passcodeFocus = (passcodeFocus + 1).coerceAtMost(PasscodeKeys.size - 1)
+            NavKey.Select -> {
+                val key = PasscodeKeys[passcodeFocus]
+                if (key == PasscodeDelete) {
+                    passcodeEntry = passcodeEntry.dropLast(1)
+                    cue(Cue.Delete)
+                } else typePasscode(r, key)
+            }
+            NavKey.Menu -> cancelPasscode()
+            else -> Unit
+        }
+        return true
+    }
+
+    /** The remote's number keys type straight into the passcode. */
+    fun typePasscodeDigit(d: Char) {
+        val r = passcode ?: return
+        typePasscode(r, d.toString())
+    }
+
+    private fun typePasscode(r: PasscodeRequest, digit: String) {
+        if (passcodeEntry.length >= 4) return
+        passcodeEntry += digit
+        cue(Cue.Key)
+        if (passcodeEntry.length == 4) {
+            val code = passcodeEntry
+            viewModelScope.launch {
+                delay(180) // let the fourth dot fill before it's checked
+                if (passcode !== r) return@launch
+                if (r.check(code)) {
+                    passcode = null
+                    passcodeEntry = ""
+                    r.onDone(code)
+                } else {
+                    passcodeShake++
+                    passcodeEntry = ""
+                    sounds.play(Cue.Error)
+                }
+            }
+        }
+    }
+
+    fun cancelPasscode() {
+        val r = passcode ?: return
+        passcode = null
+        passcodeEntry = ""
+        r.onCancel()
+    }
+
+    /** In a profile with restrictions, Settings needs a passcode (when any profile has one). */
+    private fun unlockSettings(action: () -> Unit) {
+        val me = activeProfileSpec
+        if (!me.restricted || profileList.none { it.locked } || debugDriven) {
+            action()
+            return
+        }
+        askPasscode(
+            "Settings Are Locked",
+            "Enter a passcode to change settings for ${nameOf(me)}.",
+            { code -> profileList.any { com.prismtv.launcher.data.Profiles.matches(it, code) } },
+        ) { action() }
+    }
+
+    private fun addProfile() {
+        openKeyboard("New Profile", "", "Name") { name ->
+            val clean = name.trim().take(30)
+            if (clean.isEmpty()) return@openKeyboard
+            val used = profileList.map { it.avatar }.toSet()
+            val presets = com.prismtv.launcher.ui.components.AvatarPresets.indices
+            val preset = presets.firstOrNull { "preset:$it" !in used } ?: (profileList.size % presets.count())
+            val new = com.prismtv.launcher.data.ProfileSpec(com.prismtv.launcher.data.Profiles.newId(), clean, "preset:$preset")
+            val list = profileList + new
+            saveProfiles(list, list.first { it.id == activeId })
+            showBanner("Profiles", "$clean was added. Switch to them here or from Who's Watching.", Icons.Rounded.CheckCircle, Cue.Confirm)
+        }
+    }
+
+    private fun setPasscode() {
+        val me = activeProfileSpec
+        askPasscode("Choose a Passcode", "Enter four digits for ${nameOf(me)}.", { true }) { first ->
+            askPasscode("Enter It Again", "Enter the same four digits again.", { it == first }) {
+                updateActive { pr -> pr.copy(passcode = com.prismtv.launcher.data.Profiles.hash(first)) }
+                showBanner("Passcode", "Switching to ${nameOf(me)} now needs the passcode.", Icons.Rounded.Lock, Cue.Confirm)
+            }
+        }
+    }
+
+    private fun turnOffPasscode() {
+        val me = activeProfileSpec
+        askPasscode("Turn Off Passcode", "Enter ${nameOf(me)}'s passcode.", { com.prismtv.launcher.data.Profiles.matches(me, it) }) {
+            updateActive { pr -> pr.copy(passcode = "") }
+            showBanner("Passcode", "${nameOf(me)} no longer needs a passcode.", Icons.Rounded.Info, Cue.Confirm)
+        }
+    }
+
+    private fun deleteActiveProfile() {
+        val me = activeProfileSpec
+        val rest = profileList.filter { it.id != me.id }
+        if (rest.isEmpty()) return
+        confirm(
+            "Delete ${nameOf(me)}?",
+            "Their name, picture, passcode and restrictions are removed. Your apps and Home Screen stay as they are.",
+            "Delete",
+        ) {
+            val open = rest.firstOrNull { !it.locked }
+            if (open != null) {
+                saveProfiles(rest, open)
+            } else {
+                // Every other profile has a passcode: choose one properly.
+                saveProfiles(rest, rest.first())
+                showProfilePicker(forced = true)
+            }
+        }
+    }
+
     // ================================================================= settings
 
-    fun openSettings() {
+    fun openSettings() = unlockSettings { showSettings() }
+
+    private fun showSettings() {
         statusCache = null
         loadIconPacks()
         settingsStack = listOf(SettingsPage.Root)
@@ -2093,7 +2400,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("screensaver", "Screensaver", "GENERAL", prefs.aerialSource.label, chevron = true),
             SettingsRow("sounds", "Navigation Sounds", "GENERAL", onOff(prefs.sounds)),
             SettingsRow("keyboard", "Keyboard", "GENERAL", keyboardStatus(), chevron = true),
-            SettingsRow("profile", "Profile", "GENERAL", profileName(), chevron = true),
+            SettingsRow("profile", "Profiles", "GENERAL", profileName(), chevron = true),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(status().usage), chevron = true),
             SettingsRow("startupApp", "Open at Startup", "APPS", startupAppLabel(), chevron = true),
@@ -2336,7 +2643,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 settingsFocus[SettingsPage.Appearance] = AppearanceSetting.entries.size + if (prefs.material == GlassMaterial.Frosted) 1 else 0
             }
             r.id == "keyboard" -> pushPage(SettingsPage.Keyboard)
-            r.id == "profile" -> openProfilePage()
+            r.id == "profile" -> pushPage(SettingsPage.Profiles)
+            r.id.startsWith("pr:switch:") -> profileList.firstOrNull { it.id == r.id.removePrefix("pr:switch:") }?.let { chooseProfile(it) }
+            r.id == "pr:add" -> addProfile()
+            r.id == "pr:wake" -> updatePrefs(p.copy(profilePickerOnWake = !p.profilePickerOnWake))
+            r.id == "pr:edit" -> {
+                loadPhotos()
+                pushPage(SettingsPage.Profile)
+                settingsFocus[SettingsPage.Profile] = settingsRows(SettingsPage.Profile).indexOfFirst { it.checked }.coerceAtLeast(0)
+            }
+            r.id == "pr:passcode" -> if (activeProfileSpec.locked) turnOffPasscode() else setPasscode()
+            r.id == "pr:restrict" -> pushPage(SettingsPage.Restrictions)
+            r.id == "pr:delete" -> deleteActiveProfile()
+            r.id.startsWith("rs:") -> {
+                val id = r.id.removePrefix("rs:")
+                updateActive { pr -> pr.copy(blocked = if (id in pr.blocked) pr.blocked - id else pr.blocked + id) }
+            }
             r.id == "pf:name" -> openKeyboard("Profile Name", p.profileName, deviceName()) { name ->
                 updatePrefs(prefs.copy(profileName = name.trim().take(30)))
                 cue(Cue.Confirm)
@@ -2622,7 +2944,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun profileName(): String = prefs.profileName.ifBlank { deviceName() }
 
-    fun openProfilePage() {
+    fun openProfilePage() = unlockSettings { showProfilePage() }
+
+    private fun showProfilePage() {
         loadPhotos()
         if (overlay != Overlay.Settings) {
             overlay = Overlay.Settings
@@ -2735,8 +3059,27 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         overlay = Overlay.Settings
         loadPhotos()
     }
-    private fun profileRows(): List<SettingsRow> = emptyList()
-    private fun restrictionRows(): List<SettingsRow> = emptyList()
+    private fun profileRows(): List<SettingsRow> {
+        val list = profileList
+        val me = activeProfileSpec
+        val mine = nameOf(me).uppercase()
+        return list.map { pr ->
+            SettingsRow("pr:switch:${pr.id}", nameOf(pr), "PROFILES", if (pr.locked) "Passcode" else null, selectable = true, checked = pr.id == me.id)
+        } + listOf(
+            SettingsRow("pr:add", "Add Profile", "PROFILES", chevron = true),
+            SettingsRow("pr:wake", "Who's Watching on Wake", "PROFILES", onOff(prefs.profilePickerOnWake)),
+            SettingsRow("pr:edit", "Name & Picture", mine, chevron = true),
+            SettingsRow("pr:passcode", "Passcode", mine, onOff(me.locked)),
+            SettingsRow("pr:restrict", "Restrictions", mine, if (me.blocked.isEmpty()) "None" else "${me.blocked.size} Blocked", chevron = true),
+        ) + if (list.size > 1) listOf(SettingsRow("pr:delete", "Delete Profile", mine)) else emptyList()
+    }
+
+    private fun restrictionRows(): List<SettingsRow> {
+        val me = activeProfileSpec
+        return allApps.sortedBy { it.label.lowercase() }.map {
+            SettingsRow("rs:${it.id}", it.label, "ALLOWED FOR ${nameOf(me).uppercase()}", app = it, toggle = it.id !in me.blocked)
+        }
+    }
 
     /** Settings › Banner: the picture on the focused row. */
     fun bannerPreview(rowId: String): Any? = when {
@@ -2745,7 +3088,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Settings › Profiles: the focused profile's picture. */
-    fun profileListPreview(rowId: String): Any? = avatarLook
+    fun profileListPreview(rowId: String): Any? =
+        if (rowId.startsWith("pr:switch:")) profileList.firstOrNull { it.id == rowId.removePrefix("pr:switch:") }?.let { lookOf(it) } ?: avatarLook
+        else avatarLook
 
     fun profilePreview(rowId: String): Any? = when {
         rowId.startsWith("pf:preset:") -> com.prismtv.launcher.ui.components.AvatarLook.Preset(rowId.removePrefix("pf:preset:").toIntOrNull() ?: 0)
@@ -3000,7 +3345,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             titleLogos = b.getBoolean("logos", true),
             wallpaperShuffle = b.getInt("shuffle", 0).takeIf { it in com.prismtv.launcher.data.ShuffleChoices } ?: 0,
             liteMode = b.getBoolean("lite", false),
+            profiles = if (b.getBoolean("demoProfiles", false)) demoProfiles() else emptyList(),
+            activeProfile = b.getString("activeProfile") ?: "",
         )
+        // The demo profile in use brings its own name and picture.
+        p.profiles.firstOrNull { it.id == p.activeProfile.ifEmpty { com.prismtv.launcher.data.Profiles.MainId } }?.let { a ->
+            p = p.copy(profileName = a.name, avatar = a.avatar)
+        }
         debugTitleArt = b.getString("logoId")?.let { com.prismtv.launcher.data.TitleLogos.refFor(it) }
         // Pretend HDMI inputs for screenshots.
         val wantInputs = b.getBoolean("inputs", false)
@@ -3067,6 +3418,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "sidebar" -> { row = r; col = 0; openSidebar(); if (b.containsKey("focus")) sidebarFocus = b.getInt("focus", 1) }
             "controlcentre" -> { row = r; col = c; openControlCentre(); ccFocus = b.getInt("focus", CC.Power) }
+            "profiles" -> {
+                showProfilePicker()
+                if (b.containsKey("focus")) pickerFocus = b.getInt("focus", 0).coerceIn(0, profileList.size - 1)
+            }
+            "passcode" -> {
+                askPasscode("Enter Passcode", "Enter Alex's passcode.", { false }) {}
+                passcodeEntry = "1".repeat(b.getInt("entered", 0).coerceIn(0, 3))
+                passcodeFocus = b.getInt("focus", 4).coerceIn(0, PasscodeKeys.size - 1)
+            }
             "switcher" -> {
                 openSwitcher()
                 if (b.containsKey("focus")) switcherFocus = b.getInt("focus", 0).coerceIn(0, recents.size - 1)

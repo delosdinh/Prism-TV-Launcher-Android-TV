@@ -160,6 +160,12 @@ data class LauncherPrefs(
     val customBanners: Map<String, String> = emptyMap(),
     /** An installed icon pack's package; empty = the apps' own banners. */
     val iconPack: String = "",
+    /** Everyone's profiles; empty = just the one (whose name and picture are [profileName]/[avatar]). */
+    val profiles: List<ProfileSpec> = emptyList(),
+    /** The profile in use; its name and picture live in [profileName] and [avatar]. */
+    val activeProfile: String = "",
+    /** Show "Who's Watching?" when the TV wakes (with two or more profiles). */
+    val profilePickerOnWake: Boolean = true,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -235,6 +241,9 @@ class PrefsStore(context: Context) {
             inputNames = parseStringMap(sp.getString("inputNames", null)),
             customBanners = parseStringMap(sp.getString("customBanners", null)),
             iconPack = sp.getString("iconPack", d.iconPack).orEmpty(),
+            profiles = Profiles.decode(sp.getString("profiles", null)),
+            activeProfile = sp.getString("activeProfile", d.activeProfile).orEmpty(),
+            profilePickerOnWake = sp.getBoolean("profilePickerOnWake", d.profilePickerOnWake),
         )
     }
 
@@ -269,6 +278,9 @@ class PrefsStore(context: Context) {
             .putString("inputNames", encodeStringMap(p.inputNames))
             .putString("customBanners", encodeStringMap(p.customBanners))
             .putString("iconPack", p.iconPack)
+            .putString("profiles", Profiles.encode(p.profiles))
+            .putString("activeProfile", p.activeProfile)
+            .putBoolean("profilePickerOnWake", p.profilePickerOnWake)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)

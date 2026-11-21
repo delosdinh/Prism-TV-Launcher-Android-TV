@@ -141,6 +141,11 @@ shot 56-settings-inputs            "${B[@]}" "${DARK[@]}" --ez inputs true --es 
 shot 56b-settings-startup          "${B[@]}" "${DARK[@]}" --es screen settings --es page Startup --ei focus 2
 shot 57-settings-backup            "${B[@]}" "${DARK[@]}" --es screen settings --es page Backup --ei focus 0
 shot 57b-settings-icon-pack        "${B[@]}" "${DARK[@]}" --es screen settings --es page IconPack --ei focus 0
+shot 58-whos-watching              "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es screen profiles --ei focus 1
+shot 58b-passcode                  "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es screen passcode --ei entered 2 --ei focus 6
+shot 58c-settings-profiles         "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es screen settings --es page Profiles --ei focus 3
+shot 58d-settings-restrictions     "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 1
+shot 58e-kids-home                 "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen sidebar --ei focus 1
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14

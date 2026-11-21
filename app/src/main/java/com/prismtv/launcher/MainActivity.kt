@@ -89,6 +89,15 @@ class MainActivity : ComponentActivity() {
     private val vm: LauncherViewModel by viewModels()
     private var lastHomePress = 0L
 
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> vm.onScreenOff()
+                Intent.ACTION_SCREEN_ON -> vm.onScreenOn()
+            }
+        }
+    }
+
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             vm.refreshApps()
@@ -108,6 +117,15 @@ class MainActivity : ComponentActivity() {
             addDataScheme("package")
         }
         ContextCompat.registerReceiver(this, packageReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        // Who's Watching? when the TV wakes (Settings › Profiles).
+        ContextCompat.registerReceiver(
+            this, screenReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         if (savedInstanceState == null && intent?.let { isDebugIntent(it) } != true) askForRecommendationsOnce()
     }
 
@@ -232,6 +250,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         runCatching { unregisterReceiver(packageReceiver) }
+        runCatching { unregisterReceiver(screenReceiver) }
         super.onDestroy()
     }
 
@@ -400,7 +419,9 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             }
             ContextMenuHost(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
+            com.prismtv.launcher.ui.home.ProfilePicker(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = vm.prefs.keyboardColour == KeyboardColour.Clear) }
+            CompositionLocalProvider(LocalPrism provides uiTheme) { com.prismtv.launcher.ui.home.PasscodePad(vm) }
             LaunchOverlay(vm)
             // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.
             BannerHost(vm.banner)
@@ -438,6 +459,14 @@ private class RemoteKeys(private val vm: LauncherViewModel, private val scope: C
             AndroidKeyEvent.KEYCODE_BUTTON_Y -> NavKey.Menu
             AndroidKeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
             AndroidKeyEvent.KEYCODE_MEDIA_PLAY -> NavKey.PlayPause
+            in AndroidKeyEvent.KEYCODE_0..AndroidKeyEvent.KEYCODE_9 -> {
+                // Number keys type into a passcode; otherwise they're left to Android.
+                if (vm.passcode == null) return false
+                if (native.action == AndroidKeyEvent.ACTION_DOWN && native.repeatCount == 0) {
+                    vm.typePasscodeDigit('0' + (native.keyCode - AndroidKeyEvent.KEYCODE_0))
+                }
+                return true
+            }
             AndroidKeyEvent.KEYCODE_APP_SWITCH -> {
                 if (native.action == AndroidKeyEvent.ACTION_DOWN && native.repeatCount == 0) vm.openSwitcher()
                 return true
