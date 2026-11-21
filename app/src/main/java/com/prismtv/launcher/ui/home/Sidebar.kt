@@ -86,7 +86,7 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
                 .width(264.dp)
                 .graphicsLayer { alpha = t }
                 .glass(RoundedCornerShape(40.dp), panelTint, GlassSource.Scene, elevation = 30.dp)
-                .padding(horizontal = 12.dp, vertical = 14.dp)
+                .padding(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 20.dp)
         ) {
             Row(
                 Modifier

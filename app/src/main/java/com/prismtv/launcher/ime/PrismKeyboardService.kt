@@ -11,7 +11,8 @@ import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -155,10 +156,11 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 Modifier
                     .fillMaxWidth()
                     .background(Brush.verticalGradient(listOf(lift(solid), solid)))
+                    // A hairline along the top edge, where the keyboard meets the app.
+                    .drawBehind { drawRect(Color.White.copy(alpha = 0.10f), size = Size(size.width, 1.dp.toPx())) }
                     .padding(top = m.pad.dp, bottom = (m.pad + 8f).dp),
                 contentAlignment = Alignment.TopCenter,
             ) {
-                Box(Modifier.fillMaxWidth().height(0.5.dp).background(Color.White.copy(alpha = 0.12f)))
                 KeyboardKeys(kb, c, m)
             }
         }
