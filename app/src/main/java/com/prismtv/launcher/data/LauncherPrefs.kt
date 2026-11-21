@@ -68,6 +68,8 @@ data class LauncherPrefs(
     /** Current weather in the time pill. */
     val weather: Boolean = true,
     val temperatureUnit: TemperatureUnit = TemperatureUnit.Auto,
+    /** Prism TV Originals navigation sounds (focus, select, back…). */
+    val sounds: Boolean = true,
 )
 
 class PrefsStore(context: Context) {
@@ -96,6 +98,7 @@ class PrefsStore(context: Context) {
             skippedUpdate = sp.getInt("skippedUpdate", d.skippedUpdate),
             weather = sp.getBoolean("weather", d.weather),
             temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
+            sounds = sp.getBoolean("sounds", d.sounds),
         )
     }
 
@@ -121,6 +124,7 @@ class PrefsStore(context: Context) {
             .putInt("skippedUpdate", p.skippedUpdate)
             .putBoolean("weather", p.weather)
             .putString("temperatureUnit", p.temperatureUnit.name)
+            .putBoolean("sounds", p.sounds)
             .apply()
     }
 

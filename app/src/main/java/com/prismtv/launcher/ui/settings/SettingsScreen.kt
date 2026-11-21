@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
@@ -181,6 +182,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "material" to glyph(Icons.Rounded.Opacity, 0xFF64D2FF, 0xFF1A8CFF),
     "home" to glyph(Icons.Rounded.Dashboard, 0xFF3D9BFF, 0xFF0A5FE0),
     "screensaver" to glyph(Icons.Rounded.Landscape, 0xFF4CD0DF, 0xFF1C8AA6),
+    "sounds" to glyph(Icons.AutoMirrored.Rounded.VolumeUp, 0xFFFF6482, 0xFFE0264A),
     "apps" to glyph(Icons.Rounded.Apps, 0xFF4CD964, 0xFF239B3E),
     "usage" to glyph(Icons.Rounded.History, 0xFFFFB340, 0xFFE07A0B),
     "a11y" to glyph(Icons.Rounded.SettingsRemote, 0xFF9C9CA3, 0xFF5E5E64),

@@ -18,35 +18,40 @@ launcher counterpart to the Prism TV skin for Kodi.
   5:3 tiles, 24dp gutters.
 - **Focus effects**: Grow, Grow & Shrink, or Lift & Shine — with spring motion and an
   app-coloured glow under the focused tile.
-- **Folders** with mini-icon tiles and a glass folder view with a title pill.
-- **Hold OK** on any app for a context menu: **Move** (the tile wiggles; arrows rearrange it,
-  OK when done), **Add to Folder** / New Folder, **App Info** (opens Android's app info page),
-  **Hide from Home Screen** (unhide in Settings › Apps) and **Delete App**. Folders offer
-  Move and Remove Folder. The layout is saved.
-- **Sidebar capsule**: press **Left** on the first app to slide in a glass capsule with Search,
-  Home, Recent Apps, Screensaver, Prism Settings and Android Settings.
-- **Time pill** (top-right) with profile avatar — opens Control Centre.
+- **Folders** with mini-icon tiles; opening one frosts the Home Screen behind a large title and a
+  glass panel, like tvOS 27.
+- **Hold OK** on any app for an iOS-style context menu (icons on the left, destructive actions in
+  red): **Delete App**, **Move** (the tile wiggles; arrows rearrange it, OK when done),
+  **Add to Folder** / New Folder, **App Info**, and **Hide from Home Screen** (unhide in
+  Settings › Apps). Hold OK on a folder for **Rename Folder**, Move and Remove Folder. The layout
+  is saved.
+- **Sidebar capsule**: press **Left** on the first app, or **Back** on the Home Screen, for a glass
+  capsule with Search, Home, Recent Apps, Prism Settings and Android Settings.
+- **Time pill** (top-right) with the current weather and profile avatar — opens Control Centre.
+  Weather comes from Open-Meteo, located from your internet connection; turn it off or change
+  °C/°F in Settings › Home Screen.
 
 **Appearance**
 - **Light / Balanced / Dark / Automatic** modes using the tvOS design-sheet tokens.
-- **Liquid Glass** or **Frosted Glass (Classic)** materials; Reduce Transparency option.
+- **Liquid Glass (Tinted)**, **Liquid Glass (Clear)** or **Frosted Glass (Classic)** materials;
+  Reduce Transparency option. Settings always uses frosted glass, like tvOS.
+- **Navigation sounds** from the Prism TV Originals pack (focus, select, back, toggles,
+  notifications); turn them off in Settings › Navigation Sounds.
 
 **System UI**
 - **Control Centre** (Menu, or the time pill): floating glass controls built for Android TV —
-  Power, Wi-Fi/Ethernet, **Show Screensaver**, Sound Output, Sleep Timer, Recent Apps,
-  Remotes & Accessories, Search and Android Settings. The sliders button in the header opens
-  **Prism Settings**; the avatar opens Accounts.
+  Power, Wi-Fi/Ethernet, Remotes & More (Bluetooth), Sleep Timer, **Show Screensaver**, Picture,
+  Sound, **Free Up Memory** and Accessibility, with the time and weather in the header. The
+  avatar opens Accounts.
 - **Aerial screensaver**: Apple TV aerial videos streamed from Apple's own tvOS manifest (the
   same source as the Kodi Aerial add-on), 4K on 4K TVs with HEVC, with a dip to black between
   shots and the location shown at the start of each. Falls back to slowly drifting Prism scenes
   offline. Available on demand and as the system screensaver ("Prism Aerials").
 - **App Switcher**: cascading card deck with Home as the last card; the Home Screen shrinks into
   its card when the switcher opens. Press up to fling an app away.
-- **Launch transitions** (matched to tvOS): the icon presses in, then grows out of its slot into a
-  full-screen window while the Home Screen blurs, its artwork dissolving into the app's launch
-  colour. Part-way through, the real app window scales up from the icon's rect
-  (`ActivityOptions.makeScaleUpAnimation`), so the app itself appears to open out of the tile.
-  Coming back shrinks the window into its icon.
+- **Launch transitions** (matched to tvOS): the tile's artwork grows out of its slot to fill the
+  screen while the Home Screen blurs behind it, and the app fades in over the top — no black
+  frame. Coming back shrinks the artwork into its icon.
 - **Settings** in the tvOS Settings style: each tab has its own glyph, the large artwork on the
   left follows focus, and the Apps page shows each app's artwork; pop-up dialogs and banners.
 
@@ -152,4 +157,8 @@ adb shell am start -n com.prismtv.launcher/.MainActivity \
 ## Credits
 
 Typeface: [Inter](https://rsms.me/inter/) (SIL Open Font License). Not affiliated with Apple.
+
+Navigation sounds: Prism TV Originals 1.6.0, procedurally synthesised (no recordings) and licensed
+GPL-2.0-or-later — the generator, licence and cue mapping are in
+[`tools/ui-sounds`](tools/ui-sounds). The pack's startup sound isn't used.
 tvOS and Apple TV are trademarks of Apple Inc.

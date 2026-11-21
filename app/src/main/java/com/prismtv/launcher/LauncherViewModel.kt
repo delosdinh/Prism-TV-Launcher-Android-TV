@@ -72,6 +72,8 @@ import com.prismtv.launcher.data.RecentEntry
 import com.prismtv.launcher.data.RecentsRepository
 import com.prismtv.launcher.data.RecommendationsRepository
 import com.prismtv.launcher.data.ResArt
+import com.prismtv.launcher.sound.Cue
+import com.prismtv.launcher.sound.UiSounds
 import com.prismtv.launcher.system.PrismAccessibilityService
 import com.prismtv.launcher.system.SystemActions
 import com.prismtv.launcher.update.InstallEvent
@@ -170,6 +172,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     var prefs by mutableStateOf(store.load())
         private set
+
+    // ---------------------------------------------------------------- sounds
+    private val sounds = UiSounds(app).also { it.enabled = prefs.sounds }
+    /** The cue picked by whatever handled the current key press; otherwise one is inferred. */
+    private var keyCue: Cue? = null
+    private var inKey = false
+
+    /** Plays [c] now, or — during a key press — in place of the inferred cue. */
+    private fun cue(c: Cue) {
+        if (inKey) keyCue = c else sounds.play(c)
+    }
 
     private var realApps by mutableStateOf<List<LauncherApp>>(emptyList())
     private var heroItemsByApp by mutableStateOf<Map<String, List<HeroItem>>>(emptyMap())
@@ -292,6 +305,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                         updateStatus = "Update Failed"
                         dialog = DialogSpec("Software Update", e.message, listOf(DialogButton("OK") {}))
                         dialogFocus = 0
+                        cue(Cue.Error)
                     }
                 }
             }
@@ -341,14 +355,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 availableUpdate = info
                 if (info == null) {
                     updateStatus = "Up to Date"
-                    if (manual) showBanner("Software Update", "Prism TV ${BuildConfig.VERSION_NAME} is up to date.", Icons.Rounded.CheckCircle)
+                    if (manual) showBanner("Software Update", "Prism TV ${BuildConfig.VERSION_NAME} is up to date.", Icons.Rounded.CheckCircle, Cue.Confirm)
                 } else {
                     updateStatus = "${info.versionName} Available"
                     if (manual || info.versionCode != prefs.skippedUpdate) offerUpdate(info)
                 }
             }.onFailure {
                 updateStatus = "Couldn't Check"
-                if (manual) showBanner("Software Update", "Couldn't reach GitHub. Check your internet connection.", Icons.Rounded.Info)
+                if (manual) showBanner("Software Update", "Couldn't reach GitHub. Check your internet connection.", Icons.Rounded.Info, Cue.Error)
             }
         }
     }
@@ -366,6 +380,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             ),
         )
         dialogFocus = 0
+        cue(Cue.Notify)
     }
 
     private fun startUpdate(info: UpdateInfo) {
@@ -401,13 +416,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 throw t
             } catch (t: Throwable) {
                 updateStatus = "Update Failed"
-                showBanner("Software Update", "The download didn't finish. Try again from Settings › About.", Icons.Rounded.Info)
+                showBanner("Software Update", "The download didn't finish. Try again from Settings › About.", Icons.Rounded.Info, Cue.Error)
                 return@launch
             }
             when (withContext(Dispatchers.IO) { Updater.verify(ctx, file) }) {
                 Updater.Verdict.Ok -> runCatching { Updater.install(ctx, file) }.onFailure {
                     updateStatus = "Update Failed"
-                    showBanner("Software Update", "Android couldn't start the install.", Icons.Rounded.Info)
+                    showBanner("Software Update", "Android couldn't start the install.", Icons.Rounded.Info, Cue.Error)
                 }
                 Updater.Verdict.DifferentSigner -> {
                     banner = null
@@ -419,6 +434,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                         listOf(DialogButton("OK") {}),
                     )
                     dialogFocus = 0
+                    cue(Cue.Notify)
                 }
                 Updater.Verdict.NotAnUpdate -> {
                     updateStatus = "Up to Date"
@@ -426,7 +442,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 Updater.Verdict.Unreadable -> {
                     updateStatus = "Update Failed"
-                    showBanner("Software Update", "The downloaded update was damaged. Try again later.", Icons.Rounded.Info)
+                    showBanner("Software Update", "The downloaded update was damaged. Try again later.", Icons.Rounded.Info, Cue.Error)
                 }
             }
         }
@@ -529,6 +545,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val demoChanged = p.demoContent != prefs.demoContent
         prefs = p
         store.save(p)
+        sounds.enabled = p.sounds
         if (demoChanged) {
             layout = layoutStore.load(layoutKey)
             row = 0; col = 0; heroAppIndex = 0; heroIndex = 0
@@ -594,7 +611,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val name = (items.firstOrNull { it.id == folderId } as? FolderItem)?.label ?: "folder"
         val rest = GridLayouts.withoutApp(items, app.id)
         commitItems(rest.map { if (it is FolderItem && it.id == folderId) it.copy(apps = it.apps + app) else it })
-        showBanner(app.label, "Moved to $name.", Icons.Rounded.Folder)
+        showBanner(app.label, "Moved to $name.", Icons.Rounded.Folder, Cue.Confirm)
     }
 
     private fun newFolderWith(app: LauncherApp) {
@@ -604,7 +621,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val rest = GridLayouts.withoutApp(items, app.id).toMutableList()
         rest.add(index.coerceIn(0, rest.size), folder)
         commitItems(rest)
-        showBanner(name, "New folder created with ${app.label}.", Icons.Rounded.CreateNewFolder)
+        showBanner(name, "New folder created with ${app.label}.", Icons.Rounded.CreateNewFolder, Cue.Confirm)
     }
 
     private fun removeFromFolder(app: LauncherApp, folder: FolderItem) {
@@ -614,6 +631,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val insertAt = (if (stillThere) folderIndex + 1 else folderIndex).coerceIn(0, rest.size)
         rest.add(insertAt, AppItem(app))
         commitItems(rest)
+        cue(Cue.Delete)
         if (openFolder?.id == folder.id) {
             openFolder = rest.firstOrNull { it.id == folder.id } as? FolderItem
             if (openFolder == null) overlay = Overlay.None
@@ -628,6 +646,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         list.removeAt(index)
         list.addAll(index, folder.apps.map { AppItem(it) })
         commitItems(list)
+        cue(Cue.Delete)
     }
 
     private fun hideApp(app: LauncherApp) {
@@ -639,7 +658,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             folderFocus = folderFocus.coerceAtMost(((openFolder?.apps?.size ?: 1) - 1).coerceAtLeast(0))
         }
         focusIndex(row * prefs.columns + col)
-        showBanner(app.label, "Hidden. Unhide it in Settings › Apps.", Icons.Rounded.VisibilityOff)
+        showBanner(app.label, "Hidden. Unhide it in Settings › Apps.", Icons.Rounded.VisibilityOff, Cue.Delete)
     }
 
     // ================================================================= context menu
@@ -682,6 +701,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val clean = name.trim().take(40)
         if (clean.isEmpty()) return
         commitItems(items.map { if (it is FolderItem && it.id == folderId) it.copy(label = clean) else it })
+        cue(Cue.Confirm)
         openFolder?.let { f -> if (f.id == folderId) openFolder = items.firstOrNull { it.id == folderId } as? FolderItem }
     }
 
@@ -734,7 +754,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             a.id == "hide" && app != null -> hideApp(app)
             a.id == "delete" && app != null -> if (demo) {
-                showBanner(app.label, "Demo apps can't be deleted. Use Hide instead.", Icons.Rounded.Info)
+                showBanner(app.label, "Demo apps can't be deleted. Use Hide instead.", Icons.Rounded.Info, Cue.Error)
             } else {
                 SystemActions.uninstall(ctx, app.packageName)
             }
@@ -745,6 +765,63 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onKey(k: NavKey): Boolean {
         if (launchAnim != null) return true
+        val focusBefore = focusSignature()
+        val surfaceBefore = surfaceSignature()
+        val depthBefore = depth()
+        val heroBefore = heroIndex
+        keyCue = null
+        inKey = true
+        val handled = try {
+            routeKey(k)
+        } finally {
+            inKey = false
+        }
+        val c = keyCue ?: when {
+            k == NavKey.Select -> Cue.Click
+            surfaceSignature() != surfaceBefore -> if (depth() < depthBefore) Cue.Back else Cue.Swish
+            k in arrowKeys && focusSignature() != focusBefore -> focusCue(heroIndex != heroBefore)
+            else -> null
+        }
+        keyCue = null
+        c?.let(sounds::play)
+        return handled
+    }
+
+    private val arrowKeys = setOf(NavKey.Up, NavKey.Down, NavKey.Left, NavKey.Right)
+
+    /** Everything a focus move can change; a difference after a key press means focus moved. */
+    private fun focusSignature(): List<Any?> = listOf(
+        zone, row, col, heroButton, topIndex, heroIndex, ccFocus, sidebarFocus, contextFocus, dialogFocus,
+        folderFocus, switcherFocus, settingsFocus[settingsStack.last()],
+        movingId?.let { id -> items.indexOfFirst { it.id == id } },
+    )
+
+    /** What's on screen: overlays, menus, dialogs, Settings pages, a card being dismissed. */
+    private fun surfaceSignature(): List<Any?> = listOf(
+        overlay, dialog, contextMenu?.id, openFolder?.id, movingId != null, dismissingKey,
+        if (overlay == Overlay.Settings) settingsStack.size else 0,
+    )
+
+    /** How many layers are open — more after a key press plays Swish, fewer plays Back. */
+    private fun depth(): Int =
+        (if (overlay != Overlay.None) 1 else 0) +
+            (if (overlay == Overlay.Settings) settingsStack.size - 1 else 0) +
+            (if (contextMenu != null) 1 else 0) +
+            (if (dialog != null) 1 else 0) +
+            (if (movingId != null) 1 else 0)
+
+    /** tvOS-style contextual focus: app tiles, large cards and small controls each have a cue. */
+    private fun focusCue(heroStepped: Boolean): Cue = when {
+        dialog != null || contextMenu != null -> Cue.FocusSmall
+        overlay == Overlay.Switcher -> Cue.FocusLarge
+        overlay == Overlay.Folder -> Cue.FocusApp
+        overlay != Overlay.None -> Cue.FocusSmall
+        zone == Zone.Hero -> if (heroStepped) Cue.FocusLarge else Cue.FocusSmall
+        zone == Zone.TopBar -> Cue.FocusSmall
+        else -> Cue.FocusApp
+    }
+
+    private fun routeKey(k: NavKey): Boolean {
         dialog?.let { return dialogKey(it, k) }
         contextMenu?.let { return contextKey(it, k) }
         return when (overlay) {
@@ -758,6 +835,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onBack() {
+        if (launchAnim != null) return
+        val opensSidebar = dialog == null && contextMenu == null && movingId == null &&
+            overlay == Overlay.None && zone == Zone.Grid && row == 0
+        sounds.play(if (opensSidebar) Cue.Swish else Cue.Back)
         when {
             launchAnim != null -> Unit
             dialog != null -> dialog = null
@@ -774,6 +855,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onHomePressed() {
+        if (dialog != null || contextMenu != null || movingId != null || overlay != Overlay.None) sounds.play(Cue.Back)
         dialog = null
         contextMenu = null
         movingId = null
@@ -936,7 +1018,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             launchFailed -> {
-                showBanner(app.label, "This app couldn't be opened.", Icons.Rounded.Info)
+                showBanner(app.label, "This app couldn't be opened.", Icons.Rounded.Info, Cue.Error)
                 launchAnim = anim.copy(reverse = true, id = System.nanoTime())
             }
             else -> {
@@ -1068,6 +1150,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 "Free Up Memory",
                 "Closed background apps · %.1f GB available".format(freeGb).takeIf { closed > 0 } ?: "%.1f GB available".format(freeGb),
                 Icons.Rounded.Memory,
+                Cue.Clear,
             )
         }
     }
@@ -1097,14 +1180,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         sleepJob?.cancel()
         if (sleepMinutes > 0) {
             val mins = sleepMinutes
-            showBanner("Sleep Timer", "Your TV will sleep in $mins minutes.", Icons.Rounded.Timer)
+            showBanner("Sleep Timer", "Your TV will sleep in $mins minutes.", Icons.Rounded.Timer, Cue.Toggle)
             sleepJob = viewModelScope.launch {
                 delay(mins * 60_000L)
                 sleepMinutes = 0
                 if (!PrismAccessibilityService.sleep()) PrismAccessibilityService.powerDialog()
             }
         } else {
-            showBanner("Sleep Timer", "Off", Icons.Rounded.Timer)
+            showBanner("Sleep Timer", "Off", Icons.Rounded.Timer, Cue.Toggle)
         }
     }
 
@@ -1131,6 +1214,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         switcherClosingToHome = false
         dismissingKey = null
         overlay = Overlay.Switcher
+        cue(Cue.Swish)
     }
 
     private fun switcherKey(k: NavKey): Boolean {
@@ -1204,6 +1288,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("material", "Material", "GENERAL", prefs.material.label, chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
             SettingsRow("screensaver", "Screensaver", "GENERAL", prefs.aerialSource.label, chevron = true),
+            SettingsRow("sounds", "Navigation Sounds", "GENERAL", onOff(prefs.sounds)),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(recentsRepo.hasUsageAccess()), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
@@ -1287,6 +1372,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "usage" -> SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
             r.id == "a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
             r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
+            r.id == "sounds" -> updatePrefs(p.copy(sounds = !p.sounds))
             r.id == "sleep" -> cycleSleepTimer()
             r.id == "restart" -> confirm("Restart Prism TV?", "The launcher will close and reopen.", "Restart") { restartTick++ }
             r.id == "reset" -> confirm(
@@ -1355,6 +1441,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 updatePrefs(p.copy(hiddenApps = if (id in p.hiddenApps) p.hiddenApps - id else p.hiddenApps + id))
             }
         }
+        // A setting that changed in place gets the toggle cue (a banner's cue wins if one was shown).
+        if (prefs != p && keyCue == null) cue(Cue.Toggle)
     }
 
     private fun rangeLabel(): String = when (prefs.aerialRange) {
@@ -1373,7 +1461,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         layout = null
         updatePrefs(LauncherPrefs())
         settingsStack = listOf(SettingsPage.Root)
-        showBanner("Prism TV", "Settings have been reset.", Icons.Rounded.Info)
+        showBanner("Prism TV", "Settings have been reset.", Icons.Rounded.Info, Cue.Confirm)
     }
 
     // ================================================================= dialogs & banners
@@ -1392,7 +1480,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         return true
     }
 
-    fun showBanner(title: String, message: String, icon: ImageVector = Icons.Rounded.PowerSettingsNew) {
+    fun showBanner(
+        title: String,
+        message: String,
+        icon: ImageVector = Icons.Rounded.PowerSettingsNew,
+        sound: Cue? = Cue.Notify,
+    ) {
+        // During a key press an explicit cue (e.g. Toggle) wins; otherwise the banner's cue plays.
+        if (sound != null) {
+            if (inKey) {
+                if (keyCue == null || sound != Cue.Notify) keyCue = sound
+            } else {
+                sounds.play(sound)
+            }
+        }
         val spec = BannerSpec(title, message, icon)
         banner = spec
         bannerJob?.cancel()
@@ -1484,7 +1585,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "dialog" -> {
                 overlay = Overlay.Settings
-                settingsFocus[SettingsPage.Root] = 11
+                settingsFocus[SettingsPage.Root] = 12
                 confirm(
                     "Reset Prism TV?",
                     "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",
@@ -1494,6 +1595,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             "launch" -> (items.getOrNull(c) as? AppItem)?.let { activateItem(it, c) }
             "aerial" -> startScreensaver()
         }
+    }
+
+    override fun onCleared() {
+        sounds.release()
     }
 }
 
