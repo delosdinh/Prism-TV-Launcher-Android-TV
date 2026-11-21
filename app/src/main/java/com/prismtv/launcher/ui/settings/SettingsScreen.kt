@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Apps
@@ -263,6 +264,8 @@ private fun SettingsList(rows: List<SettingsRow>, focus: Int, modifier: Modifier
     Box(modifier.clipToBounds()) {
         Column(
             Modifier
+                // Lay out the whole list (not just what fits the viewport) so long pages scroll fully.
+                .wrapContentHeight(align = Alignment.Top, unbounded = true)
                 .padding(horizontal = 12.dp)
                 .offset { IntOffset(0, -scroll.roundToPx() + 6.dp.roundToPx()) }
         ) {
