@@ -270,6 +270,9 @@ private fun GlyphTile(g: Glyph, modifier: Modifier, corner: Dp, iconSize: Dp) {
     Box(
         modifier
             .then(if (big) Modifier.glow(g.bottom, corner) else Modifier)
+            // Clip after the glow so the top light below stays inside the rounded tile (it was
+            // drawn as a full rectangle, leaving faint square corners above the tile).
+            .clip(shape)
             .background(Brush.verticalGradient(listOf(g.top, g.bottom)), shape)
             .drawBehind {
                 // Soft top light, like the glossy tvOS settings tiles.
