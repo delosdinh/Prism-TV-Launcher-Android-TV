@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -187,8 +188,13 @@ fun LaunchOverlay(vm: LauncherViewModel) {
     val backdrop = LocalBackdrop.current
     LaunchedEffect(anim.id) {
         launch { snapshotFlow { progress.value }.collect { vm.launchProgress = it } }
+        // The overlay's first frame is the expensive one (the blurred Home Screen is set up). Let it land
+        // before the timeline starts, so the zoom never stalls on the tile and then jumps.
+        withFrameNanos { }
+        withFrameNanos { }
         if (anim.reverse) {
-            progress.animateTo(0f, spring(dampingRatio = 0.9f, stiffness = 300f, visibilityThreshold = 0.002f))
+            // Back to Home, as on tvOS: a quick, fully settled shrink into the tile (about 0.35 s).
+            progress.animateTo(0f, spring(dampingRatio = 1f, stiffness = 300f, visibilityThreshold = 0.002f))
         } else {
             launch {
                 // Start the app as the tile nears full screen; it fades in over the grown artwork, so no
@@ -196,9 +202,10 @@ fun LaunchOverlay(vm: LauncherViewModel) {
                 snapshotFlow { progress.value }.first { it >= 0.55f }
                 vm.onLaunchMidpoint(anim, null, null)
             }
-            press.animateTo(0.93f, tween(90, easing = FastOutSlowInEasing))
-            launch { press.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = 500f)) }
-            progress.animateTo(1f, spring(dampingRatio = 0.9f, stiffness = 300f, visibilityThreshold = 0.002f))
+            press.animateTo(0.94f, tween(80, easing = FastOutSlowInEasing))
+            launch { press.animateTo(1f, spring(dampingRatio = 0.8f, stiffness = 500f)) }
+            // Opening, as on tvOS: the tile grows to full screen in about 0.45 s, easing in without overshoot.
+            progress.animateTo(1f, spring(dampingRatio = 1f, stiffness = 200f, visibilityThreshold = 0.002f))
         }
         vm.onLaunchZoomComplete(anim)
     }
@@ -209,7 +216,8 @@ fun LaunchOverlay(vm: LauncherViewModel) {
     val fs = HomeLayout.FocusScale
     // Rounded like the icon while it travels; square only as it lands full screen.
     val radius = 13f * fs * (1f - smoothstep(0.78f, 1f, pc)) + 8f * smoothstep(0.1f, 0.5f, pc) * (1f - smoothstep(0.7f, 1f, pc))
-    val blur = smoothstep(0f, 0.55f, pc)
+    // Opening: Home blurs and dims early. Back to Home: it sharpens as soon as the window starts to shrink.
+    val blur = if (anim.reverse) smoothstep(0.3f, 1f, pc) else smoothstep(0f, 0.4f, pc)
 
     Box(Modifier.fillMaxSize()) {
         // Home blurs behind the growing window.
@@ -229,7 +237,7 @@ fun LaunchOverlay(vm: LauncherViewModel) {
                             )
                         }
                     }
-                    drawRect(Color.Black.copy(alpha = 0.22f))
+                    drawRect(Color.Black.copy(alpha = 0.28f))
                 }
         )
         // The window: the icon itself, growing; its artwork dissolves into the launch colour.
