@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOpen
@@ -402,6 +403,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Title shown at the top of a Settings page. */
     fun pageTitle(page: SettingsPage): String = when (page) {
         SettingsPage.WidgetApps -> widgetRowsAll.firstOrNull { it.key == widgetDetailKey }?.title ?: page.title
+        SettingsPage.Banner -> allApps.firstOrNull { it.id == bannerAppId }?.label?.let { "$it Banner" } ?: page.title
         else -> page.title
     }
     /** Rows shown above the dock, top to bottom (at most two fit above it). */
@@ -497,6 +499,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Settings › Banner: the app whose banner is being chosen. */
     var bannerAppId by mutableStateOf<String?>(null)
+        private set
+    /** Settings › Icon Pack: icon packs installed on the TV. */
+    var iconPacks by mutableStateOf<List<com.prismtv.launcher.data.IconPacks.Pack>>(emptyList())
         private set
 
     /** CI: a title logo for the demo Top Shelf (demo titles have no IMDb id). */
@@ -786,7 +791,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         loadInputs()
         if (prefs.demoContent) return
         viewModelScope.launch {
-            val loaded = withContext(Dispatchers.IO) { appsRepo.load() }
+            val pack = prefs.iconPack
+            val custom = prefs.customBanners
+            val loaded = withContext(Dispatchers.IO) {
+                val base = appsRepo.load()
+                // An icon pack's banners, then any you picked from your pictures, over the apps' own.
+                val packed = runCatching { com.prismtv.launcher.data.IconPacks.apply(ctx, pack, base) }.getOrDefault(base)
+                runCatching { com.prismtv.launcher.data.IconPacks.applyCustom(ctx, custom, packed) }.getOrDefault(packed)
+            }
             loaded.forEach { a ->
                 artRepo.registerBrand(a.id, a.banner?.asAndroidBitmap(), a.icon?.asAndroidBitmap(), a.tint.toArgb())
             }
@@ -1061,6 +1073,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 add(MenuAction("folder", if (parent == null) "Add to Folder" else "Move to Folder", Icons.Rounded.CreateNewFolder))
                 if (parent != null) add(MenuAction("unfolder", "Remove from Folder", Icons.Rounded.FolderOpen))
                 if (parent != null) add(MenuAction("renameParent", "Rename Folder", Icons.Rounded.Edit))
+                add(MenuAction("banner", "Change Banner", Icons.Rounded.Image))
                 add(MenuAction("info", "App Info", Icons.Rounded.Info))
                 add(MenuAction("hide", "Hide from Home Screen", Icons.Rounded.VisibilityOff))
             }
@@ -1192,6 +1205,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 SystemActions.appInfo(ctx, app.packageName)
             }
             a.id == "hide" && app != null -> hideApp(app)
+            a.id == "banner" && app != null -> if (demo) {
+                showBanner(app.label, "Demo apps keep their artwork. Change Banner works for installed apps.", Icons.Rounded.Info)
+            } else {
+                openBannerPage(app)
+            }
             a.id == "renameInput" && app != null -> renameInput(app.id.removePrefix(com.prismtv.launcher.data.TvInputs.Prefix))
             a.id == "delete" && app != null -> if (demo) {
                 showBanner(app.label, "Demo apps can't be deleted. Use Hide instead.", Icons.Rounded.Info, Cue.Error)
@@ -2044,6 +2062,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openSettings() {
         statusCache = null
+        loadIconPacks()
         settingsStack = listOf(SettingsPage.Root)
         overlay = Overlay.Settings
     }
@@ -2078,6 +2097,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(status().usage), chevron = true),
             SettingsRow("startupApp", "Open at Startup", "APPS", startupAppLabel(), chevron = true),
+            SettingsRow("iconPack", "Icon Pack", "APPS", iconPackLabel(), chevron = true),
             SettingsRow("inputs", "Inputs", "APPS", if (inputApps.isEmpty()) "None" else inputApps.size.toString(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
@@ -2485,6 +2505,28 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "startupApp" -> pushPage(SettingsPage.Startup)
             r.id == "inputs" -> pushPage(SettingsPage.Inputs)
+            r.id == "iconPack" -> {
+                pushPage(SettingsPage.IconPack)
+                loadIconPacks()
+            }
+            r.id == "ip:none" -> {
+                updatePrefs(p.copy(iconPack = ""))
+                refreshApps()
+            }
+            r.id.startsWith("ip:") && r.id != "ip:hint" -> {
+                updatePrefs(p.copy(iconPack = r.id.removePrefix("ip:")))
+                refreshApps()
+                showBanner("Icon Pack", "${r.title} is on. Apps it doesn't cover keep their own banners.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            }
+            r.id == "bn:default" -> bannerAppId?.let { id ->
+                updatePrefs(p.copy(customBanners = p.customBanners - id))
+                refreshApps()
+            }
+            r.id == "bn:allow" -> photoPermissionTick++
+            r.id.startsWith("bn:photo:") -> bannerAppId?.let { id ->
+                updatePrefs(p.copy(customBanners = p.customBanners + (id to "photo:" + r.id.removePrefix("bn:photo:"))))
+                refreshApps()
+            }
             r.id == "backup" -> {
                 pushPage(SettingsPage.Backup)
                 loadBackups()
@@ -2655,8 +2697,44 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             showBanner("Restored", "Your settings, layout and folders are back.", Icons.Rounded.CheckCircle, Cue.Confirm)
         }
     }
-    private fun iconPackRows(): List<SettingsRow> = emptyList()
-    private fun bannerRows(): List<SettingsRow> = emptyList()
+    private fun iconPackLabel(): String =
+        prefs.iconPack.takeIf { it.isNotEmpty() }?.let { pkg -> iconPacks.firstOrNull { it.pkg == pkg }?.label ?: "On" } ?: "None"
+
+    private fun iconPackRows(): List<SettingsRow> =
+        listOf(SettingsRow("ip:none", "None", "ICON PACK", "Apps' own banners", selectable = true, checked = prefs.iconPack.isEmpty())) +
+            iconPacks.map { SettingsRow("ip:${it.pkg}", it.label, "INSTALLED", selectable = true, checked = prefs.iconPack == it.pkg) }
+                .ifEmpty { listOf(SettingsRow("ip:hint", "Install an icon pack from the Play Store to use it here", "INSTALLED")) }
+
+    fun loadIconPacks() {
+        viewModelScope.launch {
+            iconPacks = withContext(Dispatchers.IO) { com.prismtv.launcher.data.IconPacks.installed(ctx) }
+        }
+    }
+
+    private fun bannerRows(): List<SettingsRow> {
+        val id = bannerAppId ?: return emptyList()
+        val current = prefs.customBanners[id]
+        return listOf(SettingsRow("bn:default", "App's Own Banner", "BANNER", selectable = true, checked = current == null)) +
+            if (!hasPhotoAccess()) {
+                listOf(SettingsRow("bn:allow", "Allow Access to Your Pictures", "YOUR PICTURES", chevron = true))
+            } else if (photos.isEmpty()) {
+                listOf(SettingsRow("bn:none", "Save pictures to the TV's Pictures or Download folder", "YOUR PICTURES"))
+            } else {
+                photos.map { (uri, name) ->
+                    SettingsRow("bn:photo:$uri", name, "YOUR PICTURES", selectable = true, checked = current == "photo:$uri")
+                }
+            }
+    }
+
+    /** Hold OK › Change Banner: pick one of your pictures for an app. */
+    private fun openBannerPage(app: LauncherApp) {
+        bannerAppId = app.id
+        statusCache = null
+        settingsStack = listOf(SettingsPage.Banner)
+        settingsFocus[SettingsPage.Banner] = if (prefs.customBanners[app.id] == null) 0 else 1
+        overlay = Overlay.Settings
+        loadPhotos()
+    }
     private fun profileRows(): List<SettingsRow> = emptyList()
     private fun restrictionRows(): List<SettingsRow> = emptyList()
 
@@ -3000,6 +3078,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 if (page == SettingsPage.WidgetApps) widgetDetailKey = b.getString("widgetKey") ?: "all:continue"
                 if (page == SettingsPage.Wallpaper || page == SettingsPage.Profile) loadPhotos()
                 if (page == SettingsPage.Backup) loadBackups()
+                if (page == SettingsPage.IconPack) loadIconPacks()
                 settingsStack = if (page == SettingsPage.Root) listOf(SettingsPage.Root) else listOf(SettingsPage.Root, page)
                 settingsFocus[page] = b.getInt("focus", 0)
             }
