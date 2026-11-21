@@ -1,11 +1,9 @@
-e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/keyboard/KeyboardController.kt:55:9 Platform declaration clash: The following declarations have the same JVM signature (setLayer(I)V):
-    fun `<set-layer>`(`<set-?>`: Int): Unit defined in com.prismtv.launcher.ui.keyboard.KeyboardController
-    fun setLayer(target: Int): Unit defined in com.prismtv.launcher.ui.keyboard.KeyboardController
-e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/keyboard/KeyboardController.kt:271:5 Platform declaration clash: The following declarations have the same JVM signature (setLayer(I)V):
-    fun `<set-layer>`(`<set-?>`: Int): Unit defined in com.prismtv.launcher.ui.keyboard.KeyboardController
-    fun setLayer(target: Int): Unit defined in com.prismtv.launcher.ui.keyboard.KeyboardController
+e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:488:5 Property must be initialized.
+e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:489:9 A 'val' property cannot have a setter.
 
 > Task :app:compileDebugKotlin FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1795281517383.json
+
 --
 FAILURE: Build failed with an exception.
 
