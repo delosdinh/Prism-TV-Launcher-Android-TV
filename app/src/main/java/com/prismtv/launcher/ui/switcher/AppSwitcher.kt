@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -69,6 +70,11 @@ fun AppSwitcher(vm: LauncherViewModel) {
         label = "switcherOpen",
     )
     if (open < 0.002f) return
+    val backdrop = LocalBackdrop.current
+    DisposableEffect(backdrop) {
+        backdrop.lensSuspended = true
+        onDispose { backdrop.lensSuspended = false }
+    }
 
     Box(Modifier.fillMaxSize()) {
         // Blurred, dimmed Home Screen behind the deck.

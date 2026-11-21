@@ -76,6 +76,13 @@ class BackdropState(
     var fallbackDim by mutableStateOf(Color.Transparent)
     var rootSize by mutableStateOf(IntSize(1920, 1080))
 
+    /**
+     * While the App Switcher shows the Home Screen as a scaled, translucent card, lens shaders inside
+     * it fall back to the band approximation: nesting runtime-shader layers inside that card has
+     * stalled GPU drivers (it reliably crashed the Android 14 emulator).
+     */
+    var lensSuspended by mutableStateOf(false)
+
     fun blurred(source: GlassSource): GraphicsLayer = when (source) {
         GlassSource.Background -> bgBlur
         GlassSource.Scene -> sceneBlur
@@ -165,7 +172,7 @@ fun Modifier.glass(
                 is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
                 else -> 0f
             }
-            val useShader = liquid && lens && !frosted && SupportsLensShader
+            val useShader = liquid && lens && !frosted && SupportsLensShader && !backdrop.lensSuspended
             val lensEffect = if (useShader) {
                 LensShader.effect(size.width, size.height, margin, radius, bevel, strength, isDark)
             } else null
