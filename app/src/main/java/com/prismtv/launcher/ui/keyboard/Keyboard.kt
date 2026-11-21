@@ -322,7 +322,9 @@ private fun KeyCap(
             .graphicsLayer {
                 scaleX = s
                 scaleY = s
-                shadowElevation = lerpF(1f, 14f, ((s - 1f) / 0.14f).coerceIn(0f, 1f)).dp.toPx()
+                // See-through Clear keys would show their own shadow through them, so only the focused key has one.
+                val lift = ((s - 1f) / 0.14f).coerceIn(0f, 1f)
+                shadowElevation = (if (c.clear) lerpF(0f, 14f, lift) else lerpF(1f, 14f, lift)).dp.toPx()
                 this.shape = shape
                 clip = true
             }
@@ -423,7 +425,12 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance, clear: Boolean = fa
                 Box(
                     Modifier
                         .size(m.width.dp, m.height.dp)
-                        .glass(RoundedCornerShape(30.dp), c.panel, GlassSource.Full, elevation = 26.dp, frosted = !clear, rimStrength = if (clear) 1.3f else 1f)
+                        .then(
+                            // Clear glass bends a softened copy of the screen (like an open folder), so the
+                            // keys stay legible over busy icons; there's no tint, just a light dimming.
+                            if (clear) Modifier.glass(RoundedCornerShape(30.dp), Color.Black.copy(alpha = 0.16f), GlassSource.Full, elevation = 26.dp, blurredLens = true, rimStrength = 1.3f)
+                            else Modifier.glass(RoundedCornerShape(30.dp), c.panel, GlassSource.Full, elevation = 26.dp, frosted = true)
+                        )
                         .padding(m.pad.dp)
                 ) {
                     KeyboardKeys(kb, c, m, active = live != null)
