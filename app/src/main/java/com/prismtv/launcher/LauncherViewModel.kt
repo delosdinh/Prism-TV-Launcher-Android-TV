@@ -195,6 +195,10 @@ object CC {
     const val Memory = 13
     const val Access = 14
     const val Screensaver = 15
+    /** Now Playing's buttons: previous, play/pause, next. */
+    const val NowPrev = 20
+    const val NowPlay = 21
+    const val NowNext = 22
     /** Notification rows in Control Centre: [Notification] + index. */
     const val Notification = 100
 }
@@ -472,6 +476,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------------------------------------------------------- notifications
     var notifications by mutableStateOf<List<PrismNotification>>(emptyList())
+    /** What another app is playing (Control Centre's Now Playing tile); null when nothing is. */
+    var nowPlaying by mutableStateOf<com.prismtv.launcher.system.NowPlaying?>(null)
+        private set
+    /** Notifications Control Centre has room for (two when Now Playing is showing). */
+    val ccNotificationsShown: Int get() = notifications.size.coerceAtMost(if (nowPlaying != null) 2 else 3)
         private set
 
     /** CI: a title logo for the demo Top Shelf (demo titles have no IMDb id). */
@@ -1315,6 +1324,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         refreshRecommendations()
         maybeAutoCheckForUpdate()
         refreshWeather()
+        // Picks up Notification access granted while Prism was away.
+        com.prismtv.launcher.system.MediaWatcher.start(ctx)
         pendingReturn?.let { anim ->
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
@@ -1685,11 +1696,48 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     )
 
     private fun ccKey(k: NavKey): Boolean {
-        val shown = notifications.size.coerceAtMost(3)
+        val shown = ccNotificationsShown
+        val playing = nowPlaying != null
+        // The remote's play/pause key controls whatever is playing, from anywhere in Control Centre.
+        if (k == NavKey.PlayPause && playing) {
+            com.prismtv.launcher.system.MediaWatcher.playPause()
+            cue(Cue.Toggle)
+            return true
+        }
+        if (ccFocus in CC.NowPrev..CC.NowNext) {
+            if (!playing) {
+                ccFocus = CC.Memory
+                return true
+            }
+            when (k) {
+                NavKey.Up -> ccFocus = when (ccFocus) { CC.NowPrev -> CC.Picture; CC.NowNext -> CC.Screensaver; else -> CC.Memory }
+                NavKey.Down -> if (shown > 0) ccFocus = CC.Notification
+                NavKey.Left -> if (ccFocus > CC.NowPrev) ccFocus--
+                NavKey.Right -> if (ccFocus < CC.NowNext) ccFocus++
+                NavKey.Select -> {
+                    when (ccFocus) {
+                        CC.NowPrev -> com.prismtv.launcher.system.MediaWatcher.previous()
+                        CC.NowNext -> com.prismtv.launcher.system.MediaWatcher.next()
+                        else -> com.prismtv.launcher.system.MediaWatcher.playPause()
+                    }
+                    cue(Cue.Toggle)
+                }
+                // Hold OK to go to the app that's playing.
+                NavKey.LongSelect -> {
+                    closeOverlay()
+                    if (!com.prismtv.launcher.system.MediaWatcher.open(ctx)) {
+                        nowPlaying?.let { showBanner(it.appLabel, "This app couldn't be opened.", Icons.Rounded.Info, Cue.Error) }
+                    }
+                }
+                NavKey.Menu -> closeOverlay()
+                NavKey.PlayPause -> Unit
+            }
+            return true
+        }
         if (ccFocus >= CC.Notification) {
             val i = ccFocus - CC.Notification
             when (k) {
-                NavKey.Up -> ccFocus = if (i > 0) ccFocus - 1 else CC.Memory
+                NavKey.Up -> ccFocus = if (i > 0) ccFocus - 1 else if (playing) CC.NowPlay else CC.Memory
                 NavKey.Down -> if (i < shown - 1) ccFocus++
                 NavKey.Select -> notifications.getOrNull(i)?.let { n ->
                     closeOverlay()
@@ -1710,6 +1758,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Select -> { ccSelect(ccFocus); -1 }
             NavKey.Menu -> { closeOverlay(); -1 }
             NavKey.LongSelect, NavKey.PlayPause -> -1
+        }
+        // Below the circles: Now Playing's buttons when something's playing, then the notifications.
+        if (next == CC.Notification && playing) {
+            ccFocus = when (ccFocus) { CC.Picture -> CC.NowPrev; CC.Screensaver -> CC.NowNext; else -> CC.NowPlay }
+            return true
         }
         if (next == CC.Notification && shown == 0) return true
         if (next >= 0) ccFocus = next
@@ -1787,6 +1840,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 delay(15_000)
                 val minutes = prefs.screensaverAfter
                 if (minutes <= 0 || !isResumed || debugDriven) continue
+                // Music or a video playing counts as being watched: wait the full time after it stops.
+                if (prefs.screensaverWaitForMedia && com.prismtv.launcher.system.MediaWatcher.isPlaying(ctx)) {
+                    lastInteraction = SystemClock.elapsedRealtime()
+                    continue
+                }
                 if (SystemClock.elapsedRealtime() - lastInteraction < minutes * 60_000L) continue
                 // Never over something half-done.
                 if (dialog != null || launchAnim != null || movingId != null || contextMenu != null || keyboard != null) continue
@@ -2001,6 +2059,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Screensaver -> listOf(
             SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
             SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
+            SettingsRow("ss:media", "Wait While Media Plays", "SCREENSAVER", onOff(prefs.screensaverWaitForMedia)),
             SettingsRow("ss:source", "Video Source", "SCREENSAVER", prefs.aerialSource.label),
             SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
             SettingsRow("ss:range", "Dynamic Range", "SCREENSAVER", rangeLabel()),
@@ -2326,6 +2385,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val i = StartAfterChoices.indexOf(p.screensaverAfter)
                 updatePrefs(p.copy(screensaverAfter = StartAfterChoices[(i + 1) % StartAfterChoices.size]))
             }
+            r.id == "ss:media" -> updatePrefs(p.copy(screensaverWaitForMedia = !p.screensaverWaitForMedia))
             r.id == "ss:source" -> updatePrefs(p.copy(aerialSource = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]))
             r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
@@ -2657,6 +2717,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             liteMode = b.getBoolean("lite", false),
         )
         debugTitleArt = b.getString("logoId")?.let { com.prismtv.launcher.data.TitleLogos.refFor(it) }
+        // A fixed Now Playing for Control Centre screenshots.
+        com.prismtv.launcher.system.MediaWatcher.demo(
+            b.getString("nowPlaying")?.let { t ->
+                com.prismtv.launcher.system.NowPlaying(
+                    pkg = "demo.music", appLabel = "Music", title = t, subtitle = "Low Tide Sessions",
+                    art = null, appIcon = null, playing = !b.getBoolean("paused", false),
+                )
+            }
+        )
         // A banner that stays up for the screenshot.
         bannerJob?.cancel()
         banner = b.getString("banner")?.let { BannerSpec("Prism TV Updated", it, Icons.Rounded.CheckCircle) }
@@ -2773,11 +2842,23 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             PrismNotificationListener.notifications.collect { list ->
                 notifications = list
-                if (overlay == Overlay.ControlCentre && ccFocus >= CC.Notification && ccFocus - CC.Notification >= list.size.coerceAtMost(3)) {
-                    ccFocus = if (list.isEmpty()) CC.Picture else CC.Notification + (list.size.coerceAtMost(3) - 1)
+                if (overlay == Overlay.ControlCentre && ccFocus >= CC.Notification && ccFocus - CC.Notification >= ccNotificationsShown) {
+                    ccFocus = if (ccNotificationsShown == 0) CC.Picture else CC.Notification + (ccNotificationsShown - 1)
                 }
             }
         }
+        viewModelScope.launch {
+            com.prismtv.launcher.system.MediaWatcher.nowPlaying.collect { np ->
+                nowPlaying = np
+                if (overlay == Overlay.ControlCentre) {
+                    if (np == null && ccFocus in CC.NowPrev..CC.NowNext) ccFocus = CC.Memory
+                    if (ccFocus >= CC.Notification && ccFocus - CC.Notification >= ccNotificationsShown) {
+                        ccFocus = if (ccNotificationsShown == 0) CC.Memory else CC.Notification + (ccNotificationsShown - 1)
+                    }
+                }
+            }
+        }
+        com.prismtv.launcher.system.MediaWatcher.start(ctx)
         viewModelScope.launch {
             snapshotFlow { wallpaperKey }
                 .distinctUntilChanged()

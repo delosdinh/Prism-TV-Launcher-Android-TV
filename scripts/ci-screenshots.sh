@@ -135,6 +135,8 @@ shot 52-settings-switches          "${B[@]}" "${DARK[@]}" --es screen settings -
 shot 52b-settings-apps-switches    "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page Apps --ei focus 1
 shot 53-keyboard-field-balanced    "${B[@]}" --es appearance balanced --es glass liquid --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 1
 shot 53b-keyboard-clear            "${B[@]}" --es appearance balanced --es glass liquid --es keyboardColour clear --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 3
+shot 55-cc-now-playing             "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei focus 21 --es nowPlaying "'Golden Hour'" --ei notify 3
+shot 55b-cc-now-playing-light      "${B[@]}" --es appearance light --es glass liquid --es screen controlcentre --ei focus 22 --es nowPlaying "'Golden Hour'" --ez paused true
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14

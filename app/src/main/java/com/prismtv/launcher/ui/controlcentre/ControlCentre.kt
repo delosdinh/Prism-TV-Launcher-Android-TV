@@ -22,6 +22,11 @@ import androidx.compose.material.icons.rounded.AccessibilityNew
 import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.SettingsEthernet
@@ -74,6 +79,8 @@ private const val Circle = 46f
 private const val CirclesTop = TilesTop + Big + Gutter + PillH + 9f
 private const val NotesTop = CirclesTop + Circle + 40f
 private const val NoteH = 54f
+private const val NowTop = CirclesTop + Circle + 38f
+private const val NowH = 72f
 
 private val captions = mapOf(
     CC.Picture to "Picture & Display",
@@ -217,20 +224,32 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     .graphicsLayer { alpha = if (caption != null) 1f else 0f },
                 align = TextAlign.Center, shadow = true,
             )
-            // Notifications: the latest three, newest first. Select opens one; hold OK clears it.
-            vm.notifications.take(3).forEachIndexed { i, n ->
+            // Now Playing: what another app is playing, with previous / play-pause / next.
+            val np = vm.nowPlaying
+            if (np != null) {
+                NowPlayingTile(
+                    np, f,
+                    Modifier
+                        .offset(0.dp, NowTop.dp)
+                        .size(ClusterW.dp, NowH.dp),
+                )
+            }
+            // Notifications: the latest few, newest first. Select opens one; hold OK clears it.
+            val notesTop = if (np != null) NowTop + NowH + Gutter else NotesTop
+            val shown = vm.ccNotificationsShown
+            vm.notifications.take(shown).forEachIndexed { i, n ->
                 NotificationTile(
                     n, f == CC.Notification + i,
                     Modifier
-                        .offset(0.dp, (NotesTop + i * (NoteH + Gutter)).dp)
+                        .offset(0.dp, (notesTop + i * (NoteH + Gutter)).dp)
                         .size(ClusterW.dp, NoteH.dp),
                 )
             }
-            val more = vm.notifications.size - 3
-            if (more > 0) {
+            val more = vm.notifications.size - shown
+            if (more > 0 && np == null) {
                 PText(
                     "$more more", 12.sp, FontWeight.Medium, ink.copy(alpha = 0.75f),
-                    Modifier.offset(6.dp, (NotesTop + 3 * (NoteH + Gutter)).dp), shadow = true,
+                    Modifier.offset(6.dp, (notesTop + shown * (NoteH + Gutter)).dp), shadow = true,
                 )
             }
         }
@@ -358,5 +377,71 @@ private fun NotificationTile(n: PrismNotification, focused: Boolean, modifier: M
                 PText(n.text.ifBlank { n.appLabel }, 11.sp, FontWeight.Normal, c.copy(alpha = 0.72f))
             }
         }
+    }
+}
+
+@Composable
+private fun NowPlayingTile(np: com.prismtv.launcher.system.NowPlaying, focus: Int, modifier: Modifier) {
+    val theme = LocalPrism.current
+    val p = theme.palette
+    val fg = if (p.isDark) Color.White else p.textPrimary
+    val shape = RoundedCornerShape(22.dp)
+    val tint = theme.overlayVeil(dark = 0.40f, light = 0.56f)
+    Box(modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp)) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Artwork (or the app's icon), like the tvOS Now Playing tile.
+            val art = np.art ?: np.appIcon
+            Box(
+                Modifier
+                    .size(52.dp)
+                    .shadow(6.dp, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Brush.linearGradient(listOf(Color(0xFFFF375F), Color(0xFFBF5AF2)))),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (art != null) {
+                    androidx.compose.foundation.Image(
+                        art, null, Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    )
+                } else {
+                    PIcon(Icons.Rounded.MusicNote, Color.White, 26.dp)
+                }
+            }
+            HSpace(10.dp)
+            Column(Modifier.weight(1f)) {
+                PText(np.title, 12.sp, FontWeight.SemiBold, fg, lineHeight = 14.sp)
+                PText(np.subtitle, 11.sp, FontWeight.Normal, fg.copy(alpha = 0.68f), lineHeight = 13.sp)
+                VSpace(4.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    MediaButton(Icons.Rounded.SkipPrevious, focus == CC.NowPrev)
+                    HSpace(6.dp)
+                    MediaButton(if (np.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, focus == CC.NowPlay)
+                    HSpace(6.dp)
+                    MediaButton(Icons.Rounded.SkipNext, focus == CC.NowNext)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MediaButton(icon: ImageVector, focused: Boolean) {
+    val theme = LocalPrism.current
+    val p = theme.palette
+    val scale by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.6f, stiffness = 420f), label = "media")
+    Box(
+        Modifier
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .size(28.dp)
+            .then(if (focused) Modifier.shadow(10.dp, CircleShape).background(theme.controlFocused(), CircleShape) else Modifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        PIcon(icon, if (focused) p.textFocused else if (p.isDark) Color.White else p.textPrimary, 20.dp)
     }
 }

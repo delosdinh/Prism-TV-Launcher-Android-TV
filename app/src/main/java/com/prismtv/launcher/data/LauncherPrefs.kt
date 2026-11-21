@@ -113,6 +113,8 @@ data class LauncherPrefs(
     val uiTransparency: UiTransparency = UiTransparency.Medium,
     /** Minutes without a button press on the Home Screen before the aerials start; 0 = Never. */
     val screensaverAfter: Int = 2,
+    /** Don't start the screensaver while music or a video is playing. */
+    val screensaverWaitForMedia: Boolean = true,
     /** Index into [TextScales]. */
     val textSize: Int = DefaultTextSize,
     val topShelfStyle: TopShelfStyle = TopShelfStyle.FullScreen,
@@ -213,6 +215,7 @@ class PrefsStore(context: Context) {
             temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
             sounds = sp.getBoolean("sounds", d.sounds),
             screensaverAfter = sp.getInt("screensaverAfter", d.screensaverAfter).takeIf { it in StartAfterChoices } ?: d.screensaverAfter,
+            screensaverWaitForMedia = sp.getBoolean("screensaverWaitForMedia", d.screensaverWaitForMedia),
         )
     }
 
@@ -241,6 +244,7 @@ class PrefsStore(context: Context) {
             .putBoolean("sounds", p.sounds)
             .putString("glassColour", p.glassColour.name)
             .putInt("screensaverAfter", p.screensaverAfter)
+            .putBoolean("screensaverWaitForMedia", p.screensaverWaitForMedia)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)
