@@ -265,9 +265,11 @@ fun Modifier.glass(
                         drawBlurred()
                         drawRect(tint)
                         if (liquid && bentRim) {
+                            // Bend the (blurred) backdrop around the rim: thick-glass edges without
+                            // sharp fragments of what's behind showing through.
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                drawRaw(strength * 0.30f, strength * 0.30f)
-                                drawRect(tint.copy(alpha = tint.alpha * 0.5f))
+                                drawBlurred(strength * 0.45f)
+                                drawRect(tint)
                                 drawRect(rimLight)
                             }
                             drawRect(specular)
