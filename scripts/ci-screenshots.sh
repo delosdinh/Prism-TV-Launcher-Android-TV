@@ -51,8 +51,8 @@ adb install -r -g "$APK" || { adb uninstall "$PKG"; adb install -r -g "$APK"; }
 # Dismiss anything the TV setup flow left on screen.
 adb shell input keyevent KEYCODE_WAKEUP || true
 
-start() { adb shell am start -W -n "$ACT" "$@" >/dev/null 2>&1; }
-cap() { adb exec-out screencap -p > "$OUT/$1.png"; echo "captured $1"; }
+start() { timeout 120 adb shell am start -W -n "$ACT" "$@" >/dev/null 2>&1; }
+cap() { timeout 120 adb exec-out screencap -p > "$OUT/$1.png"; echo "captured $1"; }
 shot() { local name="$1"; shift; start "$@"; sleep "${WAIT:-4}"; cap "$name"; }
 key() { adb shell input keyevent "$1"; sleep "${2:-0.9}"; }
 
@@ -70,8 +70,10 @@ shot 05-grid-folder-focus          "${B[@]}" "${DARK[@]}" --es screen grid --ei 
 shot 06-folder-open                "${B[@]}" "${DARK[@]}" --es screen folder --ei row 1 --ei col 3 --ei focus 0
 shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei row 1 --ei col 2 --ei focus 5
 shot 08-control-centre-hero        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei col 3 --ei focus 8
+if [ "$QUICK" = 0 ]; then
 shot 09-app-switcher               "${B[@]}" "${DARK[@]}" --es screen switcher
 shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher --ez lift true
+fi
 shot 11-settings-dark              "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0
 shot 12-settings-appearance-bal    "${B[@]}" --es appearance balanced --es glass liquid --es screen settings --es page Appearance --ei focus 1
 shot 13-settings-dialog-light      "${B[@]}" --es appearance light --es glass liquid --es screen dialog
@@ -106,7 +108,10 @@ if [ "$QUICK" = 0 ]; then
 fi
 
 if [ "$QUICK" = 1 ]; then
-  adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
+  timeout 60 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
+  # The switcher last: on the software-rendered API 34 emulator it has stalled the device.
+  shot 09-app-switcher "${B[@]}" "${DARK[@]}" --es screen switcher
+  timeout 60 adb logcat -d -t 800 > "$OUT/logcat-switcher.txt" 2>&1 || true
   ls -la "$OUT"
   exit 0
 fi
