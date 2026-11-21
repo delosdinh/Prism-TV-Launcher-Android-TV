@@ -930,7 +930,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 NavKey.Down -> { zone = Zone.Grid; row = 0; col = heroAppIndex }
                 NavKey.Left -> if (heroButton > 0) heroButton-- else stepHero(-1)
                 NavKey.Right -> if (heroButton < 1) heroButton++ else stepHero(1)
-                NavKey.Select, NavKey.PlayPause -> if (heroButton == 0) playHero() else openApp(dockItem)
+                NavKey.Select -> if (heroButton == 0) playHero() else showHeroInfo()
+                NavKey.PlayPause -> playHero()
                 NavKey.LongSelect -> Unit
                 NavKey.Menu -> openControlCentre()
             }
@@ -968,6 +969,34 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun openApp(item: GridItem?) {
         val idx = items.indexOf(item ?: return)
         if (idx >= 0) activateItem(item, idx)
+    }
+
+    /**
+     * Info on the Top Shelf: the title's details (meta, badges, description) in a sheet, with Play and
+     * Open App. With nothing to show, it goes straight to the title in its app.
+     */
+    private fun showHeroInfo() {
+        val hero = currentHeroItem
+        val body = listOfNotNull(
+            hero?.meta?.takeIf { it.isNotBlank() },
+            hero?.badges?.takeIf { it.isNotEmpty() }?.joinToString(" · "),
+            hero?.description?.takeIf { it.isNotBlank() },
+        ).joinToString("\n\n")
+        if (hero == null || body.isBlank()) {
+            playHero()
+            return
+        }
+        val appLabel = (dockItem as? AppItem)?.app?.label ?: hero.appLabel
+        dialog = DialogSpec(
+            hero.title,
+            body,
+            listOf(
+                DialogButton("Play") { playHero() },
+                DialogButton("Open $appLabel") { openApp(dockItem) },
+                DialogButton("Close") {},
+            ),
+        )
+        dialogFocus = 0
     }
 
     private fun playHero() {
@@ -1584,6 +1613,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         heroIndex = b.getInt("heroIndex", 0)
         when (b.getString("screen") ?: "home") {
             "hero" -> { zone = Zone.Hero; heroButton = b.getInt("button", 0) }
+            "heroinfo" -> { zone = Zone.Hero; heroButton = 1; showHeroInfo() }
             "top" -> { zone = Zone.TopBar; topIndex = b.getInt("button", 0) }
             "grid" -> { row = r.coerceAtLeast(1); col = c }
             "folder" -> {

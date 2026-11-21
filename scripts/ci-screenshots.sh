@@ -65,6 +65,7 @@ start "${B[@]}" "${DARK[@]}" --es screen home --ei col 0; sleep 6
 shot 01-home-dock-liquid-dark      "${B[@]}" "${DARK[@]}" --es screen home --ei col 0
 shot 02-home-dock-music            "${B[@]}" "${DARK[@]}" --es screen home --ei col 2
 shot 03-top-shelf-fullscreen       "${B[@]}" "${DARK[@]}" --es screen hero --ei col 1
+shot 03b-top-shelf-info            "${B[@]}" "${DARK[@]}" --es screen heroinfo --ei col 1
 shot 04-grid-focus-balanced        "${B[@]}" --es appearance balanced --es glass liquid --es screen grid --ei row 1 --ei col 1
 shot 05-grid-folder-focus          "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 3
 shot 06-folder-open                "${B[@]}" "${DARK[@]}" --es screen folder --ei row 1 --ei col 3 --ei focus 0

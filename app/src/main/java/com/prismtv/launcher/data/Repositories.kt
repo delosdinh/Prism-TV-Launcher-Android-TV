@@ -157,12 +157,21 @@ class RecentsRepository(private val context: Context) {
 
     fun record(pkg: String) {
         val list = listOf(pkg) + history().filter { it != pkg }
-        sp.edit().putString("list", list.take(20).joinToString(",")).apply()
+        sp.edit().putString("list", list.take(20).joinToString(",")).remove("dismissed:$pkg").apply()
     }
 
+    /**
+     * Closes [pkg] in the App Switcher. Android's usage history still lists it, so the dismissal time
+     * is kept too: the app only comes back once it's used again after being swiped away.
+     */
     fun remove(pkg: String) {
-        sp.edit().putString("list", history().filter { it != pkg }.joinToString(",")).apply()
+        sp.edit()
+            .putString("list", history().filter { it != pkg }.joinToString(","))
+            .putLong("dismissed:$pkg", System.currentTimeMillis())
+            .apply()
     }
+
+    private fun dismissedAt(pkg: String): Long = sp.getLong("dismissed:$pkg", 0L)
 
     fun hasUsageAccess(): Boolean = try {
         val aom = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
@@ -186,7 +195,10 @@ class RecentsRepository(private val context: Context) {
             val now = System.currentTimeMillis()
             val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, now - 3L * 24 * 3600 * 1000, now)
             val fromUsage = stats
-                .filter { it.lastTimeUsed > 0 && it.totalTimeInForeground > 0 && it.packageName != context.packageName }
+                .filter {
+                    it.lastTimeUsed > 0 && it.totalTimeInForeground > 0 && it.packageName != context.packageName &&
+                        it.lastTimeUsed > dismissedAt(it.packageName)
+                }
                 .sortedByDescending { it.lastTimeUsed }
                 .map { it.packageName }
             (fromUsage + hist).distinct()
