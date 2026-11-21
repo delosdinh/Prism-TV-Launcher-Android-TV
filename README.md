@@ -97,8 +97,9 @@ launcher counterpart to the Prism TV skin for Kodi.
   same source as the Kodi Aerial add-on), 4K on 4K TVs with HEVC, with a dip to black between
   shots and the location shown at the start of each. Falls back to slowly drifting Prism scenes
   offline. Available on demand and as the system screensaver ("Prism Aerials").
-- **App Switcher**: cascading card deck with Home as the last card; the Home Screen shrinks into
-  its card when the switcher opens. Press up to fling an app away.
+- **App Switcher**, laid out like tvOS: the Home Screen shrinks into a centred card, recent apps
+  recede in a stacked deck to its left with their icon and name above each card, and the newer card
+  lies over the focused one's edge. Press up to fling an app away.
 - **Launch transitions** (matched to tvOS): the tile's artwork grows out of its slot to fill the
   screen while the Home Screen blurs behind it, and the app fades in over the top — no black
   frame. Coming back shrinks the artwork into its icon.

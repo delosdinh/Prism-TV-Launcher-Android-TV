@@ -1812,7 +1812,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             val hero = heroesFor(a).firstOrNull()
             RecentEntry(a.id, a, hero?.art, hero?.title?.takeIf { it.isNotBlank() })
         } + RecentEntry("home", null, null)
-        switcherFocus = (recents.size - 2).coerceAtLeast(0)
+        // Like tvOS: Home shrinks into the focused card; the last app is one press to the left.
+        switcherFocus = recents.lastIndex
         switcherLift = false
         switcherClosingToHome = false
         dismissingKey = null

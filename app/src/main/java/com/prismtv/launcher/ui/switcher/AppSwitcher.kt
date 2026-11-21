@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -48,18 +45,16 @@ import com.prismtv.launcher.ui.HomeLayout
 import com.prismtv.launcher.ui.SwitcherLayout
 import com.prismtv.launcher.ui.components.AppArtwork
 import com.prismtv.launcher.ui.components.HSpace
-import com.prismtv.launcher.ui.components.PIcon
 import com.prismtv.launcher.ui.components.PText
 import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.LocalBackdrop
 import com.prismtv.launcher.ui.glass.glass
 
-private val CardShape = RoundedCornerShape(28.dp)
-
 /**
- * App Switcher. Opening it shrinks the Home Screen into the right-most card while recent apps
- * slide in as a cascading deck. Press up to fling a card away; select to zoom back into an app.
+ * App Switcher, laid out like tvOS: Home shrinks into a centred card with recent apps stacked in a
+ * receding deck to its left. The focused card sits at 17% with the next newer card lying over its
+ * right edge. Press up to fling a card away; select to zoom back into an app.
  */
 @Composable
 fun AppSwitcher(vm: LauncherViewModel) {
@@ -87,40 +82,30 @@ fun AppSwitcher(vm: LauncherViewModel) {
 
         val entries = vm.recents
         val focus = vm.switcherFocus
+        val focusIsLast = focus == entries.lastIndex
         entries.forEachIndexed { i, e ->
             val rel = i - focus
-            if (rel < -4 || rel > 2) return@forEachIndexed
+            if (rel < -5 || rel > 2) return@forEachIndexed
             key(e.key) {
-                SwitcherCard(vm, e, rel, open)
+                SwitcherCard(vm, e, rel, focusIsLast, open)
             }
-        }
-
-        val focusedIsApp = entries.getOrNull(focus)?.app != null
-        val hint by animateFloatAsState(if (focusedIsApp && visible) 1f else 0f, tween(250), label = "swHint")
-        Row(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 26.dp)
-                .graphicsLayer { alpha = hint * open },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            PIcon(Icons.Rounded.KeyboardArrowUp, Color.White.copy(alpha = 0.8f), 18.dp)
-            HSpace(4.dp)
-            PText("Swipe up to close", 12.sp, FontWeight.Medium, Color.White.copy(alpha = 0.75f))
         }
     }
 }
 
 @Composable
-private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: Float) {
+private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusIsLast: Boolean, open: Float) {
     val backdrop = LocalBackdrop.current
     val art = e.art
     // A screen-sized copy is plenty for a card (and far lighter than the full Top Shelf artwork).
     val heroArt = art?.let { vm.thumb(it, 960) }
 
-    val leftTarget = SwitcherLayout.cardLeft(rel)
-    val left by animateFloatAsState(leftTarget, spring(dampingRatio = 0.86f, stiffness = 240f), label = "cardLeft")
-    val scale by animateFloatAsState(SwitcherLayout.cardScale(rel), spring(dampingRatio = 0.86f, stiffness = 240f), label = "cardScale")
+    val move = spring<Float>(dampingRatio = 0.9f, stiffness = 260f)
+    val left by animateFloatAsState(SwitcherLayout.cardLeft(rel, focusIsLast), move, label = "cardLeft")
+    val scale by animateFloatAsState(SwitcherLayout.cardScale(rel), move, label = "cardScale")
+    // Cards further back in the deck sit a little in shadow.
+    val shade by animateFloatAsState(if (rel < 0) (0.10f + 0.06f * (-rel - 1)).coerceAtMost(0.34f) else 0f, move, label = "cardShade")
+    val labelInk by animateFloatAsState(if (rel == 0) 0.88f else 0.55f, tween(250), label = "labelInk")
     val dismissing = vm.dismissingKey == e.key
     val lift by animateFloatAsState(
         when {
@@ -155,33 +140,31 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
         ch = h
         alpha = open
     }
-    val radius = if (isHome) lerpF(0f, 28f, open) else 28f
+    val radius = if (isHome) lerpF(0f, SwitcherLayout.Radius, open) else SwitcherLayout.Radius
     val shape = RoundedCornerShape(radius.dp)
 
-    // Icon (and name) above the card. Drawn outside the card's layer so the deck's stacked icons are
-    // never clipped by a translucent card; icons stack up like the cards, names only where there's room.
-    val labelTop = y + ch * (1f - scale) / 2f - 44f - lift * 640f
-    Row(
-        Modifier
-            .offset { IntOffset(x.dp.roundToPx(), labelTop.dp.roundToPx()) }
-            .graphicsLayer { this.alpha = open * (1f - lift) },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
+    // The app's icon and name just above its card (Home has none). Drawn outside the card's layer;
+    // the deck's icons stack up like its cards, names only where there's room.
+    val app = e.app
+    if (app != null) {
+        val labelTop = y + ch * (1f - scale) / 2f - 36f - lift * 640f
+        Row(
             Modifier
-                .size(52.dp, 31.dp)
-                .shadow(8.dp, RoundedCornerShape(8.dp))
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF2B2E36))
+                .offset { IntOffset((x + 12f).dp.roundToPx(), labelTop.dp.roundToPx()) }
+                .graphicsLayer { this.alpha = open * (1f - lift) },
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            val app = e.app
-            if (app != null) AppArtwork(app) else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                PIcon(Icons.Rounded.Home, Color.White, 20.dp)
+            Box(
+                Modifier
+                    .size(47.dp, 28.dp)
+                    .shadow(6.dp, RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFF2B2E36))
+            ) { AppArtwork(app) }
+            if (rel >= 0) {
+                HSpace(12.dp)
+                PText(app.label, 18.sp, FontWeight.Medium, Color.White.copy(alpha = labelInk), shadow = true)
             }
-        }
-        if (rel >= 0) {
-            HSpace(12.dp)
-            PText(e.app?.label ?: "Home", 19.sp, FontWeight.SemiBold, Color.White, shadow = true)
         }
     }
 
@@ -194,8 +177,8 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
                 scaleY = scale
                 transformOrigin = TransformOrigin(0f, 0.5f)
                 compositingStrategy = CompositingStrategy.ModulateAlpha
-                this.alpha = alpha * (1f - lift * 0.85f) * (if (rel < 0) 0.92f else 1f)
-                shadowElevation = (if (rel == 0) 36.dp else 16.dp).toPx()
+                this.alpha = alpha * (1f - lift * 0.85f)
+                shadowElevation = (if (rel == 0) 30.dp else 14.dp).toPx()
                 this.shape = shape
                 clip = false
             }
@@ -206,7 +189,6 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
                 .clip(shape)
                 .background(Color(0xFF15161A))
         ) {
-            val app = e.app
             if (app == null) {
                 // A live miniature of the Home Screen.
                 Box(
@@ -250,23 +232,7 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
                     }
                 }
             }
-            if (rel == 0 && !isHome) {
-                // Focus rim.
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .drawBehind {
-                            drawRoundRect(
-                                Brush.linearGradient(
-                                    listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.04f), Color.White.copy(alpha = 0.25f)),
-                                    start = Offset.Zero, end = Offset(size.width, size.height),
-                                ),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx()),
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(1.5.dp.toPx()),
-                            )
-                        }
-                )
-            }
+            if (shade > 0.005f) Box(Modifier.fillMaxSize().drawBehind { drawRect(Color.Black.copy(alpha = shade)) })
         }
     }
 }

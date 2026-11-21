@@ -122,26 +122,42 @@ object FolderLayout {
 
 /** App switcher geometry: a cascading deck to the left, the focused card, upcoming cards to the right. */
 object SwitcherLayout {
-    const val CardW = 700f
-    const val CardH = 393.75f
-    const val CardTop = 78f
-    const val FocusLeft = 166f
-    const val RightGap = 14f
+    // Measured from tvOS 26: a 75% card, centred vertically.
+    const val CardW = 720f
+    const val CardH = 405f
+    const val CardTop = (HomeLayout.ScreenH - CardH) / 2f
+    const val Radius = 14f
+    /** Focused card's left edge with a newer card beside it (17%), and when it's the last card (centred). */
+    const val FocusLeft = 164f
+    const val FocusLeftLast = (HomeLayout.ScreenW - CardW) / 2f
+    /** The newer card lies on top of the focused one, overlapping its edge. */
+    const val RightOverlap = 18f
+    /** Each older card in the deck peeks out this fraction as far as the one in front of it. */
+    private const val DeckFalloff = 0.43f
 
-    fun cardLeft(rel: Int): Float = when {
-        rel == 0 -> FocusLeft
-        rel > 0 -> FocusLeft + (CardW + RightGap) * rel
-        else -> {
-            // Deck: each older card peeks out a little less.
-            val steps = floatArrayOf(0f, 96f, 136f, 152f, 160f)
-            FocusLeft - steps[(-rel).coerceAtMost(steps.size - 1)]
+    fun focusLeft(focusIsLast: Boolean): Float = if (focusIsLast) FocusLeftLast else FocusLeft
+
+    fun cardLeft(rel: Int, focusIsLast: Boolean = false): Float {
+        val base = focusLeft(focusIsLast)
+        return when {
+            rel == 0 -> base
+            rel > 0 -> base + (CardW - RightOverlap) * rel
+            else -> {
+                var x = base
+                repeat((-rel).coerceAtMost(5)) { x *= DeckFalloff }
+                x
+            }
         }
     }
 
+    /** Older cards recede a little with each step back into the deck. */
     fun cardScale(rel: Int): Float = when {
         rel >= 0 -> 1f
-        else -> 1f - 0.03f * (-rel).coerceAtMost(4)
+        else -> 1f - 0.048f * (-rel).coerceAtMost(5)
     }
 
-    fun focusedRect(): Rect = Rect(FocusLeft, CardTop, FocusLeft + CardW, CardTop + CardH)
+    fun focusedRect(focusIsLast: Boolean = false): Rect {
+        val l = focusLeft(focusIsLast)
+        return Rect(l, CardTop, l + CardW, CardTop + CardH)
+    }
 }

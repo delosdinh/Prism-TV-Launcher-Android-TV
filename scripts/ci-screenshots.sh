@@ -73,7 +73,9 @@ shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcen
 shot 08-control-centre-hero        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei col 3 --ei focus 13
 if [ "$QUICK" = 0 ]; then
 shot 09-app-switcher               "${B[@]}" "${DARK[@]}" --es screen switcher
-shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher --ez lift true
+shot 09b-app-switcher-app          "${B[@]}" "${DARK[@]}" --es screen switcher --ei focus 3
+shot 09c-app-switcher-deck-light   "${B[@]}" --es appearance light --es glass liquid --es screen switcher --ei focus 1
+shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher --ei focus 3 --ez lift true
 fi
 shot 11-settings-dark              "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0
 shot 12-settings-appearance-bal    "${B[@]}" --es appearance balanced --es glass liquid --es screen settings --es page Appearance --ei focus 1
@@ -212,7 +214,7 @@ finish motion-home
 start "${B[@]}" "${DARK[@]}" --es screen home --ei col 1; sleep 4
 record motion-switcher 11
 start "${B[@]}" "${DARK[@]}" --es screen switcher; sleep 2
-key KEYCODE_DPAD_LEFT 1.2; key KEYCODE_DPAD_UP 1.6; key KEYCODE_DPAD_RIGHT 1.0; key KEYCODE_DPAD_RIGHT 1.0
+key KEYCODE_DPAD_LEFT 1.0; key KEYCODE_DPAD_LEFT 1.0; key KEYCODE_DPAD_UP 1.6; key KEYCODE_DPAD_RIGHT 1.0; key KEYCODE_DPAD_RIGHT 1.0
 key KEYCODE_DPAD_CENTER 2
 finish motion-switcher
 
