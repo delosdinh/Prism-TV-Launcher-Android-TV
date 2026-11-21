@@ -86,9 +86,30 @@ class WidgetRepository(private val context: Context) {
         // choosing one app (Nuvio) shows all of its cards rather than its share of everyone's.
         val continueAll = byWatchNext.filterKeys { it.second == 0 }.values.toList()
         if (continueAll.isNotEmpty()) rows.add(0, WidgetRow("all:continue", "", "Continue Watching", interleave(continueAll)))
-        if (byChannel.isNotEmpty()) rows.add(minOf(1, rows.size), WidgetRow("all:recommended", "", "Recommended for You", interleave(byChannel.values.toList())))
+        // Recommended for You is for things you haven't started: some apps (Nuvio) also publish their
+        // Continue Watching as an ordinary channel, so leave out channels named like that and any card
+        // that's already in Continue Watching / Up Next.
+        val started = HashSet<String>()
+        byWatchNext.values.forEach { l -> l.forEach { started += sameTitle(it) } }
+        val fresh = byChannel.entries
+            .filterNot { (id, _) -> looksLikeProgress(names[id]?.second.orEmpty()) }
+            .map { (_, l) -> l.filterNot { sameTitle(it) in started } }
+            .filter { it.isNotEmpty() }
+        val recommended = interleave(fresh).distinctBy { sameTitle(it) }
+        if (recommended.isNotEmpty()) rows.add(minOf(1, rows.size), WidgetRow("all:recommended", "", "Recommended for You", recommended))
         return rows
     }
+
+    private fun sameTitle(h: HeroItem): String = h.appId + "|" + h.title.trim().lowercase()
+
+    /** A channel that's really a list of things you're part-way through. */
+    private fun looksLikeProgress(name: String): Boolean =
+        ProgressNames.containsMatchIn(name)
+
+    private val ProgressNames = Regex(
+        "continue|resume|keep watching|up next|watch next|recently watched|in progress|history|watching now|carry on",
+        RegexOption.IGNORE_CASE,
+    )
 
     private fun interleave(lists: List<List<HeroItem>>): List<HeroItem> {
         val out = ArrayList<HeroItem>()
