@@ -238,8 +238,8 @@ class KeyboardController(
                 lastShiftAt = now
                 sound(Cue.Toggle)
             }
-            KeyKind.Layer -> setLayer(k.target)
-            KeyKind.Emoji -> setLayer(KeyboardLayout.Emoji)
+            KeyKind.Layer -> switchLayer(k.target)
+            KeyKind.Emoji -> switchLayer(KeyboardLayout.Emoji)
             KeyKind.Mic -> toggleDictation()
             KeyKind.EmojiCategory -> {
                 emojiCategory = k.target
@@ -268,7 +268,7 @@ class KeyboardController(
         }
     }
 
-    private fun setLayer(target: Int) {
+    private fun switchLayer(target: Int) {
         val x = if (row >= 0 && layer != KeyboardLayout.Emoji) KeyboardLayout.centre(layer, row.coerceAtMost(3), col) else 5f
         layer = target
         if (target == KeyboardLayout.Emoji) {
