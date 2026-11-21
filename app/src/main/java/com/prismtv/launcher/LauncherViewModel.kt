@@ -977,11 +977,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      */
     private fun showHeroInfo() {
         val hero = currentHeroItem
-        val body = listOfNotNull(
+        // Meta and badges share one line so the description gets the room.
+        val facts = listOfNotNull(
             hero?.meta?.takeIf { it.isNotBlank() },
             hero?.badges?.takeIf { it.isNotEmpty() }?.joinToString(" · "),
-            hero?.description?.takeIf { it.isNotBlank() },
-        ).joinToString("\n\n")
+        ).joinToString(" · ")
+        val body = listOf(facts, hero?.description.orEmpty()).filter { it.isNotBlank() }.joinToString("\n\n")
         if (hero == null || body.isBlank()) {
             playHero()
             return

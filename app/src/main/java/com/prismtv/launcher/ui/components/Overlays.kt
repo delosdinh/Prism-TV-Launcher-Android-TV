@@ -92,7 +92,7 @@ fun DialogHost(spec: DialogSpec?, focus: Int) {
             VSpace(8.dp)
             PText(
                 shown.message, 13.sp, FontWeight.Normal, p.textSecondary,
-                maxLines = 5, align = TextAlign.Center, lineHeight = 18.sp,
+                maxLines = 8, align = TextAlign.Center, lineHeight = 18.sp,
             )
             VSpace(18.dp)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
