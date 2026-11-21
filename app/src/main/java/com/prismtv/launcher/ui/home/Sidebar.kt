@@ -89,12 +89,13 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
                 .width(264.dp)
                 .graphicsLayer { alpha = t }
                 .glass(RoundedCornerShape(40.dp), panelTint, GlassSource.Scene, elevation = 30.dp)
-                .padding(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 20.dp)
+                // Sized to end just above the dock with all six entries (Play Store included).
+                .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 16.dp)
         ) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .height(44.dp)
                     .padding(start = 6.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -103,11 +104,11 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
                 PText(deviceName, 17.sp, FontWeight.SemiBold, fg, Modifier.weight(1f))
                 PText(clock, 14.sp, FontWeight.Medium, fg.copy(alpha = 0.7f))
             }
-            VSpace(14.dp)
+            VSpace(8.dp)
             vm.sidebarEntries.forEachIndexed { i, e ->
                 if (e == SidebarEntry.PrismSettings) {
-                    VSpace(10.dp)
-                    PText("Settings", 13.sp, FontWeight.SemiBold, fg.copy(alpha = 0.55f), Modifier.padding(start = 16.dp, bottom = 6.dp))
+                    VSpace(6.dp)
+                    PText("Settings", 13.sp, FontWeight.SemiBold, fg.copy(alpha = 0.55f), Modifier.padding(start = 16.dp, bottom = 5.dp))
                 }
                 if (e == SidebarEntry.Store) {
                     // The store's own coloured icon, like an app.
@@ -132,7 +133,7 @@ private fun SidebarRow(icon: ImageVector, label: String, focused: Boolean, image
     Row(
         Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(42.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .then(if (focused) Modifier.shadow(14.dp, shape).background(theme.controlFocused(), shape) else Modifier)
             .padding(horizontal = 16.dp),
