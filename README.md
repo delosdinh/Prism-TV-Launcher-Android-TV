@@ -109,6 +109,12 @@ launcher counterpart to the Prism TV skin for Kodi.
   console or set-top box, like Projectivy's input shortcuts. Rename them (hold OK › Rename Input, or
   Settings › Inputs), hide them, move them or put them in folders like apps. Streaming boxes have no
   inputs, so there's nothing to show there.
+- **Profiles** (Settings › Profiles): everyone gets a name, a picture and, if they like, a 4-digit
+  passcode. **Who's Watching?** (tvOS style) appears when the TV wakes and from Control Centre's
+  profile picture; switching to a profile with a passcode asks for it (the remote's number keys work).
+  **Restrictions** hides apps from a profile (tvOS 27's per-profile app blocking): they leave the
+  Home Screen, widgets, recent apps and startup, and a restricted profile needs a passcode to open
+  Settings and doesn't get Android Settings in the sidebar. The Home Screen layout is shared.
 - **Icon Pack** (Settings › Icon Pack): use an installed icon pack (the usual launcher format).
   TV banner packs replace banners outright; square icons sit on a tile of the app's colour.
   **Change Banner** (hold OK on an app) uses one of your own pictures as that app's banner.
