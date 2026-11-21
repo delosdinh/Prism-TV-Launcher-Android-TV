@@ -1,6 +1,6 @@
-# Prism TV Originals — interface sounds
+# Prism TV Originals 1.6.2 — interface sounds
 
-The navigation sounds in `app/src/main/res/raw/ui_*.wav` come from the Prism TV Originals 1.6.0 sound
+The navigation sounds in `app/src/main/res/raw/ui_*.wav` come from the Prism TV Originals 1.6.2 sound
 pack (the companion Kodi skin's GUI sounds). They are procedurally synthesised by
 `generate_sounds.py` in this folder (NumPy; `python generate_sounds.py rebuilt`) and are licensed
 GPL-2.0-or-later (see `COPYING`). The pack's startup arrangement isn't used by the launcher.

@@ -158,7 +158,7 @@ adb shell am start -n com.prismtv.launcher/.MainActivity \
 
 Typeface: [Inter](https://rsms.me/inter/) (SIL Open Font License). Not affiliated with Apple.
 
-Navigation sounds: Prism TV Originals 1.6.0, procedurally synthesised (no recordings) and licensed
+Navigation sounds: Prism TV Originals 1.6.2, procedurally synthesised (no recordings) and licensed
 GPL-2.0-or-later — the generator, licence and cue mapping are in
 [`tools/ui-sounds`](tools/ui-sounds). The pack's startup sound isn't used.
 tvOS and Apple TV are trademarks of Apple Inc.

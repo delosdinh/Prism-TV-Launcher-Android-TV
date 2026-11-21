@@ -127,21 +127,84 @@ def room_cloud(dry, side, width):
     return output
 
 
-def doorway(enter):
-    length = .98 if enter else 1.08
+def select_navigation():
+    length = 1.046
     t = timeline(length)
-    low, upper = (226., 356.) if enter else (207., 316.)
-    rise = .19 if enter else .227
-    env = contour(t,[(0,-70),(.034,-30),(rise*.48,-14),(rise*.74,-5),
-                     (rise,0),(rise+.073,-1.6),(.40,-8),(.57,-18),(.77,-34),(length,-75)])
-    u = phase(t,upper,-4,.11)
-    bass = phase(t,low,14 if enter else -9,.119)
-    lower_layer = phase(t,low*.917,9 if enter else -6,.147)
-    bloom = .45 + .52*smooth((t-.092)/.163)
-    lower = np.sin(bass) * (.91 - .29*smooth((t-.17)/.25))
-    dry = env*(lower + .47*np.sin(lower_layer+.21) + bloom*np.sin(u+.69))
-    side = env*(.64*np.cos(bass-.27) - .32*np.cos(lower_layer) + .84*bloom*np.cos(u+.51))
-    return room_cloud(dry,side,.80 if enter else .88)
+    crest = .179
+    attack = [(0,-61),(.022,-22.5),(.068,-11.8),(.116,-6.6),(.156,-1.6)]
+    tail = [(crest,0),(crest+.077,-.7),(.35,-3.8),(.46,-10.7),(.59,-16.7),(.78,-28),(.96,-42),(length,-73)]
+    env = contour(t, attack+tail)
+    bloom = smooth((t-.069)/.191)
+    settle = smooth((t-.263)/.28)
+    voices = [
+        (205.4,3.4,.25,.75+.30*bloom,-.05-.12*bloom,.25+.92*bloom),
+        (237.7,3.9,1.54,1.05-.45*bloom-.05*settle,.025+.13*bloom-.22*settle,-.29-.57*bloom),
+        (360.8,-2.8,.74,.54+.25*bloom-.13*settle,.10-.08*settle,.12+.25*bloom),
+        (302.8,-3.3,2.62,.10*(1-.54*settle),.10,-.60)
+    ]
+    direct = silence(length)
+    for hz, bend, initial, gain, pan, spread in voices:
+        oscillator = phase(t,hz,bend,.10,initial)
+        drift = .065*np.sin(TAU*1.19*t+initial)
+        for ch, position in enumerate((-1,1)):
+            angle = oscillator + position*(.55*spread+drift)
+            weight = np.sqrt(1-position*pan)
+            tone = np.sin(angle) + .020*np.sin(2*angle+.52)*(1-.54*bloom)
+            direct[:,ch] += env*gain*weight*tone
+    stereo = direct.copy()
+    for ch in (0,1):
+        stereo[:,ch] += .13*delayed(direct[:,1-ch], (.025,.032)[ch])
+        stereo[:,ch] += .09*delayed(direct[:,ch], (.067,.075)[ch])
+    stereo *= release(t,.021)[:,None]*np.array([.964,1.036])
+    return stereo
+
+
+def back_navigation():
+    t = timeline(1.068)
+    env = contour(t, [(0,-60),(.026,-26),(.073,-16.7),(.126,-9.1),(.186,-2.1),
+                      (.233,-.15),(.283,0),(.316,-.50),(.358,-3.3),(.438,-8.85),
+                      (.548,-14.7),(.692,-23.7),(.849,-33.8),(.989,-43.0),(1.068,-56)])
+    # The chord begins near the centre. Its low notes open in opposite
+    # directions and ease partway home as the upper resonance dies away.
+    opening = smooth((t-.080)/.240)
+    closing = smooth((t-.317)/.223)
+    late = smooth((t-.54)/.43)
+    width = opening*(1-.36*closing)*(1-.64*late)
+    root_seat = .035 - .86*width
+    inner_seat = .125 + .70*width
+    upper_seat = -.06 - .60*smooth((t-.047)/.141)*(1-.85*smooth((t-.205)/.213))
+    grow = smooth((t-.13)/.17)
+    dim = smooth((t-.375)/.27)
+    voices = [
+        (181.8,1.9,.41, .84+.055*grow+.18*dim, root_seat, .13+1.28*opening-.28*closing-.41*late),
+        (214.9,1.25,2.06, 1.04-.20*dim, inner_seat, .065-.29*opening+.12*closing+.57*late),
+        (322.9,.78,-.88, .51-.045*grow+.16*dim, upper_seat,
+         .13+.34*smooth((t-.04)/.14)+2.48*smooth((t-.173)/.123)+1.83*closing+.45*late),
+        (271.2,-1.1,1.36, .15-.09*grow-.025*dim, .13+.16*opening, -.20+.83*closing)
+    ]
+    direct = np.zeros((len(t),2))
+    for hz,bend,initial,level,seat,spread in voices:
+        carrier = phase(t,hz,bend,.093,initial)
+        drift = .043*np.sin(TAU*1.32*t+initial)
+        for ch, position in enumerate((-1,1)):
+            # Keeping the left oscillator stable lets the upper right voice
+            # sweep through quadrature without pulling the whole chord sharp.
+            angle = carrier + .42*drift + (spread+drift if ch else 0)
+            tone = np.sin(angle)+.009*np.sin(2*angle+.36)
+            direct[:,ch] += env*level*np.sqrt(1+position*seat)*tone
+    # Quiet neighbouring resonances fill out the returning chord. Their slow
+    # attack lets the three main pitches define the gesture.
+    halo = env*(.34+.66*smooth((t-.065)/.16))
+    for hz, gain, offset, seat in [(203.1,.027,.86,-.22),(229.4,.033,2.52,.31),(287.5,.024,1.80,-.18)]:
+        for ch, side in enumerate((-1,1)):
+            drift = .27*np.sin(TAU*(1.32+.13*ch)*t+offset)
+            direct[:,ch] += halo*gain*(1+side*seat)*np.sin(TAU*hz*t+drift+offset+.61*side)
+    stereo = direct.copy()
+    for ch in (0,1):
+        stereo[:,ch] += .086*delayed(direct[:,ch],(.041,.036)[ch])
+        stereo[:,ch] += .060*delayed(direct[:,1-ch],(.073,.087)[ch])
+        stereo[:,ch] += .039*delayed(direct[:,ch],(.134,.142)[ch])
+    return stereo*release(t,.025)[:,None]
 
 
 def keyboard_press():
@@ -294,8 +357,8 @@ def cues():
     yield "focus-large", -22.35, poster_focus()
     yield "focus-app", -23.25, soft_focus(412,.050,.088,.125,.31,.23)
     yield "focus-key", -29.0, key_focus()
-    yield "click", -24.0, doorway(True)
-    yield "back", -24.0, doorway(False)
+    yield "click", -24.0, select_navigation()
+    yield "back", -24.0, back_navigation()
     yield "key", -23.15, keyboard_press()
     yield "delete", -23.25, key_latch(False)
     yield "clear", -23.45, key_latch(True)
