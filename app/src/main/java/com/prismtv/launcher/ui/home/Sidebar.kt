@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Tune
@@ -54,7 +53,6 @@ private fun SidebarEntry.icon(): ImageVector = when (this) {
     SidebarEntry.Search -> Icons.Rounded.Search
     SidebarEntry.Home -> Icons.Rounded.Home
     SidebarEntry.Recents -> Icons.Rounded.ViewCarousel
-    SidebarEntry.Screensaver -> Icons.Rounded.Landscape
     SidebarEntry.PrismSettings -> Icons.Rounded.Tune
     SidebarEntry.SystemSettings -> Icons.Rounded.Settings
 }
@@ -74,9 +72,7 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
     }
     val fg = if (p.isDark) Color.White else p.textPrimary
     // Clear lens over the Home Screen, with a veil that matches the scrim so the list stays legible.
-    val panelTint = if (theme.liquid) {
-        if (p.isDark) Color.Black.copy(alpha = 0.44f) else Color.White.copy(alpha = 0.55f)
-    } else theme.controlGlass()
+    val panelTint = theme.overlayVeil(dark = 0.44f, light = 0.55f)
 
     Box(Modifier.fillMaxSize()) {
         Box(

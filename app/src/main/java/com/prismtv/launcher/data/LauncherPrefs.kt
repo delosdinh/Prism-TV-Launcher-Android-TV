@@ -7,7 +7,11 @@ enum class AppearanceSetting(val label: String) {
 }
 
 enum class GlassMaterial(val label: String) {
-    Liquid("Liquid Glass"), Frosted("Frosted Glass")
+    /** Liquid Glass, tinted: the lens with a gentle veil so text stays legible (iOS "Tinted"). */
+    Liquid("Liquid Glass"),
+    /** Liquid Glass, clear: the most transparent lens, no veil (iOS "Clear"). */
+    Clear("Clear Glass"),
+    Frosted("Frosted Glass"),
 }
 
 enum class FocusEffect(val label: String) {
@@ -24,6 +28,10 @@ enum class AerialSource(val label: String) {
 
 enum class AerialQuality(val label: String) {
     Auto("Automatic"), HD("1080p"), UHD("4K")
+}
+
+enum class TemperatureUnit(val label: String) {
+    Auto("Automatic"), Celsius("Celsius"), Fahrenheit("Fahrenheit")
 }
 
 /** Apple publishes its HDR aerials in Dolby Vision (profile 5) only, so HDR here means Dolby Vision. */
@@ -57,6 +65,9 @@ data class LauncherPrefs(
     val updateCheck: Boolean = true,
     /** A version the user chose "Later" for; not offered again automatically. */
     val skippedUpdate: Int = 0,
+    /** Current weather in the time pill. */
+    val weather: Boolean = true,
+    val temperatureUnit: TemperatureUnit = TemperatureUnit.Auto,
 )
 
 class PrefsStore(context: Context) {
@@ -83,6 +94,8 @@ class PrefsStore(context: Context) {
             aerialRange = enumOr(sp.getString("aerialRange", null), d.aerialRange),
             updateCheck = sp.getBoolean("updateCheck", d.updateCheck),
             skippedUpdate = sp.getInt("skippedUpdate", d.skippedUpdate),
+            weather = sp.getBoolean("weather", d.weather),
+            temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
         )
     }
 
@@ -106,6 +119,8 @@ class PrefsStore(context: Context) {
             .putString("aerialRange", p.aerialRange.name)
             .putBoolean("updateCheck", p.updateCheck)
             .putInt("skippedUpdate", p.skippedUpdate)
+            .putBoolean("weather", p.weather)
+            .putString("temperatureUnit", p.temperatureUnit.name)
             .apply()
     }
 

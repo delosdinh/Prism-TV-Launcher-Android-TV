@@ -15,16 +15,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Landscape
-import androidx.compose.material.icons.rounded.PowerSettingsNew
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.SettingsEthernet
-import androidx.compose.material.icons.rounded.SettingsRemote
-import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.AccessibilityNew
+import androidx.compose.material.icons.rounded.Bluetooth
+import androidx.compose.material.icons.rounded.Landscape
+import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.PowerSettingsNew
+import androidx.compose.material.icons.rounded.SettingsEthernet
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.runtime.Composable
@@ -45,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prismtv.launcher.CC
 import com.prismtv.launcher.LauncherViewModel
+import com.prismtv.launcher.data.label
+import com.prismtv.launcher.ui.home.WeatherGlyph
 import com.prismtv.launcher.Overlay
 import com.prismtv.launcher.system.SystemActions
 import com.prismtv.launcher.ui.components.Avatar
@@ -67,18 +68,17 @@ private const val Gutter = 7f
 private const val Circle = 46f
 private const val CirclesTop = TilesTop + Big + Gutter + PillH + 9f
 
-private val circleLabels = mapOf(
-    CC.Recents to "Recent Apps",
-    CC.Remotes to "Remotes & Accessories",
-    CC.Search to "Search",
-    CC.System to "Android Settings",
-    CC.Prism to "Prism Settings",
+private val captions = mapOf(
+    CC.Picture to "Picture & Display",
+    CC.Sound to "Sound",
+    CC.Memory to "Free Up Memory",
+    CC.Access to "Accessibility",
     CC.Profile to "Accounts",
 )
 
 /**
- * tvOS 27 Control Centre, re-thought for Android TV: a compact cluster of floating glass controls in the
- * top-right corner. No enclosing panel – each control bends whatever is behind it.
+ * Control Centre: quick TV controls in floating glass, in the top-right corner. Navigation (Search,
+ * Recent Apps, Settings) lives in the sidebar capsule, so nothing here doubles up with it.
  */
 @Composable
 fun ControlCentre(vm: LauncherViewModel, clock: String) {
@@ -91,6 +91,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
     val net = remember(vm.resumeTick, visible) { SystemActions.network(ctx) }
     val f = vm.ccFocus
     val fg = if (p.isDark) Color.White else p.textPrimary
+    val weather = if (vm.prefs.weather) vm.weather else null
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -118,9 +119,18 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     .padding(start = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PText(clock, 16.sp, FontWeight.SemiBold, fg, Modifier.weight(1f), shadow = p.isDark)
-                HeaderButton(Icons.Rounded.Tune, focused = f == CC.Prism)
-                HSpace(8.dp)
+                PText(clock, 16.sp, FontWeight.SemiBold, fg, shadow = p.isDark)
+                if (weather != null) {
+                    HSpace(10.dp)
+                    WeatherGlyph(weather, 17.dp)
+                    HSpace(4.dp)
+                    PText(weather.label(vm.prefs.temperatureUnit), 15.sp, FontWeight.SemiBold, fg, shadow = p.isDark)
+                    if (weather.place.isNotBlank()) {
+                        HSpace(6.dp)
+                        PText(weather.place, 12.sp, FontWeight.Medium, fg.copy(alpha = 0.7f), shadow = p.isDark)
+                    }
+                }
+                Box(Modifier.weight(1f))
                 Avatar(30.dp, focused = f == CC.Profile)
             }
 
@@ -138,33 +148,34 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     net.connected -> Icons.Rounded.Wifi
                     else -> Icons.Rounded.WifiOff
                 },
-                iconColor = if (net.connected) p.accent else null,
+                iconColor = if (net.connected) Color(0xFF0A84FF) else null,
+                circled = true,
                 title = net.title, subtitle = if (net.connected && !net.ethernet) "On" else net.subtitle,
             )
             PillTile(
-                f == CC.Screensaver, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
-                icon = Icons.Rounded.Landscape,
-                iconColor = Color(0xFF30B0C7),
+                f == CC.Bluetooth, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
+                icon = Icons.Rounded.Bluetooth,
+                iconColor = Color(0xFF0A84FF),
                 circled = true,
+                title = "Bluetooth", subtitle = "Remotes & More",
+            )
+            PillTile(
+                f == CC.Screensaver, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
+                icon = Icons.Rounded.Landscape, iconColor = Color(0xFF30B0C7), circled = true,
                 title = "Show", subtitle = "Screensaver", subtitleStrong = true,
             )
             PillTile(
-                f == CC.Audio, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
-                icon = Icons.AutoMirrored.Rounded.VolumeUp, iconColor = p.accent,
-                title = "Sound", subtitle = "Output",
-            )
-            PillTile(
-                f == CC.Sleep, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
+                f == CC.Sleep, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
                 icon = Icons.Rounded.Timer,
                 iconColor = if (vm.sleepMinutes > 0) Color(0xFFFF9F0A) else null,
                 circled = true,
                 title = "Sleep", subtitle = if (vm.sleepMinutes > 0) vm.sleepLabel() else "Timer", subtitleStrong = vm.sleepMinutes == 0,
             )
             val circles = listOf(
-                CC.Recents to Icons.Rounded.ViewCarousel,
-                CC.Remotes to Icons.Rounded.SettingsRemote,
-                CC.Search to Icons.Rounded.Search,
-                CC.System to Icons.Rounded.Settings,
+                CC.Picture to Icons.Rounded.Tv,
+                CC.Sound to Icons.AutoMirrored.Rounded.VolumeUp,
+                CC.Memory to Icons.Rounded.Memory,
+                CC.Access to Icons.Rounded.AccessibilityNew,
             )
             val step = (ClusterW - Circle) / 3f
             circles.forEachIndexed { i, (id, icon) ->
@@ -179,7 +190,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 }
             }
             // Caption for icon-only controls, like the tvOS focus label.
-            val caption = circleLabels[f]
+            val caption = captions[f]
             PText(
                 caption ?: "", 13.sp, FontWeight.SemiBold, fg,
                 Modifier
@@ -224,9 +235,7 @@ private fun Tile(
     val fg = if (focused) p.textFocused else if (p.isDark) Color.White else p.textPrimary
     // The lens samples the undimmed Home Screen, so the veil carries the scrim's dimming: controls stay
     // legible over busy app grids while still bending what's behind them.
-    val tint = if (theme.liquid) {
-        if (p.isDark) Color.Black.copy(alpha = 0.40f) else Color.White.copy(alpha = 0.46f)
-    } else theme.controlGlass()
+    val tint = theme.overlayVeil(dark = 0.40f, light = 0.46f)
     Box(
         modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }

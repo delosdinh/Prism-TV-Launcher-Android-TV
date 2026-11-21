@@ -172,26 +172,21 @@ fun LaunchOverlay(vm: LauncherViewModel) {
     val anim = vm.launchAnim ?: return
     val progress = remember(anim.id) { Animatable(if (anim.reverse) 1f else 0f) }
     val press = remember(anim.id) { Animatable(1f) }
-    val view = LocalView.current
     val backdrop = LocalBackdrop.current
-    val root = backdrop.rootSize
     LaunchedEffect(anim.id) {
         launch { snapshotFlow { progress.value }.collect { vm.launchProgress = it } }
         if (anim.reverse) {
             progress.animateTo(0f, spring(dampingRatio = 0.9f, stiffness = 300f, visibilityThreshold = 0.002f))
         } else {
             launch {
-                val p = snapshotFlow { progress.value }.first { it >= 0.32f }
-                // Hand over to the system: the app's window scales up from where our icon is now.
-                val r = windowRect(anim, p).let { w ->
-                    val k = root.width / HomeLayout.ScreenW
-                    android.graphics.Rect((w.left * k).toInt(), (w.top * k).toInt(), (w.right * k).toInt(), (w.bottom * k).toInt())
-                }
-                vm.onLaunchMidpoint(anim, view, r)
+                // Start the app as the tile nears full screen; it fades in over the grown artwork, so no
+                // empty launch window (often black) ever shows inside the tile.
+                snapshotFlow { progress.value }.first { it >= 0.55f }
+                vm.onLaunchMidpoint(anim, null, null)
             }
             press.animateTo(0.93f, tween(90, easing = FastOutSlowInEasing))
             launch { press.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = 500f)) }
-            progress.animateTo(1f, spring(dampingRatio = 0.94f, stiffness = 260f, visibilityThreshold = 0.002f))
+            progress.animateTo(1f, spring(dampingRatio = 0.9f, stiffness = 300f, visibilityThreshold = 0.002f))
         }
         vm.onLaunchZoomComplete(anim)
     }
@@ -202,7 +197,6 @@ fun LaunchOverlay(vm: LauncherViewModel) {
     val fs = HomeLayout.FocusScale
     // Rounded like the icon while it travels; square only as it lands full screen.
     val radius = 13f * fs * (1f - smoothstep(0.78f, 1f, pc)) + 8f * smoothstep(0.1f, 0.5f, pc) * (1f - smoothstep(0.7f, 1f, pc))
-    val artAlpha = 1f - smoothstep(0.18f, 0.62f, pc)
     val blur = smoothstep(0f, 0.55f, pc)
 
     Box(Modifier.fillMaxSize()) {
@@ -240,11 +234,10 @@ fun LaunchOverlay(vm: LauncherViewModel) {
                     ambientShadowColor = anim.app.tint
                     spotShadowColor = anim.app.tint
                 }
-                .background(launchColour(anim.app.tint))
+                .background(Color.Black)
         ) {
-            if (artAlpha > 0.003f) {
-                Box(Modifier.fillMaxSize().graphicsLayer { alpha = artAlpha }) { AppArtwork(anim.app) }
-            }
+            // The tile itself grows to fill the screen (Flow / tvOS style); the app fades in over it.
+            AppArtwork(anim.app)
             if (pc < 0.9f) {
                 // Glass rim catching the light while it travels.
                 Box(
@@ -286,5 +279,3 @@ private fun smoothstep(a: Float, b: Float, x: Float): Float {
     return t * t * (3f - 2f * t)
 }
 
-/** The app's launch colour: its dominant colour, deepened a little like a launch screen. */
-private fun launchColour(c: Color) = Color(c.red * 0.82f, c.green * 0.82f, c.blue * 0.82f, 1f)

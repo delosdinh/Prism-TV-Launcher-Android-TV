@@ -239,6 +239,38 @@ fun PrismApp(vm: LauncherViewModel) {
     LaunchedEffect(vm.permissionRequestTick) {
         if (vm.permissionRequestTick > 0) (activity as? MainActivity)?.requestRecommendationAccess()
     }
+    // Rename Folder: a small system dialog so the TV's own keyboard (and voice typing) can be used.
+    val rename = vm.renameRequest
+    LaunchedEffect(rename) {
+        val folder = rename ?: return@LaunchedEffect
+        val act = activity ?: return@LaunchedEffect
+        val input = android.widget.EditText(act).apply {
+            setText(folder.label)
+            setSelection(text.length)
+            setSingleLine()
+            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+        }
+        val pad = (24 * act.resources.displayMetrics.density).toInt()
+        val frame = android.widget.FrameLayout(act).apply {
+            setPadding(pad, pad / 2, pad, 0)
+            addView(input)
+        }
+        val dialog = android.app.AlertDialog.Builder(act, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("Rename Folder")
+            .setView(frame)
+            .setPositiveButton("Done") { _, _ -> vm.renameFolder(folder.id, input.text.toString()) }
+            .setNegativeButton("Cancel") { _, _ -> vm.renameRequest = null }
+            .setOnCancelListener { vm.renameRequest = null }
+            .create()
+        input.setOnEditorActionListener { _, _, _ ->
+            vm.renameFolder(folder.id, input.text.toString())
+            dialog.dismiss()
+            true
+        }
+        dialog.show()
+        input.requestFocus()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+    }
 
     CompositionLocalProvider(
         LocalDensity provides density,

@@ -35,6 +35,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.WbSunny
+import androidx.compose.material.icons.rounded.WbCloudy
+import androidx.compose.material.icons.rounded.Umbrella
+import androidx.compose.material.icons.rounded.NightsStay
+import androidx.compose.material.icons.rounded.Grain
+import androidx.compose.material.icons.rounded.FlashOn
+import androidx.compose.material.icons.rounded.Dehaze
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.AcUnit
 import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.Composable
@@ -60,9 +69,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prismtv.launcher.LauncherViewModel
+import com.prismtv.launcher.data.TemperatureUnit
+import com.prismtv.launcher.data.Weather
+import com.prismtv.launcher.data.WeatherKind
+import com.prismtv.launcher.data.kind
+import com.prismtv.launcher.data.label
 import com.prismtv.launcher.Overlay
 import com.prismtv.launcher.Zone
 import com.prismtv.launcher.data.AppItem
@@ -142,6 +157,8 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
         val pillAlpha by animateFloatAsState(if (pillVisible) 1f else 0f, tween(300), label = "pill")
         TimePill(
             time = clock,
+            weather = if (vm.prefs.weather) vm.weather else null,
+            unit = vm.prefs.temperatureUnit,
             focus = if (vm.zone == Zone.TopBar && vm.overlay == Overlay.None) vm.topIndex else -1,
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -567,6 +584,31 @@ fun GridTile(
     }
 }
 
+// ------------------------------------------------------------------------------------------ weather
+
+/** A multicolour weather symbol, like tvOS's: yellow sun, white clouds, blue rain. */
+@Composable
+fun WeatherGlyph(w: Weather, size: Dp, monochrome: Boolean = false, ink: Color = Color.White) {
+    val (icon, tint) = when (w.kind()) {
+        WeatherKind.Clear -> if (w.isDay) Icons.Rounded.WbSunny to Color(0xFFFFD60A) else Icons.Rounded.NightsStay to Color(0xFFE5E5EA)
+        WeatherKind.PartlyCloudy -> if (w.isDay) Icons.Rounded.WbCloudy to Color(0xFFF2F2F7) else Icons.Rounded.NightsStay to Color(0xFFE5E5EA)
+        WeatherKind.Cloudy -> Icons.Rounded.Cloud to Color(0xFFE5E5EA)
+        WeatherKind.Fog -> Icons.Rounded.Dehaze to Color(0xFFD1D1D6)
+        WeatherKind.Drizzle -> Icons.Rounded.Grain to Color(0xFF64D2FF)
+        WeatherKind.Rain -> Icons.Rounded.Umbrella to Color(0xFF64D2FF)
+        WeatherKind.Snow -> Icons.Rounded.AcUnit to Color(0xFFE5F6FF)
+        WeatherKind.Storm -> Icons.Rounded.FlashOn to Color(0xFFFFD60A)
+    }
+    val partlySun = w.kind() == WeatherKind.PartlyCloudy && w.isDay
+    Box(Modifier.size(size)) {
+        if (partlySun) {
+            // Sun peeking from behind the cloud.
+            PIcon(Icons.Rounded.WbSunny, if (monochrome) ink else Color(0xFFFFD60A), size * 0.72f, Modifier.align(Alignment.TopEnd))
+        }
+        PIcon(icon, if (monochrome) ink else tint, if (partlySun) size * 0.8f else size, Modifier.align(Alignment.BottomStart))
+    }
+}
+
 // ------------------------------------------------------------------------------------------ move hint
 
 @Composable
@@ -594,7 +636,7 @@ private fun MoveHint(visible: Boolean, modifier: Modifier) {
 // ------------------------------------------------------------------------------------------ time pill
 
 @Composable
-private fun TimePill(time: String, focus: Int, modifier: Modifier) {
+private fun TimePill(time: String, weather: Weather?, unit: TemperatureUnit, focus: Int, modifier: Modifier) {
     val theme = LocalPrism.current
     val p = theme.palette
     val pillFocused = focus == 0
@@ -612,7 +654,14 @@ private fun TimePill(time: String, focus: Int, modifier: Modifier) {
             .padding(start = 14.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PText(time, 14.sp, FontWeight.SemiBold, if (pillFocused) p.textFocused else if (p.isDark) Color.White else p.textPrimary)
+        val ink = if (pillFocused) p.textFocused else if (p.isDark) Color.White else p.textPrimary
+        PText(time, 14.sp, FontWeight.SemiBold, ink)
+        if (weather != null) {
+            HSpace(10.dp)
+            WeatherGlyph(weather, 17.dp, monochrome = pillFocused, ink = ink)
+            HSpace(4.dp)
+            PText(weather.label(unit), 14.sp, FontWeight.SemiBold, ink)
+        }
         HSpace(9.dp)
         Avatar(26.dp, focused = focus == 1)
     }

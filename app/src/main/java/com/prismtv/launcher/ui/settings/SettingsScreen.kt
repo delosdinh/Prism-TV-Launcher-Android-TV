@@ -1,7 +1,15 @@
 package com.prismtv.launcher.ui.settings
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
+import com.prismtv.launcher.ui.glass.glass
+import com.prismtv.launcher.ui.glass.GlassSource
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -43,6 +51,7 @@ import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -100,11 +109,16 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 scaleX = s
                 scaleY = s
             }
-            .background(Brush.linearGradient(listOf(p.bgAccent, p.bgBase, p.bgBase)))
+            // Settings are always frosted glass over the Home Screen, whatever the material.
+            .glass(
+                RectangleShape,
+                if (p.isDark) p.bgBase.copy(alpha = 0.66f) else Color.White.copy(alpha = 0.58f),
+                GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true,
+            )
             .drawBehind {
                 drawRect(
                     Brush.radialGradient(
-                        listOf(p.bgAccent.copy(alpha = 0.65f), Color.Transparent),
+                        listOf(p.bgAccent.copy(alpha = 0.35f), Color.Transparent),
                         center = Offset(size.width * 0.24f, size.height * 0.5f),
                         radius = size.width * 0.5f,
                     )
@@ -192,38 +206,72 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
 /** The large artwork on the left of Settings: the tab's glyph, the logo, or an app's artwork. */
 @Composable
 private fun PageArt(art: Any, modifier: Modifier, p: PrismPalette) {
-    Crossfade(targetState = art, animationSpec = tween(320), label = "pageArt") { a ->
-        Box(modifier, contentAlignment = Alignment.Center) {
-            when (a) {
-                is Glyph -> GlyphTile(a, Modifier.size(228.dp), corner = 54.dp, iconSize = 116.dp)
-                is LauncherApp -> {
-                    val shape = RoundedCornerShape(26.dp)
-                    Box(
-                        Modifier
-                            .size(228.dp, 137.dp)
-                            .shadow(36.dp, shape, ambientColor = a.tint.copy(alpha = 0.5f), spotColor = a.tint.copy(alpha = 0.6f))
-                            .clip(shape)
-                    ) { AppArtwork(a) }
-                }
-                else -> LogoTile(Modifier.size(228.dp), p)
+    // A quick dip-and-pop between glyphs (tvOS swaps the artwork the same way). Drawn without
+    // offscreen layers or elevation shadows so nothing gets clipped mid-animation.
+    var shown by remember { mutableStateOf(art) }
+    val v = remember { Animatable(1f) }
+    LaunchedEffect(art) {
+        if (art == shown && v.value == 1f) return@LaunchedEffect
+        v.animateTo(0f, tween(100, easing = FastOutLinearInEasing))
+        shown = art
+        v.animateTo(1f, spring(dampingRatio = 0.72f, stiffness = 440f))
+    }
+    Box(
+        modifier.graphicsLayer {
+            val k = v.value
+            alpha = k.coerceIn(0f, 1f)
+            val s = 0.9f + 0.1f * k
+            scaleX = s
+            scaleY = s
+            compositingStrategy = CompositingStrategy.ModulateAlpha
+        },
+        contentAlignment = Alignment.Center,
+    ) {
+        when (val a = shown) {
+            is Glyph -> GlyphTile(a, Modifier.size(228.dp), corner = 54.dp, iconSize = 116.dp)
+            is LauncherApp -> {
+                val shape = RoundedCornerShape(26.dp)
+                Box(
+                    Modifier
+                        .size(228.dp, 137.dp)
+                        .glow(a.tint, 26.dp)
+                        .clip(shape)
+                ) { AppArtwork(a) }
             }
+            else -> LogoTile(Modifier.size(228.dp), p)
         }
     }
+}
+
+/** A soft coloured glow under a tile (drawn, not an elevation shadow). */
+private fun Modifier.glow(color: Color, corner: Dp): Modifier = drawBehind {
+    val spread = size.minDimension * 0.18f
+    drawRoundRect(
+        Brush.radialGradient(
+            listOf(color.copy(alpha = 0.45f), color.copy(alpha = 0.0f)),
+            center = Offset(size.width / 2f, size.height / 2f + spread * 0.35f),
+            radius = size.maxDimension * 0.72f,
+        ),
+        topLeft = Offset(-spread, -spread * 0.6f),
+        size = androidx.compose.ui.geometry.Size(size.width + spread * 2, size.height + spread * 2),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner.toPx() + spread),
+    )
 }
 
 @Composable
 private fun GlyphTile(g: Glyph, modifier: Modifier, corner: Dp, iconSize: Dp) {
     val shape = RoundedCornerShape(corner)
+    val big = iconSize > 40.dp
     Box(
         modifier
-            .shadow(if (iconSize > 40.dp) 36.dp else 0.dp, shape, ambientColor = g.bottom.copy(alpha = 0.5f), spotColor = g.bottom.copy(alpha = 0.6f))
+            .then(if (big) Modifier.glow(g.bottom, corner) else Modifier)
             .background(Brush.verticalGradient(listOf(g.top, g.bottom)), shape)
             .drawBehind {
                 // Soft top light, like the glossy tvOS settings tiles.
                 drawRect(Brush.verticalGradient(0f to Color.White.copy(alpha = 0.18f), 0.5f to Color.Transparent))
             }
             .border(
-                (if (iconSize > 40.dp) 1.dp else 0.5.dp),
+                (if (big) 1.dp else 0.5.dp),
                 Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.45f), Color.White.copy(alpha = 0.06f))),
                 shape,
             ),
@@ -238,7 +286,7 @@ private fun LogoTile(modifier: Modifier, p: PrismPalette) {
     val shape = RoundedCornerShape(54.dp)
     Box(
         modifier
-            .shadow(40.dp, shape, ambientColor = Color(0xFF6C5CFF).copy(alpha = 0.35f), spotColor = Color.Black.copy(alpha = 0.5f))
+            .glow(Color(0xFF6C5CFF), 54.dp)
             .background(Brush.verticalGradient(listOf(Color(0xFF262833), Color(0xFF0B0C10))), shape)
             .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (p.isDark) 0.30f else 0.45f), Color.White.copy(alpha = 0.04f))), shape),
         contentAlignment = Alignment.Center,
@@ -311,8 +359,8 @@ private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
             .background(theme.controlFocused(), RowShape)
     } else {
         Modifier
-            .background(theme.rowFill(), RowShape)
-            .border(1.dp, theme.edgeBrush(0.7f), RowShape)
+            .background(p.buttonUnfocused.copy(alpha = if (p.isDark) 0.46f else 0.62f), RowShape)
+            .border(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.14f), Color.White.copy(alpha = 0.04f))), RowShape)
     }
     Row(
         Modifier

@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -34,6 +33,7 @@ import com.prismtv.launcher.data.FolderItem
 import com.prismtv.launcher.ui.HomeLayout
 import com.prismtv.launcher.ui.components.AppArtwork
 import com.prismtv.launcher.ui.components.FolderArtwork
+import com.prismtv.launcher.ui.components.HSpace
 import com.prismtv.launcher.ui.components.PIcon
 import com.prismtv.launcher.ui.components.PText
 import com.prismtv.launcher.ui.components.lerpF
@@ -41,27 +41,33 @@ import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.glass
 import com.prismtv.launcher.ui.theme.LocalPrism
 
-private const val MenuW = 272f
-private const val RowH = 42f
-private const val TitleH = 32f
-private const val Pad = 8f
-private val Destructive = Color(0xFFFF453A)
+private const val MenuW = 296f
+private const val RowH = 46f
+private const val TitleH = 34f
+private const val Pad = 9f
+private val DestructiveRed = Color(0xFFFF453A)
 
-/** Hold-OK context menu, anchored to the focused tile like the tvOS / iOS 27 menus. */
+/**
+ * Hold-OK context menu in the iOS 26 style: a rounded glass sheet beside the lifted tile, icons leading
+ * each row, the destructive action first in red. Its glass follows Settings › Material: Liquid (tinted,
+ * dark and frosted with a bent rim), Clear (light and see-through) or Frosted.
+ */
 @Composable
 fun ContextMenuHost(vm: LauncherViewModel) {
     val holder = remember { arrayOfNulls<ContextMenuState>(1) }
     val live = vm.contextMenu
     if (live != null) holder[0] = live
     val m = holder[0] ?: return
-    val t by animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 420f), label = "menu")
+    val t by animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 420f), label = "menu")
     if (t < 0.002f) return
     val theme = LocalPrism.current
     val p = theme.palette
 
+    // Submenus (Add to Folder) keep a small title; the main menu has none, like iOS.
+    val showTitle = m.actions.any { it.id.startsWith("pick:") }
     val a = m.anchor
-    val h = TitleH + m.actions.size * RowH + Pad * 2
-    val gap = 16f
+    val h = (if (showTitle) TitleH else 0f) + m.actions.size * RowH + Pad * 2
+    val gap = 18f
     val grow = a.height * (HomeLayout.FocusScale - 1f) / 2f
     val growX = a.width * (HomeLayout.FocusScale - 1f) / 2f
     // Below the tile if it fits, else above, else beside it (vertically centred on the tile).
@@ -85,19 +91,23 @@ fun ContextMenuHost(vm: LauncherViewModel) {
         else -> TransformOrigin(0.5f, 1f)
     }
 
-    // The lens samples the undimmed screen, so the veil carries the scrim's dimming for legibility.
-    val menuTint = if (theme.liquid) {
-        if (p.isDark) Color.Black.copy(alpha = 0.52f) else Color.White.copy(alpha = 0.60f)
-    } else theme.controlGlass()
+    // Clear: a light, see-through sheet with dark text. Liquid (tinted): dark frosted glass. Frosted: classic.
+    val lightSheet = theme.clear || !p.isDark
+    val sheetTint = when {
+        theme.clear -> Color.White.copy(alpha = if (p.isDark) 0.34f else 0.42f)
+        theme.liquid -> if (p.isDark) Color(0xFF1C1C22).copy(alpha = 0.58f) else Color.White.copy(alpha = 0.62f)
+        else -> theme.controlGlass()
+    }
+    val ink = if (lightSheet) Color(0xFF111114) else Color.White
 
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = t }
-                .background(Color.Black.copy(alpha = 0.36f))
+                .background(Color.Black.copy(alpha = 0.38f))
         )
-        // The held tile stays lifted above the dimmed screen, as in tvOS.
+        // The held tile stays lifted above the dimmed screen.
         Box(
             Modifier
                 .offset(a.left.dp, a.top.dp)
@@ -123,50 +133,54 @@ fun ContextMenuHost(vm: LauncherViewModel) {
                 .width(MenuW.dp)
                 .graphicsLayer {
                     alpha = t
-                    val s = lerpF(0.82f, 1f, t)
+                    val s = lerpF(0.8f, 1f, t)
                     scaleX = s
                     scaleY = s
                     transformOrigin = origin
                 }
-                .glass(RoundedCornerShape(26.dp), menuTint, GlassSource.Full, elevation = 28.dp)
+                .glass(
+                    RoundedCornerShape(30.dp), sheetTint, GlassSource.Full,
+                    elevation = 30.dp, frosted = true, bentRim = theme.liquid,
+                )
                 .padding(Pad.dp)
         ) {
-            PText(
-                m.title, 12.sp, FontWeight.SemiBold,
-                if (p.isDark) Color.White.copy(alpha = 0.62f) else p.textSecondary,
-                Modifier
-                    .height(TitleH.dp)
-                    .padding(start = 14.dp, top = 9.dp),
-            )
+            if (showTitle) {
+                PText(
+                    m.title, 13.sp, FontWeight.SemiBold, ink.copy(alpha = 0.6f),
+                    Modifier
+                        .height(TitleH.dp)
+                        .padding(start = 16.dp, top = 9.dp),
+                )
+            }
             m.actions.forEachIndexed { i, action ->
-                MenuRow(action, focused = live != null && i == vm.contextFocus)
+                MenuRow(action, focused = live != null && i == vm.contextFocus, ink = ink)
             }
         }
     }
 }
 
 @Composable
-private fun MenuRow(action: MenuAction, focused: Boolean) {
+private fun MenuRow(action: MenuAction, focused: Boolean, ink: Color) {
     val theme = LocalPrism.current
     val p = theme.palette
     val scale by animateFloatAsState(if (focused) 1.03f else 1f, spring(dampingRatio = 0.7f, stiffness = 480f), label = "menuRow")
-    val shape = RoundedCornerShape(15.dp)
-    val base = if (p.isDark) Color.White else p.textPrimary
+    val shape = RoundedCornerShape(16.dp)
     val fg = when {
-        action.destructive -> Destructive
+        action.destructive -> DestructiveRed
         focused -> p.textFocused
-        else -> base
+        else -> ink
     }
     Row(
         Modifier
             .fillMaxWidth()
             .height(RowH.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .then(if (focused) Modifier.shadow(12.dp, shape).background(theme.controlFocused(), shape) else Modifier)
-            .padding(horizontal = 14.dp),
+            .then(if (focused) Modifier.background(Color.White.copy(alpha = 0.94f), shape) else Modifier)
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PText(action.label, 15.sp, if (focused) FontWeight.SemiBold else FontWeight.Medium, fg, Modifier.weight(1f))
-        PIcon(action.icon, fg, 19.dp)
+        Box(Modifier.width(26.dp), contentAlignment = Alignment.Center) { PIcon(action.icon, fg, 21.dp) }
+        HSpace(14.dp)
+        PText(action.label, 16.sp, if (focused) FontWeight.SemiBold else FontWeight.Medium, fg, Modifier.weight(1f))
     }
 }

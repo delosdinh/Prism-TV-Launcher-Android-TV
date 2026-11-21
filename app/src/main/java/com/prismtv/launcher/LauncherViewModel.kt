@@ -12,12 +12,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PowerSettingsNew
+import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.VisibilityOff
@@ -40,6 +43,9 @@ import com.prismtv.launcher.aerial.AerialActivity
 import com.prismtv.launcher.aerial.AerialCatalog
 import com.prismtv.launcher.data.AerialQuality
 import com.prismtv.launcher.data.AerialRange
+import com.prismtv.launcher.data.TemperatureUnit
+import com.prismtv.launcher.data.Weather
+import com.prismtv.launcher.data.WeatherRepository
 import com.prismtv.launcher.data.AerialSource
 import com.prismtv.launcher.data.AppItem
 import com.prismtv.launcher.data.AppRepository
@@ -134,22 +140,22 @@ data class ContextMenuState(
 )
 
 /** Control Centre focus targets, in reading order. */
+/** Control Centre controls — TV controls only; navigation (Search, Recents, Settings) lives in the sidebar. */
 object CC {
-    const val Prism = 1
     const val Profile = 2
     const val Power = 3
     const val WiFi = 4
     const val Screensaver = 5
-    const val Audio = 6
+    const val Sound = 6
     const val Sleep = 7
-    const val Recents = 8
-    const val Remotes = 9
-    const val Search = 10
-    const val System = 11
+    const val Bluetooth = 9
+    const val Picture = 12
+    const val Memory = 13
+    const val Access = 14
 }
 
 enum class SidebarEntry(val label: String) {
-    Search("Search"), Home("Home"), Recents("Recent Apps"), Screensaver("Screensaver"),
+    Search("Search"), Home("Home"), Recents("Recent Apps"),
     PrismSettings("Prism Settings"), SystemSettings("Android Settings"),
 }
 
@@ -426,6 +432,28 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // ================================================================= weather
+
+    private val weatherRepo = WeatherRepository(ctx)
+
+    /** Current conditions for the time pill (Open-Meteo, located from the internet connection). */
+    var weather by mutableStateOf(weatherRepo.cached())
+        private set
+    private var weatherJob: Job? = null
+
+    private fun refreshWeather(force: Boolean = false) {
+        if (!prefs.weather) return
+        if (debugDriven) {
+            weather = Weather(24.0, 1, true, "Brisbane")
+            return
+        }
+        if (weatherJob?.isActive == true) return
+        if (!force && System.currentTimeMillis() - weatherRepo.fetchedAt < 30L * 60 * 1000 && weather != null) return
+        weatherJob = viewModelScope.launch {
+            weatherRepo.refresh()?.let { weather = it }
+        }
+    }
+
     /** Dolby Vision support (box decoder + TV), checked once when the Screensaver page is shown. */
     private val dolbyVision by lazy { AerialCatalog.dolbyVisionSupport(ctx) }
 
@@ -625,22 +653,35 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun openContextMenu(item: GridItem, anchor: Rect, parent: FolderItem?) {
+        // iOS order: the destructive action leads in red; focus starts on the first safe one.
         val actions = when (item) {
             is FolderItem -> listOf(
+                MenuAction("ungroup", "Remove Folder", Icons.Rounded.RemoveCircleOutline, destructive = true),
+                MenuAction("rename", "Rename Folder", Icons.Rounded.Edit),
                 MenuAction("move", "Move", Icons.Rounded.OpenWith),
-                MenuAction("ungroup", "Remove Folder", Icons.Rounded.FolderOpen, destructive = true),
             )
             is AppItem -> buildList {
+                add(MenuAction("delete", "Delete App", Icons.Rounded.RemoveCircleOutline, destructive = true))
                 if (parent == null) add(MenuAction("move", "Move", Icons.Rounded.OpenWith))
                 add(MenuAction("folder", if (parent == null) "Add to Folder" else "Move to Folder", Icons.Rounded.CreateNewFolder))
                 if (parent != null) add(MenuAction("unfolder", "Remove from Folder", Icons.Rounded.FolderOpen))
                 add(MenuAction("info", "App Info", Icons.Rounded.Info))
                 add(MenuAction("hide", "Hide from Home Screen", Icons.Rounded.VisibilityOff))
-                add(MenuAction("delete", "Delete App", Icons.Rounded.Delete, destructive = true))
             }
         }
         contextMenu = ContextMenuState(item.label, item, (item as? AppItem)?.app, parent, anchor, actions)
-        contextFocus = 0
+        contextFocus = actions.indexOfFirst { !it.destructive }.coerceAtLeast(0)
+    }
+
+    /** Asks the activity to show the TV keyboard for a new folder name. */
+    var renameRequest by mutableStateOf<FolderItem?>(null)
+
+    fun renameFolder(folderId: String, name: String) {
+        renameRequest = null
+        val clean = name.trim().take(40)
+        if (clean.isEmpty()) return
+        commitItems(items.map { if (it is FolderItem && it.id == folderId) it.copy(label = clean) else it })
+        openFolder?.let { f -> if (f.id == folderId) openFolder = items.firstOrNull { it.id == folderId } as? FolderItem }
     }
 
     private fun openFolderPicker(app: LauncherApp, base: ContextMenuState) {
@@ -669,6 +710,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         contextMenu = null
         when {
             a.id == "move" -> movingId = m.item.id
+            a.id == "rename" -> renameRequest = m.item as? FolderItem
             a.id == "ungroup" -> (m.item as? FolderItem)?.let { ungroup(it) }
             a.id == "folder" && app != null -> openFolderPicker(app, m)
             a.id == "unfolder" && app != null && parent != null -> removeFromFolder(app, parent)
@@ -724,7 +766,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             overlay != Overlay.None -> closeOverlay()
             zone != Zone.Grid -> { zone = Zone.Grid; row = 0; col = heroAppIndex }
             row > 0 -> { row = 0; col = col.coerceAtMost(rowSize(0) - 1) }
-            else -> Unit
+            // On the Home Screen, Back opens the sidebar capsule (Back again closes it).
+            else -> openSidebar()
         }
     }
 
@@ -747,6 +790,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         resumeTick++
         refreshRecommendations()
         maybeAutoCheckForUpdate()
+        refreshWeather()
         pendingReturn?.let { anim ->
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
@@ -910,10 +954,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Left -> if (folderFocus % c > 0) folderFocus--
             NavKey.Right -> if (folderFocus % c < c - 1 && folderFocus + 1 < n) folderFocus++
             NavKey.Up -> if (folderFocus >= c) folderFocus -= c
-            NavKey.Down -> if (folderFocus + c < n) folderFocus += c
-            NavKey.Select -> folder.apps.getOrNull(folderFocus)?.let { startLaunch(it, FolderLayout.tileRect(folderFocus)) }
+            NavKey.Down -> when {
+                folderFocus + c < n -> folderFocus += c
+                (folderFocus / c + 1) * c < n -> folderFocus = n - 1
+            }
+            NavKey.Select -> folder.apps.getOrNull(folderFocus)?.let { startLaunch(it, FolderLayout.tileRect(folderFocus, FolderLayout.firstRow(folderFocus, folder.apps.size).toFloat())) }
             NavKey.LongSelect -> folder.apps.getOrNull(folderFocus)?.let {
-                openContextMenu(AppItem(it), FolderLayout.tileRect(folderFocus), folder)
+                openContextMenu(AppItem(it), FolderLayout.tileRect(folderFocus, FolderLayout.firstRow(folderFocus, folder.apps.size).toFloat()), folder)
             }
             NavKey.Menu -> openControlCentre()
             NavKey.PlayPause -> Unit
@@ -945,7 +992,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SidebarEntry.Search -> { closeOverlay(); SystemActions.search(ctx) }
             SidebarEntry.Home -> { closeOverlay(); zone = Zone.Grid; row = 0; col = 0; setDockCol(0) }
             SidebarEntry.Recents -> openSwitcher()
-            SidebarEntry.Screensaver -> startScreensaver()
             SidebarEntry.PrismSettings -> openSettings()
             SidebarEntry.SystemSettings -> { closeOverlay(); SystemActions.open(ctx, Settings.ACTION_SETTINGS) }
         }
@@ -960,17 +1006,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private val ccNav: Map<Int, IntArray> = mapOf(
         // up, down, left, right  (-1 = none)
-        CC.Prism to intArrayOf(-1, CC.WiFi, -1, CC.Profile),
-        CC.Profile to intArrayOf(-1, CC.WiFi, CC.Prism, -1),
-        CC.Power to intArrayOf(CC.Prism, CC.Audio, -1, CC.WiFi),
-        CC.WiFi to intArrayOf(CC.Prism, CC.Screensaver, CC.Power, -1),
-        CC.Screensaver to intArrayOf(CC.WiFi, CC.Sleep, CC.Power, -1),
-        CC.Audio to intArrayOf(CC.Power, CC.Recents, -1, CC.Sleep),
-        CC.Sleep to intArrayOf(CC.Screensaver, CC.Search, CC.Audio, -1),
-        CC.Recents to intArrayOf(CC.Audio, -1, -1, CC.Remotes),
-        CC.Remotes to intArrayOf(CC.Audio, -1, CC.Recents, CC.Search),
-        CC.Search to intArrayOf(CC.Sleep, -1, CC.Remotes, CC.System),
-        CC.System to intArrayOf(CC.Sleep, -1, CC.Search, -1),
+        CC.Profile to intArrayOf(-1, CC.WiFi, -1, -1),
+        CC.Power to intArrayOf(CC.Profile, CC.Sleep, -1, CC.WiFi),
+        CC.WiFi to intArrayOf(CC.Profile, CC.Bluetooth, CC.Power, -1),
+        CC.Bluetooth to intArrayOf(CC.WiFi, CC.Screensaver, CC.Power, -1),
+        CC.Sleep to intArrayOf(CC.Power, CC.Picture, -1, CC.Screensaver),
+        CC.Screensaver to intArrayOf(CC.Bluetooth, CC.Memory, CC.Sleep, -1),
+        CC.Picture to intArrayOf(CC.Sleep, -1, -1, CC.Sound),
+        CC.Sound to intArrayOf(CC.Sleep, -1, CC.Picture, CC.Memory),
+        CC.Memory to intArrayOf(CC.Screensaver, -1, CC.Sound, CC.Access),
+        CC.Access to intArrayOf(CC.Screensaver, -1, CC.Memory, -1),
     )
 
     private fun ccKey(k: NavKey): Boolean {
@@ -990,17 +1035,38 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun ccSelect(i: Int) {
         when (i) {
-            CC.Prism -> openSettings()
             CC.Profile -> SystemActions.open(ctx, Settings.ACTION_SYNC_SETTINGS)
             CC.Power -> if (PrismAccessibilityService.powerDialog()) closeOverlay() else askForPowerAccess()
             CC.WiFi -> SystemActions.open(ctx, Settings.ACTION_WIFI_SETTINGS)
+            CC.Bluetooth -> SystemActions.open(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
             CC.Screensaver -> startScreensaver()
-            CC.Audio -> SystemActions.open(ctx, Settings.ACTION_SOUND_SETTINGS)
             CC.Sleep -> cycleSleepTimer()
-            CC.Recents -> openSwitcher()
-            CC.Remotes -> SystemActions.open(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
-            CC.Search -> { closeOverlay(); SystemActions.search(ctx) }
-            CC.System -> { closeOverlay(); SystemActions.open(ctx, Settings.ACTION_SETTINGS) }
+            CC.Picture -> SystemActions.open(ctx, Settings.ACTION_DISPLAY_SETTINGS)
+            CC.Sound -> SystemActions.open(ctx, Settings.ACTION_SOUND_SETTINGS)
+            CC.Memory -> freeUpMemory()
+            CC.Access -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        }
+    }
+
+    /** Closes background apps (everything that isn't the foreground or a system service). */
+    private fun freeUpMemory() {
+        viewModelScope.launch {
+            val closed = withContext(Dispatchers.IO) {
+                val pm = ctx.packageManager
+                val launchable = allApps.filter { it.demo == null }.map { it.packageName }.distinct()
+                launchable.count { pkg ->
+                    pkg != ctx.packageName && runCatching { pm.getApplicationInfo(pkg, 0) }.isSuccess &&
+                        run { SystemActions.killBackground(ctx, pkg); true }
+                }
+            }
+            val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val info = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+            val freeGb = info.availMem / 1_073_741_824.0
+            showBanner(
+                "Free Up Memory",
+                "Closed background apps · %.1f GB available".format(freeGb).takeIf { closed > 0 } ?: "%.1f GB available".format(freeGb),
+                Icons.Rounded.Memory,
+            )
         }
     }
 
@@ -1129,7 +1195,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun onOff(b: Boolean) = if (b) "On" else "Off"
 
     fun settingsRows(page: SettingsPage): List<SettingsRow> = when (page) {
-        SettingsPage.Root -> listOf(
+        // Reading resumeTick refreshes rows (Recent Apps Access, Power & Home Button) as soon as the
+        // user comes back from Android's settings.
+        SettingsPage.Root -> resumeTick.let { _ -> listOf(
             SettingsRow("appearance", "Appearance", "GENERAL", prefs.appearance.label, chevron = true),
             SettingsRow("material", "Material", "GENERAL", prefs.material.label, chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
@@ -1142,11 +1210,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("about", "About", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
-        )
+        ) }
         SettingsPage.Appearance -> AppearanceSetting.entries.map {
             SettingsRow("ap:${it.name}", it.label, "APPEARANCE", selectable = true, checked = prefs.appearance == it)
         } + GlassMaterial.entries.map {
-            SettingsRow("mat:${it.name}", if (it == GlassMaterial.Frosted) "Frosted Glass (Classic)" else it.label, "MATERIAL",
+            SettingsRow("mat:${it.name}", when (it) {
+                GlassMaterial.Frosted -> "Frosted Glass (Classic)"
+                GlassMaterial.Liquid -> "Liquid Glass (Tinted)"
+                GlassMaterial.Clear -> "Liquid Glass (Clear)"
+            }, "MATERIAL",
                 selectable = true, checked = prefs.material == it)
         } + listOf(
             SettingsRow("reduce", "Reduce Transparency", "ACCESSIBILITY", onOff(prefs.reduceTransparency)),
@@ -1158,6 +1230,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("hero", "Top Shelf", "TOP SHELF", onOff(prefs.heroEnabled)),
             SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
             SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
+            SettingsRow("weather", "Weather", "TIME PILL", onOff(prefs.weather)),
+            SettingsRow("tempUnit", "Temperature", "TIME PILL", prefs.temperatureUnit.label),
             SettingsRow("source", "Artwork Source", "TOP SHELF", prefs.heroSource.label),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
             SettingsRow("resetLayout", "Reset Home Screen Layout", "LAYOUT"),
@@ -1258,6 +1332,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "upd:check" -> availableUpdate?.let { offerUpdate(it) } ?: checkForUpdates(manual = true)
             r.id == "upd:auto" -> updatePrefs(p.copy(updateCheck = !p.updateCheck))
+            r.id == "weather" -> {
+                updatePrefs(p.copy(weather = !p.weather))
+                if (prefs.weather) refreshWeather(force = true)
+            }
+            r.id == "tempUnit" -> updatePrefs(p.copy(temperatureUnit = TemperatureUnit.entries[(p.temperatureUnit.ordinal + 1) % TemperatureUnit.entries.size]))
             r.id == "ss:system" -> {
                 val opened = SystemActions.start(ctx, Intent(Settings.ACTION_DREAM_SETTINGS))
                 dialog = DialogSpec(
@@ -1335,10 +1414,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun applyDebug(b: Bundle) {
         debugDriven = true
+        refreshWeather()
         var p = prefs
         if (b.containsKey("demo")) p = p.copy(demoContent = b.getBoolean("demo"))
         b.getString("appearance")?.let { v -> AppearanceSetting.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(appearance = it) } }
-        b.getString("glass")?.let { v -> p = p.copy(material = if (v.equals("frosted", true) || v.equals("classic", true)) GlassMaterial.Frosted else GlassMaterial.Liquid) }
+        b.getString("glass")?.let { v ->
+            p = p.copy(material = when {
+                v.equals("frosted", true) || v.equals("classic", true) -> GlassMaterial.Frosted
+                v.equals("clear", true) -> GlassMaterial.Clear
+                else -> GlassMaterial.Liquid
+            })
+        }
         b.getString("focusEffect")?.let { v -> FocusEffect.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(focusEffect = it) } }
         b.getString("aerial")?.let { v -> AerialSource.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(aerialSource = it) } }
         if (b.containsKey("autorotate")) p = p.copy(heroAutoRotate = b.getBoolean("autorotate"))

@@ -69,7 +69,7 @@ shot 04-grid-focus-balanced        "${B[@]}" --es appearance balanced --es glass
 shot 05-grid-folder-focus          "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 3
 shot 06-folder-open                "${B[@]}" "${DARK[@]}" --es screen folder --ei row 1 --ei col 3 --ei focus 0
 shot 07-control-centre-grid        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei row 1 --ei col 2 --ei focus 5
-shot 08-control-centre-hero        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei col 3 --ei focus 8
+shot 08-control-centre-hero        "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei col 3 --ei focus 13
 if [ "$QUICK" = 0 ]; then
 shot 09-app-switcher               "${B[@]}" "${DARK[@]}" --es screen switcher
 shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher --ez lift true
@@ -80,7 +80,9 @@ shot 13-settings-dialog-light      "${B[@]}" --es appearance light --es glass li
 shot 14-home-frosted-light         "${B[@]}" --es appearance light --es glass frosted --es screen home --ei col 1
 shot 15-grid-frosted-light         "${B[@]}" --es appearance light --es glass frosted --es screen grid --ei row 2 --ei col 2
 shot 16-control-centre-light       "${B[@]}" --es appearance light --es glass liquid --es screen controlcentre --ei row 1 --ei col 1 --ei focus 4
-shot 20-context-menu-grid          "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 0
+shot 20-context-menu-grid          "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 1
+shot 20b-context-menu-clear        "${B[@]}" "${DARK[@]}" --es glass clear --es screen menu --ei row 0 --ei col 2 --ei focus 2
+shot 25b-home-clear-dark           "${B[@]}" "${DARK[@]}" --es glass clear --es screen home --ei col 2
 shot 21-context-menu-dock          "${B[@]}" "${DARK[@]}" --es screen menu --ei row 0 --ei col 2 --ei focus 3
 shot 22-move-mode                  "${B[@]}" "${DARK[@]}" --es screen move --ei row 1 --ei col 2
 shot 23-sidebar                    "${B[@]}" "${DARK[@]}" --es screen sidebar --ei focus 4

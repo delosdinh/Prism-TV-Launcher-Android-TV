@@ -129,6 +129,11 @@ fun Modifier.glass(
     lens: Boolean = true,
     /** Always blur (full-screen scrims behind the switcher and folders), whatever the material. */
     frosted: Boolean = false,
+    /**
+     * With [frosted] on a lens material: keep the blurred interior but bend the backdrop around the
+     * rim, like iOS menus and folders (frosted for legibility, Liquid Glass at the edge).
+     */
+    bentRim: Boolean = false,
 ): Modifier = composed {
     val theme = LocalPrism.current
     val backdrop = LocalBackdrop.current
@@ -259,6 +264,14 @@ fun Modifier.glass(
                     !liquid || frosted -> clipPath(clip) {
                         drawBlurred()
                         drawRect(tint)
+                        if (liquid && bentRim) {
+                            clipPath(rimBand, clipOp = ClipOp.Difference) {
+                                drawRaw(strength * 0.30f, strength * 0.30f)
+                                drawRect(tint.copy(alpha = tint.alpha * 0.5f))
+                                drawRect(rimLight)
+                            }
+                            drawRect(specular)
+                        }
                     }
                     useShader -> {
                         lensLayer.renderEffect = lensEffect

@@ -49,21 +49,36 @@ object HomeLayout {
 
 /** Folder panel geometry (centred glass panel, 3 columns). */
 object FolderLayout {
-    const val Cols = 3
-    const val PanelW = 604f
-    const val PanelTop = 76f
+    const val Cols = 4
+    const val VisibleRows = 3
     const val TileW = 124f
     const val TileH = 74.4f
-    const val ColPitch = 200f
-    const val RowPitch = 122f
-    const val PadTop = 26f
+    const val ColPitch = 168f
+    const val RowPitch = 112f
+    const val PadX = 48f
+    const val PadY = 40f
+    const val PanelW = ColPitch * (Cols - 1) + TileW + PadX * 2
+    const val PanelTop = 118f
+    const val TitleTop = 50f
 
     fun panelLeft(): Float = (HomeLayout.ScreenW - PanelW) / 2f
-    fun tileRect(index: Int): Rect {
+    fun rows(count: Int): Int = maxOf(1, (count + Cols - 1) / Cols)
+    fun visibleRows(count: Int): Int = rows(count).coerceAtMost(VisibleRows)
+    fun panelH(count: Int): Float = PadY * 2 + RowPitch * (visibleRows(count) - 1) + TileH
+
+    /** First visible row: focus stays on the middle row while the folder scrolls. */
+    fun firstRow(focus: Int, count: Int): Int {
+        val rows = rows(count)
+        if (rows <= VisibleRows) return 0
+        return (focus / Cols - 1).coerceIn(0, rows - VisibleRows)
+    }
+
+    /** A tile's rect on screen, for [scroll] rows scrolled away. */
+    fun tileRect(index: Int, scroll: Float = 0f): Rect {
         val r = index / Cols
         val c = index % Cols
-        val x = panelLeft() + (PanelW - (ColPitch * (Cols - 1) + TileW)) / 2f + ColPitch * c
-        val y = PanelTop + PadTop + RowPitch * r
+        val x = panelLeft() + PadX + ColPitch * c
+        val y = PanelTop + PadY + RowPitch * (r - scroll)
         return Rect(x, y, x + TileW, y + TileH)
     }
 }
