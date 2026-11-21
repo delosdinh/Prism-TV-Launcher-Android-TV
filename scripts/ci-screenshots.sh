@@ -139,6 +139,7 @@ shot 55-cc-now-playing             "${B[@]}" "${DARK[@]}" --es screen controlcen
 shot 55b-cc-now-playing-light      "${B[@]}" --es appearance light --es glass liquid --es screen controlcentre --ei focus 22 --es nowPlaying "'Golden Hour'" --ez paused true
 shot 56-settings-inputs            "${B[@]}" "${DARK[@]}" --ez inputs true --es screen settings --es page Inputs --ei focus 1
 shot 56b-settings-startup          "${B[@]}" "${DARK[@]}" --es screen settings --es page Startup --ei focus 2
+shot 57-settings-backup            "${B[@]}" "${DARK[@]}" --es screen settings --es page Backup --ei focus 0
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14

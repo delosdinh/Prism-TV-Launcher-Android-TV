@@ -482,6 +482,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ---------------------------------------------------------------- notifications
     var notifications by mutableStateOf<List<PrismNotification>>(emptyList())
     /** What another app is playing (Control Centre's Now Playing tile); null when nothing is. */
+    /** Settings › Backup & Restore: backups found on this TV, newest first. */
+    var backups by mutableStateOf<List<com.prismtv.launcher.data.Backup.Entry>>(emptyList())
+        private set
+    /** Asks the activity for Android's document picker (Backup & Restore › Choose a File…). */
+    var backupPickTick by mutableIntStateOf(0)
+        private set
+
     /** Settings › Banner: the app whose banner is being chosen. */
     var bannerAppId by mutableStateOf<String?>(null)
         private set
@@ -2077,6 +2084,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("sleep", "Sleep Timer", "REMOTE", sleepLabel()),
             SettingsRow("update", "Software Update", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
             SettingsRow("about", "About", "SYSTEM", chevron = true),
+            SettingsRow("backup", "Backup & Restore", "SYSTEM", chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
         ) }
@@ -2476,6 +2484,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "startupApp" -> pushPage(SettingsPage.Startup)
             r.id == "inputs" -> pushPage(SettingsPage.Inputs)
+            r.id == "backup" -> {
+                pushPage(SettingsPage.Backup)
+                loadBackups()
+            }
+            r.id == "bk:now" -> backUpNow()
+            r.id.startsWith("bk:file:") -> confirmRestore(android.net.Uri.parse(r.id.removePrefix("bk:file:")))
+            r.id == "bk:pick" -> backupPickTick++
             r.id.startsWith("in:show:") -> {
                 val appId = com.prismtv.launcher.data.TvInputs.Prefix + r.id.removePrefix("in:show:")
                 updatePrefs(p.copy(hiddenApps = if (appId in p.hiddenApps) p.hiddenApps - appId else p.hiddenApps + appId))
@@ -2585,7 +2600,60 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("in:name:$id", "Name", a.label.uppercase(), a.label, chevron = true, app = a),
         )
     }
-    private fun backupRows(): List<SettingsRow> = emptyList()
+    private fun backupRows(): List<SettingsRow> {
+        val fmt = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+        return listOf(SettingsRow("bk:now", "Back Up Now", "BACK UP", "Download › Prism TV", chevron = true)) +
+            (if (backups.isEmpty()) listOf(SettingsRow("bk:none", "No backups on this TV yet", "RESTORE"))
+            else backups.map { SettingsRow("bk:file:${it.uri}", fmt.format(java.util.Date(it.time)), "RESTORE", chevron = true) }) +
+            listOf(SettingsRow("bk:pick", "Choose a File…", "RESTORE", chevron = true))
+    }
+
+    fun loadBackups() {
+        viewModelScope.launch {
+            backups = withContext(Dispatchers.IO) { com.prismtv.launcher.data.Backup.list(ctx) }
+        }
+    }
+
+    private fun backUpNow() {
+        viewModelScope.launch {
+            val where = withContext(Dispatchers.IO) { com.prismtv.launcher.data.Backup.save(ctx, BuildConfig.VERSION_NAME) }
+            if (where != null) {
+                showBanner("Backed Up", "Your settings, layout and folders were saved to $where.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                loadBackups()
+            } else {
+                showBanner("Backup", "The backup couldn't be saved.", Icons.Rounded.Info, Cue.Error)
+            }
+        }
+    }
+
+    /** Asks before a backup replaces what's set up now. */
+    fun confirmRestore(uri: android.net.Uri) {
+        confirm(
+            "Restore This Backup?",
+            "Your current settings, Home Screen layout and folders will be replaced with the backup's.",
+            "Restore",
+        ) { restoreBackup(uri) }
+    }
+
+    fun noFilePicker() {
+        showBanner("Choose a File", "This TV doesn't have a file picker. Copy the backup into Download › Prism TV and it'll be listed here.", Icons.Rounded.Info, Cue.Error)
+    }
+
+    private fun restoreBackup(uri: android.net.Uri) {
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { com.prismtv.launcher.data.Backup.restore(ctx, uri) }
+            if (!ok) {
+                showBanner("Restore", "That file isn't a Prism TV backup.", Icons.Rounded.Info, Cue.Error)
+                return@launch
+            }
+            updatePrefs(store.load())
+            layout = layoutStore.load(layoutKey)
+            loadInputs()
+            refreshApps()
+            restartShuffle()
+            showBanner("Restored", "Your settings, layout and folders are back.", Icons.Rounded.CheckCircle, Cue.Confirm)
+        }
+    }
     private fun iconPackRows(): List<SettingsRow> = emptyList()
     private fun bannerRows(): List<SettingsRow> = emptyList()
     private fun profileRows(): List<SettingsRow> = emptyList()
@@ -2930,6 +2998,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val page = SettingsPage.entries.firstOrNull { it.name.equals(b.getString("page") ?: "Root", true) } ?: SettingsPage.Root
                 if (page == SettingsPage.WidgetApps) widgetDetailKey = b.getString("widgetKey") ?: "all:continue"
                 if (page == SettingsPage.Wallpaper || page == SettingsPage.Profile) loadPhotos()
+                if (page == SettingsPage.Backup) loadBackups()
                 settingsStack = if (page == SettingsPage.Root) listOf(SettingsPage.Root) else listOf(SettingsPage.Root, page)
                 settingsFocus[page] = b.getInt("focus", 0)
             }

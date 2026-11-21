@@ -109,6 +109,10 @@ launcher counterpart to the Prism TV skin for Kodi.
   console or set-top box, like Projectivy's input shortcuts. Rename them (hold OK › Rename Input, or
   Settings › Inputs), hide them, move them or put them in folders like apps. Streaming boxes have no
   inputs, so there's nothing to show there.
+- **Backup & Restore** (Settings › Backup & Restore): saves your settings, Home Screen layout,
+  folders, hidden apps and the keyboard's learned words to Download › Prism TV, and restores them
+  (after an uninstall, or on another TV: copy the file across, or use Choose a File… where the TV
+  has Android's file picker).
 - **Open at Startup**: pick an app (and an optional wait) to open each time the TV starts, such
   as Kodi. It opens once per start, only if nobody has pressed anything in the meantime.
 - **App Switcher**, laid out like tvOS: the Home Screen shrinks into a centred card, recent apps

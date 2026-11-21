@@ -120,6 +120,21 @@ class MainActivity : ComponentActivity() {
         requestRecommendationAccess()
     }
 
+    /** Settings › Backup & Restore › Choose a File… (Android's document picker, where the TV has one). */
+    private val backupPicker = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.confirmRestore(uri)
+    }
+
+    fun pickBackupFile() {
+        val probe = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+        if (probe.resolveActivity(packageManager) == null) {
+            vm.noFilePicker()
+            return
+        }
+        runCatching { backupPicker.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }
+            .onFailure { vm.noFilePicker() }
+    }
+
     /** Settings › Wallpaper › Your Pictures. */
     fun requestPhotoAccess() {
         if (Build.VERSION.SDK_INT < 23) return
@@ -331,6 +346,9 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     }
     LaunchedEffect(vm.permissionRequestTick) {
         if (vm.permissionRequestTick > 0) (activity as? MainActivity)?.requestRecommendationAccess()
+    }
+    LaunchedEffect(vm.backupPickTick) {
+        if (vm.backupPickTick > 0) (activity as? MainActivity)?.pickBackupFile()
     }
     LaunchedEffect(vm.photoPermissionTick) {
         if (vm.photoPermissionTick > 0) (activity as? MainActivity)?.requestPhotoAccess()
