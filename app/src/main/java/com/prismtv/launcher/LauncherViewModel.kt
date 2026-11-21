@@ -1152,6 +1152,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (launchAnim != null) return true
         val focusBefore = focusSignature()
         val surfaceBefore = surfaceSignature()
+        val overlayBefore = overlay
         val depthBefore = depth()
         val heroBefore = heroIndex
         keyCue = null
@@ -1170,7 +1171,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         val c = keyCue ?: when {
             k == NavKey.Select -> Cue.Click
-            surfaceSignature() != surfaceBefore -> if (depth() < depthBefore) Cue.Back else Cue.Open
+            surfaceSignature() != surfaceBefore -> transitionCue(overlayBefore, back = depth() < depthBefore)
             k in arrowKeys && focusSignature() != focusBefore -> focusCue(heroIndex != heroBefore)
             else -> null
         }
@@ -1231,6 +1232,26 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * The sound for moving between surfaces: panels that slide in or out from a side carry their own
+     * gesture (the sidebar from the left, Control Centre from the top-right, the switcher's deck);
+     * everything else opens or goes back.
+     */
+    private fun transitionCue(before: Overlay, back: Boolean): Cue {
+        val after = overlay
+        return when {
+            after == before -> if (back) Cue.Back else Cue.Open
+            after == Overlay.Sidebar -> Cue.RevealLeft
+            before == Overlay.Sidebar && after == Overlay.None -> Cue.HideLeft
+            after == Overlay.ControlCentre -> Cue.RevealRight
+            before == Overlay.ControlCentre && after == Overlay.None -> Cue.HideRight
+            after == Overlay.Switcher -> Cue.SwitcherOpen
+            before == Overlay.Switcher && after == Overlay.None -> Cue.SwitcherClose
+            back -> Cue.Back
+            else -> Cue.Open
+        }
+    }
+
     fun onBack() {
         if (launchAnim != null) return
         if (keyboard != null) {
@@ -1238,9 +1259,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             closeKeyboard()
             return
         }
-        val opensSidebar = dialog == null && contextMenu == null && movingId == null &&
-            overlay == Overlay.None && zone == Zone.Grid && row == 0
-        sounds.play(if (opensSidebar) Cue.Open else Cue.Back)
+        val before = overlay
+        val layered = dialog != null || contextMenu != null || movingId != null
+        backStep()
+        sounds.play(if (!layered && overlay != before) transitionCue(before, back = overlay == Overlay.None) else Cue.Back)
+    }
+
+    private fun backStep() {
         when {
             launchAnim != null -> Unit
             dialog != null -> dialog = null
@@ -1260,7 +1285,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onHomePressed() {
-        if (dialog != null || contextMenu != null || movingId != null || overlay != Overlay.None) sounds.play(Cue.Back)
+        if (dialog != null || contextMenu != null || movingId != null) sounds.play(Cue.Back)
+        else when (overlay) {
+            Overlay.None -> Unit
+            Overlay.Sidebar -> sounds.play(Cue.HideLeft)
+            Overlay.ControlCentre -> sounds.play(Cue.HideRight)
+            Overlay.Switcher -> sounds.play(Cue.SwitcherClose)
+            else -> sounds.play(Cue.Back)
+        }
         dialog = null
         contextMenu = null
         movingId = null
@@ -1634,6 +1666,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openControlCentre(toNotifications: Boolean = false) {
         ccFocus = if (toNotifications && notifications.isNotEmpty()) CC.Notification else CC.Power
+        if (overlay != Overlay.ControlCentre) cue(Cue.RevealRight)
         overlay = Overlay.ControlCentre
     }
 
@@ -1818,7 +1851,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         switcherClosingToHome = false
         dismissingKey = null
         overlay = Overlay.Switcher
-        cue(Cue.Open)
+        cue(Cue.SwitcherOpen)
     }
 
     private fun switcherKey(k: NavKey): Boolean {
@@ -1831,7 +1864,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Select -> {
                 val e = recents.getOrNull(switcherFocus) ?: return true
                 val app = e.app
-                if (app == null) closeSwitcherToHome() else startLaunch(app, SwitcherLayout.focusedRect())
+                if (app == null) {
+                    closeSwitcherToHome()
+                    cue(Cue.SwitcherClose)
+                } else startLaunch(app, SwitcherLayout.focusedRect())
             }
             NavKey.Menu -> closeSwitcherToHome()
         }

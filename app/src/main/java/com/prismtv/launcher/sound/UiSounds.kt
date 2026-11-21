@@ -16,7 +16,17 @@ enum class Cue(@RawRes val res: Int, val volume: Float) {
     Back(R.raw.ui_back, 0.55f),
     Toggle(R.raw.ui_toggle, 0.6f),
     Open(R.raw.ui_open, 0.55f),
+    /** An app card flicked up and away in the App Switcher. */
     Dismiss(R.raw.ui_dismiss, 0.55f),
+    /** The sidebar sliding in from / back out to the left. */
+    RevealLeft(R.raw.ui_reveal_left, 0.55f),
+    HideLeft(R.raw.ui_hide_left, 0.55f),
+    /** Control Centre unfolding from / folding back into the top-right corner. */
+    RevealRight(R.raw.ui_reveal_right, 0.55f),
+    HideRight(R.raw.ui_hide_right, 0.55f),
+    /** The Home Screen shrinking into the App Switcher's deck, and growing back. */
+    SwitcherOpen(R.raw.ui_switcher_open, 0.55f),
+    SwitcherClose(R.raw.ui_switcher_close, 0.55f),
     Key(R.raw.ui_key, 0.5f),
     FocusKey(R.raw.ui_focus_key, 0.45f),
     Confirm(R.raw.ui_confirm, 0.6f),

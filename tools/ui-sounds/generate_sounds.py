@@ -1,4 +1,4 @@
-"""Render the Prism TV interface cues (the fifteen pack cues plus the launcher's open and dismiss) using Python 3 and NumPy."""
+"""Render the Prism TV interface cues (the fifteen pack cues plus the launcher's open, dismiss and gesture cues) using Python 3 and NumPy."""
 
 from pathlib import Path
 import sys
@@ -427,6 +427,199 @@ def dismiss_navigation():
     return stereo*release(t,.025)[:,None]
 
 
+# ---------------------------------------------------------------- launcher gestures
+# The same Select and Back instruments, given the motion of what's happening on screen: where the
+# panel comes from (the sound travels with it), which way it moves (the roll and a small pitch
+# inflection) and a breath of air that moves with it.
+
+SELECT_VOICES = [(205.4,3.4,.25), (237.7,3.9,1.54), (360.8,-2.8,.74), (302.8,-3.3,2.62)]
+BACK_VOICES = [181.8, 214.9, 322.9, 271.2]
+
+
+def glide(t, hz, semitones):
+    """Extra phase for a pitch inflection given in semitones over time (None = none)."""
+    if semitones is None:
+        return 0.0
+    ratio = 2 ** (semitones(t) / 12) - 1
+    return TAU * hz * np.cumsum(ratio) / RATE
+
+
+def select_gesture(k, roll, bend=None, extra=0.0):
+    """Select's chord on a timeline scaled by k, each voice entering after roll[hz] seconds."""
+    length = 1.046*k + max(roll.values()) + extra
+    t = timeline(length)
+    crest = .179
+    attack = [(0,-61),(.022,-22.5),(.068,-11.8),(.116,-6.6),(.156,-1.6)]
+    tail = [(crest,0),(crest+.077,-.7),(.35,-3.8),(.46,-10.7),(.59,-16.7),(.78,-28),(.96,-42),(1.046,-73)]
+    direct = silence(length)
+    for i, (hz, b, initial) in enumerate(SELECT_VOICES):
+        d = roll[hz]
+        tv = np.maximum(t - d, 0)
+        u = tv / k
+        env = contour(u, attack+tail) * (t >= d)
+        bloom = smooth((u-.069)/.191)
+        settle = smooth((u-.263)/.28)
+        gain, pan, spread = [
+            (.75+.30*bloom, -.05-.12*bloom, .25+.92*bloom),
+            (1.05-.45*bloom-.05*settle, .025+.13*bloom-.22*settle, -.29-.57*bloom),
+            (.54+.25*bloom-.13*settle, .10-.08*settle, .12+.25*bloom),
+            (.10*(1-.54*settle), .10, -.60),
+        ][i]
+        oscillator = phase(tv, hz, b, .10*k, initial) + glide(t, hz, bend)
+        drift = .065*np.sin(TAU*1.19*t+initial)
+        for ch, position in enumerate((-1,1)):
+            angle = oscillator + position*(.55*spread+drift)
+            weight = np.sqrt(1-position*pan)
+            tone = np.sin(angle) + .020*np.sin(2*angle+.52)*(1-.54*bloom)
+            direct[:,ch] += env*gain*weight*tone
+    stereo = direct.copy()
+    for ch in (0,1):
+        stereo[:,ch] += .13*delayed(direct[:,1-ch], (.025,.032)[ch])
+        stereo[:,ch] += .09*delayed(direct[:,ch], (.067,.075)[ch])
+    return stereo*release(t,.021)[:,None]*np.array([.964,1.036]), t
+
+
+def back_gesture(k, roll, bend=None, extra=0.0):
+    """Back's chord on a timeline scaled by k, each voice entering after roll[hz] seconds."""
+    length = 1.068*k + max(roll.values()) + extra
+    t = timeline(length)
+    knots = [(0,-60),(.026,-26),(.073,-16.7),(.126,-9.1),(.186,-2.1),
+             (.233,-.15),(.283,0),(.316,-.50),(.358,-3.3),(.438,-8.85),
+             (.548,-14.7),(.692,-23.7),(.849,-33.8),(.989,-43.0),(1.068,-56)]
+    U = t / k
+    opening = smooth((U-.080)/.240)
+    closing = smooth((U-.317)/.223)
+    late = smooth((U-.54)/.43)
+    width = opening*(1-.36*closing)*(1-.64*late)
+    grow = smooth((U-.13)/.17)
+    dim = smooth((U-.375)/.27)
+    voices = [
+        (181.8,1.9,.41, .84+.055*grow+.18*dim, .035-.86*width, .13+1.28*opening-.28*closing-.41*late),
+        (214.9,1.25,2.06, 1.04-.20*dim, .125+.70*width, .065-.29*opening+.12*closing+.57*late),
+        (322.9,.78,-.88, .51-.045*grow+.16*dim,
+         -.06-.60*smooth((U-.047)/.141)*(1-.85*smooth((U-.205)/.213)),
+         .13+.34*smooth((U-.04)/.14)+2.48*smooth((U-.173)/.123)+1.83*closing+.45*late),
+        (271.2,-1.1,1.36, .15-.09*grow-.025*dim, .13+.16*opening, -.20+.83*closing),
+    ]
+    direct = np.zeros((len(t),2))
+    for hz,b,initial,level,seat,spread in voices:
+        d = roll[hz]
+        tv = np.maximum(t - d, 0)
+        env = contour(tv / k, knots) * (t >= d)
+        carrier = phase(tv,hz,b,.093*k,initial) + glide(t, hz, bend)
+        drift = .043*np.sin(TAU*1.32*t+initial)
+        for ch, position in enumerate((-1,1)):
+            angle = carrier + .42*drift + (spread+drift if ch else 0)
+            tone = np.sin(angle)+.009*np.sin(2*angle+.36)
+            direct[:,ch] += env*level*np.sqrt(np.maximum(1+position*seat, 0))*tone
+    stereo = direct.copy()
+    for ch in (0,1):
+        stereo[:,ch] += .086*delayed(direct[:,ch],(.041,.036)[ch])
+        stereo[:,ch] += .060*delayed(direct[:,1-ch],(.073,.087)[ch])
+        stereo[:,ch] += .039*delayed(direct[:,ch],(.134,.142)[ch])
+    return stereo*release(t,.025)[:,None], t
+
+
+def air(t, f0, f1, start, length, seed):
+    """A soft breath of air sweeping from f0 to f1 Hz: overlapping noise bands handing over."""
+    steps = 7
+    out = np.zeros((len(t), 2))
+    for i in range(steps):
+        u = i / (steps - 1)
+        hz = f0 * (f1 / f0) ** u
+        at = start + u * length
+        env = np.exp(-0.5 * ((t - at) / (length / steps * 1.1)) ** 2)
+        for ch in (0, 1):
+            out[:, ch] += grain(t, hz, .42, seed + 17*i + ch) * env * (1 - .25*u)
+    out *= smooth((t - start + .012) / .04)[:, None]
+    return out / max(np.abs(out).max(), 1e-9)
+
+
+def travel(stereo, t, p0, p1, start, length):
+    """Moves the whole sound across the stereo field from pan p0 to p1."""
+    p = p0 + (p1 - p0) * smooth((t - start) / length)
+    out = stereo.copy()
+    out[:, 0] *= np.sqrt(np.clip(1 - p, 0, 2))
+    out[:, 1] *= np.sqrt(np.clip(1 + p, 0, 2))
+    return out
+
+
+def spread(stereo, t, w0, w1, start, length):
+    """Narrows or widens the image: 0 is mono, 1 as played, above 1 wider."""
+    w = w0 + (w1 - w0) * smooth((t - start) / length)
+    mid = (stereo[:, 0] + stereo[:, 1]) / 2
+    side = (stereo[:, 0] - stereo[:, 1]) / 2
+    return np.column_stack((mid + w*side, mid - w*side))
+
+
+def with_air(stereo, t, level, f0, f1, start, length, seed):
+    return stereo + level * np.abs(stereo).max() * air(t, f0, f1, start, length, seed)
+
+
+def reveal_left():
+    # The sidebar slides in from the left: Select's voices roll upward as the sound travels in from
+    # the left edge, arriving with a small upward scoop into pitch.
+    roll = {205.4: 0, 237.7: .018, 302.8: .036, 360.8: .054}
+    s, t = select_gesture(.62, roll, bend=lambda t: -1.0*(1 - smooth(t/.10)))
+    s = with_air(s, t, .20, 520, 1900, 0, .24, 4101)
+    return travel(s, t, -.95, -.12, 0, .26)
+
+
+def hide_left():
+    # The sidebar slides back out: Back's voices roll downward, sinking a little in pitch as the sound
+    # travels away to the left.
+    roll = {322.9: 0, 271.2: .016, 214.9: .032, 181.8: .048}
+    s, t = back_gesture(.48, roll, bend=lambda t: -1.2*smooth((t-.08)/.26))
+    s = with_air(s, t, .16, 1800, 520, 0, .26, 4201)
+    return travel(s, t, -.18, -.85, .02, .28)
+
+
+def reveal_right():
+    # Control Centre unfolds from the top-right corner: Select's voices roll down from the top note
+    # as the sound comes in from the right.
+    roll = {360.8: 0, 302.8: .018, 237.7: .036, 205.4: .054}
+    s, t = select_gesture(.62, roll, bend=lambda t: -1.0*(1 - smooth(t/.10)))
+    s = with_air(s, t, .18, 1700, 600, 0, .24, 4301)
+    return travel(s, t, .95, .14, 0, .26)
+
+
+def hide_right():
+    # Control Centre folds back into its corner: Back's voices gather upward and lift a little as the
+    # sound draws away to the right.
+    roll = {181.8: 0, 214.9: .016, 271.2: .032, 322.9: .048}
+    s, t = back_gesture(.48, roll, bend=lambda t: 1.0*smooth((t-.08)/.24))
+    s = with_air(s, t, .15, 600, 1900, 0, .24, 4401)
+    return travel(s, t, .20, .85, .02, .28)
+
+
+def switcher_open():
+    # The Home Screen shrinks into a card and the deck spreads out: Select's chord starts narrow and
+    # in the middle, then fans out wider than usual.
+    roll = {205.4: 0, 237.7: .014, 302.8: .028, 360.8: .042}
+    s, t = select_gesture(.70, roll, bend=lambda t: .7*(1 - smooth(t/.16)))
+    s = with_air(s, t, .14, 1400, 700, 0, .30, 4501)
+    return spread(s, t, .05, 1.45, 0, .30)
+
+
+def switcher_close():
+    # Back to the Home Screen: Back's chord starts wide and draws in to the middle as the card grows
+    # to fill the screen.
+    roll = {322.9: 0, 271.2: .012, 214.9: .024, 181.8: .036}
+    s, t = back_gesture(.55, roll)
+    s = with_air(s, t, .13, 700, 1400, 0, .28, 4601)
+    return spread(s, t, 1.45, .10, 0, .32)
+
+
+def flick_up():
+    # An app card flicked up and away in the App Switcher: Back's voices in a fast upward roll that
+    # rises in pitch as it goes and thins out to nothing, with the air rushing up behind it.
+    roll = {181.8: 0, 214.9: .010, 271.2: .020, 322.9: .030}
+    s, t = back_gesture(.40, roll, bend=lambda t: 7.0*smooth((t-.015)/.24)**1.4)
+    s = with_air(s, t, .30, 700, 3600, 0, .22, 4701)
+    s = spread(s, t, 1.0, .25, .04, .26)
+    return s * (1 - .75*smooth((t-.09)/.26))[:, None]
+
+
 INSTRUMENTS = {
     "horn_f": ("MOHorn_sus_F2_v1_1.wav", 53),
     "cello_g": ("susvib_G1_v1_1.wav", 43),
@@ -457,7 +650,13 @@ def cues():
     yield "swish", -14.3, swish()
     # Prism TV launcher additions.
     yield "open", -24.0, open_navigation()
-    yield "dismiss", -24.0, dismiss_navigation()
+    yield "dismiss", -24.0, flick_up()
+    yield "reveal-left", -24.0, reveal_left()
+    yield "hide-left", -24.0, hide_left()
+    yield "reveal-right", -24.0, reveal_right()
+    yield "hide-right", -24.0, hide_right()
+    yield "switcher-open", -24.0, switcher_open()
+    yield "switcher-close", -24.0, switcher_close()
 
 
 
