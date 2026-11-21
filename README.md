@@ -97,6 +97,10 @@ Settings › System › Ambient mode / Screen saver › choose **Prism Aerials**
 picker is hidden:
 `adb shell settings put secure screensaver_components com.prismtv.launcher/.aerial.AerialDreamService`
 
+Or let Prism TV start them itself: Settings › Screensaver › **Start After** (Never, 2–30 minutes) shows
+the aerials when the Home Screen has been left alone that long. After 30 minutes the screensaver
+stops holding the screen on, so the TV's own sleep timer still applies.
+
 ## Build
 
 ```bash
@@ -133,10 +137,14 @@ Settings › Software Update › Check for Updates checks on demand. The first u
 On Android 12+ the update then installs straight away; Android 11 (e.g. SHIELD) also shows the
 system's install confirmation.
 
-Updates only install over a build signed with the same key. CI signs with a permanent key from
-the repository secrets `PRISM_KEYSTORE_B64` (base64 PKCS12 keystore, alias `prism`) and
-`PRISM_KEYSTORE_PASSWORD`, and publishes `update.json` only for those builds. Without the secrets,
-builds use a throwaway key and must be uninstalled before installing a newer one.
+Updates only install over a build signed with the same key, so every CI build is signed with one
+permanent key (`scripts/signing-key.sh`). It comes from the repository secrets `PRISM_KEYSTORE_B64`
+(base64 PKCS12 keystore, alias `prism`) and `PRISM_KEYSTORE_PASSWORD` if they're set; otherwise
+from the private draft release `prism-signing-key`, which the first push build creates. Draft
+releases are only visible to people with write access to the repo. **Never publish or delete that
+draft**: publishing makes the key public, and deleting it means a new key and a reinstall on every
+TV. `update.json` is only published for builds that carry the permanent key; anything else (e.g.
+pull requests from forks) uses a throwaway key and has to be uninstalled before a newer build.
 
 ### Demo content
 

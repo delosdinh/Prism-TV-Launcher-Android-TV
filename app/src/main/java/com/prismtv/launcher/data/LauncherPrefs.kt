@@ -78,7 +78,12 @@ data class LauncherPrefs(
     val sounds: Boolean = true,
     /** Home Screen glass colour; Automatic follows [appearance]. */
     val glassColour: GlassColour = GlassColour.Automatic,
+    /** Minutes without a button press on the Home Screen before the aerials start; 0 = Never. */
+    val screensaverAfter: Int = 0,
 )
+
+/** Settings › Screensaver › Start After choices, in minutes (0 = Never). */
+val StartAfterChoices = listOf(0, 2, 5, 10, 15, 30)
 
 class PrefsStore(context: Context) {
     private val sp = context.getSharedPreferences("prism_prefs", Context.MODE_PRIVATE)
@@ -108,6 +113,7 @@ class PrefsStore(context: Context) {
             temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
             sounds = sp.getBoolean("sounds", d.sounds),
             glassColour = enumOr(sp.getString("glassColour", null), d.glassColour),
+            screensaverAfter = sp.getInt("screensaverAfter", d.screensaverAfter).takeIf { it in StartAfterChoices } ?: d.screensaverAfter,
         )
     }
 
@@ -135,6 +141,7 @@ class PrefsStore(context: Context) {
             .putString("temperatureUnit", p.temperatureUnit.name)
             .putBoolean("sounds", p.sounds)
             .putString("glassColour", p.glassColour.name)
+            .putInt("screensaverAfter", p.screensaverAfter)
             .apply()
     }
 

@@ -88,12 +88,24 @@ fun DialogHost(spec: DialogSpec?, focus: Int) {
                 .padding(horizontal = 20.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            PText(shown.title, 20.sp, FontWeight.SemiBold, p.textPrimary, align = TextAlign.Center)
-            VSpace(8.dp)
-            PText(
-                shown.message, 13.sp, FontWeight.Normal, p.textSecondary,
-                maxLines = 8, align = TextAlign.Center, lineHeight = 18.sp,
-            )
+            PText(shown.title, 20.sp, FontWeight.SemiBold, p.textPrimary, maxLines = 2, align = TextAlign.Center)
+            if (shown.subtitle.isNotEmpty()) {
+                VSpace(6.dp)
+                PText(shown.subtitle, 13.sp, FontWeight.Medium, p.textSecondary, maxLines = 2, align = TextAlign.Center)
+            }
+            if (shown.badges.isNotEmpty()) {
+                VSpace(8.dp)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    shown.badges.take(5).forEach { Badge(it, p.textSecondary) }
+                }
+            }
+            if (shown.message.isNotEmpty()) {
+                VSpace(if (shown.subtitle.isNotEmpty() || shown.badges.isNotEmpty()) 12.dp else 8.dp)
+                PText(
+                    shown.message, 13.sp, FontWeight.Normal, p.textSecondary,
+                    maxLines = 8, align = TextAlign.Center, lineHeight = 18.sp,
+                )
+            }
             VSpace(18.dp)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 shown.buttons.forEachIndexed { i, b ->

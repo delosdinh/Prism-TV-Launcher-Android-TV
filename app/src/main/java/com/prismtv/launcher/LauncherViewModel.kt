@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -43,6 +44,7 @@ import com.prismtv.launcher.aerial.AerialActivity
 import com.prismtv.launcher.aerial.AerialCatalog
 import com.prismtv.launcher.data.AerialQuality
 import com.prismtv.launcher.data.AerialRange
+import com.prismtv.launcher.data.StartAfterChoices
 import com.prismtv.launcher.data.TemperatureUnit
 import com.prismtv.launcher.data.Weather
 import com.prismtv.launcher.data.WeatherRepository
@@ -100,7 +102,15 @@ enum class Overlay { None, ControlCentre, Switcher, Settings, Folder, Sidebar }
 enum class NavKey { Up, Down, Left, Right, Select, LongSelect, Menu, PlayPause }
 
 data class DialogButton(val label: String, val action: () -> Unit)
-data class DialogSpec(val title: String, val message: String, val buttons: List<DialogButton>)
+data class DialogSpec(
+    val title: String,
+    val message: String,
+    val buttons: List<DialogButton>,
+    /** A details line under the title (the Top Shelf Info sheet's genre · year · runtime). */
+    val subtitle: String = "",
+    /** Outlined chips (4K, Dolby Vision…) under the subtitle. */
+    val badges: List<String> = emptyList(),
+)
 data class BannerSpec(val title: String, val message: String, val icon: ImageVector, val id: Long = System.nanoTime())
 
 enum class SettingsPage(val title: String) {
@@ -292,6 +302,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         restartHeroTimer()
         viewModelScope.launch {
+            delay(2500) // after the Home Screen has settled (and CI has had its chance to drive it)
+            announceInstalledVersion()
+        }
+        watchForIdle()
+        viewModelScope.launch {
             Updater.events.collect { e ->
                 when (e) {
                     InstallEvent.Installing -> {
@@ -327,6 +342,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** CI's Android TV emulators never prompt (their builds race the published ones). */
     private val isEmulator = Build.HARDWARE.contains("ranchu") || Build.HARDWARE.contains("goldfish") || Build.FINGERPRINT.startsWith("generic")
     private val updateSp = ctx.getSharedPreferences("prism_update", Context.MODE_PRIVATE)
+
+    /** After Prism TV has updated itself, say so once on the Home Screen. */
+    private fun announceInstalledVersion() {
+        val last = updateSp.getInt("lastRunVersion", 0)
+        val now = BuildConfig.VERSION_CODE
+        if (last == now) return
+        updateSp.edit().putInt("lastRunVersion", now).apply()
+        if (last == 0 || now < last || debugDriven || isEmulator) return
+        val notes = updateSp.getString("notes:$now", null)?.trim()?.takeIf { it.isNotEmpty() && it.length <= 90 }
+        showBanner(
+            "Prism TV Updated",
+            notes?.let { "${BuildConfig.VERSION_NAME}: $it" } ?: "You're now on version ${BuildConfig.VERSION_NAME}.",
+            Icons.Rounded.CheckCircle,
+            Cue.Confirm,
+        )
+    }
 
     private fun maybeAutoCheckForUpdate() {
         pendingAfterPermission?.let { info ->
@@ -403,6 +434,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         updateJob?.cancel()
+        updateSp.edit().putString("notes:${info.versionCode}", info.notes).apply()
         updateJob = viewModelScope.launch {
             val bannerId = System.nanoTime()
             bannerJob?.cancel()
@@ -765,6 +797,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ================================================================= input
 
     fun onKey(k: NavKey): Boolean {
+        noteInteraction()
         if (launchAnim != null) return true
         val focusBefore = focusSignature()
         val surfaceBefore = surfaceSignature()
@@ -872,6 +905,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onResume() {
+        isResumed = true
+        noteInteraction()
         resumeTick++
         refreshRecommendations()
         maybeAutoCheckForUpdate()
@@ -977,25 +1012,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      */
     private fun showHeroInfo() {
         val hero = currentHeroItem
-        // Meta and badges share one line so the description gets the room.
-        val facts = listOfNotNull(
-            hero?.meta?.takeIf { it.isNotBlank() },
-            hero?.badges?.takeIf { it.isNotEmpty() }?.joinToString(" · "),
-        ).joinToString(" · ")
-        val body = listOf(facts, hero?.description.orEmpty()).filter { it.isNotBlank() }.joinToString("\n\n")
-        if (hero == null || body.isBlank()) {
+        if (hero == null || (hero.description.isBlank() && hero.meta.isBlank() && hero.badges.isEmpty())) {
             playHero()
             return
         }
         val appLabel = (dockItem as? AppItem)?.app?.label ?: hero.appLabel
+        // As on tvOS: details line, then the format chips, then the synopsis.
         dialog = DialogSpec(
             hero.title,
-            body,
+            hero.description.trim(),
             listOf(
                 DialogButton("Play") { playHero() },
                 DialogButton("Open $appLabel") { openApp(dockItem) },
                 DialogButton("Close") {},
             ),
+            subtitle = hero.meta.trim(),
+            badges = hero.badges,
         )
         dialogFocus = 0
     }
@@ -1186,9 +1218,43 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun startScreensaver() {
-        closeOverlay()
-        SystemActions.start(ctx, Intent(ctx, AerialActivity::class.java))
+    /**
+     * Shows the aerials. [auto] = started by Start After on an idle Home Screen: whatever was open
+     * stays as it was for when you wake it, and the screensaver lets the TV's own sleep timer run.
+     */
+    fun startScreensaver(auto: Boolean = false) {
+        if (!auto) closeOverlay()
+        SystemActions.start(ctx, Intent(ctx, AerialActivity::class.java).putExtra(AerialActivity.EXTRA_AUTO, auto))
+    }
+
+    // ---------------------------------------------------------------- idle → screensaver
+
+    private var lastInteraction = SystemClock.elapsedRealtime()
+    private var isResumed = false
+
+    /** Any remote button (MainActivity also reports presses that never reach [onKey]). */
+    fun noteInteraction() {
+        lastInteraction = SystemClock.elapsedRealtime()
+    }
+
+    fun onPause() {
+        isResumed = false
+    }
+
+    /** Settings › Screensaver › Start After: aerials after that long without a button press on Home. */
+    private fun watchForIdle() {
+        viewModelScope.launch {
+            while (true) {
+                delay(15_000)
+                val minutes = prefs.screensaverAfter
+                if (minutes <= 0 || !isResumed || debugDriven) continue
+                if (SystemClock.elapsedRealtime() - lastInteraction < minutes * 60_000L) continue
+                // Never over something half-done.
+                if (dialog != null || launchAnim != null || movingId != null || contextMenu != null || renameRequest != null) continue
+                noteInteraction()
+                startScreensaver(auto = true)
+            }
+        }
     }
 
     private fun askForPowerAccess() {
@@ -1368,6 +1434,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         )
         SettingsPage.Screensaver -> listOf(
             SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
+            SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
             SettingsRow("ss:source", "Video Source", "SCREENSAVER", prefs.aerialSource.label),
             SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
             SettingsRow("ss:range", "Dynamic Range", "SCREENSAVER", rangeLabel()),
@@ -1464,6 +1531,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "columns" -> updatePrefs(p.copy(columns = if (p.columns == 6) 5 else 6))
             r.id == "demo" -> updatePrefs(p.copy(demoContent = !p.demoContent))
             r.id == "ss:show" -> startScreensaver()
+            r.id == "ss:after" -> {
+                val i = StartAfterChoices.indexOf(p.screensaverAfter)
+                updatePrefs(p.copy(screensaverAfter = StartAfterChoices[(i + 1) % StartAfterChoices.size]))
+            }
             r.id == "ss:source" -> updatePrefs(p.copy(aerialSource = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]))
             r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
@@ -1503,6 +1574,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         // A setting that changed in place gets the toggle cue (a banner's cue wins if one was shown).
         if (prefs != p && keyCue == null) cue(Cue.Toggle)
+    }
+
+    private fun startAfterLabel(minutes: Int): String = when (minutes) {
+        0 -> "Never"
+        1 -> "1 Minute"
+        else -> "$minutes Minutes"
     }
 
     private fun rangeLabel(): String = when (prefs.aerialRange) {

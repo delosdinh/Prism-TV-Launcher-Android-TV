@@ -92,7 +92,7 @@ shot 23-sidebar                    "${B[@]}" "${DARK[@]}" --es screen sidebar --
 shot 24-sidebar-light              "${B[@]}" --es appearance light --es glass liquid --es screen sidebar --ei focus 1
 shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass liquid --es screen home --ei col 1
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
-shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 0
+shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
 shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 11
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0

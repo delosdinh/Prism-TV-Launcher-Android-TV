@@ -32,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
@@ -90,7 +92,9 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
     val ctx = LocalContext.current
     val net = remember(vm.resumeTick, visible) { SystemActions.network(ctx) }
     val f = vm.ccFocus
-    val fg = if (p.isDark) Color.White else p.textPrimary
+    // Header and caption sit straight on the dimmed backdrop, not on glass, so they're always white
+    // (whatever the Glass Colour) with a soft shadow, over a shade that darkens the corner behind them.
+    val ink = Color.White
     val weather = if (vm.prefs.weather) vm.weather else null
 
     Box(Modifier.fillMaxSize()) {
@@ -99,6 +103,13 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 .fillMaxSize()
                 .graphicsLayer { alpha = t }
                 .background(Color(0xFF1B1C20).copy(alpha = if (p.isDark) 0.46f else 0.30f))
+                .background(
+                    Brush.radialGradient(
+                        listOf(Color.Black.copy(alpha = 0.34f), Color.Transparent),
+                        center = Offset(Float.POSITIVE_INFINITY, 0f),
+                        radius = 1100f,
+                    )
+                )
         )
         Box(
             Modifier
@@ -119,15 +130,15 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     .padding(start = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PText(clock, 16.sp, FontWeight.SemiBold, fg, shadow = p.isDark)
+                PText(clock, 16.sp, FontWeight.SemiBold, ink, shadow = true)
                 if (weather != null) {
                     HSpace(10.dp)
                     WeatherGlyph(weather, 17.dp)
                     HSpace(4.dp)
-                    PText(weather.label(vm.prefs.temperatureUnit), 15.sp, FontWeight.SemiBold, fg, shadow = p.isDark)
+                    PText(weather.label(vm.prefs.temperatureUnit), 15.sp, FontWeight.SemiBold, ink, shadow = true)
                     if (weather.place.isNotBlank()) {
                         HSpace(6.dp)
-                        PText(weather.place, 12.sp, FontWeight.Medium, fg.copy(alpha = 0.7f), shadow = p.isDark)
+                        PText(weather.place, 12.sp, FontWeight.Medium, ink.copy(alpha = 0.78f), shadow = true)
                     }
                 }
                 Box(Modifier.weight(1f))
@@ -192,12 +203,12 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
             // Caption for icon-only controls, like the tvOS focus label.
             val caption = captions[f]
             PText(
-                caption ?: "", 13.sp, FontWeight.SemiBold, fg,
+                caption ?: "", 13.sp, FontWeight.SemiBold, ink,
                 Modifier
                     .offset(0.dp, (CirclesTop + Circle + 12f).dp)
                     .size(ClusterW.dp, 20.dp)
                     .graphicsLayer { alpha = if (caption != null) 1f else 0f },
-                align = TextAlign.Center, shadow = p.isDark,
+                align = TextAlign.Center, shadow = true,
             )
         }
     }

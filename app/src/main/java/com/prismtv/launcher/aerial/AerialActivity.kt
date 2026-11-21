@@ -2,15 +2,26 @@ package com.prismtv.launcher.aerial
 
 import android.app.Activity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
-/** "Show Screensaver": aerials full screen until any button is pressed. */
+/**
+ * "Show Screensaver": aerials full screen until any button is pressed. Started by Start After on an
+ * idle Home Screen ([EXTRA_AUTO]), it keeps the screen on for [AUTO_KEEP_ON_MS] and then lets the TV's
+ * own screensaver/sleep timer take over, so an idle TV still goes to sleep.
+ */
 class AerialActivity : Activity() {
     private var aerial: AerialView? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val releaseScreen = Runnable {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        aerial?.keepScreenOn = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +34,12 @@ class AerialActivity : Activity() {
         val view = AerialView(this)
         aerial = view
         setContentView(view)
+        if (intent?.getBooleanExtra(EXTRA_AUTO, false) == true) handler.postDelayed(releaseScreen, AUTO_KEEP_ON_MS)
+    }
+
+    override fun onDestroy() {
+        handler.removeCallbacks(releaseScreen)
+        super.onDestroy()
     }
 
     override fun onStart() {
@@ -48,5 +65,11 @@ class AerialActivity : Activity() {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
         return true
+    }
+
+    companion object {
+        /** Started by Settings › Screensaver › Start After rather than by the user. */
+        const val EXTRA_AUTO = "auto"
+        const val AUTO_KEEP_ON_MS = 30L * 60 * 1000
     }
 }

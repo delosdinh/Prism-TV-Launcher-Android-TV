@@ -17,11 +17,6 @@ jobs:
   build:
     name: Build APKs
     runs-on: ubuntu-latest
-    env:
-      # Optional permanent signing key (repo secrets). Without it, builds are signed with the
-      # runner's throwaway debug key and the in-app Software Update can't install them.
-      PRISM_KEYSTORE_B64: ${{ secrets.PRISM_KEYSTORE_B64 }}
-      PRISM_KEYSTORE_PASSWORD: ${{ secrets.PRISM_KEYSTORE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,22 +27,25 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Version and signing
+      - name: Version
         run: |
           VC=$((1000 + GITHUB_RUN_NUMBER))
           VN="0.2.${GITHUB_RUN_NUMBER}"
           echo "PRISM_VC=$VC" >> "$GITHUB_ENV"
           echo "PRISM_VN=$VN" >> "$GITHUB_ENV"
           echo "GRADLE_VERSION_ARGS=-PprismVersionCode=$VC -PprismVersionName=$VN" >> "$GITHUB_ENV"
-          if [ -n "$PRISM_KEYSTORE_B64" ]; then
-            echo "$PRISM_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/prism.jks"
-            echo "PRISM_KEYSTORE=$RUNNER_TEMP/prism.jks" >> "$GITHUB_ENV"
-            echo "PRISM_SIGNED=true" >> "$GITHUB_ENV"
-            echo "Signing with the permanent Prism key; version $VN ($VC)"
-          else
-            echo "PRISM_SIGNED=false" >> "$GITHUB_ENV"
-            echo "::warning::PRISM_KEYSTORE_B64 isn't set, so this build uses a throwaway key and Software Update won't offer it."
-          fi
+          echo "Version $VN ($VC)"
+
+      # The permanent key that lets each build install over the last one (see the script for where
+      # it's kept). Only push builds may create it, so a push and its PR build can't race to make two.
+      - name: Signing key
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          CAN_CREATE: ${{ github.event_name != 'pull_request' }}
+          PRISM_KEYSTORE_B64: ${{ secrets.PRISM_KEYSTORE_B64 }}
+          PRISM_KEYSTORE_PASSWORD: ${{ secrets.PRISM_KEYSTORE_PASSWORD }}
+        run: bash scripts/signing-key.sh
 
       - name: Build debug APK
         run: |
@@ -57,6 +55,22 @@ jobs:
       - name: Build release APK
         continue-on-error: true
         run: ./gradlew --no-daemon $GRADLE_VERSION_ARGS assembleRelease
+
+      # Belt and braces: Software Update is only offered for APKs that really carry the permanent key.
+      - name: Check APK signatures
+        if: env.PRISM_SIGNED == 'true'
+        run: |
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          WANT="$(echo "$PRISM_SIGNER_SHA256" | tr -d ':' | tr 'A-F' 'a-f')"
+          for apk in app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/app-release.apk; do
+            [ -f "$apk" ] || continue
+            GOT="$("$BT/apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            echo "$apk → $GOT"
+            if [ "$GOT" != "$WANT" ]; then
+              echo "::error::$apk isn't signed with the permanent key"
+              echo "PRISM_SIGNED=false" >> "$GITHUB_ENV"
+            fi
+          done
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
@@ -104,6 +118,7 @@ jobs:
               "notes": sys.argv[1],
               "apk": "prismtv.apk",
               "debugApk": "prismtv-debug.apk",
+              "signer": os.environ.get("PRISM_SIGNER_SHA256", ""),
           }, indent=2))
           PY
             cat dist/update.json

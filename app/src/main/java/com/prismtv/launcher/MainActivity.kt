@@ -167,6 +167,17 @@ class MainActivity : ComponentActivity() {
         vm.onResume()
     }
 
+    override fun onPause() {
+        vm.onPause()
+        super.onPause()
+    }
+
+    /** Every button press (volume included) counts as activity for Screensaver › Start After. */
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        vm.noteInteraction()
+    }
+
     override fun onDestroy() {
         runCatching { unregisterReceiver(packageReceiver) }
         super.onDestroy()
