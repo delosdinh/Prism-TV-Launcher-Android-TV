@@ -31,10 +31,10 @@ Daemon will be stopped at the end of the build
 > Task :app:processDebugManifest
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
-> Task :app:processDebugManifestForPackage
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
+> Task :app:processDebugManifestForPackage
 > Task :app:compressDebugAssets
 > Task :app:desugarDebugFileDependencies
 > Task :app:processDebugResources
@@ -43,9 +43,9 @@ Daemon will be stopped at the end of the build
 > Task :app:mergeExtDexDebug
 
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:483:5 Property must be initialized.
-e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:484:9 A 'val' property cannot have a setter.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1795281287802.json
+e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:488:5 Property must be initialized.
+e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:489:9 A 'val' property cannot have a setter.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1795281516957.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/build/reports/problems/problems-report.html
 
@@ -264,5 +264,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 3m 9s
+BUILD FAILED in 2m 20s
 22 actionable tasks: 22 executed
