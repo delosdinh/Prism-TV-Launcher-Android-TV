@@ -16,6 +16,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -142,13 +143,29 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         return view
     }
 
+    /** Pixels per canvas dp from the display's real size, or null when it can't be read. */
+    private fun canvasDensity(): Float? = runCatching {
+        val wm = getSystemService(android.view.WindowManager::class.java)
+        val (w, h) = if (android.os.Build.VERSION.SDK_INT >= 30) {
+            val b = wm.maximumWindowMetrics.bounds
+            b.width() to b.height()
+        } else {
+            val dm = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION") wm.defaultDisplay.getRealMetrics(dm)
+            dm.widthPixels to dm.heightPixels
+        }
+        if (w <= 0 || h <= 0) null else min(w / 960f, h / 540f)
+    }.getOrNull()
+
     @androidx.compose.runtime.Composable
     private fun Panel() {
         val cfg = LocalConfiguration.current
         val base = LocalDensity.current
-        // The same 960 × 540 design canvas as the launcher, so the keyboard matches on every TV.
-        val scale = min(cfg.screenWidthDp / 960f, cfg.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f
-        CompositionLocalProvider(LocalDensity provides Density(base.density * scale, base.fontScale)) {
+        // The same 960 × 540 design canvas as the launcher, so the keyboard matches on every TV. Sized
+        // from the real display: the Configuration leaves out system bars even when they're hidden.
+        val px = remember(cfg) { canvasDensity() }
+            ?: base.density * (min(cfg.screenWidthDp / 960f, cfg.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f)
+        CompositionLocalProvider(LocalDensity provides Density(px, base.fontScale)) {
             val c = keyColoursFor(look)
             val m = KeyboardMetrics.System
             val solid = c.panel.copy(alpha = 1f)

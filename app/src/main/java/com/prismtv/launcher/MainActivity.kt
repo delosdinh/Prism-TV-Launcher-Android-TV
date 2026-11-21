@@ -17,6 +17,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -234,12 +235,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PrismApp(vm: LauncherViewModel) {
+    // Scale to the window Prism actually draws into. Configuration.screenWidthDp/HeightDp leave out
+    // the system bars even while they're hidden, and on tablet-style firmware (Ugoos and others) that
+    // made the canvas too small and pinned Home to the left.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val w = constraints.maxWidth
+        val h = constraints.maxHeight
+        PrismCanvas(vm, if (constraints.hasBoundedWidth) w else 0, if (constraints.hasBoundedHeight) h else 0)
+    }
+}
+
+@Composable
+private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     val config = LocalConfiguration.current
     val base = LocalDensity.current
     // Design canvas is 960×540dp (1080p @ xhdpi). Normalise so every TV renders the same layout.
-    val scale = min(config.screenWidthDp / 960f, config.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f
+    val px = if (windowW > 0 && windowH > 0) min(windowW / 960f, windowH / 540f)
+    else base.density * (min(config.screenWidthDp / 960f, config.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f)
     // Settings › Appearance › Text Size scales Prism's text on top of the system font size.
-    val density = Density(base.density * scale, base.fontScale * vm.prefs.textScale)
+    val density = Density(px, base.fontScale * vm.prefs.textScale)
 
     val appearance = when (vm.prefs.appearance) {
         AppearanceSetting.Light -> Appearance.Light
