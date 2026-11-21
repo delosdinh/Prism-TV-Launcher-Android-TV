@@ -82,33 +82,34 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
                 .graphicsLayer { alpha = t }
                 .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.62f), 0.38f to Color.Black.copy(alpha = 0.30f), 0.75f to Color.Transparent))
         )
+        // Proportions measured from the tvOS 26 sidebar: a narrow rounded rectangle, as tall as its
+        // entries, with compact rows whose focus is a full pill.
         Column(
             Modifier
-                .offset { IntOffset(lerpF(-300f, 18f, t).dp.roundToPx(), 18.dp.roundToPx()) }
-                // As tall as its entries, like the tvOS capsule, rather than the full screen height.
-                .width(264.dp)
+                .offset { IntOffset(lerpF(-220f, 19f, t).dp.roundToPx(), 18.dp.roundToPx()) }
+                .width(180.dp)
                 .graphicsLayer { alpha = t }
-                .glass(RoundedCornerShape(40.dp), panelTint, GlassSource.Scene, elevation = 30.dp)
-                // Sized to end just above the dock with all six entries (Play Store included).
-                .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 16.dp)
+                .glass(RoundedCornerShape(22.dp), panelTint, GlassSource.Scene, elevation = 30.dp)
+                .padding(start = 8.dp, end = 8.dp, top = 10.dp, bottom = 6.dp)
         ) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(44.dp)
-                    .padding(start = 6.dp, end = 8.dp),
+                    .height(34.dp)
+                    .padding(start = 4.dp, end = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Avatar(38.dp)
-                HSpace(12.dp)
-                PText(deviceName, 17.sp, FontWeight.SemiBold, fg, Modifier.weight(1f))
-                PText(clock, 14.sp, FontWeight.Medium, fg.copy(alpha = 0.7f))
+                Avatar(26.dp)
+                HSpace(8.dp)
+                PText(deviceName, 13.sp, FontWeight.Medium, fg, Modifier.weight(1f))
+                HSpace(6.dp)
+                PText(clock, 11.sp, FontWeight.Medium, fg.copy(alpha = 0.6f))
             }
-            VSpace(8.dp)
+            VSpace(14.dp)
             vm.sidebarEntries.forEachIndexed { i, e ->
                 if (e == SidebarEntry.PrismSettings) {
-                    VSpace(6.dp)
-                    PText("Settings", 13.sp, FontWeight.SemiBold, fg.copy(alpha = 0.55f), Modifier.padding(start = 16.dp, bottom = 5.dp))
+                    VSpace(4.dp)
+                    PText("Settings", 11.sp, FontWeight.SemiBold, fg.copy(alpha = 0.5f), Modifier.padding(start = 10.dp, bottom = 2.dp))
                 }
                 if (e == SidebarEntry.Store) {
                     // The store's own coloured icon, like an app.
@@ -127,29 +128,32 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
 private fun SidebarRow(icon: ImageVector, label: String, focused: Boolean, image: androidx.compose.ui.graphics.ImageBitmap? = null) {
     val theme = LocalPrism.current
     val p = theme.palette
-    val scale by animateFloatAsState(if (focused) 1.04f else 1f, spring(dampingRatio = 0.7f, stiffness = 420f), label = "sideRow")
-    val shape = RoundedCornerShape(18.dp)
+    val scale by animateFloatAsState(if (focused) 1.06f else 1f, spring(dampingRatio = 0.7f, stiffness = 420f), label = "sideRow")
+    val shape = RoundedCornerShape(50)
     val fg = if (focused) p.textFocused else if (p.isDark) Color.White else p.textPrimary
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(42.dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .then(if (focused) Modifier.shadow(14.dp, shape).background(theme.controlFocused(), shape) else Modifier)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (image != null) {
-            androidx.compose.foundation.Image(
-                image, null,
-                Modifier
-                    .size(26.dp)
-                    .clip(RoundedCornerShape(7.dp)),
-            )
-        } else {
-            PIcon(icon, fg, 24.dp)
+    // A 38dp slot holding a 33dp pill, as on tvOS.
+    Box(Modifier.fillMaxWidth().height(38.dp), contentAlignment = Alignment.CenterStart) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(33.dp)
+                .graphicsLayer { scaleX = scale; scaleY = scale }
+                .then(if (focused) Modifier.shadow(12.dp, shape).background(theme.controlFocused(), shape) else Modifier)
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (image != null) {
+                androidx.compose.foundation.Image(
+                    image, null,
+                    Modifier
+                        .size(20.dp)
+                        .clip(RoundedCornerShape(5.dp)),
+                )
+            } else {
+                PIcon(icon, fg, 17.dp)
+            }
+            HSpace(9.dp)
+            PText(label, 13.sp, FontWeight.Medium, fg)
         }
-        HSpace(14.dp)
-        PText(label, 17.sp, if (focused) FontWeight.SemiBold else FontWeight.Medium, fg)
     }
 }
