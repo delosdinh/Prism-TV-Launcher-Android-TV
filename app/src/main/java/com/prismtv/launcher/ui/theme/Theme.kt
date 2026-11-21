@@ -11,6 +11,9 @@ import com.prismtv.launcher.R
 import com.prismtv.launcher.data.FocusEffect
 import com.prismtv.launcher.data.GlassMaterial
 import com.prismtv.launcher.data.LabelMode
+import com.prismtv.launcher.data.UiTransparency
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 enum class Appearance { Light, Balanced, Dark }
 
@@ -105,13 +108,32 @@ data class PrismTheme(
     val reduceTransparency: Boolean,
     val focusEffect: FocusEffect,
     val labels: LabelMode,
+    /** Material Colour › Clear with Frosted Glass: the blur without most of the tint. */
+    val clearTint: Boolean = false,
+    /** Settings & Pop-ups Transparency. */
+    val ui: UiTransparency = UiTransparency.Medium,
+    /** tvOS focus motion (springy settle, lean, edge nudge). */
+    val wobble: Boolean = true,
 ) {
     /** Lens materials (Liquid and Clear) bend the backdrop instead of blurring it. */
     val liquid: Boolean get() = material == GlassMaterial.Liquid || material == GlassMaterial.Clear
-    val clear: Boolean get() = material == GlassMaterial.Clear
+    val clear: Boolean get() = material == GlassMaterial.Clear || clearTint
 
     /** Veil strength for lens glass: Clear keeps very little of it. */
     private fun veil(a: Float): Float = if (clear) a * 0.35f else a
+
+    /** Frosted tint strength: Clear halves it. */
+    private fun frost(a: Float): Float = if (clear) a * 0.5f else a
+
+    /**
+     * Settings' full-screen frosted backdrop: High shows the most of the Home Screen (lighter tint, a
+     * shorter blur), Low the least.
+     */
+    fun settingsVeil(): Color = if (palette.isDark) {
+        palette.bgBase.copy(alpha = when (ui) { UiTransparency.High -> 0.50f; UiTransparency.Medium -> 0.64f; UiTransparency.Low -> 0.80f })
+    } else {
+        Color.White.copy(alpha = when (ui) { UiTransparency.High -> 0.42f; UiTransparency.Medium -> 0.56f; UiTransparency.Low -> 0.72f })
+    }
 
     /**
      * Liquid Glass tint for this appearance, from the control library: frosty #F4F6FF (Light),
@@ -131,33 +153,35 @@ data class PrismTheme(
     fun panelFill(): Color = if (liquid) {
         liquidVeil(0.30f, 0.42f, 0.48f)
     } else {
-        palette.panelGlass.copy(alpha = palette.panelOpacity * 0.86f)
+        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.86f))
     }
 
     /** Floating controls (Control Centre tiles, sidebar, menus): clear glass with a light veil for legibility. */
     fun controlGlass(): Color = if (liquid) {
         liquidVeil(0.38f, 0.50f, 0.56f)
     } else {
-        palette.panelGlass.copy(alpha = palette.panelOpacity * 0.9f)
+        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.9f))
     }
 
-    /** Dialogs and banners: denser so text stays legible over bright content. */
-    fun sheetFill(): Color = palette.panelGlass.copy(
-        alpha = if (liquid) (if (palette.isDark) 0.74f else 0.80f) else palette.panelOpacity
-    )
+    /** Dialogs, banners and the keyboard: denser so text stays legible; Settings & Pop-ups Transparency sets how much. */
+    fun sheetFill(): Color {
+        val base = if (liquid) (if (palette.isDark) 0.74f else 0.80f) else palette.panelOpacity
+        val k = when (ui) { UiTransparency.High -> 0.80f; UiTransparency.Medium -> 0.93f; UiTransparency.Low -> 1.08f }
+        return palette.panelGlass.copy(alpha = (base * k).coerceAtMost(0.96f))
+    }
 
     /** The dock tray on the Home Screen. */
     fun trayFill(): Color = if (liquid) {
         liquidVeil(0.16f, 0.22f, 0.20f)
     } else {
-        palette.panelGlass.copy(alpha = 0.55f)
+        palette.panelGlass.copy(alpha = frost(0.55f))
     }
 
     /** Small floating pills (time pill, hero buttons). */
     fun pillFill(): Color = if (liquid) {
         liquidVeil(0.30f, 0.40f, 0.42f)
     } else {
-        palette.panelGlass.copy(alpha = 0.72f)
+        palette.panelGlass.copy(alpha = frost(0.72f))
     }
 
     fun controlIdle(): Color = if (liquid) palette.liquidIdle.copy(alpha = 0.42f) else palette.classicBase.copy(alpha = 0.78f)
@@ -188,6 +212,20 @@ data class PrismTheme(
             listOf(Color.White.copy(alpha = 0.10f * strength), Color.White.copy(alpha = 0.05f * strength))
         )
     }
+}
+
+/** Blur behind Settings and pop-ups for each transparency level. */
+fun uiBlurRadius(level: UiTransparency): Dp = when (level) {
+    UiTransparency.High -> 18.dp
+    UiTransparency.Medium -> 28.dp
+    UiTransparency.Low -> 40.dp
+}
+
+/** Colour lift behind Settings and pop-ups: High is the most vivid, like Liquid Glass. */
+fun uiSaturation(level: UiTransparency): Float = when (level) {
+    UiTransparency.High -> 1.38f
+    UiTransparency.Medium -> 1.18f
+    UiTransparency.Low -> 1.0f
 }
 
 val LocalPrism = staticCompositionLocalOf {

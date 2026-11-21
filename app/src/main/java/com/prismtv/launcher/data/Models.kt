@@ -79,7 +79,22 @@ data class HeroItem(
     val art: ArtRef,
     val logo: ImageBitmap? = null,
     val intentUri: String? = null,
+    /** The title's logo artwork (a clear logo), shown in place of its name when Title Logos is on. */
+    val titleArt: ArtRef? = null,
 )
+
+/** Clear title logos for cards that carry an IMDb id (Nuvio, Stremio-style apps), from Metahub. */
+object TitleLogos {
+    private val imdb = Regex("""(?<![A-Za-z0-9])tt\d{7,9}(?![0-9])""")
+
+    fun refFor(vararg texts: String?): ArtRef? {
+        for (t in texts) {
+            val id = t?.let { imdb.find(it)?.value } ?: continue
+            return UriArt("https://images.metahub.space/logo/medium/$id/img")
+        }
+        return null
+    }
+}
 
 @Immutable
 data class RecentEntry(

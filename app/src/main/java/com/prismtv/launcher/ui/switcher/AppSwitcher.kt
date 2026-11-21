@@ -115,8 +115,8 @@ fun AppSwitcher(vm: LauncherViewModel) {
 private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: Float) {
     val backdrop = LocalBackdrop.current
     val art = e.art
-    LaunchedEffect(art?.key) { if (art != null) vm.requestArt(art) }
-    val heroArt = art?.let { vm.artCache[it.key] }
+    // A screen-sized copy is plenty for a card (and far lighter than the full Top Shelf artwork).
+    val heroArt = art?.let { vm.thumb(it, 960) }
 
     val leftTarget = SwitcherLayout.cardLeft(rel)
     val left by animateFloatAsState(leftTarget, spring(dampingRatio = 0.86f, stiffness = 240f), label = "cardLeft")
@@ -222,7 +222,7 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, open: 
                 )
             } else {
                 if (heroArt != null) {
-                    Image(heroArt.full, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    Image(heroArt, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 }
                 Box(
                     Modifier

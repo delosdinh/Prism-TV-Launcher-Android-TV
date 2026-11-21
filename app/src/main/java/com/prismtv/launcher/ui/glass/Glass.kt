@@ -53,6 +53,9 @@ enum class GlassSource {
 
     /** Everything on screen, including Settings and overlays. Used by dialogs and banners. */
     Full,
+
+    /** The Home Screen, blurred to Settings & Pop-ups Transparency (Settings' own backdrop). */
+    SceneUi,
 }
 
 val SupportsLiveBlur: Boolean = Build.VERSION.SDK_INT >= 31
@@ -70,6 +73,8 @@ class BackdropState(
     val sceneBlur: GraphicsLayer,
     val full: GraphicsLayer,
     val fullBlur: GraphicsLayer,
+    /** The scene blurred for Settings (its own radius, from Settings & Pop-ups Transparency). */
+    val sceneUiBlur: GraphicsLayer,
 ) {
     var fallbackLight by mutableStateOf<ImageBitmap?>(null)
     var fallbackHeavy by mutableStateOf<ImageBitmap?>(null)
@@ -87,12 +92,14 @@ class BackdropState(
         GlassSource.Background -> bgBlur
         GlassSource.Scene -> sceneBlur
         GlassSource.Full -> fullBlur
+        GlassSource.SceneUi -> sceneUiBlur
     }
 
     fun raw(source: GlassSource): GraphicsLayer = when (source) {
         GlassSource.Background -> bg
         GlassSource.Scene -> scene
         GlassSource.Full -> full
+        GlassSource.SceneUi -> scene
     }
 }
 
@@ -105,6 +112,9 @@ fun Modifier.backdropSource(state: BackdropState, source: GlassSource): Modifier
     layer.record { this@drawWithContent.drawContent() }
     drawLayer(layer)
     blurLayer.record { drawLayer(layer) }
+    // Settings blurs the same scene with its own radius. Recording is a single draw op; the blur
+    // itself only runs in frames where Settings actually draws it.
+    if (source == GlassSource.Scene) state.sceneUiBlur.record { drawLayer(layer) }
 }
 
 /** Liquid Glass picks up more colour from what's behind it. */

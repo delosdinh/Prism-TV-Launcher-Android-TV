@@ -64,6 +64,9 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Prism Keyboard (an input method) hosts Compose outside an activity.
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.savedstate.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.media3.exoplayer)
 

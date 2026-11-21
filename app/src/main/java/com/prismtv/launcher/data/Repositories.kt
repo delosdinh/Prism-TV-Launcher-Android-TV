@@ -14,6 +14,7 @@ import android.util.LruCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -117,6 +118,7 @@ class RecommendationsRepository(private val context: Context) {
                     val iThumb = col("thumbnail_uri")
                     val iPoster = col("poster_art_uri")
                     val iIntent = col("intent_uri")
+                    val iProvider = col("internal_provider_id")
                     val iGenre = col("genre")
                     val iDate = col("release_date")
                     var n = 0
@@ -137,6 +139,7 @@ class RecommendationsRepository(private val context: Context) {
                             description = s(iDesc) ?: "",
                             art = UriArt(art),
                             intentUri = s(iIntent),
+                            titleArt = TitleLogos.refFor(s(iIntent), s(iProvider)),
                         )
                     }
                 }
@@ -251,6 +254,8 @@ class RecentsRepository(private val context: Context) {
 
 // ------------------------------------------------------------------------------------ artwork
 
+private const val MB = 1024 * 1024
+
 class HeroArt(
     val full: ImageBitmap,
     /** Lightly blurred, low-res copy (fallback glass on Android < 12). */
@@ -262,7 +267,42 @@ class HeroArt(
 )
 
 class ArtRepository(private val context: Context) {
-    private val cache = LruCache<String, HeroArt>(8)
+    /** Boxes with 2 GB or less get smaller caches (Android kills a launcher that hogs memory). */
+    private val lowRam: Boolean = run {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val info = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+        am.isLowRamDevice || am.memoryClass <= 192 || info.totalMem < 2_500_000_000L
+    }
+
+    /** Full-screen artwork, limited by size: about five 1080p backdrops (three on small boxes). */
+    private val cache = object : LruCache<String, HeroArt>(if (lowRam) 28 * MB else 52 * MB) {
+        override fun sizeOf(key: String, value: HeroArt): Int = bytes(value.full) + bytes(value.light) + bytes(value.heavy)
+    }
+
+    private fun bytes(b: ImageBitmap): Int = runCatching { b.asAndroidBitmap().allocationByteCount }.getOrDefault(b.width * b.height * 4)
+
+    /** Android asked for memory back: let go of artwork that isn't on screen. */
+    fun trim(level: Int) {
+        when {
+            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> { cache.evictAll(); thumbs.evictAll() }
+            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE ||
+                level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
+                level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
+                cache.trimToSize(cache.maxSize() / 3)
+                thumbs.trimToSize(thumbs.maxSize() / 3)
+            }
+            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND -> cache.trimToSize(cache.maxSize() / 2)
+        }
+    }
+
+    /**
+     * Android 8+: keep display-only artwork in graphics memory alone. A normal bitmap is held twice once
+     * it's drawn (in the app and again as a GPU texture), which doubled the cost of every backdrop.
+     */
+    private fun gpuOnly(b: Bitmap): Bitmap {
+        if (Build.VERSION.SDK_INT < 28) return b
+        return runCatching { b.copy(Bitmap.Config.HARDWARE, false) }.getOrNull()?.also { if (it !== b) b.recycle() } ?: b
+    }
 
     private class Brand(val banner: Bitmap?, val icon: Bitmap?, val tint: Int)
 
@@ -282,10 +322,12 @@ class ArtRepository(private val context: Context) {
             null
         } ?: return@withContext null
         val frame = cropTo16x9(bmp)
+        if (frame !== bmp) bmp.recycle()
         val heavy = Blur.blur(frame, 96, 4)
+        val light = Blur.blur(frame, 240, 3)
         val art = HeroArt(
-            full = frame.asImageBitmap(),
-            light = Blur.blur(frame, 240, 3).asImageBitmap(),
+            full = gpuOnly(frame).asImageBitmap(),
+            light = light.asImageBitmap(),
             heavy = heavy.asImageBitmap(),
             luma = lowerLuma(heavy),
         )
@@ -293,7 +335,10 @@ class ArtRepository(private val context: Context) {
         art
     }
 
-    private val thumbs = LruCache<String, ImageBitmap>(80)
+    /** Cards, logos and previews, limited by size. */
+    private val thumbs = object : LruCache<String, ImageBitmap>(if (lowRam) 24 * MB else 48 * MB) {
+        override fun sizeOf(key: String, value: ImageBitmap): Int = bytes(value)
+    }
 
     fun cachedThumb(ref: ArtRef): ImageBitmap? = thumbs.get(ref.key)
 
@@ -306,8 +351,8 @@ class ArtRepository(private val context: Context) {
             null
         } ?: return@withContext null
         val h = (width * bmp.height.toFloat() / bmp.width).roundToInt().coerceAtLeast(1)
-        val out = if (bmp.width > width) Bitmap.createScaledBitmap(bmp, width, h, true) else bmp
-        out.asImageBitmap().also { thumbs.put(ref.key, it) }
+        val out = if (bmp.width > width) Bitmap.createScaledBitmap(bmp, width, h, true).also { if (it !== bmp) bmp.recycle() } else bmp
+        gpuOnly(out).asImageBitmap().also { thumbs.put(ref.key, it) }
     }
 
     /** Mean luminance of the lower 70% of a (small) bitmap. */

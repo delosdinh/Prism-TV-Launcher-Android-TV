@@ -32,6 +32,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import com.prismtv.launcher.ui.theme.uiBlurRadius
+import com.prismtv.launcher.ui.theme.uiSaturation
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
@@ -51,6 +55,8 @@ import com.prismtv.launcher.data.GlassMaterial
 import com.prismtv.launcher.data.KeyboardColour
 import com.prismtv.launcher.ui.keyboard.KeyboardOverlay
 import com.prismtv.launcher.ui.components.BannerHost
+import com.prismtv.launcher.ui.components.LocalAvatar
+import com.prismtv.launcher.ui.LocalFocusMotion
 import com.prismtv.launcher.ui.components.DialogHost
 import com.prismtv.launcher.ui.components.LaunchOverlay
 import com.prismtv.launcher.ui.controlcentre.ControlCentre
@@ -89,6 +95,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        com.prismtv.launcher.system.CrashLog.install(this)
         super.onCreate(savedInstanceState)
         hideSystemBars()
         intent?.let { i -> i.extras?.let { if (isDebugIntent(i)) vm.applyDebug(it) } }
@@ -148,11 +155,19 @@ class MainActivity : ComponentActivity() {
             if (granted) vm.refreshRecommendations(force = true)
         }
         if (requestCode == REQ_PHOTOS) vm.loadPhotos()
+        if (requestCode == REQ_MIC) vm.resumeTick++
+    }
+
+    /** Settings › Keyboard › Dictation Microphone: Prism Keyboard listens through the remote's mic. */
+    fun requestMicAccess() {
+        if (Build.VERSION.SDK_INT < 23) return
+        requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), REQ_MIC)
     }
 
     private companion object {
         const val REQ_TV_LISTINGS = 41
         const val REQ_PHOTOS = 42
+        const val REQ_MIC = 43
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -191,6 +206,12 @@ class MainActivity : ComponentActivity() {
     override fun onUserInteraction() {
         super.onUserInteraction()
         vm.noteInteraction()
+    }
+
+    /** Android is short of memory: give back cached artwork rather than be killed (and "reset"). */
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        vm.trimMemory(level)
     }
 
     override fun onDestroy() {
@@ -233,6 +254,7 @@ fun PrismApp(vm: LauncherViewModel) {
         GlassColour.Light -> Appearance.Light
         GlassColour.Balanced -> Appearance.Balanced
         GlassColour.Dark -> Appearance.Dark
+        GlassColour.Clear -> appearance
     }
     val theme = PrismTheme(
         palette = Palettes.of(glassAppearance),
@@ -240,8 +262,11 @@ fun PrismApp(vm: LauncherViewModel) {
         reduceTransparency = vm.prefs.reduceTransparency,
         focusEffect = vm.prefs.focusEffect,
         labels = vm.prefs.labels,
+        clearTint = vm.prefs.glassColour == GlassColour.Clear,
+        ui = vm.prefs.uiTransparency,
+        wobble = vm.prefs.focusWobble,
     )
-    val uiTheme = theme.copy(palette = Palettes.of(appearance), material = GlassMaterial.Frosted)
+    val uiTheme = theme.copy(palette = Palettes.of(appearance), material = GlassMaterial.Frosted, clearTint = false)
 
     val bg = rememberGraphicsLayer()
     val bgBlur = rememberGraphicsLayer()
@@ -249,16 +274,24 @@ fun PrismApp(vm: LauncherViewModel) {
     val sceneBlur = rememberGraphicsLayer()
     val full = rememberGraphicsLayer()
     val fullBlur = rememberGraphicsLayer()
-    val backdrop = remember { BackdropState(bg, bgBlur, scene, sceneBlur, full, fullBlur) }
+    val sceneUiBlur = rememberGraphicsLayer()
+    val backdrop = remember { BackdropState(bg, bgBlur, scene, sceneBlur, full, fullBlur, sceneUiBlur) }
     val blurPx = with(density) { blurRadiusFor(theme.liquid).toPx() }
+    // Settings and pop-ups: always frosted, as transparent as Settings & Pop-ups Transparency says.
+    val uiBlurPx = with(density) { uiBlurRadius(vm.prefs.uiTransparency).toPx() }
+    val uiSat = uiSaturation(vm.prefs.uiTransparency)
     val art = vm.currentArt
     val gridMode = vm.isGridMode
 
     SideEffect {
         if (SupportsLiveBlur) {
-            listOf(backdrop.bgBlur, backdrop.sceneBlur, backdrop.fullBlur).forEach {
+            listOf(backdrop.bgBlur, backdrop.sceneBlur).forEach {
                 it.renderEffect = BlurEffect(blurPx, blurPx, TileMode.Clamp)
                 it.colorFilter = if (theme.liquid) LiquidSaturation else null
+            }
+            listOf(backdrop.fullBlur, backdrop.sceneUiBlur).forEach {
+                it.renderEffect = BlurEffect(uiBlurPx, uiBlurPx, TileMode.Clamp)
+                it.colorFilter = if (uiSat > 1.01f) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(uiSat) }) else null
             }
         }
         backdrop.fallbackLight = if (gridMode) art?.heavy else art?.light
@@ -280,6 +313,9 @@ fun PrismApp(vm: LauncherViewModel) {
     LaunchedEffect(vm.photoPermissionTick) {
         if (vm.photoPermissionTick > 0) (activity as? MainActivity)?.requestPhotoAccess()
     }
+    LaunchedEffect(vm.micPermissionTick) {
+        if (vm.micPermissionTick > 0) (activity as? MainActivity)?.requestMicAccess()
+    }
     val keyboardLook = when (vm.prefs.keyboardColour) {
         KeyboardColour.Automatic -> appearance
         KeyboardColour.Light -> Appearance.Light
@@ -291,6 +327,8 @@ fun PrismApp(vm: LauncherViewModel) {
         LocalDensity provides density,
         LocalPrism provides theme,
         LocalBackdrop provides backdrop,
+        LocalAvatar provides vm.avatarLook,
+        LocalFocusMotion provides vm.focusMotion,
     ) {
         Box(
             Modifier

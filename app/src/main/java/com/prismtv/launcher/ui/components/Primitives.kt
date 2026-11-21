@@ -20,6 +20,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Diamond
+import androidx.compose.material.icons.rounded.EmojiEmotions
+import androidx.compose.material.icons.rounded.LocalCafe
+import androidx.compose.material.icons.rounded.LocalFlorist
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Pets
+import androidx.compose.material.icons.rounded.RocketLaunch
+import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -148,19 +161,53 @@ fun PrismMark(modifier: Modifier, color: Color, beams: Boolean = true) {
     }
 }
 
+/** The profile picture: one of Prism's avatars, or one of the user's own pictures. */
+sealed interface AvatarLook {
+    data class Preset(val index: Int) : AvatarLook
+    data class Photo(val image: ImageBitmap) : AvatarLook
+}
+
+/** Prism avatars: a symbol on a two-tone gradient, like tvOS profile monograms. */
+data class AvatarPreset(val name: String, val icon: ImageVector, val top: Color, val bottom: Color)
+
+val AvatarPresets: List<AvatarPreset> = listOf(
+    AvatarPreset("Classic", Icons.Rounded.Person, Color(0xFFFFB340), Color(0xFFFF5E62)),
+    AvatarPreset("Prism", Icons.Rounded.Diamond, Color(0xFF8E8BFF), Color(0xFF4B48D6)),
+    AvatarPreset("Smile", Icons.Rounded.EmojiEmotions, Color(0xFFFFD60A), Color(0xFFFF9F0A)),
+    AvatarPreset("Pet", Icons.Rounded.Pets, Color(0xFF64D2FF), Color(0xFF0A84FF)),
+    AvatarPreset("Gamer", Icons.Rounded.SportsEsports, Color(0xFF4CD964), Color(0xFF1E9E48)),
+    AvatarPreset("Music", Icons.Rounded.MusicNote, Color(0xFFFF6482), Color(0xFFD62C5A)),
+    AvatarPreset("Cinema", Icons.Rounded.Movie, Color(0xFFBF5AF2), Color(0xFF7D2AD1)),
+    AvatarPreset("Rocket", Icons.Rounded.RocketLaunch, Color(0xFF5E5CE6), Color(0xFF26248F)),
+    AvatarPreset("Flower", Icons.Rounded.LocalFlorist, Color(0xFFFF9FD2), Color(0xFFE0569B)),
+    AvatarPreset("Star", Icons.Rounded.Star, Color(0xFFFFC94D), Color(0xFFE08A00)),
+    AvatarPreset("Coffee", Icons.Rounded.LocalCafe, Color(0xFFC69C6D), Color(0xFF7A5230)),
+    AvatarPreset("Bolt", Icons.Rounded.Bolt, Color(0xFF9C9CA3), Color(0xFF3A3A40)),
+)
+
+val LocalAvatar = compositionLocalOf<AvatarLook> { AvatarLook.Preset(0) }
+
 @Composable
-fun Avatar(size: Dp, focused: Boolean = false, modifier: Modifier = Modifier) {
+fun Avatar(size: Dp, focused: Boolean = false, modifier: Modifier = Modifier, look: AvatarLook = LocalAvatar.current) {
     val scale by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.6f, stiffness = 400f), label = "avatar")
+    val preset = (look as? AvatarLook.Preset)?.let { AvatarPresets.getOrNull(it.index) } ?: AvatarPresets[0]
     Box(
         modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .size(size)
             .then(if (focused) Modifier.shadow(10.dp, CircleShape) else Modifier)
-            .background(Brush.linearGradient(listOf(Color(0xFFFFB340), Color(0xFFFF5E62))), CircleShape)
+            .clip(CircleShape)
+            .background(Brush.linearGradient(listOf(preset.top, preset.bottom)), CircleShape)
             .then(if (focused) Modifier.border(2.dp, Color.White, CircleShape) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
-        PIcon(Icons.Rounded.Person, Color.White.copy(alpha = 0.95f), size * 0.62f)
+        when (look) {
+            is AvatarLook.Photo -> Image(look.image, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            is AvatarLook.Preset -> PIcon(preset.icon, Color.White.copy(alpha = 0.95f), size * 0.58f)
+        }
+        if (focused && look is AvatarLook.Photo) {
+            Box(Modifier.fillMaxSize().border(2.dp, Color.White, CircleShape))
+        }
     }
 }
 

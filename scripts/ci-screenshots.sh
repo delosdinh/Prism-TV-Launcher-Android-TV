@@ -77,7 +77,7 @@ shot 10-app-switcher-swipe-up      "${B[@]}" "${DARK[@]}" --es screen switcher -
 fi
 shot 11-settings-dark              "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0
 shot 12-settings-appearance-bal    "${B[@]}" --es appearance balanced --es glass liquid --es screen settings --es page Appearance --ei focus 1
-shot 12b-settings-glass-colour     "${B[@]}" --es appearance dark --es glassColour light --es glass liquid --es screen settings --es page Appearance --ei focus 9
+shot 12b-settings-glass-colour     "${B[@]}" --es appearance dark --es glassColour light --es glass liquid --es screen settings --es page Appearance --ei focus 7
 shot 12c-cc-dark-ui-light-glass     "${B[@]}" --es appearance dark --es glassColour light --es glass liquid --es screen controlcentre --ei focus 4
 shot 13-settings-dialog-light      "${B[@]}" --es appearance light --es glass liquid --es screen dialog
 shot 14-home-frosted-light         "${B[@]}" --es appearance light --es glass frosted --es screen home --ei col 1
@@ -94,7 +94,7 @@ shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass li
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
-shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 12
+shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 14
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
@@ -110,6 +110,46 @@ shot 37b-time-pill-badge           "${B[@]}" "${DARK[@]}" --ei notify 2 --es scr
 shot 38-settings-wallpaper         "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 1
 shot 39-context-menu-balanced      "${B[@]}" --es appearance balanced --es glass liquid --es screen menu --ei row 1 --ei col 1 --ei focus 1
 shot 40-grid-liquid-dark-labels    "${B[@]}" "${DARK[@]}" --es screen grid --ei row 2 --ei col 0
+# Appearance (Colour Mode, Material, Material Colour, Settings & Pop-ups Transparency), Keyboard, Profile,
+# widget apps and order, wallpaper shuffle, title logos, the four Control Centre circles.
+shot 42-settings-appearance-ui     "${B[@]}" "${DARK[@]}" --es screen settings --es page Appearance --ei focus 11
+shot 42b-settings-ui-high          "${B[@]}" "${DARK[@]}" --es ui high --es screen settings --ei focus 0
+shot 42c-settings-ui-low-light     "${B[@]}" --es appearance light --es glass liquid --es ui low --es screen settings --ei focus 0
+shot 42d-home-clear-frosted        "${B[@]}" --es appearance dark --es glass frosted --es glassColour clear --es screen home --ei col 1
+shot 43-settings-keyboard          "${B[@]}" "${DARK[@]}" --es screen settings --es page Keyboard --ei focus 0
+shot 44-keyboard-suggestions       "${B[@]}" "${DARK[@]}" --es screen keyboard --es text teh --ei keyRow -1 --ei keyCol 1
+shot 44b-keyboard-emoji            "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --ei layer 3 --ei keyRow 1 --ei keyCol 3
+shot 45-settings-profile           "${B[@]}" "${DARK[@]}" --es avatar preset:3 --es screen settings --es page Profile --ei focus 5
+shot 45b-cc-four-circles           "${B[@]}" "${DARK[@]}" --es avatar preset:3 --es screen controlcentre --ei focus 15
+shot 46-settings-widget-apps       "${B[@]}" "${DARK[@]}" --es widgets both --es screen settings --es page WidgetApps --es widgetKey all:continue --ei focus 2
+shot 46b-settings-widget-order     "${B[@]}" "${DARK[@]}" --es widgets both --es screen settings --es page WidgetOrder --ei focus 0
+shot 47-settings-wallpaper-shuffle "${B[@]}" "${DARK[@]}" --ei shuffle 300 --es screen settings --es page Wallpaper --ei focus 0
+shot 48-top-shelf-title-logo       "${B[@]}" "${DARK[@]}" --es logoId tt0944947 --es screen home --ei col 1
+shot 48b-spotlight-title-logo      "${B[@]}" "${DARK[@]}" --es logoId tt0944947 --es topShelf spotlight --es wallpaper prism-dusk --es screen hero --ei col 1
+# Spotlight: a real Up from the dock into the Top Shelf (the spring used to overshoot and crash Prism).
+start "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 1; sleep 4
+adb logcat -c || true
+key KEYCODE_DPAD_UP 2.5; cap 41-spotlight-dpad-up
+key KEYCODE_DPAD_DOWN 2; cap 41b-spotlight-back-to-dock
+adb logcat -d -b crash > "$OUT/crash-spotlight.txt" 2>&1 || true
+if grep -q "$PKG" "$OUT/crash-spotlight.txt"; then echo "SPOTLIGHT CRASHED"; else echo "spotlight ok"; fi
+# Prism Keyboard as the system keyboard in an app's search field (debug-only test screen): type "teh",
+# space auto-corrects it, then the emoji keyboard.
+adb shell ime enable "$PKG/.ime.PrismKeyboardService" >/dev/null 2>&1 || true
+adb shell ime set "$PKG/.ime.PrismKeyboardService" >/dev/null 2>&1 || true
+timeout 60 adb shell am start -W -n "$PKG/.ImeTestActivity" >/dev/null 2>&1; sleep 5
+cap 50-ime-keyboard
+key KEYCODE_DPAD_UP 0.6; key KEYCODE_DPAD_CENTER 0.8                         # t
+key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_CENTER 0.8   # e
+key KEYCODE_DPAD_DOWN 0.5; for _ in 1 2 3 4; do key KEYCODE_DPAD_RIGHT 0.4; done; key KEYCODE_DPAD_CENTER 1.5  # h
+cap 50b-ime-suggestions
+key KEYCODE_DPAD_DOWN 0.5; key KEYCODE_DPAD_DOWN 0.5; key KEYCODE_DPAD_CENTER 1.5   # space: "Teh" -> "The"
+cap 50c-ime-autocorrected
+key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_LEFT 0.5; key KEYCODE_DPAD_CENTER 1.5   # emoji
+cap 50d-ime-emoji
+adb shell ime reset >/dev/null 2>&1 || true
+adb shell am force-stop "$PKG"
+adb logcat -d -b crash > "$OUT/crash-ime.txt" 2>&1 || true
 # Context menu → Add to Folder picker.
 start "${B[@]}" "${DARK[@]}" --es screen menu --ei row 1 --ei col 1 --ei focus 1; sleep 3
 key KEYCODE_DPAD_CENTER 2; cap 28-folder-picker
@@ -195,5 +235,6 @@ finish motion-control-centre
 
 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
 grep -E "FATAL|AndroidRuntime|prismtv" "$OUT/logcat.txt" | tail -60 > "$OUT/logcat-app.txt" || true
+adb logcat -d -b crash > "$OUT/crash.txt" 2>&1 || true
 ls -la "$OUT"
 exit 0

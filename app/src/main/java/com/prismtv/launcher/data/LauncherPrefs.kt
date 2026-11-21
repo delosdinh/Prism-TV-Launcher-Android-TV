@@ -6,22 +6,36 @@ enum class AppearanceSetting(val label: String) {
     Light("Light"), Balanced("Balanced"), Dark("Dark"), Automatic("Automatic")
 }
 
-/** Colour of the Home Screen glass (dock, sidebar, Control Centre, menus, folders). */
+/** Material Colour: the Home Screen glass (dock, sidebar, Control Centre, menus, folders). */
 enum class GlassColour(val label: String) {
-    /** Follows Appearance (the Settings and pop-up colour). */
-    Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark")
+    /** Follows Colour Mode. */
+    Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark"),
+    /** The most see-through glass: no tint, colours follow Colour Mode. */
+    Clear("Clear"),
+}
+
+/** How much of the Home Screen shows through Settings and pop-ups (always frosted glass). */
+enum class UiTransparency(val label: String) { High("High"), Medium("Medium"), Low("Low") }
+
+/** Wallpaper › Shuffle intervals, in seconds (0 = Off). */
+val ShuffleChoices = listOf(0, 30, 60, 300, 900, 1800, 3600, 86400)
+
+fun shuffleLabel(seconds: Int): String = when (seconds) {
+    0 -> "Off"
+    30 -> "Every 30 Seconds"
+    60 -> "Every Minute"
+    3600 -> "Every Hour"
+    86400 -> "Daily"
+    else -> "Every ${seconds / 60} Minutes"
 }
 
 enum class GlassMaterial(val label: String) {
-    /** Liquid Glass, tinted: the lens with a gentle veil so text stays legible (iOS "Tinted"). */
+    /** Liquid Glass: the lens with a gentle veil so text stays legible. */
     Liquid("Liquid Glass"),
-    /** Liquid Glass, clear: the most transparent lens, no veil (iOS "Clear"). */
+    /** Drawing material only: Liquid Glass with Material Colour › Clear (no veil). Never stored. */
     Clear("Clear Glass"),
     Frosted("Frosted Glass"),
 }
-
-/** Liquid Glass look, as in iOS 26 (Settings › Display & Brightness › Liquid Glass). */
-enum class LiquidTint(val label: String) { Clear("Clear"), Tinted("Tinted") }
 
 /** How the Top Shelf shows the focused app's titles. */
 enum class TopShelfStyle(val label: String) { FullScreen("Full Screen"), Spotlight("Card Spotlight") }
@@ -92,12 +106,12 @@ data class LauncherPrefs(
     val temperatureUnit: TemperatureUnit = TemperatureUnit.Auto,
     /** Prism TV Originals navigation sounds (focus, select, back…). */
     val sounds: Boolean = true,
-    /** Home Screen glass colour; Automatic follows [appearance]. */
+    /** Material Colour; Automatic follows [appearance] (Colour Mode), Clear has no tint. */
     val glassColour: GlassColour = GlassColour.Automatic,
+    /** Settings & Pop-ups Transparency. */
+    val uiTransparency: UiTransparency = UiTransparency.Medium,
     /** Minutes without a button press on the Home Screen before the aerials start; 0 = Never. */
     val screensaverAfter: Int = 0,
-    /** Liquid Glass: Clear or Tinted (ignored when [material] is Frosted). */
-    val liquidTint: LiquidTint = LiquidTint.Tinted,
     /** Index into [TextScales]. */
     val textSize: Int = DefaultTextSize,
     val topShelfStyle: TopShelfStyle = TopShelfStyle.FullScreen,
@@ -108,12 +122,31 @@ data class LauncherPrefs(
     val keyboardColour: KeyboardColour = KeyboardColour.Automatic,
     /** With the Power & Home Button service on: show Prism TV after the TV restarts (Google TV). */
     val openAtStartup: Boolean = true,
+    /** tvOS-style focus motion: a springy settle, a lean toward the move and a nudge at edges. */
+    val focusWobble: Boolean = true,
+    /** Prism Keyboard: fix misspelt words on space, and show suggestions above the keys. */
+    val autoCorrect: Boolean = true,
+    val predictive: Boolean = true,
+    /** Widget row keys in the order the user arranged them (others follow in their own order). */
+    val widgetOrder: List<String> = emptyList(),
+    /** Rows gathered from every app ("all:…"): only these packages; empty = every app. */
+    val widgetApps: Map<String, Set<String>> = emptyMap(),
+    /** Seconds between wallpapers (0 = Off). */
+    val wallpaperShuffle: Int = 0,
+    /** Wallpapers in the shuffle ("scene:…" / "photo:…"); empty = every Prism wallpaper. */
+    val shuffleSet: Set<String> = emptySet(),
+    /** The Top Shelf shows a title's logo artwork in place of its name when the app or Nuvio has one. */
+    val titleLogos: Boolean = true,
+    /** Profile picture: "preset:<n>" (a Prism avatar) or "photo:<content uri>". */
+    val avatar: String = "preset:0",
+    /** Name in the sidebar and Settings › Profile; blank = the TV's device name. */
+    val profileName: String = "",
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
         get() = when {
             material == GlassMaterial.Frosted -> GlassMaterial.Frosted
-            liquidTint == LiquidTint.Clear -> GlassMaterial.Clear
+            glassColour == GlassColour.Clear -> GlassMaterial.Clear
             else -> GlassMaterial.Liquid
         }
 
@@ -128,13 +161,25 @@ class PrefsStore(context: Context) {
 
     fun load(): LauncherPrefs {
         val d = LauncherPrefs()
-        // Clear used to be its own material; it's now Liquid Glass with the Clear look.
+        // Clear was once a material, then a Liquid Glass look; it's now a Material Colour.
         val storedMaterial = enumOr(sp.getString("material", null), d.material)
+        val wasClear = storedMaterial == GlassMaterial.Clear || sp.getString("liquidTint", null) == "Clear"
+        val storedColour = enumOr(sp.getString("glassColour", null), d.glassColour)
         return LauncherPrefs(
             appearance = enumOr(sp.getString("appearance", null), d.appearance),
             material = if (storedMaterial == GlassMaterial.Clear) GlassMaterial.Liquid else storedMaterial,
-            liquidTint = sp.getString("liquidTint", null)?.let { enumOr(it, d.liquidTint) }
-                ?: if (storedMaterial == GlassMaterial.Clear) LiquidTint.Clear else d.liquidTint,
+            glassColour = if (wasClear && storedColour == GlassColour.Automatic && !sp.contains("uiTransparency")) GlassColour.Clear else storedColour,
+            uiTransparency = enumOr(sp.getString("uiTransparency", null), d.uiTransparency),
+            focusWobble = sp.getBoolean("focusWobble", d.focusWobble),
+            autoCorrect = sp.getBoolean("autoCorrect", d.autoCorrect),
+            predictive = sp.getBoolean("predictive", d.predictive),
+            widgetOrder = sp.getString("widgetOrder", null)?.split('\n')?.filter { it.isNotBlank() } ?: d.widgetOrder,
+            widgetApps = parseWidgetApps(sp.getString("widgetApps", null)),
+            wallpaperShuffle = sp.getInt("wallpaperShuffle", d.wallpaperShuffle).takeIf { it in ShuffleChoices } ?: d.wallpaperShuffle,
+            shuffleSet = sp.getStringSet("shuffleSet", emptySet())?.toSet() ?: emptySet(),
+            titleLogos = sp.getBoolean("titleLogos", d.titleLogos),
+            avatar = sp.getString("avatar", null) ?: d.avatar,
+            profileName = sp.getString("profileName", null) ?: d.profileName,
             textSize = sp.getInt("textSize", d.textSize).coerceIn(0, TextScales.size - 1),
             topShelfStyle = enumOr(sp.getString("topShelfStyle", null), d.topShelfStyle),
             wallpaper = sp.getString("wallpaper", null) ?: d.wallpaper,
@@ -160,7 +205,6 @@ class PrefsStore(context: Context) {
             weather = sp.getBoolean("weather", d.weather),
             temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
             sounds = sp.getBoolean("sounds", d.sounds),
-            glassColour = enumOr(sp.getString("glassColour", null), d.glassColour),
             screensaverAfter = sp.getInt("screensaverAfter", d.screensaverAfter).takeIf { it in StartAfterChoices } ?: d.screensaverAfter,
         )
     }
@@ -190,7 +234,18 @@ class PrefsStore(context: Context) {
             .putBoolean("sounds", p.sounds)
             .putString("glassColour", p.glassColour.name)
             .putInt("screensaverAfter", p.screensaverAfter)
-            .putString("liquidTint", p.liquidTint.name)
+            .remove("liquidTint")
+            .putString("uiTransparency", p.uiTransparency.name)
+            .putBoolean("focusWobble", p.focusWobble)
+            .putBoolean("autoCorrect", p.autoCorrect)
+            .putBoolean("predictive", p.predictive)
+            .putString("widgetOrder", p.widgetOrder.joinToString("\n"))
+            .putString("widgetApps", p.widgetApps.entries.joinToString("\n") { "${it.key}\t${it.value.joinToString(",")}" })
+            .putInt("wallpaperShuffle", p.wallpaperShuffle)
+            .putStringSet("shuffleSet", p.shuffleSet)
+            .putBoolean("titleLogos", p.titleLogos)
+            .putString("avatar", p.avatar)
+            .putString("profileName", p.profileName)
             .putInt("textSize", p.textSize)
             .putString("topShelfStyle", p.topShelfStyle.name)
             .putString("wallpaper", p.wallpaper)
@@ -212,6 +267,19 @@ class PrefsStore(context: Context) {
             if (tab > 0) {
                 val place = enumOr(line.substring(tab + 1), WidgetPlace.Off)
                 if (place != WidgetPlace.Off) out[line.substring(0, tab)] = place
+            }
+        }
+        return out
+    }
+
+    private fun parseWidgetApps(raw: String?): Map<String, Set<String>> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        val out = LinkedHashMap<String, Set<String>>()
+        raw.split('\n').forEach { line ->
+            val tab = line.indexOf('\t')
+            if (tab > 0) {
+                val pkgs = line.substring(tab + 1).split(',').filter { it.isNotBlank() }.toSet()
+                if (pkgs.isNotEmpty()) out[line.substring(0, tab)] = pkgs
             }
         }
         return out

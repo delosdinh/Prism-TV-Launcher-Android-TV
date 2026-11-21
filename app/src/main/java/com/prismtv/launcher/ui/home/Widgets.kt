@@ -32,6 +32,7 @@ import com.prismtv.launcher.Zone
 import com.prismtv.launcher.data.HeroItem
 import com.prismtv.launcher.data.WidgetRow
 import com.prismtv.launcher.ui.HomeLayout
+import com.prismtv.launcher.ui.wobble
 import com.prismtv.launcher.ui.WidgetLayout
 import com.prismtv.launcher.ui.components.PText
 
@@ -131,14 +132,20 @@ private fun WidgetRowView(
 
 @Composable
 private fun WidgetCard(vm: LauncherViewModel, item: HeroItem, focused: Boolean, labelColor: Color, modifier: Modifier) {
+    val wobbleOn = com.prismtv.launcher.ui.theme.LocalPrism.current.wobble
     val scale by animateFloatAsState(
         if (focused) 1.14f else 1f,
-        if (focused) spring(dampingRatio = 0.82f, stiffness = 520f) else spring(dampingRatio = 1f, stiffness = 620f),
+        when {
+            focused && wobbleOn -> spring(dampingRatio = 0.6f, stiffness = 380f)
+            focused -> spring(dampingRatio = 0.82f, stiffness = 520f)
+            else -> spring(dampingRatio = 1f, stiffness = 620f)
+        },
         label = "cardScale",
     )
     val label by animateFloatAsState(if (focused) 1f else 0f, tween(200), label = "cardLabel")
     val thumb = vm.thumb(item.art)
-    Box(modifier) {
+    val sway = com.prismtv.launcher.ui.rememberWobble(focused, wobbleOn)
+    Box(modifier.wobble(sway)) {
         Box(
             Modifier
                 .fillMaxSize()

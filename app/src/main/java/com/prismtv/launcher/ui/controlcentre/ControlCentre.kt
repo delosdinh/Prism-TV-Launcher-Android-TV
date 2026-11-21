@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.AccessibilityNew
 import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Landscape
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.SettingsEthernet
 import androidx.compose.material.icons.rounded.Timer
@@ -78,6 +79,7 @@ private val captions = mapOf(
     CC.Picture to "Picture & Display",
     CC.Memory to "Free Up Memory",
     CC.Access to "Accessibility",
+    CC.Screensaver to "Show Screensaver",
     CC.Profile to "Accounts",
 )
 
@@ -190,8 +192,10 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 CC.Picture to Icons.Rounded.Tv,
                 CC.Memory to Icons.Rounded.Memory,
                 CC.Access to Icons.Rounded.AccessibilityNew,
+                CC.Screensaver to Icons.Rounded.Landscape,
             )
-            val step = (ClusterW - Circle) / 2f
+            // Four circles spread evenly under the tiles above.
+            val step = (ClusterW - Circle) / (circles.size - 1)
             circles.forEachIndexed { i, (id, icon) ->
                 Tile(
                     f == id,

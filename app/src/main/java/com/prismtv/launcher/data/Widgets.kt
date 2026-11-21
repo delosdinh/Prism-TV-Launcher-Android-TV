@@ -121,6 +121,7 @@ class WidgetRepository(private val context: Context) {
             description = s("short_description") ?: "",
             art = UriArt(art),
             intentUri = s("intent_uri"),
+            titleArt = TitleLogos.refFor(s("intent_uri"), s("internal_provider_id"), s("content_id")),
         )
     }
 

@@ -47,7 +47,6 @@ import com.prismtv.launcher.data.AerialRange
 import com.prismtv.launcher.data.StartAfterChoices
 import com.prismtv.launcher.data.DeepLinks
 import com.prismtv.launcher.data.KeyboardColour
-import com.prismtv.launcher.data.LiquidTint
 import com.prismtv.launcher.data.TextScales
 import com.prismtv.launcher.data.TopShelfStyle
 import com.prismtv.launcher.data.UriArt
@@ -58,8 +57,6 @@ import com.prismtv.launcher.system.PrismNotification
 import com.prismtv.launcher.system.PrismNotificationListener
 import com.prismtv.launcher.ui.SpotlightLayout
 import com.prismtv.launcher.ui.WidgetLayout
-import com.prismtv.launcher.ui.keyboard.KeyKind
-import com.prismtv.launcher.ui.keyboard.KeyboardLayout
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.material.icons.rounded.Notifications
 import com.prismtv.launcher.data.TemperatureUnit
@@ -108,6 +105,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import com.prismtv.launcher.data.UiTransparency
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
@@ -142,6 +141,7 @@ enum class SettingsPage(val title: String) {
     Root("Settings"), Appearance("Appearance"), HomeScreen("Home Screen"), Screensaver("Screensaver"),
     Apps("Apps"), SoftwareUpdate("Software Update"), About("About"),
     TextSize("Text Size"), Wallpaper("Wallpaper"), Widgets("Widgets"),
+    Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
 }
 
 data class SettingsRow(
@@ -190,6 +190,7 @@ object CC {
     const val Picture = 12
     const val Memory = 13
     const val Access = 14
+    const val Screensaver = 15
     /** Notification rows in Control Centre: [Notification] + index. */
     const val Notification = 100
 }
@@ -284,9 +285,84 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------------------------------------------------------- widgets
     private val widgetRepo = WidgetRepository(app)
-    /** Every row the apps publish (Continue Watching, Up Next, channels, Recommended for You). */
-    var widgetRows by mutableStateOf<List<WidgetRow>>(emptyList())
+    /** Every row the apps publish (Continue Watching, Up Next, channels, Recommended for You), unfiltered. */
+    private var widgetRowsAll by mutableStateOf<List<WidgetRow>>(emptyList())
+
+    /** The rows as shown: in the user's order, "all:" rows limited to the apps chosen for them. */
+    val widgetRows: List<WidgetRow> by derivedStateOf {
+        val order = prefs.widgetOrder
+        val chosen = prefs.widgetApps
+        widgetRowsAll
+            .map { r ->
+                val only = chosen[r.key]
+                if (only.isNullOrEmpty()) r else r.copy(items = r.items.filter { it.appId.substringBefore('/') in only })
+            }
+            .withIndex()
+            .sortedBy { (i, r) -> order.indexOf(r.key).let { o -> if (o < 0) 10_000 + i else o } }
+            .map { it.value }
+    }
+
+    /** Settings › Widgets › (an "All Apps" row): which row the app picker is for. */
+    var widgetDetailKey by mutableStateOf("")
         private set
+
+    /** Settings › Widgets › Arrange Widgets: the row being moved, or null. */
+    var widgetMoving by mutableStateOf<String?>(null)
+        private set
+
+    /** The apps that have cards in [key]'s row (before filtering): id (package) and name. */
+    fun widgetSourceApps(key: String): List<Pair<String, String>> {
+        val row = widgetRowsAll.firstOrNull { it.key == key } ?: return emptyList()
+        return row.items.map { it.appId.substringBefore('/') }.distinct().map { id ->
+            id to (allApps.firstOrNull { it.id.substringBefore('/') == id || it.packageName == id }?.label
+                ?: row.items.firstOrNull { it.appId.substringBefore('/') == id }?.appLabel?.takeIf { it.isNotBlank() } ?: id)
+        }.sortedBy { it.second.lowercase() }
+    }
+
+    private fun widgetAppsLabel(key: String): String {
+        val n = prefs.widgetApps[key]?.size ?: 0
+        return if (n == 0) "All Apps" else if (n == 1) "1 App" else "$n Apps"
+    }
+
+    /** All Apps on: unticking an app keeps every other one. Ticking the last one goes back to All Apps. */
+    private fun toggleWidgetApp(key: String, id: String) {
+        val all = widgetSourceApps(key).map { it.first }.toSet()
+        val current = prefs.widgetApps[key].orEmpty().ifEmpty { all }
+        val next = if (id in current) current - id else current + id
+        if (next.isEmpty()) {
+            cue(Cue.Error)
+            return
+        }
+        val store = if (next.containsAll(all)) emptySet() else next
+        updatePrefs(prefs.copy(widgetApps = if (store.isEmpty()) prefs.widgetApps - key else prefs.widgetApps + (key to store)))
+    }
+
+    /** Arrange Widgets: moves [key] up or down among the rows in the same place (above / below the dock). */
+    private fun moveWidget(key: String, delta: Int) {
+        val keys = widgetRows.map { it.key }.toMutableList()
+        val place = prefs.widgets[key] ?: return
+        val group = keys.filter { prefs.widgets[it] == place }
+        val gi = group.indexOf(key)
+        val gj = gi + delta
+        if (gi < 0 || gj !in group.indices) {
+            cue(Cue.Error)
+            return
+        }
+        val a = keys.indexOf(key)
+        val b = keys.indexOf(group[gj])
+        keys[a] = group[gj]
+        keys[b] = key
+        updatePrefs(prefs.copy(widgetOrder = keys))
+        val rows = settingsRows(SettingsPage.WidgetOrder)
+        settingsFocus[SettingsPage.WidgetOrder] = rows.indexOfFirst { it.id == "wo:$key" }.coerceAtLeast(0)
+        cue(Cue.FocusSmall)
+    }
+
+    /** Title shown at the top of a Settings page. */
+    fun pageTitle(page: SettingsPage): String = when (page) {
+        SettingsPage.WidgetApps -> widgetRowsAll.firstOrNull { it.key == widgetDetailKey }?.title ?: page.title
+        else -> page.title
+    }
     /** Rows shown above the dock, top to bottom (at most two fit above it). */
     val aboveRows: List<WidgetRow> by derivedStateOf {
         widgetRows.filter { prefs.widgets[it.key] == WidgetPlace.Above && it.items.isNotEmpty() }.take(2)
@@ -304,21 +380,29 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun widgetRowAt(i: Int): WidgetRow? =
         if (i < aboveRows.size) aboveRows.getOrNull(i) else belowRows.getOrNull(i - aboveRows.size)
 
-    /** Small artwork for cards and previews; loads in the background the first time it's asked for. */
-    val thumbs = mutableStateMapOf<String, ImageBitmap>()
-
-    fun thumb(ref: ArtRef): ImageBitmap? {
-        thumbs[ref.key]?.let { return it }
+    /**
+     * Small artwork for cards, logos and previews; loads in the background the first time it's asked for.
+     * Kept in the repository's size-limited cache (this used to be an ever-growing map: every card ever
+     * shown stayed in memory, which slowed Prism down and got it killed on 2 GB boxes).
+     */
+    fun thumb(ref: ArtRef, width: Int = 400): ImageBitmap? {
+        @Suppress("UNUSED_VARIABLE") val tick = thumbTick // redraw when a thumbnail arrives
         artRepo.cachedThumb(ref)?.let { return it }
-        if (ref.key !in loadingThumbs) {
+        if (ref.key !in loadingThumbs && ref.key !in failedThumbs) {
             loadingThumbs += ref.key
             viewModelScope.launch {
-                artRepo.thumb(ref)?.let { thumbs[ref.key] = it }
+                val t = artRepo.thumb(ref, width)
+                loadingThumbs -= ref.key
+                if (t == null) failedThumbs += ref.key
+                thumbTick++
             }
         }
         return null
     }
+    private var thumbTick by mutableIntStateOf(0)
     private val loadingThumbs = HashSet<String>()
+    /** Artwork that couldn't be loaded (no logo for a title, a dead link): not retried this session. */
+    private val failedThumbs = HashSet<String>()
 
     // ---------------------------------------------------------------- wallpaper
     /** The Spotlight Top Shelf's background (and the Home Screen's when the Top Shelf is off). */
@@ -334,16 +418,34 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ---------------------------------------------------------------- keyboard
     var keyboard by mutableStateOf<KeyboardRequest?>(null)
         private set
-    var keyboardText by mutableStateOf("")
-        private set
-    var keyRow by mutableIntStateOf(1)
-    var keyCol by mutableIntStateOf(4)
-    var keyShift by mutableStateOf(false)
-    var keyLayer by mutableIntStateOf(0)
+    /** The text being typed on Prism's own keyboard (Rename Folder, Profile Name). */
+    private val keyboardEditor = object : com.prismtv.launcher.ui.keyboard.KeyboardEditor {
+        var text by mutableStateOf("")
+        override fun textBefore(n: Int): String = text.takeLast(n)
+        override fun commit(text: String) { this.text = (this.text + text).take(40) }
+        override fun deleteBefore(n: Int) { text = text.dropLast(n) }
+        override fun capsMode(): Boolean = text.isEmpty() || text.trimEnd().let { it.isEmpty() || it.last() in ".!?" } && text.endsWith(" ")
+        override fun action() = finishKeyboard()
+    }
+    val keyboardText: String get() = keyboardEditor.text
+    private var dictation: com.prismtv.launcher.ime.Dictation? = null
+    /** Prism Keyboard (the same one other apps get), typing into [keyboardEditor]. */
+    val keyboardController = com.prismtv.launcher.ui.keyboard.KeyboardController(
+        app,
+        sound = { cue(it) },
+        dictate = { start -> if (start) dictation?.start() else dictation?.stop() },
+    ).also { it.editor = keyboardEditor }
 
     // ---------------------------------------------------------------- notifications
     var notifications by mutableStateOf<List<PrismNotification>>(emptyList())
         private set
+
+    /** CI: a title logo for the demo Top Shelf (demo titles have no IMDb id). */
+    var debugTitleArt by mutableStateOf<ArtRef?>(null)
+        private set
+
+    /** The last D-pad move, for tvOS focus motion (see [com.prismtv.launcher.ui.FocusMotion]). */
+    val focusMotion = com.prismtv.launcher.ui.FocusMotion()
 
     // ---------------------------------------------------------------- sidebar
     var sidebarFocus by mutableIntStateOf(1)
@@ -372,7 +474,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private var launchFailed = false
     var currentArt by mutableStateOf<HeroArt?>(null)
         private set
-    val artCache = mutableStateMapOf<String, HeroArt>()
     private var heroTimer: Job? = null
     private var bannerJob: Job? = null
     private var lastRecsLoad = 0L
@@ -398,58 +499,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             return if (list.isEmpty()) null else list[heroIndex.coerceIn(0, list.size - 1)]
         }
 
-    init {
-        refreshApps()
-        viewModelScope.launch {
-            snapshotFlow { currentHeroItem?.art }
-                .distinctUntilChanged()
-                .collectLatest { ref ->
-                    if (ref == null) return@collectLatest
-                    delay(70)
-                    currentArt = artRepo.load(ref) ?: artRepo.load(ResArt(DemoContent.scenes[0]))
-                }
-        }
-        restartHeroTimer()
-        viewModelScope.launch {
-            delay(2500) // after the Home Screen has settled (and CI has had its chance to drive it)
-            announceInstalledVersion()
-        }
-        watchForIdle()
-        viewModelScope.launch {
-            PrismNotificationListener.notifications.collect { list ->
-                notifications = list
-                if (overlay == Overlay.ControlCentre && ccFocus >= CC.Notification && ccFocus - CC.Notification >= list.size.coerceAtMost(3)) {
-                    ccFocus = if (list.isEmpty()) CC.Picture else CC.Notification + (list.size.coerceAtMost(3) - 1)
-                }
-            }
-        }
-        viewModelScope.launch {
-            snapshotFlow { prefs.wallpaper }
-                .distinctUntilChanged()
-                .collectLatest { key -> wallpaperArt = artRepo.load(wallpaperRef(key)) ?: artRepo.load(ResArt(DemoContent.scenes[0])) }
-        }
-        if (prefs.demoContent) widgetRows = demoWidgetRows()
-        viewModelScope.launch {
-            Updater.events.collect { e ->
-                when (e) {
-                    InstallEvent.Installing -> {
-                        updateStatus = "Installing…"
-                        showBanner("Installing Update", "Prism TV will restart in a moment.", Icons.Rounded.SystemUpdate)
-                    }
-                    is InstallEvent.NeedsConfirmation -> {
-                        updateStatus = "Waiting to Install"
-                        SystemActions.start(ctx, e.intent)
-                    }
-                    is InstallEvent.Failed -> {
-                        updateStatus = "Update Failed"
-                        dialog = DialogSpec("Software Update", e.message, listOf(DialogButton("OK") {}))
-                        dialogFocus = 0
-                        cue(Cue.Error)
-                    }
-                }
-            }
-        }
-    }
+    // init { … } is at the end of the class, after every property it uses has been initialised.
+
 
     // ================================================================= software update
 
@@ -646,11 +697,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         return heroItemsByApp[app.id] ?: DemoContent.heroes[app.id] ?: listOf(fallback)
     }
 
-    fun requestArt(ref: ArtRef) {
-        if (artCache.containsKey(ref.key)) return
-        viewModelScope.launch {
-            artRepo.load(ref)?.let { artCache[ref.key] = it }
-        }
+    /** Low memory (Android's onTrimMemory): drop cached artwork; what's on screen stays referenced. */
+    fun trimMemory(level: Int) {
+        artRepo.trim(level)
+        if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE) failedThumbs.clear()
     }
 
     fun refreshApps() {
@@ -678,7 +728,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 app.id to (recs[app.packageName] ?: emptyList()).map { it.copy(appId = app.id, appLabel = app.label) }
             }.filterValues { it.isNotEmpty() }
             val rows = withContext(Dispatchers.IO) { widgetRepo.load() }
-            widgetRows = rows.map { r ->
+            widgetRowsAll = rows.map { r ->
                 val app = apps.firstOrNull { it.packageName == r.pkg }
                 r.copy(
                     appLabel = app?.label ?: if (r.pkg.isEmpty()) "All Apps" else r.pkg,
@@ -773,14 +823,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun updatePrefs(p: LauncherPrefs) {
         val demoChanged = p.demoContent != prefs.demoContent
+        val shuffleChanged = p.wallpaperShuffle != prefs.wallpaperShuffle
         prefs = p
+        if (shuffleChanged) restartShuffle()
         store.save(p)
         sounds.enabled = p.sounds
         if (demoChanged) {
             layout = layoutStore.load(layoutKey)
             row = 0; col = 0; heroAppIndex = 0; heroIndex = 0
             if (zone == Zone.Widget) zone = Zone.Grid
-            widgetRows = if (p.demoContent) demoWidgetRows() else emptyList()
+            widgetRowsAll = if (p.demoContent) demoWidgetRows() else emptyList()
             if (!p.demoContent) refreshApps()
         }
     }
@@ -944,71 +996,48 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ================================================================= keyboard
 
     fun openKeyboard(title: String, initial: String, placeholder: String = "", onDone: (String) -> Unit) {
-        keyboardText = initial
-        keyLayer = 0
-        keyShift = initial.isEmpty()
-        keyRow = 1
-        keyCol = 4
+        keyboardEditor.text = initial
+        val kb = keyboardController
+        kb.suggestionsOn = prefs.predictive || prefs.autoCorrect
+        kb.autoCorrectOn = prefs.autoCorrect
+        kb.autoCapOn = true
+        kb.micOn = true
+        kb.actionLabel = "done"
+        kb.reset()
+        if (dictation == null) dictation = com.prismtv.launcher.ime.Dictation(ctx, kb)
         keyboard = KeyboardRequest(title, initial, placeholder, onDone)
         cue(Cue.Open)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { com.prismtv.launcher.ui.keyboard.WordPredictor.get(ctx) }
+            kb.refresh()
+        }
     }
 
-    private fun keyboardKey(req: KeyboardRequest, k: NavKey): Boolean {
-        val rows = KeyboardLayout.of(keyLayer)
+    private fun keyboardKey(@Suppress("UNUSED_PARAMETER") req: KeyboardRequest, k: NavKey): Boolean {
+        val kb = keyboardController
         when (k) {
-            NavKey.Left -> if (keyCol > 0) keyCol--
-            NavKey.Right -> if (keyCol < rows[keyRow].size - 1) keyCol++
-            NavKey.Up, NavKey.Down -> {
-                val to = keyRow + if (k == NavKey.Up) -1 else 1
-                if (to in rows.indices) {
-                    val x = KeyboardLayout.centre(keyLayer, keyRow, keyCol)
-                    keyRow = to
-                    keyCol = KeyboardLayout.nearest(keyLayer, to, x)
-                }
-            }
-            NavKey.Select -> pressKey(req, rows[keyRow][keyCol])
-            NavKey.PlayPause -> if (keyboardText.isNotEmpty()) { keyboardText = keyboardText.dropLast(1); cue(Cue.Delete) }
-            NavKey.LongSelect -> if (rows[keyRow][keyCol].kind == com.prismtv.launcher.ui.keyboard.KeyKind.Delete) {
-                keyboardText = ""
-                cue(Cue.Clear)
-            }
+            NavKey.Left -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Left)
+            NavKey.Right -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Right)
+            NavKey.Up -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up)
+            NavKey.Down -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Down)
+            NavKey.Select -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Select)
+            NavKey.LongSelect -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.LongSelect)
+            NavKey.PlayPause -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Delete)
             NavKey.Menu -> closeKeyboard()
         }
         return true
     }
 
-    private fun pressKey(req: KeyboardRequest, key: com.prismtv.launcher.ui.keyboard.Key) {
-        when (key.kind) {
-            KeyKind.Char -> {
-                if (keyboardText.length < 40) keyboardText += if (keyShift) key.label.uppercase() else key.label
-                if (keyShift && keyLayer == 0) keyShift = false
-                cue(Cue.Key)
-            }
-            KeyKind.Space -> {
-                if (keyboardText.isNotEmpty() && keyboardText.length < 40) keyboardText += " "
-                cue(Cue.Key)
-            }
-            KeyKind.Delete -> {
-                if (keyboardText.isNotEmpty()) keyboardText = keyboardText.dropLast(1)
-                cue(Cue.Delete)
-            }
-            KeyKind.Shift -> { keyShift = !keyShift; cue(Cue.Toggle) }
-            KeyKind.Layer -> {
-                val x = KeyboardLayout.centre(keyLayer, keyRow, keyCol)
-                keyLayer = key.target
-                keyRow = keyRow.coerceIn(0, KeyboardLayout.of(keyLayer).size - 1)
-                keyCol = KeyboardLayout.nearest(keyLayer, keyRow, x)
-                cue(Cue.Toggle)
-            }
-            KeyKind.Done -> {
-                val text = keyboardText.trim()
-                keyboard = null
-                if (text.isNotEmpty()) req.onDone(text)
-            }
-        }
+    /** Done on Prism's keyboard. */
+    private fun finishKeyboard() {
+        val req = keyboard ?: return
+        val text = keyboardEditor.text.trim()
+        closeKeyboard()
+        if (text.isNotEmpty()) req.onDone(text)
     }
 
     fun closeKeyboard() {
+        dictation?.cancel()
         keyboard = null
     }
 
@@ -1084,6 +1113,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         } finally {
             inKey = false
         }
+        if (k in arrowKeys && dialog == null && contextMenu == null && keyboard == null && movingId == null &&
+            (overlay == Overlay.None || overlay == Overlay.Folder) && surfaceSignature() == surfaceBefore
+        ) {
+            val dx = when (k) { NavKey.Left -> -1f; NavKey.Right -> 1f; else -> 0f }
+            val dy = when (k) { NavKey.Up -> -1f; NavKey.Down -> 1f; else -> 0f }
+            if (focusSignature() != focusBefore) focusMotion.moved(dx, dy) else focusMotion.bumped(dx, dy)
+        }
         val c = keyCue ?: when {
             k == NavKey.Select -> Cue.Click
             surfaceSignature() != surfaceBefore -> if (depth() < depthBefore) Cue.Back else Cue.Open
@@ -1100,7 +1136,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Everything a focus move can change; a difference after a key press means focus moved. */
     private fun focusSignature(): List<Any?> = listOf(
         zone, row, col, heroButton, topIndex, heroIndex, ccFocus, sidebarFocus, contextFocus, dialogFocus,
-        widgetIndex, widgetCol, keyRow, keyCol, keyLayer,
+        widgetIndex, widgetCol,
         folderFocus, switcherFocus, settingsFocus[settingsStack.last()],
         movingId?.let { id -> items.indexOfFirst { it.id == id } },
     )
@@ -1193,6 +1229,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onResume() {
         isResumed = true
+        homeVisible = true
         noteInteraction()
         resumeTick++
         refreshRecommendations()
@@ -1522,10 +1559,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         CC.WiFi to intArrayOf(CC.Profile, CC.Bluetooth, CC.Power, -1),
         CC.Bluetooth to intArrayOf(CC.WiFi, CC.Sound, CC.Power, -1),
         CC.Sleep to intArrayOf(CC.Power, CC.Picture, -1, CC.Sound),
-        CC.Sound to intArrayOf(CC.Bluetooth, CC.Memory, CC.Sleep, -1),
+        CC.Sound to intArrayOf(CC.Bluetooth, CC.Access, CC.Sleep, -1),
         CC.Picture to intArrayOf(CC.Sleep, CC.Notification, -1, CC.Memory),
-        CC.Memory to intArrayOf(CC.Sound, CC.Notification, CC.Picture, CC.Access),
-        CC.Access to intArrayOf(CC.Sound, CC.Notification, CC.Memory, -1),
+        CC.Memory to intArrayOf(CC.Sleep, CC.Notification, CC.Picture, CC.Access),
+        CC.Access to intArrayOf(CC.Sound, CC.Notification, CC.Memory, CC.Screensaver),
+        CC.Screensaver to intArrayOf(CC.Sound, CC.Notification, CC.Access, -1),
     )
 
     private fun ccKey(k: NavKey): Boolean {
@@ -1562,7 +1600,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun ccSelect(i: Int) {
         when (i) {
-            CC.Profile -> SystemActions.open(ctx, Settings.ACTION_SYNC_SETTINGS)
+            CC.Profile -> openProfilePage()
             CC.Power -> if (PrismAccessibilityService.powerDialog()) closeOverlay() else askForPowerAccess()
             CC.WiFi -> SystemActions.open(ctx, Settings.ACTION_WIFI_SETTINGS)
             CC.Bluetooth -> SystemActions.open(ctx, Settings.ACTION_BLUETOOTH_SETTINGS)
@@ -1571,6 +1609,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             CC.Sound -> SystemActions.open(ctx, Settings.ACTION_SOUND_SETTINGS)
             CC.Memory -> freeUpMemory()
             CC.Access -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            CC.Screensaver -> startScreensaver()
         }
     }
 
@@ -1610,6 +1649,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private var lastInteraction = SystemClock.elapsedRealtime()
     private var isResumed = false
+    /** Prism is on screen (not behind an app). */
+    private var homeVisible by mutableStateOf(false)
 
     /** Any remote button (MainActivity also reports presses that never reach [onKey]). */
     fun noteInteraction() {
@@ -1618,6 +1659,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onPause() {
         isResumed = false
+        homeVisible = false
     }
 
     /** Settings › Screensaver › Start After: aerials after that long without a button press on Home. */
@@ -1767,6 +1809,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
             SettingsRow("screensaver", "Screensaver", "GENERAL", prefs.aerialSource.label, chevron = true),
             SettingsRow("sounds", "Navigation Sounds", "GENERAL", onOff(prefs.sounds)),
+            SettingsRow("keyboard", "Keyboard", "GENERAL", keyboardStatus(), chevron = true),
+            SettingsRow("profile", "Profile", "GENERAL", profileName(), chevron = true),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(recentsRepo.hasUsageAccess()), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
@@ -1778,41 +1822,46 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
         ) }
-        // Appearance colours Settings and pop-ups (always frosted); the glass gets its own colour,
-        // which follows Appearance when set to Automatic.
+        // Colour Mode colours Settings and pop-ups (always frosted glass); Material and Material Colour
+        // are the Home Screen glass (Automatic follows Colour Mode, Clear drops the tint).
         SettingsPage.Appearance -> AppearanceSetting.entries.map {
             SettingsRow(
-                "ap:${it.name}", it.label, "SETTINGS & POP-UPS",
+                "ap:${it.name}", it.label, "COLOUR MODE",
                 value = if (it == AppearanceSetting.Automatic) automaticLabel() else null,
                 selectable = true, checked = prefs.appearance == it,
             )
         } + listOf(
             SettingsRow("mat:Liquid", "Liquid Glass", "MATERIAL", selectable = true, checked = prefs.material != GlassMaterial.Frosted),
-            SettingsRow("mat:Frosted", "Frosted Glass (Classic)", "MATERIAL", selectable = true, checked = prefs.material == GlassMaterial.Frosted),
-        ) + LiquidTint.entries.map {
-            SettingsRow(
-                "tint:${it.name}", it.label, "LIQUID GLASS", selectable = true,
-                checked = prefs.material != GlassMaterial.Frosted && prefs.liquidTint == it,
-            )
-        } + GlassColour.entries.map {
+            SettingsRow("mat:Frosted", "Frosted Glass", "MATERIAL", selectable = true, checked = prefs.material == GlassMaterial.Frosted),
+        ) + GlassColour.entries.map {
             SettingsRow(
                 "gc:${it.name}",
                 if (it == GlassColour.Automatic) "Automatic (${prefs.appearance.label})" else it.label,
-                "GLASS COLOUR",
+                "MATERIAL COLOUR",
                 selectable = true,
                 checked = prefs.glassColour == it,
             )
+        } + UiTransparency.entries.map {
+            SettingsRow("ui:${it.name}", it.label, "SETTINGS & POP-UPS TRANSPARENCY", selectable = true, checked = prefs.uiTransparency == it)
         } + listOf(
-            SettingsRow("kbColour", "Keyboard Colour", "KEYBOARD", keyboardColourLabel()),
             SettingsRow("textSize", "Text Size", "ACCESSIBILITY", textSizeLabel(), chevron = true),
             SettingsRow("reduce", "Reduce Transparency", "ACCESSIBILITY", onOff(prefs.reduceTransparency)),
         )
+        SettingsPage.Keyboard -> resumeTick.let { _ -> listOf(
+            SettingsRow("kb:system", "Prism Keyboard", "SYSTEM KEYBOARD", keyboardStatus(), chevron = true),
+            SettingsRow("kbColour", "Keyboard Colour", "APPEARANCE", keyboardColourLabel()),
+            SettingsRow("kb:autocorrect", "Auto-Correction", "TYPING", onOff(prefs.autoCorrect)),
+            SettingsRow("kb:predictive", "Predictive", "TYPING", onOff(prefs.predictive)),
+            SettingsRow("kb:mic", "Dictation Microphone", "DICTATION", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
+        ) }
         SettingsPage.HomeScreen -> FocusEffect.entries.map {
             SettingsRow("fx:${it.name}", it.label, "FOCUS EFFECT", selectable = true, checked = prefs.focusEffect == it)
         } + listOf(
+            SettingsRow("wobble", "Focus Wobble", "FOCUS EFFECT", onOff(prefs.focusWobble)),
             SettingsRow("labels", "App Names", "APP NAMES", prefs.labels.label),
             SettingsRow("hero", "Top Shelf", "TOP SHELF", onOff(prefs.heroEnabled)),
             SettingsRow("topShelf", "Top Shelf Style", "TOP SHELF", prefs.topShelfStyle.label),
+            SettingsRow("logos", "Title Logos", "TOP SHELF", onOff(prefs.titleLogos)),
             SettingsRow("wallpaper", "Wallpaper", "TOP SHELF", wallpaperLabel(), chevron = true),
             SettingsRow("widgets", "Widgets", "WIDGETS", widgetsLabel(), chevron = true),
             SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
@@ -1849,19 +1898,41 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("upd:ver", "Installed Version", "PRISM TV LAUNCHER", BuildConfig.VERSION_NAME),
         )
         SettingsPage.TextSize -> emptyList()
-        SettingsPage.Wallpaper -> Wallpapers.map { (name, _) ->
-            SettingsRow("wp:scene:$name", wallpaperName(name), "PRISM WALLPAPERS", selectable = true, checked = prefs.wallpaper == "scene:$name")
-        } + if (!hasPhotoAccess()) {
-            listOf(SettingsRow("wp:allow", "Allow Access to Your Pictures", "YOUR PICTURES", chevron = true))
-        } else if (photos.isEmpty()) {
-            listOf(SettingsRow("wp:none", "Save pictures to the TV's Pictures or Download folder", "YOUR PICTURES"))
-        } else {
-            photos.map { (uri, name) ->
-                SettingsRow("wp:photo:$uri", name, "YOUR PICTURES", selectable = true, checked = prefs.wallpaper == "photo:$uri")
+        // With Shuffle on, the checkmarks are the wallpapers in the shuffle (pick as many as you like).
+        SettingsPage.Wallpaper -> {
+            val shuffling = prefs.wallpaperShuffle > 0
+            val inShuffle = shuffleKeys().toSet()
+            fun checked(key: String) = if (shuffling) key in inShuffle else prefs.wallpaper == key
+            listOf(
+                SettingsRow("wp:shuffle", "Shuffle", "SHUFFLE", com.prismtv.launcher.data.shuffleLabel(prefs.wallpaperShuffle)),
+            ) + Wallpapers.map { (name, _) ->
+                SettingsRow(
+                    "wp:scene:$name", wallpaperName(name),
+                    if (shuffling) "PRISM WALLPAPERS · IN SHUFFLE" else "PRISM WALLPAPERS",
+                    selectable = true, checked = checked("scene:$name"),
+                )
+            } + if (!hasPhotoAccess()) {
+                listOf(SettingsRow("wp:allow", "Allow Access to Your Pictures", "YOUR PICTURES", chevron = true))
+            } else if (photos.isEmpty()) {
+                listOf(SettingsRow("wp:none", "Save pictures to the TV's Pictures or Download folder", "YOUR PICTURES"))
+            } else {
+                photos.map { (uri, name) ->
+                    SettingsRow(
+                        "wp:photo:$uri", name, if (shuffling) "YOUR PICTURES · IN SHUFFLE" else "YOUR PICTURES",
+                        selectable = true, checked = checked("photo:$uri"),
+                    )
+                }
             }
         }
-        SettingsPage.Widgets -> widgetRows.map { r ->
-            SettingsRow("w:${r.key}", r.title, r.appLabel.uppercase(), (prefs.widgets[r.key] ?: WidgetPlace.Off).label)
+        SettingsPage.Widgets -> (if (widgetRows.count { (prefs.widgets[it.key] ?: WidgetPlace.Off) != WidgetPlace.Off } >= 2) {
+            listOf(SettingsRow("w:order", "Arrange Widgets", "ORDER", chevron = true))
+        } else emptyList()) + widgetRows.map { r ->
+            val all = r.pkg.isEmpty()
+            SettingsRow(
+                "w:${r.key}", r.title, r.appLabel.uppercase(),
+                (prefs.widgets[r.key] ?: WidgetPlace.Off).label + if (all) " · " + widgetAppsLabel(r.key) else "",
+                chevron = all,
+            )
         }.ifEmpty {
             listOf(
                 SettingsRow(
@@ -1872,12 +1943,54 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 )
             )
         }
+        SettingsPage.WidgetApps -> {
+            val key = widgetDetailKey
+            val chosen = prefs.widgetApps[key].orEmpty()
+            listOf(
+                SettingsRow("wd:place", "Show", "WIDGET", (prefs.widgets[key] ?: WidgetPlace.Off).label),
+                SettingsRow("wd:all", "All Apps", "SHOW CARDS FROM", selectable = true, checked = chosen.isEmpty()),
+            ) + widgetSourceApps(key).map { (id, label) ->
+                SettingsRow(
+                    "wd:app:$id", label, "SHOW CARDS FROM", selectable = true,
+                    checked = chosen.isEmpty() || id in chosen,
+                    app = allApps.firstOrNull { it.id.substringBefore('/') == id || it.packageName == id },
+                )
+            }
+        }
+        SettingsPage.WidgetOrder -> {
+            val on = widgetRows.filter { (prefs.widgets[it.key] ?: WidgetPlace.Off) != WidgetPlace.Off }
+            on.map { r ->
+                val place = prefs.widgets[r.key] ?: WidgetPlace.Off
+                SettingsRow(
+                    "wo:${r.key}", r.title, if (place == WidgetPlace.Above) "ABOVE DOCK" else "BELOW DOCK",
+                    if (widgetMoving == r.key) "Moving · ↑↓" else r.appLabel,
+                    selectable = widgetMoving == r.key, checked = widgetMoving == r.key,
+                )
+            }.ifEmpty { listOf(SettingsRow("wo:none", "Turn on two or more widgets to arrange them", "ORDER")) }
+        }
+        SettingsPage.Profile -> listOf(
+            SettingsRow("pf:name", "Name", "PROFILE", profileName(), chevron = true),
+            SettingsRow("pf:accounts", "Accounts", "PROFILE", chevron = true),
+        ) + com.prismtv.launcher.ui.components.AvatarPresets.mapIndexed { i, a ->
+            SettingsRow("pf:preset:$i", a.name, "PRISM AVATARS", selectable = true, checked = prefs.avatar == "preset:$i")
+        } + if (!hasPhotoAccess()) {
+            listOf(SettingsRow("pf:allow", "Allow Access to Your Pictures", "YOUR PICTURES", chevron = true))
+        } else if (photos.isEmpty()) {
+            listOf(SettingsRow("pf:none", "Save pictures to the TV's Pictures or Download folder", "YOUR PICTURES"))
+        } else {
+            photos.map { (uri, name) ->
+                SettingsRow("pf:photo:$uri", name, "YOUR PICTURES", selectable = true, checked = prefs.avatar == "photo:$uri")
+            }
+        }
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
             SettingsRow("i:glass", "Liquid Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 33) "Refraction Shader" else "Refraction Bands"),
+            SettingsRow("i:memory", "Memory", "DEVICE", memoryLabel()),
+        ) + listOfNotNull(
+            com.prismtv.launcher.system.CrashLog.lastTime(ctx)?.let { SettingsRow("i:crash", "Last Problem", "DIAGNOSTICS", it, chevron = true) },
         )
     }
 
@@ -1897,11 +2010,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         val rows = settingsRows(page)
         val f = (settingsFocus[page] ?: 0).coerceIn(0, (rows.size - 1).coerceAtLeast(0))
+        if (page == SettingsPage.WidgetOrder && widgetMoving != null && (k == NavKey.Up || k == NavKey.Down)) {
+            moveWidget(widgetMoving ?: return true, if (k == NavKey.Up) -1 else 1)
+            return true
+        }
         when (k) {
             NavKey.Up -> settingsFocus[page] = (f - 1).coerceAtLeast(0)
             NavKey.Down -> settingsFocus[page] = (f + 1).coerceAtMost(rows.size - 1)
             NavKey.Select -> rows.getOrNull(f)?.let { settingsSelect(it) }
-            NavKey.Left -> if (settingsStack.size > 1) settingsStack = settingsStack.dropLast(1)
+            NavKey.Left -> if (settingsStack.size > 1) { widgetMoving = null; settingsStack = settingsStack.dropLast(1) }
             NavKey.Menu -> closeOverlay()
             else -> Unit
         }
@@ -1916,6 +2033,46 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 pushPage(SettingsPage.Appearance)
                 settingsFocus[SettingsPage.Appearance] = AppearanceSetting.entries.size + if (prefs.material == GlassMaterial.Frosted) 1 else 0
             }
+            r.id == "keyboard" -> pushPage(SettingsPage.Keyboard)
+            r.id == "profile" -> openProfilePage()
+            r.id == "pf:name" -> openKeyboard("Profile Name", p.profileName, deviceName()) { name ->
+                updatePrefs(prefs.copy(profileName = name.trim().take(30)))
+                cue(Cue.Confirm)
+            }
+            r.id == "pf:accounts" -> SystemActions.open(ctx, Settings.ACTION_SYNC_SETTINGS)
+            r.id == "pf:allow" -> photoPermissionTick++
+            r.id.startsWith("pf:preset:") || r.id.startsWith("pf:photo:") -> updatePrefs(p.copy(avatar = r.id.removePrefix("pf:")))
+            r.id == "kb:system" -> openKeyboardSetup()
+            r.id == "kb:autocorrect" -> updatePrefs(p.copy(autoCorrect = !p.autoCorrect))
+            r.id == "kb:predictive" -> updatePrefs(p.copy(predictive = !p.predictive))
+            r.id == "kb:mic" -> if (hasMicAccess()) {
+                showBanner("Dictation", "Prism Keyboard can already use your remote's microphone.", Icons.Rounded.Info)
+            } else {
+                micPermissionTick++
+            }
+            r.id.startsWith("ui:") -> updatePrefs(p.copy(uiTransparency = UiTransparency.valueOf(r.id.removePrefix("ui:"))))
+            r.id == "wobble" -> updatePrefs(p.copy(focusWobble = !p.focusWobble))
+            r.id == "logos" -> updatePrefs(p.copy(titleLogos = !p.titleLogos))
+            r.id == "wp:shuffle" -> {
+                val i = com.prismtv.launcher.data.ShuffleChoices.indexOf(p.wallpaperShuffle).coerceAtLeast(0)
+                val next = com.prismtv.launcher.data.ShuffleChoices[(i + 1) % com.prismtv.launcher.data.ShuffleChoices.size]
+                // Turning Shuffle on starts from every Prism wallpaper plus the current one.
+                val set = if (p.shuffleSet.isEmpty() && next > 0) (Wallpapers.map { "scene:${it.first}" } + p.wallpaper).toSet() else p.shuffleSet
+                updatePrefs(p.copy(wallpaperShuffle = next, shuffleSet = set))
+            }
+            r.id == "w:order" -> { widgetMoving = null; pushPage(SettingsPage.WidgetOrder) }
+            r.id.startsWith("wo:") && r.id != "wo:none" -> {
+                val key = r.id.removePrefix("wo:")
+                widgetMoving = if (widgetMoving == key) null else key
+                cue(if (widgetMoving != null) Cue.Click else Cue.Confirm)
+            }
+            r.id == "wd:place" -> {
+                val key = widgetDetailKey
+                val next = WidgetPlace.entries[((p.widgets[key] ?: WidgetPlace.Off).ordinal + 1) % WidgetPlace.entries.size]
+                updatePrefs(p.copy(widgets = if (next == WidgetPlace.Off) p.widgets - key else p.widgets + (key to next)))
+            }
+            r.id == "wd:all" -> updatePrefs(p.copy(widgetApps = p.widgetApps - widgetDetailKey))
+            r.id.startsWith("wd:app:") -> toggleWidgetApp(widgetDetailKey, r.id.removePrefix("wd:app:"))
             r.id == "update" -> {
                 pushPage(SettingsPage.SoftwareUpdate)
                 if (availableUpdate == null && updateJob?.isActive != true) checkForUpdates(manual = false)
@@ -1924,6 +2081,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "screensaver" -> pushPage(SettingsPage.Screensaver)
             r.id == "apps" -> pushPage(SettingsPage.Apps)
             r.id == "about" -> pushPage(SettingsPage.About)
+            r.id == "i:crash" -> {
+                dialog = DialogSpec(
+                    "Last Problem",
+                    com.prismtv.launcher.system.CrashLog.summary(ctx) ?: "No details were saved.",
+                    listOf(
+                        DialogButton("OK") {},
+                        DialogButton("Clear") {
+                            com.prismtv.launcher.system.CrashLog.clear(ctx)
+                            settingsFocus[SettingsPage.About] = 0
+                        },
+                    ),
+                )
+                dialogFocus = 0
+            }
             r.id == "usage" -> SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
             r.id == "a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
             r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
@@ -1951,7 +2122,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
-            r.id.startsWith("tint:") -> updatePrefs(p.copy(material = GlassMaterial.Liquid, liquidTint = LiquidTint.valueOf(r.id.removePrefix("tint:"))))
             r.id == "kbColour" -> updatePrefs(p.copy(keyboardColour = KeyboardColour.entries[(p.keyboardColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "textSize" -> pushPage(SettingsPage.TextSize)
             r.id == "topShelf" -> updatePrefs(p.copy(topShelfStyle = TopShelfStyle.entries[(p.topShelfStyle.ordinal + 1) % TopShelfStyle.entries.size]))
@@ -1964,8 +2134,26 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 pushPage(SettingsPage.Widgets)
             }
             r.id == "wp:allow" -> photoPermissionTick++
-            r.id.startsWith("wp:scene:") || r.id.startsWith("wp:photo:") -> updatePrefs(p.copy(wallpaper = r.id.removePrefix("wp:")))
+            r.id.startsWith("wp:scene:") || r.id.startsWith("wp:photo:") -> {
+                val key = r.id.removePrefix("wp:")
+                if (p.wallpaperShuffle > 0) {
+                    val set = shuffleKeys().toMutableSet()
+                    if (key in set) {
+                        if (set.size > 1) set -= key else cue(Cue.Error)
+                    } else {
+                        set += key
+                    }
+                    updatePrefs(p.copy(shuffleSet = set))
+                } else {
+                    updatePrefs(p.copy(wallpaper = key))
+                    shuffleKey = null
+                }
+            }
             r.id == "w:none" -> if (!hasRecommendationAccess()) permissionRequestTick++
+            r.id.startsWith("w:all:") -> {
+                widgetDetailKey = r.id.removePrefix("w:")
+                pushPage(SettingsPage.WidgetApps)
+            }
             r.id.startsWith("w:") -> {
                 val key = r.id.removePrefix("w:")
                 val next = WidgetPlace.entries[((p.widgets[key] ?: WidgetPlace.Off).ordinal + 1) % WidgetPlace.entries.size]
@@ -2050,8 +2238,118 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         else -> "$minutes Minutes"
     }
 
+    // ---------------------------------------------------------------- profile
+
+    /** The profile picture, ready to draw (a picture loads in the background). */
+    val avatarLook: com.prismtv.launcher.ui.components.AvatarLook
+        get() {
+            val a = prefs.avatar
+            if (a.startsWith("photo:")) avatarPhoto?.let { return com.prismtv.launcher.ui.components.AvatarLook.Photo(it) }
+            val i = a.removePrefix("preset:").toIntOrNull() ?: 0
+            return com.prismtv.launcher.ui.components.AvatarLook.Preset(i.coerceIn(0, com.prismtv.launcher.ui.components.AvatarPresets.size - 1))
+        }
+    private var avatarPhoto by mutableStateOf<ImageBitmap?>(null)
+
+    fun deviceName(): String =
+        runCatching { Settings.Global.getString(ctx.contentResolver, "device_name") }.getOrNull()
+            ?.takeIf { it.isNotBlank() } ?: Build.MODEL
+
+    fun profileName(): String = prefs.profileName.ifBlank { deviceName() }
+
+    fun openProfilePage() {
+        loadPhotos()
+        if (overlay != Overlay.Settings) {
+            overlay = Overlay.Settings
+            settingsStack = listOf(SettingsPage.Root)
+        }
+        pushPage(SettingsPage.Profile)
+        settingsFocus[SettingsPage.Profile] = settingsRows(SettingsPage.Profile).indexOfFirst { it.checked }.coerceAtLeast(0)
+    }
+
+    /** Settings › Profile: a preview of the focused avatar or picture. */
+    fun profilePreview(rowId: String): Any? = when {
+        rowId.startsWith("pf:preset:") -> com.prismtv.launcher.ui.components.AvatarLook.Preset(rowId.removePrefix("pf:preset:").toIntOrNull() ?: 0)
+        rowId.startsWith("pf:photo:") -> thumb(UriArt(rowId.removePrefix("pf:photo:")))?.let { com.prismtv.launcher.ui.components.AvatarLook.Photo(it) }
+        else -> avatarLook
+    }
+
+    // ---------------------------------------------------------------- keyboard settings
+
+    /** Prism Keyboard as the TV's keyboard: In Use, On (enabled, not chosen) or Off. */
+    private fun keyboardStatus(): String = when {
+        com.prismtv.launcher.ime.PrismIme.isCurrent(ctx) -> "In Use"
+        com.prismtv.launcher.ime.PrismIme.isEnabled(ctx) -> "On"
+        else -> "Off"
+    }
+
+    fun hasMicAccess(): Boolean =
+        ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+    /** Asks the activity for the microphone (Settings › Keyboard › Dictation Microphone). */
+    var micPermissionTick by mutableIntStateOf(0)
+
+    private fun openKeyboardSetup() {
+        val ime = com.prismtv.launcher.ime.PrismIme
+        when {
+            ime.isCurrent(ctx) -> showBanner("Prism Keyboard", "Prism Keyboard is your TV's keyboard.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            ime.isEnabled(ctx) -> if (!ime.showPicker(ctx)) ime.openSettings(ctx)
+            else -> {
+                val opened = ime.openSettings(ctx)
+                dialog = DialogSpec(
+                    "Use Prism Keyboard",
+                    (if (opened) "Turn on Prism Keyboard in the list, then press Back and choose it here again. " else "") +
+                        "From a computer or ATV Connect's Shell: ime enable ${ime.ID} then ime set ${ime.ID}",
+                    listOf(DialogButton("OK") {}),
+                )
+                dialogFocus = 0
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- wallpaper shuffle
+
+    private val shuffleSp = ctx.getSharedPreferences("prism_shuffle", Context.MODE_PRIVATE)
+    /** The wallpaper Shuffle is showing (kept across restarts); null = the chosen wallpaper. */
+    private var shuffleKey by mutableStateOf(shuffleSp.getString("key", null))
+    private var shuffleJob: Job? = null
+
+    /** The wallpaper on screen now. */
+    val wallpaperKey: String get() = if (prefs.wallpaperShuffle > 0) shuffleKey ?: prefs.wallpaper else prefs.wallpaper
+
+    /** The wallpapers in the shuffle: the chosen set, or every Prism wallpaper. */
+    private fun shuffleKeys(): List<String> =
+        prefs.shuffleSet.toList().ifEmpty { Wallpapers.map { "scene:${it.first}" } }
+
+    private fun restartShuffle() {
+        shuffleJob?.cancel()
+        val secs = prefs.wallpaperShuffle
+        if (secs <= 0 || debugDriven) return
+        shuffleJob = viewModelScope.launch {
+            while (true) {
+                val period = secs * 1000L
+                val last = shuffleSp.getLong("at", 0L)
+                delay((last + period - System.currentTimeMillis()).coerceIn(0L, period))
+                // Only change on a visible Home Screen: nothing is decoded while an app is on top.
+                snapshotFlow { homeVisible }.first { it }
+                val keys = shuffleKeys()
+                val current = wallpaperKey
+                val next = keys.filter { it != current }.ifEmpty { keys }.random()
+                artRepo.load(wallpaperRef(next)) // decoded before the cross-fade starts
+                shuffleKey = next
+                shuffleSp.edit().putString("key", next).putLong("at", System.currentTimeMillis()).apply()
+            }
+        }
+    }
+
+    private fun memoryLabel(): String = runCatching {
+        val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val info = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+        "%.1f of %.1f GB free".format(info.availMem / 1_073_741_824.0, info.totalMem / 1_073_741_824.0)
+    }.getOrDefault("")
+
     private fun materialLabel(): String =
-        if (prefs.material == GlassMaterial.Frosted) "Frosted Glass" else "Liquid Glass (${prefs.liquidTint.label})"
+        (if (prefs.material == GlassMaterial.Frosted) "Frosted Glass" else "Liquid Glass") +
+            if (prefs.glassColour == GlassColour.Clear) " (Clear)" else ""
 
     private fun automaticLabel(): String =
         if (weather != null && prefs.weather) "Sunset to Sunrise" else "7 PM to 7 AM"
@@ -2173,12 +2471,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         var p = prefs
         if (b.containsKey("demo")) p = p.copy(demoContent = b.getBoolean("demo"))
         b.getString("appearance")?.let { v -> AppearanceSetting.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(appearance = it) } }
-        b.getString("glass")?.let { v ->
-            p = when {
-                v.equals("frosted", true) || v.equals("classic", true) -> p.copy(material = GlassMaterial.Frosted)
-                v.equals("clear", true) -> p.copy(material = GlassMaterial.Liquid, liquidTint = LiquidTint.Clear)
-                else -> p.copy(material = GlassMaterial.Liquid, liquidTint = LiquidTint.Tinted)
-            }
+        val glassArg = b.getString("glass")
+        glassArg?.let { v ->
+            p = if (v.equals("frosted", true) || v.equals("classic", true)) p.copy(material = GlassMaterial.Frosted) else p.copy(material = GlassMaterial.Liquid)
         }
         // Per-shot options fall back to their defaults so one CI shot can't leak into the next.
         p = p.copy(
@@ -2194,7 +2489,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         )
         b.getString("wallpaper")?.let { p = p.copy(wallpaper = "scene:$it") }
         // Each CI shot states its glass colour (or gets Automatic), so one shot can't leak into the next.
-        p = p.copy(glassColour = GlassColour.entries.firstOrNull { it.name.equals(b.getString("glassColour"), true) } ?: GlassColour.Automatic)
+        p = p.copy(
+            glassColour = if (glassArg.equals("clear", true)) GlassColour.Clear
+            else GlassColour.entries.firstOrNull { it.name.equals(b.getString("glassColour"), true) } ?: GlassColour.Automatic,
+            uiTransparency = UiTransparency.entries.firstOrNull { it.name.equals(b.getString("ui"), true) } ?: UiTransparency.Medium,
+            avatar = b.getString("avatar") ?: "preset:0",
+            titleLogos = b.getBoolean("logos", true),
+            wallpaperShuffle = b.getInt("shuffle", 0).takeIf { it in com.prismtv.launcher.data.ShuffleChoices } ?: 0,
+        )
+        debugTitleArt = b.getString("logoId")?.let { com.prismtv.launcher.data.TitleLogos.refFor(it) }
         b.getString("focusEffect")?.let { v -> FocusEffect.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(focusEffect = it) } }
         b.getString("aerial")?.let { v -> AerialSource.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(aerialSource = it) } }
         if (b.containsKey("autorotate")) p = p.copy(heroAutoRotate = b.getBoolean("autorotate"))
@@ -2250,12 +2553,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             "settings" -> {
                 overlay = Overlay.Settings
                 val page = SettingsPage.entries.firstOrNull { it.name.equals(b.getString("page") ?: "Root", true) } ?: SettingsPage.Root
+                if (page == SettingsPage.WidgetApps) widgetDetailKey = b.getString("widgetKey") ?: "all:continue"
+                if (page == SettingsPage.Wallpaper || page == SettingsPage.Profile) loadPhotos()
                 settingsStack = if (page == SettingsPage.Root) listOf(SettingsPage.Root) else listOf(SettingsPage.Root, page)
                 settingsFocus[page] = b.getInt("focus", 0)
             }
             "dialog" -> {
                 overlay = Overlay.Settings
-                settingsFocus[SettingsPage.Root] = 14
+                settingsFocus[SettingsPage.Root] = 16
                 confirm(
                     "Reset Prism TV?",
                     "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",
@@ -2269,15 +2574,93 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "keyboard" -> {
                 openKeyboard("Rename Folder", b.getString("text") ?: "Streaming", "Folder Name") {}
-                keyLayer = b.getInt("layer", 0)
-                keyRow = b.getInt("keyRow", 1)
-                keyCol = b.getInt("keyCol", 4)
+                val layer = b.getInt("layer", 0)
+                val kr = b.getInt("keyRow", 1)
+                val kc = b.getInt("keyCol", 4)
+                viewModelScope.launch {
+                    withContext(Dispatchers.IO) { com.prismtv.launcher.ui.keyboard.WordPredictor.get(ctx) }
+                    keyboardController.debugState(layer, kr, kc)
+                }
             }
             "aerial" -> startScreensaver()
         }
     }
 
+    private var stopDictationBus: (() -> Unit)? = null
+
+    // Last in the class on purpose: Kotlin runs initialisers top to bottom, and this block starts
+    // coroutines that read state declared throughout the ViewModel.
+    init {
+        refreshApps()
+        viewModelScope.launch {
+            snapshotFlow { currentHeroItem?.art }
+                .distinctUntilChanged()
+                .collectLatest { ref ->
+                    if (ref == null) return@collectLatest
+                    delay(70)
+                    currentArt = artRepo.load(ref) ?: artRepo.load(ResArt(DemoContent.scenes[0]))
+                }
+        }
+        restartHeroTimer()
+        viewModelScope.launch {
+            delay(2500) // after the Home Screen has settled (and CI has had its chance to drive it)
+            announceInstalledVersion()
+        }
+        watchForIdle()
+        viewModelScope.launch {
+            PrismNotificationListener.notifications.collect { list ->
+                notifications = list
+                if (overlay == Overlay.ControlCentre && ccFocus >= CC.Notification && ccFocus - CC.Notification >= list.size.coerceAtMost(3)) {
+                    ccFocus = if (list.isEmpty()) CC.Picture else CC.Notification + (list.size.coerceAtMost(3) - 1)
+                }
+            }
+        }
+        viewModelScope.launch {
+            snapshotFlow { wallpaperKey }
+                .distinctUntilChanged()
+                .collectLatest { key -> wallpaperArt = artRepo.load(wallpaperRef(key)) ?: artRepo.load(ResArt(DemoContent.scenes[0])) }
+        }
+        viewModelScope.launch {
+            snapshotFlow { prefs.avatar }
+                .distinctUntilChanged()
+                .collectLatest { a ->
+                    avatarPhoto = if (a.startsWith("photo:")) artRepo.thumb(UriArt(a.removePrefix("photo:")), 320) else null
+                }
+        }
+        restartShuffle()
+        // Dictation from Android's voice screen comes back here while Prism's keyboard is open.
+        stopDictationBus = com.prismtv.launcher.ime.DictationBus.listen { text ->
+            if (keyboard != null) {
+                viewModelScope.launch { keyboardController.insertDictated(text) }
+                true
+            } else false
+        }
+        if (prefs.demoContent) widgetRowsAll = demoWidgetRows()
+        viewModelScope.launch {
+            Updater.events.collect { e ->
+                when (e) {
+                    InstallEvent.Installing -> {
+                        updateStatus = "Installing…"
+                        showBanner("Installing Update", "Prism TV will restart in a moment.", Icons.Rounded.SystemUpdate)
+                    }
+                    is InstallEvent.NeedsConfirmation -> {
+                        updateStatus = "Waiting to Install"
+                        SystemActions.start(ctx, e.intent)
+                    }
+                    is InstallEvent.Failed -> {
+                        updateStatus = "Update Failed"
+                        dialog = DialogSpec("Software Update", e.message, listOf(DialogButton("OK") {}))
+                        dialogFocus = 0
+                        cue(Cue.Error)
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCleared() {
+        stopDictationBus?.invoke()
+        dictation?.release()
         sounds.release()
     }
 }

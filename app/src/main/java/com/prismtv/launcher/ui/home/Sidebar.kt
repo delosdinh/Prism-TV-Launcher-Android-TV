@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
@@ -66,10 +67,7 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
     val theme = LocalPrism.current
     val p = theme.palette
     val ctx = LocalContext.current
-    val deviceName = remember {
-        runCatching { Settings.Global.getString(ctx.contentResolver, "device_name") }.getOrNull()
-            ?.takeIf { it.isNotBlank() } ?: Build.MODEL
-    }
+    val deviceName = vm.profileName()
     val fg = if (p.isDark) Color.White else p.textPrimary
     // Clear lens over the Home Screen, with a veil that matches the scrim so the list stays legible.
     val panelTint = theme.overlayVeil(dark = 0.44f, light = 0.55f)
@@ -84,7 +82,8 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
         Column(
             Modifier
                 .offset { IntOffset(lerpF(-300f, 18f, t).dp.roundToPx(), 18.dp.roundToPx()) }
-                .size(264.dp, 504.dp)
+                // As tall as its entries, like the tvOS capsule, rather than the full screen height.
+                .width(264.dp)
                 .graphicsLayer { alpha = t }
                 .glass(RoundedCornerShape(40.dp), panelTint, GlassSource.Scene, elevation = 30.dp)
                 .padding(horizontal = 12.dp, vertical = 14.dp)

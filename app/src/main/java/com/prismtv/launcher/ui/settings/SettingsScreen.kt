@@ -42,6 +42,17 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Widgets
+import androidx.compose.material.icons.rounded.Spellcheck
+import androidx.compose.material.icons.automirrored.rounded.ShortText
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Animation
+import androidx.compose.material.icons.rounded.Title
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.Badge
+import androidx.compose.material.icons.rounded.ManageAccounts
+import com.prismtv.launcher.ui.components.Avatar
+import com.prismtv.launcher.ui.components.AvatarLook
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.graphics.ImageBitmap
@@ -125,11 +136,12 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 scaleX = s
                 scaleY = s
             }
-            // Settings are always frosted glass over the Home Screen, whatever the material.
+            // Settings are always frosted glass over the Home Screen, whatever the material; Settings &
+            // Pop-ups Transparency sets the blur (SceneUi) and the tint.
             .glass(
                 RectangleShape,
-                if (p.isDark) p.bgBase.copy(alpha = 0.66f) else Color.White.copy(alpha = 0.58f),
-                GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true,
+                theme.settingsVeil(),
+                GlassSource.SceneUi, rimStrength = 0f, lens = false, frosted = true,
             )
             .drawBehind {
                 drawRect(
@@ -156,7 +168,7 @@ fun SettingsScreen(vm: LauncherViewModel) {
             }
             Box(Modifier.fillMaxSize()) {
                 PText(
-                    pg.title, 26.sp, FontWeight.SemiBold, p.textPrimary,
+                    vm.pageTitle(pg), 26.sp, FontWeight.SemiBold, p.textPrimary,
                     Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 30.dp),
@@ -165,10 +177,11 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 val focus = (vm.settingsFocus[pg] ?: 0).coerceIn(0, (rows.size - 1).coerceAtLeast(0))
                 // Each tab has its own glyph; on the main list it follows focus, like tvOS.
                 val art: Any = when (pg) {
-                    SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen ->
-                        rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
-                    SettingsPage.Apps -> rows.getOrNull(focus)?.app ?: pageGlyph(pg)
+                    SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard ->
+                        rows.getOrNull(focus)?.let { if (it.id == "profile") vm.avatarLook else glyphFor(it.id) } ?: pageGlyph(pg)
+                    SettingsPage.Apps, SettingsPage.WidgetApps -> rows.getOrNull(focus)?.app ?: pageGlyph(pg)
                     SettingsPage.Wallpaper -> rows.getOrNull(focus)?.let { vm.wallpaperPreview(it.id) } ?: pageGlyph(pg)
+                    SettingsPage.Profile -> rows.getOrNull(focus)?.let { vm.profilePreview(it.id) } ?: vm.avatarLook
                     else -> pageGlyph(pg)
                 }
                 PageArt(
@@ -223,6 +236,20 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "widgets" to glyph(Icons.Rounded.Widgets, 0xFF5E5CE6, 0xFF3634A3),
     "wallpaper" to glyph(Icons.Rounded.Wallpaper, 0xFF4CD0DF, 0xFF1C8AA6),
     "topShelf" to glyph(Icons.Rounded.ViewCarousel, 0xFFFF9F0A, 0xFFE06A00),
+    "keyboard" to glyph(Icons.Rounded.Keyboard, 0xFF9C9CA3, 0xFF5E5E64),
+    "kb:system" to glyph(Icons.Rounded.Keyboard, 0xFF3D9BFF, 0xFF0A5FE0),
+    "kb:autocorrect" to glyph(Icons.Rounded.Spellcheck, 0xFF4CD964, 0xFF239B3E),
+    "kb:predictive" to glyph(Icons.AutoMirrored.Rounded.ShortText, 0xFF5E5CE6, 0xFF3634A3),
+    "kb:mic" to glyph(Icons.Rounded.Mic, 0xFFFF6482, 0xFFE0264A),
+    "wobble" to glyph(Icons.Rounded.Animation, 0xFF8E8BFF, 0xFF5E5BDA),
+    "logos" to glyph(Icons.Rounded.Title, 0xFFFF9F0A, 0xFFE06A00),
+    "wp:shuffle" to glyph(Icons.Rounded.Shuffle, 0xFF4CD0DF, 0xFF1C8AA6),
+    "w:order" to glyph(Icons.Rounded.SwapVert, 0xFF5E5CE6, 0xFF3634A3),
+    "pf:name" to glyph(Icons.Rounded.Badge, 0xFF3D9BFF, 0xFF0A5FE0),
+    "pf:accounts" to glyph(Icons.Rounded.ManageAccounts, 0xFF9C9CA3, 0xFF5E5E64),
+    "ui:High" to glyph(Icons.Rounded.Opacity, 0xFF64D2FF, 0xFF1A8CFF),
+    "ui:Medium" to glyph(Icons.Rounded.Opacity, 0xFF5AA9FF, 0xFF1A6CE0),
+    "ui:Low" to glyph(Icons.Rounded.Opacity, 0xFF7C86A8, 0xFF4A5170),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -236,7 +263,9 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.SoftwareUpdate -> Glyphs.getValue("update")
     SettingsPage.TextSize -> Glyphs.getValue("textSize")
     SettingsPage.Wallpaper -> Glyphs.getValue("wallpaper")
-    SettingsPage.Widgets -> Glyphs.getValue("widgets")
+    SettingsPage.Widgets, SettingsPage.WidgetApps, SettingsPage.WidgetOrder -> Glyphs.getValue("widgets")
+    SettingsPage.Keyboard -> Glyphs.getValue("keyboard")
+    SettingsPage.Profile -> Glyphs.getValue("pf:name")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */
@@ -283,6 +312,7 @@ private fun ArtContent(a: Any, p: PrismPalette, modifier: Modifier) {
                         .clip(shape)
                 ) { AppArtwork(a) }
             }
+            is AvatarLook -> Avatar(196.dp, look = a, modifier = Modifier.glow(Color(0xFF6C5CFF), 98.dp))
             is ImageBitmap -> {
                 val shape = RoundedCornerShape(20.dp)
                 Image(
@@ -507,6 +537,14 @@ private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
             }
             g != null -> {
                 GlyphTile(g, Modifier.size(26.dp), corner = 7.dp, iconSize = 17.dp)
+                HSpace(12.dp)
+            }
+            r.id == "profile" -> {
+                Avatar(26.dp)
+                HSpace(12.dp)
+            }
+            r.id.startsWith("pf:preset:") -> {
+                Avatar(26.dp, look = AvatarLook.Preset(r.id.removePrefix("pf:preset:").toIntOrNull() ?: 0))
                 HSpace(12.dp)
             }
             r.id == "about" -> {

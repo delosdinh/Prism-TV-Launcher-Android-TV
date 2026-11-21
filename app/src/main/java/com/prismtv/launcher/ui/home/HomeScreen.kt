@@ -50,6 +50,8 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.graphics.luminance
 import com.prismtv.launcher.ui.SpotlightLayout
+import com.prismtv.launcher.ui.rememberWobble
+import com.prismtv.launcher.ui.wobble
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -66,6 +68,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -155,6 +158,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             focusedButton = if (vm.zone == Zone.Hero && vm.overlay == Overlay.None) vm.heroButton else -1,
             spotlight = spotlight,
             compact = above.size >= 2 && !spotlight,
+            logoFor = { h -> if (vm.prefs.titleLogos) (h.titleArt ?: vm.debugTitleArt)?.let { vm.thumb(it, 800) } else null },
         )
 
         WidgetRows(
@@ -276,14 +280,17 @@ private fun HomeBackdrop(
  */
 @Composable
 private fun SpotlightCard(art: HeroArt?, expanded: Boolean, visible: Boolean) {
-    val e by animateFloatAsState(if (expanded) 1f else 0f, spring(dampingRatio = 0.88f, stiffness = 170f), label = "spotGrow")
+    // Critically damped and clamped: the spring used to overshoot past full screen, which made the
+    // corner radius negative and crashed Prism ("Corner size in Px can't be negative") on the way up.
+    val eRaw by animateFloatAsState(if (expanded) 1f else 0f, spring(dampingRatio = 1f, stiffness = 190f), label = "spotGrow")
+    val e = eRaw.coerceIn(0f, 1f)
     val vis by animateFloatAsState(if (visible) 1f else 0f, tween(450), label = "spotVis")
     if (vis < 0.01f) return
     val left = lerpF(SpotlightLayout.Left, 0f, e)
     val top = lerpF(SpotlightLayout.Top, 0f, e)
     val w = lerpF(SpotlightLayout.W, HomeLayout.ScreenW, e)
     val h = lerpF(SpotlightLayout.H, HomeLayout.ScreenH, e)
-    val shape = RoundedCornerShape(lerpF(28f, 0f, e).dp)
+    val shape = RoundedCornerShape(lerpF(28f, 0f, e).coerceAtLeast(0f).dp)
     Box(
         Modifier
             .offset(left.dp, top.dp)
@@ -331,6 +338,7 @@ private fun HeroOverlay(
     focusedButton: Int,
     spotlight: Boolean = false,
     compact: Boolean = false,
+    logoFor: (HeroItem) -> ImageBitmap? = { null },
 ) {
     val vis by animateFloatAsState(if (visible) 1f else 0f, tween(450), label = "heroVis")
     val e by animateFloatAsState(if (expanded) 1f else 0f, tween(520, easing = FastOutSlowInEasing), label = "heroExp")
@@ -362,8 +370,14 @@ private fun HeroOverlay(
                         HeroLogo(h)
                         PText(h.appLabel.uppercase(), 11.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.72f), letterSpacing = 1.4.sp, shadow = true)
                         VSpace(2.dp)
-                        val long = h.title.length > 26
-                        PText(h.title, if (long) 34.sp else 50.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (long) (-0.6).sp else (-1.2).sp, shadow = true, lineHeight = if (long) 38.sp else 52.sp)
+                        val titleLogo = logoFor(h)
+                        if (titleLogo != null) {
+                            VSpace(6.dp)
+                            TitleLogo(titleLogo, h.title, maxW = 400.dp, maxH = 112.dp)
+                        } else {
+                            val long = h.title.length > 26
+                            PText(h.title, if (long) 34.sp else 50.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (long) (-0.6).sp else (-1.2).sp, shadow = true, lineHeight = if (long) 38.sp else 52.sp)
+                        }
                         VSpace(8.dp)
                         MetaRow(h)
                     }
@@ -381,8 +395,14 @@ private fun HeroOverlay(
                             HeroLogo(h)
                             PText(h.appLabel.uppercase(), 11.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.72f), letterSpacing = 1.4.sp, shadow = true)
                             VSpace(4.dp)
-                            val longX = h.title.length > 26
-                            PText(h.title, if (longX) 32.sp else 44.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (longX) (-0.5).sp else (-1).sp, shadow = true, lineHeight = if (longX) 36.sp else 46.sp)
+                            val titleLogo = logoFor(h)
+                            if (titleLogo != null) {
+                                VSpace(6.dp)
+                                TitleLogo(titleLogo, h.title, maxW = 380.dp, maxH = 104.dp)
+                            } else {
+                                val longX = h.title.length > 26
+                                PText(h.title, if (longX) 32.sp else 44.sp, FontWeight.Bold, Color.White, maxLines = 2, letterSpacing = if (longX) (-0.5).sp else (-1).sp, shadow = true, lineHeight = if (longX) 36.sp else 46.sp)
+                            }
                             VSpace(8.dp)
                             MetaRow(h)
                         }
@@ -409,6 +429,26 @@ private fun HeroOverlay(
                     .graphicsLayer { alpha = e }
             )
         }
+    }
+}
+
+/** A title's clear logo in place of its name: fitted to [maxW] × [maxH], left-aligned, with a soft shadow. */
+@Composable
+private fun TitleLogo(logo: ImageBitmap, title: String, maxW: Dp, maxH: Dp) {
+    val ratio = (logo.width.toFloat() / logo.height.coerceAtLeast(1)).coerceIn(0.5f, 8f)
+    val w = minOf(maxW, maxH * ratio)
+    val h = w / ratio
+    Box(Modifier.size(w, h)) {
+        Image(
+            logo, null,
+            Modifier
+                .fillMaxSize()
+                .offset(1.5.dp, 2.dp)
+                .graphicsLayer { alpha = 0.45f },
+            contentScale = ContentScale.Fit,
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Black),
+        )
+        Image(logo, title, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
     }
 }
 
@@ -595,13 +635,16 @@ fun GridTile(
         focused -> if (effect == FocusEffect.Lift) 1.17f else HomeLayout.FocusScale
         else -> unfocusedScale
     }
-    // Grow & Shrink matches tvOS: a quick, settled grow (a hint of give, no wobble) and an even
-    // quicker, fully damped shrink back as focus moves on. Grow keeps a springier pop.
+    // Grow & Shrink matches tvOS: a quick grow that settles with a little give (more with Focus Wobble,
+    // as on Apple TV) and a fully damped shrink back as focus moves on. Grow keeps a springier pop.
+    val wobbleOn = theme.wobble && effect != FocusEffect.Lift && !moving
     val spec = when {
         effect == FocusEffect.Grow -> spring<Float>(dampingRatio = 0.62f, stiffness = 300f)
+        (focused || moving) && wobbleOn -> spring(dampingRatio = 0.6f, stiffness = 380f)
         focused || moving -> spring(dampingRatio = 0.82f, stiffness = 520f)
         else -> spring(dampingRatio = 1f, stiffness = 620f)
     }
+    val sway = rememberWobble(focused, wobbleOn)
     val scale by animateFloatAsState(target, spec, label = "tileScale")
     val elevation by animateDpAsState(
         if (moving) 34.dp else if (focused) 28.dp else 3.dp,
@@ -633,7 +676,7 @@ fun GridTile(
         is FolderItem -> Color.Black
     }
     val liquid = theme.liquid
-    Box(modifier) {
+    Box(modifier.wobble(sway)) {
         Box(
             Modifier
                 .fillMaxSize()

@@ -340,72 +340,75 @@ def poster_focus():
     return np.column_stack((direct+halo+side,direct+halo-side))*release(t,.025)[:,None]
 
 
-def crystal_voice(t, hz, bend, start, level, decay, sparkle, seed):
-    """One glass-like voice: a soft sine body plus fast-fading inharmonic glass partials."""
-    u = np.maximum(t - start, 0)
-    on = smooth(u / .012) * (t >= start)
-    body = np.exp(-u / decay)
-    carrier = phase(u, hz, bend, .05, seed)
-    tone = np.sin(carrier) + .10*np.sin(2*carrier + .3)*np.exp(-u/(decay*.5))
-    # Partials at glass/bell ratios ring briefly above the note: the "crystal" in the cue.
-    glass = (.34*np.sin(2.756*carrier + seed)*np.exp(-u/.060)
-             + .16*np.sin(5.404*carrier + 2*seed)*np.exp(-u/.032)
-             + .07*np.sin(8.933*carrier + 3*seed)*np.exp(-u/.018))
-    # A gentle shimmer once the note has bloomed: the prism "vibrating".
-    shimmer = 1 + .11*smooth((u - .05)/.08)*np.sin(TAU*5.7*u + seed)
-    return level * on * shimmer * (body*tone + sparkle*glass)
-
-
-def crystal_open():
-    # Launcher addition: overlays (Control Centre, sidebar, switcher, menus) open with a quick upward
-    # arpeggio of glassy voices in the register of Select and Back, sweeping left to right.
-    length = .74
-    t = timeline(length)
-    voices = [  # hz, bend, start, level, decay, sparkle, pan
-        (241.0, 2.2, .000, .80, .30, .55, -.42),
-        (302.5, 2.6, .024, .66, .27, .60, -.12),
-        (361.5, 2.4, .047, .56, .24, .70, .16),
-        (482.0, 1.8, .072, .38, .20, .85, .40),
-    ]
-    direct = np.zeros((len(t), 2))
-    for i, (hz, bend, start, level, decay, sparkle, pan) in enumerate(voices):
-        v = crystal_voice(t, hz, bend, start, level, decay, sparkle, .37 + .9*i)
-        direct[:, 0] += v*np.sqrt(1 - pan)
-        direct[:, 1] += v*np.sqrt(1 + pan)
+def chord_room(direct, t, delays=((.025, .032), (.067, .075)), gains=(.13, .09), tail=.021):
+    """The same short early reflections Select uses, so new cues sit in the same room."""
     stereo = direct.copy()
     for ch in (0, 1):
-        stereo[:, ch] += .14*delayed(direct[:, 1-ch], (.027, .034)[ch])
-        stereo[:, ch] += .09*delayed(direct[:, ch], (.069, .078)[ch])
-        stereo[:, ch] += .05*delayed(direct[:, 1-ch], (.121, .133)[ch])
-    return stereo*release(t, .05)[:, None]
+        stereo[:, ch] += gains[0]*delayed(direct[:, 1-ch], delays[0][ch])
+        stereo[:, ch] += gains[1]*delayed(direct[:, ch], delays[1][ch])
+    return stereo*release(t, tail)[:, None]
 
 
-def crystal_dismiss():
-    # Launcher addition: an app card flicked up and away in the App Switcher. A glassy note glides up
-    # (easing out as it leaves), a fifth above follows it, and a faint glint closes it.
-    length = .56
+def open_navigation():
+    # Launcher addition: Control Centre, the sidebar, the switcher and menus opening. Select's chord a
+    # whole tone higher, rising gently into pitch, blooming outward a little faster.
+    length = .90
     t = timeline(length)
-    glide = 1 - np.exp(-t/.085)                       # 0 -> 1, fast then easing out
-    env = contour(t, [(0, -70), (.010, -18), (.028, -4), (.050, 0), (.11, -5),
-                      (.18, -13), (.26, -22), (.38, -36), (length, -80)])
-    def gliding(hz0, hz1, offset):
-        hz = (hz0 + (hz1 - hz0)*glide) * (1 + .006*np.sin(TAU*6.3*t))
-        return np.cumsum(TAU*hz/RATE) + offset
-    low = gliding(300.0, 760.0, .2)
-    high = gliding(450.0, 1140.0, 1.1)
-    tone = np.sin(low) + .55*np.sin(high) + .07*np.sin(2*low + .4)
-    glass = (.22*np.sin(2.756*low + .7)*np.exp(-t/.05) + .10*np.sin(5.404*low + 1.9)*np.exp(-t/.03))
-    dry = env*(tone + glass)
-    # The glint: a soft, high crystal ping as the card leaves the top of the screen.
-    glint = crystal_voice(t, 1520.0, 1.0, .135, .16, .11, .9, 2.3)
-    # A breath of air along the glide, kept very low so it reads as motion, not a whoosh.
-    air = .035*grain(t, 3400, .45, 977)*contour(t, [(0, -60), (.03, -6), (.09, 0), (.20, -14), (.32, -40), (length, -90)])
-    mono = dry + glint + air
-    side = .22*delayed(dry, .0071) - .12*delayed(glint, .013) + .5*air*np.sin(TAU*3.1*t)
-    out = np.column_stack((mono + side, mono - side))
+    crest = .128
+    env = contour(t, [(0,-61),(.016,-22.5),(.048,-11.8),(.083,-6.6),(.112,-1.6),(crest,0),
+                      (crest+.06,-.8),(.27,-4.4),(.37,-11.2),(.49,-17.5),(.64,-29),(.78,-43),(length,-74)])
+    bloom = smooth((t-.045)/.15)
+    settle = smooth((t-.21)/.26)
+    tone_up = 2 ** (2/12)
+    voices = [
+        (205.4*tone_up, -5.5, .25, .75+.30*bloom, -.05-.14*bloom, .25+1.02*bloom),
+        (237.7*tone_up, -6.0, 1.54, 1.05-.45*bloom-.05*settle, .025+.15*bloom-.22*settle, -.29-.66*bloom),
+        (360.8*tone_up, -4.2, .74, .54+.25*bloom-.13*settle, .10-.08*settle, .12+.30*bloom),
+        (302.8*tone_up, -3.8, 2.62, .10*(1-.54*settle), .10, -.60),
+    ]
+    direct = silence(length)
+    for hz, bend, initial, gain, pan, spread in voices:
+        oscillator = phase(t, hz, bend, .085, initial)
+        drift = .065*np.sin(TAU*1.19*t+initial)
+        for ch, position in enumerate((-1, 1)):
+            angle = oscillator + position*(.55*spread+drift)
+            weight = np.sqrt(1-position*pan)
+            tone = np.sin(angle) + .020*np.sin(2*angle+.52)*(1-.54*bloom)
+            direct[:, ch] += env*gain*weight*tone
+    return chord_room(direct, t)*np.array([.97, 1.03])
+
+
+def dismiss_navigation():
+    # Launcher addition: an app card flicked up and away in the App Switcher. Back's chord, gliding up a
+    # fourth as it leaves, its width opening then drawing in to the centre as it fades out.
+    length = .74
+    t = timeline(length)
+    env = contour(t, [(0,-60),(.014,-24),(.040,-9.5),(.068,-1.8),(.090,0),(.13,-1.4),(.20,-5.5),
+                      (.29,-12.5),(.40,-21.5),(.52,-33),(.64,-48),(length,-76)])
+    glide = 1 + (2**(5/12) - 1)*(1 - np.exp(-t/.11))
+    opening = smooth((t-.02)/.12)
+    closing = smooth((t-.16)/.30)
+    width = opening*(1-.8*closing)
+    voices = [  # hz, initial phase, level, seat (pan), spread
+        (181.8, .41, .84, .035-.60*width, .13+1.10*width),
+        (214.9, 2.06, 1.00, .125+.50*width, .065-.25*width),
+        (322.9, -.88, .50, -.06-.40*width, .13+.90*width),
+        (271.2, 1.36, .15, .13+.10*width, -.20+.60*width),
+    ]
+    direct = np.zeros((len(t), 2))
+    for hz, initial, level, seat, spread in voices:
+        carrier = np.cumsum(TAU*hz*glide/RATE) + initial
+        drift = .043*np.sin(TAU*1.32*t+initial)
+        for ch, position in enumerate((-1, 1)):
+            angle = carrier + .42*drift + (spread+drift if ch else 0)
+            tone = np.sin(angle)+.009*np.sin(2*angle+.36)
+            direct[:, ch] += env*level*np.sqrt(np.maximum(1+position*seat, 0))*tone
+    stereo = direct.copy()
     for ch in (0, 1):
-        out[:, ch] += .10*delayed(mono, (.031, .038)[ch])
-    return out*release(t, .04)[:, None]
+        stereo[:, ch] += .086*delayed(direct[:, ch], (.041, .036)[ch])
+        stereo[:, ch] += .060*delayed(direct[:, 1-ch], (.073, .087)[ch])
+        stereo[:, ch] += .039*delayed(direct[:, ch], (.134, .142)[ch])
+    return stereo*release(t, .03)[:, None]
 
 
 INSTRUMENTS = {
@@ -437,8 +440,8 @@ def cues():
     yield "capture", -17.3, shutter()
     yield "swish", -14.3, swish()
     # Prism TV launcher additions.
-    yield "open", -21.0, crystal_open()
-    yield "dismiss", -20.0, crystal_dismiss()
+    yield "open", -24.5, open_navigation()
+    yield "dismiss", -24.5, dismiss_navigation()
 
 
 
