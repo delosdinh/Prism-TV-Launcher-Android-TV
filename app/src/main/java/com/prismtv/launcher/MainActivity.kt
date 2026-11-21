@@ -46,6 +46,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.prismtv.launcher.data.AppearanceSetting
+import com.prismtv.launcher.data.GlassColour
+import com.prismtv.launcher.data.GlassMaterial
 import com.prismtv.launcher.ui.components.BannerHost
 import com.prismtv.launcher.ui.components.DialogHost
 import com.prismtv.launcher.ui.components.LaunchOverlay
@@ -197,13 +199,22 @@ fun PrismApp(vm: LauncherViewModel) {
         AppearanceSetting.Dark -> Appearance.Dark
         AppearanceSetting.Automatic -> if (vm.automaticIsDark()) Appearance.Dark else Appearance.Light
     }
+    // Glass surfaces take the Glass Colour (Automatic follows Appearance); Settings and pop-ups take
+    // Appearance and are always frosted.
+    val glassAppearance = when (vm.prefs.glassColour) {
+        GlassColour.Automatic -> appearance
+        GlassColour.Light -> Appearance.Light
+        GlassColour.Balanced -> Appearance.Balanced
+        GlassColour.Dark -> Appearance.Dark
+    }
     val theme = PrismTheme(
-        palette = Palettes.of(appearance),
+        palette = Palettes.of(glassAppearance),
         material = vm.prefs.material,
         reduceTransparency = vm.prefs.reduceTransparency,
         focusEffect = vm.prefs.focusEffect,
         labels = vm.prefs.labels,
     )
+    val uiTheme = theme.copy(palette = Palettes.of(appearance), material = GlassMaterial.Frosted)
 
     val bg = rememberGraphicsLayer()
     val bgBlur = rememberGraphicsLayer()
@@ -302,12 +313,12 @@ fun PrismApp(vm: LauncherViewModel) {
                 Sidebar(vm, clock)
                 ControlCentre(vm, clock)
                 AppSwitcher(vm)
-                SettingsScreen(vm)
+                CompositionLocalProvider(LocalPrism provides uiTheme) { SettingsScreen(vm) }
             }
             ContextMenuHost(vm)
-            DialogHost(vm.dialog, vm.dialogFocus)
+            CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
             LaunchOverlay(vm)
-            BannerHost(vm.banner)
+            CompositionLocalProvider(LocalPrism provides uiTheme) { BannerHost(vm.banner) }
         }
     }
 

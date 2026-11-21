@@ -6,6 +6,12 @@ enum class AppearanceSetting(val label: String) {
     Light("Light"), Balanced("Balanced"), Dark("Dark"), Automatic("Automatic")
 }
 
+/** Colour of the Home Screen glass (dock, sidebar, Control Centre, menus, folders). */
+enum class GlassColour(val label: String) {
+    /** Follows Appearance (the Settings and pop-up colour). */
+    Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark")
+}
+
 enum class GlassMaterial(val label: String) {
     /** Liquid Glass, tinted: the lens with a gentle veil so text stays legible (iOS "Tinted"). */
     Liquid("Liquid Glass"),
@@ -70,6 +76,8 @@ data class LauncherPrefs(
     val temperatureUnit: TemperatureUnit = TemperatureUnit.Auto,
     /** Prism TV Originals navigation sounds (focus, select, back…). */
     val sounds: Boolean = true,
+    /** Home Screen glass colour; Automatic follows [appearance]. */
+    val glassColour: GlassColour = GlassColour.Automatic,
 )
 
 class PrefsStore(context: Context) {
@@ -99,6 +107,7 @@ class PrefsStore(context: Context) {
             weather = sp.getBoolean("weather", d.weather),
             temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
             sounds = sp.getBoolean("sounds", d.sounds),
+            glassColour = enumOr(sp.getString("glassColour", null), d.glassColour),
         )
     }
 
@@ -125,6 +134,7 @@ class PrefsStore(context: Context) {
             .putBoolean("weather", p.weather)
             .putString("temperatureUnit", p.temperatureUnit.name)
             .putBoolean("sounds", p.sounds)
+            .putString("glassColour", p.glassColour.name)
             .apply()
     }
 

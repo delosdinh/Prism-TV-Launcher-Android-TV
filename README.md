@@ -33,8 +33,11 @@ launcher counterpart to the Prism TV skin for Kodi.
 
 **Appearance**
 - **Light / Balanced / Dark / Automatic** modes using the tvOS design-sheet tokens.
-- **Liquid Glass (Tinted)**, **Liquid Glass (Clear)** or **Frosted Glass (Classic)** materials;
-  Reduce Transparency option. Settings always uses frosted glass, like tvOS.
+- **Appearance** (Light / Balanced / Dark / Automatic) colours Settings and pop-ups, which are
+  always frosted glass, like tvOS.
+- **Material** for the Home Screen glass: **Liquid Glass (Tinted)**, **Liquid Glass (Clear)** or
+  **Frosted Glass (Classic)**, with its own **Glass Colour** (Automatic follows Appearance, or
+  Light / Balanced / Dark). Reduce Transparency option.
 - **Navigation sounds** from the Prism TV Originals pack (focus, select, back, toggles,
   notifications); turn them off in Settings › Navigation Sounds.
 
@@ -125,8 +128,8 @@ resets the Home app, so run it again after a reinstall; in-place updates keep it
 ### Software Update
 
 Prism TV updates itself from the `preview` release. On the Home Screen it checks every few hours
-(Settings › About › Check Automatically) and asks **Update Now / Later**; Settings › About ›
-Software Update checks on demand. The first update asks you to allow Prism TV to install apps.
+(Settings › Software Update › Check Automatically) and asks **Update Now / Later**;
+Settings › Software Update › Check for Updates checks on demand. The first update asks you to allow Prism TV to install apps.
 On Android 12+ the update then installs straight away; Android 11 (e.g. SHIELD) also shows the
 system's install confirmation.
 

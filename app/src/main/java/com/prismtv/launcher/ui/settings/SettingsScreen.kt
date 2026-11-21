@@ -192,6 +192,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "restart" to glyph(Icons.Rounded.RestartAlt, 0xFF9C9CA3, 0xFF5E5E64),
     "reset" to glyph(Icons.Rounded.Restore, 0xFFFF6961, 0xFFD63A31),
     "upd:check" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
+    "update" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
     "ss:range" to glyph(Icons.Rounded.HdrOn, 0xFFFFC94D, 0xFFE08A00),
 )
 
@@ -203,6 +204,7 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.HomeScreen -> Glyphs.getValue("home")
     SettingsPage.Screensaver -> Glyphs.getValue("screensaver")
     SettingsPage.Apps -> Glyphs.getValue("apps")
+    SettingsPage.SoftwareUpdate -> Glyphs.getValue("update")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, or an app's artwork. */

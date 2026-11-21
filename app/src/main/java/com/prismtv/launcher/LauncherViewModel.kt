@@ -56,6 +56,7 @@ import com.prismtv.launcher.data.BannerArt
 import com.prismtv.launcher.data.DemoContent
 import com.prismtv.launcher.data.FocusEffect
 import com.prismtv.launcher.data.FolderItem
+import com.prismtv.launcher.data.GlassColour
 import com.prismtv.launcher.data.GlassMaterial
 import com.prismtv.launcher.data.GridItem
 import com.prismtv.launcher.data.GridLayout
@@ -104,7 +105,7 @@ data class BannerSpec(val title: String, val message: String, val icon: ImageVec
 
 enum class SettingsPage(val title: String) {
     Root("Settings"), Appearance("Appearance"), HomeScreen("Home Screen"), Screensaver("Screensaver"),
-    Apps("Apps"), About("About")
+    Apps("Apps"), SoftwareUpdate("Software Update"), About("About")
 }
 
 data class SettingsRow(
@@ -314,10 +315,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================================================================= software update
 
-    /** A newer build found on GitHub (shown in Settings › About and offered once per version). */
+    /** A newer build found on GitHub (shown in Settings › Software Update and offered once per version). */
     var availableUpdate by mutableStateOf<UpdateInfo?>(null)
         private set
-    var updateStatus by mutableStateOf("Check Now")
+    var updateStatus by mutableStateOf("")
         private set
     private var updateJob: Job? = null
     private var pendingAfterPermission: UpdateInfo? = null
@@ -416,7 +417,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 throw t
             } catch (t: Throwable) {
                 updateStatus = "Update Failed"
-                showBanner("Software Update", "The download didn't finish. Try again from Settings › About.", Icons.Rounded.Info, Cue.Error)
+                showBanner("Software Update", "The download didn't finish. Try again from Settings › Software Update.", Icons.Rounded.Info, Cue.Error)
                 return@launch
             }
             when (withContext(Dispatchers.IO) { Updater.verify(ctx, file) }) {
@@ -1294,12 +1295,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
             SettingsRow("sleep", "Sleep Timer", "REMOTE", sleepLabel()),
-            SettingsRow("about", "About", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
+            SettingsRow("update", "Software Update", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
+            SettingsRow("about", "About", "SYSTEM", chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
         ) }
+        // Appearance colours Settings and pop-ups (always frosted); the glass gets its own colour,
+        // which follows Appearance when set to Automatic.
         SettingsPage.Appearance -> AppearanceSetting.entries.map {
-            SettingsRow("ap:${it.name}", it.label, "APPEARANCE", selectable = true, checked = prefs.appearance == it)
+            SettingsRow("ap:${it.name}", it.label, "SETTINGS & POP-UPS", selectable = true, checked = prefs.appearance == it)
         } + GlassMaterial.entries.map {
             SettingsRow("mat:${it.name}", when (it) {
                 GlassMaterial.Frosted -> "Frosted Glass (Classic)"
@@ -1307,6 +1311,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 GlassMaterial.Clear -> "Liquid Glass (Clear)"
             }, "MATERIAL",
                 selectable = true, checked = prefs.material == it)
+        } + GlassColour.entries.map {
+            SettingsRow(
+                "gc:${it.name}",
+                if (it == GlassColour.Automatic) "Automatic (${prefs.appearance.label})" else it.label,
+                "GLASS COLOUR",
+                selectable = true,
+                checked = prefs.glassColour == it,
+            )
         } + listOf(
             SettingsRow("reduce", "Reduce Transparency", "ACCESSIBILITY", onOff(prefs.reduceTransparency)),
         )
@@ -1335,11 +1347,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Apps -> allApps.sortedBy { it.label.lowercase() }.map {
             SettingsRow("app:${it.id}", it.label, "SHOW ON HOME SCREEN", if (it.id in prefs.hiddenApps) "Hidden" else "Shown", app = it)
         }.ifEmpty { listOf(SettingsRow("none", "No Apps Installed", "SHOW ON HOME SCREEN")) }
+        SettingsPage.SoftwareUpdate -> listOf(
+            SettingsRow(
+                "upd:check",
+                if (availableUpdate != null) "Update Now" else "Check for Updates",
+                "PRISM TV LAUNCHER",
+                availableUpdate?.let { "${it.versionName} Available" } ?: updateStatus.takeIf { it.isNotEmpty() },
+                chevron = true,
+            ),
+            SettingsRow("upd:auto", "Check Automatically", "PRISM TV LAUNCHER", onOff(prefs.updateCheck)),
+            SettingsRow("upd:ver", "Installed Version", "PRISM TV LAUNCHER", BuildConfig.VERSION_NAME),
+        )
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
-            SettingsRow("upd:check", "Software Update", "SOFTWARE UPDATE", availableUpdate?.let { "Install ${it.versionName}" } ?: updateStatus, chevron = true),
-            SettingsRow("upd:auto", "Check Automatically", "SOFTWARE UPDATE", onOff(prefs.updateCheck)),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
             SettingsRow("i:glass", "Liquid Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 33) "Refraction Shader" else "Refraction Bands"),
@@ -1364,7 +1385,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun settingsSelect(r: SettingsRow) {
         val p = prefs
         when {
-            r.id == "appearance" || r.id == "material" -> pushPage(SettingsPage.Appearance)
+            r.id == "appearance" -> pushPage(SettingsPage.Appearance)
+            r.id == "material" -> {
+                pushPage(SettingsPage.Appearance)
+                settingsFocus[SettingsPage.Appearance] = AppearanceSetting.entries.size + prefs.material.ordinal
+            }
+            r.id == "update" -> {
+                pushPage(SettingsPage.SoftwareUpdate)
+                if (availableUpdate == null && updateJob?.isActive != true) checkForUpdates(manual = false)
+            }
             r.id == "home" -> pushPage(SettingsPage.HomeScreen)
             r.id == "screensaver" -> pushPage(SettingsPage.Screensaver)
             r.id == "apps" -> pushPage(SettingsPage.Apps)
@@ -1390,6 +1419,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
+            r.id.startsWith("gc:") -> updatePrefs(p.copy(glassColour = GlassColour.valueOf(r.id.removePrefix("gc:"))))
             r.id == "reduce" -> updatePrefs(p.copy(reduceTransparency = !p.reduceTransparency))
             r.id.startsWith("fx:") -> updatePrefs(p.copy(focusEffect = FocusEffect.valueOf(r.id.removePrefix("fx:"))))
             r.id == "labels" -> updatePrefs(p.copy(labels = LabelMode.entries[(p.labels.ordinal + 1) % LabelMode.entries.size]))
@@ -1528,6 +1558,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 else -> GlassMaterial.Liquid
             })
         }
+        // Each CI shot states its glass colour (or gets Automatic), so one shot can't leak into the next.
+        p = p.copy(glassColour = GlassColour.entries.firstOrNull { it.name.equals(b.getString("glassColour"), true) } ?: GlassColour.Automatic)
         b.getString("focusEffect")?.let { v -> FocusEffect.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(focusEffect = it) } }
         b.getString("aerial")?.let { v -> AerialSource.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(aerialSource = it) } }
         if (b.containsKey("autorotate")) p = p.copy(heroAutoRotate = b.getBoolean("autorotate"))
@@ -1585,7 +1617,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "dialog" -> {
                 overlay = Overlay.Settings
-                settingsFocus[SettingsPage.Root] = 12
+                settingsFocus[SettingsPage.Root] = 13
                 confirm(
                     "Reset Prism TV?",
                     "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",
