@@ -188,7 +188,7 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 val art: Any = when (pg) {
                     SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard ->
                         rows.getOrNull(focus)?.let { if (it.id == "profile") vm.avatarLook else glyphFor(it.id) } ?: pageGlyph(pg)
-                    SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions ->
+                    SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions, SettingsPage.Inputs ->
                         rows.getOrNull(focus)?.app ?: rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Banner -> rows.getOrNull(focus)?.let { vm.bannerPreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Profiles -> rows.getOrNull(focus)?.let { vm.profileListPreview(it.id) } ?: pageGlyph(pg)

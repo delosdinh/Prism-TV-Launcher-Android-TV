@@ -154,6 +154,12 @@ data class LauncherPrefs(
     val startupApp: String = "",
     /** Seconds to wait before opening [startupApp]. */
     val startupDelay: Int = 0,
+    /** Your names for the TV's inputs (input id → name). */
+    val inputNames: Map<String, String> = emptyMap(),
+    /** Banners you picked for apps (app id → "photo:<uri>"). */
+    val customBanners: Map<String, String> = emptyMap(),
+    /** An installed icon pack's package; empty = the apps' own banners. */
+    val iconPack: String = "",
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -226,6 +232,9 @@ class PrefsStore(context: Context) {
             screensaverWaitForMedia = sp.getBoolean("screensaverWaitForMedia", d.screensaverWaitForMedia),
             startupApp = sp.getString("startupApp", d.startupApp).orEmpty(),
             startupDelay = sp.getInt("startupDelay", d.startupDelay).takeIf { it in StartupDelays } ?: d.startupDelay,
+            inputNames = parseStringMap(sp.getString("inputNames", null)),
+            customBanners = parseStringMap(sp.getString("customBanners", null)),
+            iconPack = sp.getString("iconPack", d.iconPack).orEmpty(),
         )
     }
 
@@ -257,6 +266,9 @@ class PrefsStore(context: Context) {
             .putBoolean("screensaverWaitForMedia", p.screensaverWaitForMedia)
             .putString("startupApp", p.startupApp)
             .putInt("startupDelay", p.startupDelay)
+            .putString("inputNames", encodeStringMap(p.inputNames))
+            .putString("customBanners", encodeStringMap(p.customBanners))
+            .putString("iconPack", p.iconPack)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)
@@ -295,6 +307,19 @@ class PrefsStore(context: Context) {
         }
         return out
     }
+
+    private fun parseStringMap(raw: String?): Map<String, String> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        val out = LinkedHashMap<String, String>()
+        raw.split('\n').forEach { line ->
+            val tab = line.indexOf('\t')
+            if (tab > 0 && tab < line.length - 1) out[line.substring(0, tab)] = line.substring(tab + 1)
+        }
+        return out
+    }
+
+    private fun encodeStringMap(map: Map<String, String>): String =
+        map.entries.joinToString("\n") { (k, v) -> k.replace('\t', ' ').replace('\n', ' ') + "\t" + v.replace('\t', ' ').replace('\n', ' ') }
 
     private fun parseWidgetApps(raw: String?): Map<String, Set<String>> {
         if (raw.isNullOrBlank()) return emptyMap()

@@ -263,13 +263,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Visible Home Screen items (apps + folders), in order. */
     val items: List<GridItem> by derivedStateOf {
         if (prefs.demoContent) {
-            GridLayouts.build(DemoContent.allApps, layout ?: DemoContent.defaultLayout, prefs.hiddenApps)
+            GridLayouts.build(DemoContent.allApps + inputApps, layout ?: DemoContent.defaultLayout, prefs.hiddenApps)
         } else {
-            GridLayouts.build(realApps, layout, prefs.hiddenApps)
+            GridLayouts.build(realApps + inputApps, layout, prefs.hiddenApps)
         }
     }
 
-    val allApps: List<LauncherApp> get() = if (prefs.demoContent) DemoContent.allApps else realApps
+    /** The TV's HDMI inputs as tiles (TVs only; boxes have none). */
+    private var inputApps by mutableStateOf<List<LauncherApp>>(emptyList())
+
+    val allApps: List<LauncherApp> get() = (if (prefs.demoContent) DemoContent.allApps else realApps) + inputApps
 
     // ---------------------------------------------------------------- home focus
     var zone by mutableStateOf(Zone.Grid)
@@ -759,7 +762,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE) failedThumbs.clear()
     }
 
+    /** Reads the TV's inputs (and your names for them) into Home Screen tiles. */
+    fun loadInputs() {
+        viewModelScope.launch {
+            val names = prefs.inputNames
+            val list = withContext(Dispatchers.IO) {
+                runCatching { com.prismtv.launcher.data.TvInputs.apps(ctx, names) }.getOrDefault(emptyList())
+            }
+            list.forEach { a -> artRepo.registerBrand(a.id, a.banner?.asAndroidBitmap(), null, a.tint.toArgb()) }
+            inputApps = list
+        }
+    }
+
     fun refreshApps() {
+        loadInputs()
         if (prefs.demoContent) return
         viewModelScope.launch {
             val loaded = withContext(Dispatchers.IO) { appsRepo.load() }
@@ -1025,7 +1041,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 MenuAction("rename", "Rename Folder", Icons.Rounded.Edit),
                 MenuAction("move", "Move", Icons.Rounded.OpenWith),
             )
-            is AppItem -> buildList {
+            is AppItem -> if (com.prismtv.launcher.data.TvInputs.isInput(item.app)) buildList {
+                add(MenuAction("renameInput", "Rename Input", Icons.Rounded.Edit))
+                if (parent == null) add(MenuAction("move", "Move", Icons.Rounded.OpenWith))
+                add(MenuAction("folder", if (parent == null) "Add to Folder" else "Move to Folder", Icons.Rounded.CreateNewFolder))
+                if (parent != null) add(MenuAction("unfolder", "Remove from Folder", Icons.Rounded.FolderOpen))
+                add(MenuAction("hide", "Hide from Home Screen", Icons.Rounded.VisibilityOff))
+            } else buildList {
                 add(MenuAction("delete", "Delete App", Icons.Rounded.RemoveCircleOutline, destructive = true))
                 if (parent == null) add(MenuAction("move", "Move", Icons.Rounded.OpenWith))
                 add(MenuAction("folder", if (parent == null) "Add to Folder" else "Move to Folder", Icons.Rounded.CreateNewFolder))
@@ -1049,6 +1071,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         commitItems(items.map { if (it is FolderItem && it.id == folderId) it.copy(label = clean) else it })
         cue(Cue.Confirm)
         openFolder?.let { f -> if (f.id == folderId) openFolder = items.firstOrNull { it.id == folderId } as? FolderItem }
+    }
+
+    /** Gives one of the TV's inputs your own name ("PlayStation 5"); empty goes back to the TV's. */
+    private fun renameInput(inputId: String) {
+        val current = prefs.inputNames[inputId] ?: inputApps.firstOrNull { it.id.endsWith(inputId) }?.label.orEmpty()
+        openKeyboard("Rename Input", current, "Input Name") { name ->
+            val clean = name.trim().take(30)
+            updatePrefs(prefs.copy(inputNames = if (clean.isEmpty()) prefs.inputNames - inputId else prefs.inputNames + (inputId to clean)))
+            loadInputs()
+            cue(Cue.Confirm)
+        }
     }
 
     private fun renameWithKeyboard(folder: FolderItem) {
@@ -1151,6 +1184,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 SystemActions.appInfo(ctx, app.packageName)
             }
             a.id == "hide" && app != null -> hideApp(app)
+            a.id == "renameInput" && app != null -> renameInput(app.id.removePrefix(com.prismtv.launcher.data.TvInputs.Prefix))
             a.id == "delete" && app != null -> if (demo) {
                 showBanner(app.label, "Demo apps can't be deleted. Use Hide instead.", Icons.Rounded.Info, Cue.Error)
             } else {
@@ -2036,6 +2070,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
             SettingsRow("usage", "Recent Apps Access", "APPS", onOff(status().usage), chevron = true),
             SettingsRow("startupApp", "Open at Startup", "APPS", startupAppLabel(), chevron = true),
+            SettingsRow("inputs", "Inputs", "APPS", if (inputApps.isEmpty()) "None" else inputApps.size.toString(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
             SettingsRow("startup", "Open Prism TV at Startup", "REMOTE", onOff(prefs.openAtStartup)),
@@ -2440,6 +2475,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 updatePrefs(p.copy(screensaverAfter = StartAfterChoices[(i + 1) % StartAfterChoices.size]))
             }
             r.id == "startupApp" -> pushPage(SettingsPage.Startup)
+            r.id == "inputs" -> pushPage(SettingsPage.Inputs)
+            r.id.startsWith("in:show:") -> {
+                val appId = com.prismtv.launcher.data.TvInputs.Prefix + r.id.removePrefix("in:show:")
+                updatePrefs(p.copy(hiddenApps = if (appId in p.hiddenApps) p.hiddenApps - appId else p.hiddenApps + appId))
+            }
+            r.id.startsWith("in:name:") -> renameInput(r.id.removePrefix("in:name:"))
             r.id == "su:delay" -> {
                 val i = com.prismtv.launcher.data.StartupDelays.indexOf(p.startupDelay)
                 updatePrefs(p.copy(startupDelay = com.prismtv.launcher.data.StartupDelays[(i + 1) % com.prismtv.launcher.data.StartupDelays.size]))
@@ -2535,7 +2576,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Settings › Profile: a preview of the focused avatar or picture. */
     // Pages filled in by later features.
-    private fun inputRows(): List<SettingsRow> = emptyList()
+    private fun inputRows(): List<SettingsRow> = if (inputApps.isEmpty()) {
+        listOf(SettingsRow("in:none", "This TV has no HDMI inputs", "INPUTS"))
+    } else inputApps.flatMap { a ->
+        val id = a.id.removePrefix(com.prismtv.launcher.data.TvInputs.Prefix)
+        listOf(
+            SettingsRow("in:show:$id", "Show on Home Screen", a.label.uppercase(), toggle = a.id !in prefs.hiddenApps, app = a),
+            SettingsRow("in:name:$id", "Name", a.label.uppercase(), a.label, chevron = true, app = a),
+        )
+    }
     private fun backupRows(): List<SettingsRow> = emptyList()
     private fun iconPackRows(): List<SettingsRow> = emptyList()
     private fun bannerRows(): List<SettingsRow> = emptyList()
@@ -2806,6 +2855,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             liteMode = b.getBoolean("lite", false),
         )
         debugTitleArt = b.getString("logoId")?.let { com.prismtv.launcher.data.TitleLogos.refFor(it) }
+        // Pretend HDMI inputs for screenshots.
+        val wantInputs = b.getBoolean("inputs", false)
+        if (wantInputs != com.prismtv.launcher.data.TvInputs.demo) {
+            com.prismtv.launcher.data.TvInputs.demo = wantInputs
+            loadInputs()
+        }
         // A fixed Now Playing for Control Centre screenshots.
         com.prismtv.launcher.system.MediaWatcher.demo(
             b.getString("nowPlaying")?.let { t ->

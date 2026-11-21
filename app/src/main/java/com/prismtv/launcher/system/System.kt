@@ -180,6 +180,7 @@ object SystemActions {
     }
 
     fun launchIntent(ctx: Context, app: LauncherApp): Intent? {
+        if (com.prismtv.launcher.data.TvInputs.isInput(app)) return com.prismtv.launcher.data.TvInputs.intent(app)
         val pm = ctx.packageManager
         val activity = app.activityName
         val intent = if (activity != null) {

@@ -105,6 +105,10 @@ launcher counterpart to the Prism TV skin for Kodi.
   **Shuffle** (like tvOS 27.2: an aerial, then a few of your pictures and Prism's scenes, then the
   next aerial). **Wait While Media Plays** (on by default) holds the screensaver back while music
   or a video is playing. Available on demand and as the system screensaver ("Prism Aerials").
+- **Inputs** (TVs with HDMI inputs): each input is a tile on the Home Screen, one press to the
+  console or set-top box, like Projectivy's input shortcuts. Rename them (hold OK › Rename Input, or
+  Settings › Inputs), hide them, move them or put them in folders like apps. Streaming boxes have no
+  inputs, so there's nothing to show there.
 - **Open at Startup**: pick an app (and an optional wait) to open each time the TV starts, such
   as Kodi. It opens once per start, only if nobody has pressed anything in the meantime.
 - **App Switcher**, laid out like tvOS: the Home Screen shrinks into a centred card, recent apps
