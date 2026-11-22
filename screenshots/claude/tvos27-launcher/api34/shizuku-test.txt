@@ -1,20 +1,24 @@
 captured 65-shizuku-steps
 captured 65a-adb-allow-prompt
-tapped at 959,521
-tapped at 600,681
-own adb client: 11-22 10:57:19.197  6149  6149 I PrismAdb: result=Ok(output=prism-adb-ok
+tapped "492"
+always allow ticked
+tapped "512"
+own adb client: 11-22 11:27:19.048  6160  6160 I PrismAdb: result=Ok(output=prism-adb-ok
 captured 65b-shizuku-downloading
 captured 65c-shizuku-installer
-tapped at 600,651
+tapped "512"
 captured 65d-shizuku-installed
-installed: package:/data/app/~~aHp85jn49ETkV8pi-4zNKw==/moe.shizuku.privileged.api-DXOGTkvmZSZcO9fvVqgWOQ==/base.apk
+installed: package:/data/app/~~B8UGIQRIIyO-F_R_7UEoDQ==/moe.shizuku.privileged.api-Ww95dWYH3iOOVvHnvQ45wA==/base.apk
 captured 65d2-shizuku-starting
-started by Prism TV: 11-22 10:57:44.383  6149  6191 I PrismShizuku: info: shizuku_server pid is 6754
-11-22 10:57:44.383  6149  6191 I PrismShizuku: info: shizuku_starter exit with 0
+started by Prism TV: 11-22 11:27:42.314  6160  6197 I PrismShizuku: info: starting server...
+11-22 11:27:42.314  6160  6197 I PrismShizuku: info: shizuku_server pid is 6816
+11-22 11:27:42.314  6160  6197 I PrismShizuku: info: shizuku_starter exit with 0
+server: 
+11-22 11:27:42.306  6811  6811 D Shizuku : start_server
 captured 65e-shizuku-running
 captured 65f-shizuku-allow-prompt
 no "Allow all the time" on screen
 captured 65g-shizuku-allowed
-before: pid=6969
-after: pid=6969 stopped=false
-11-22 10:58:26.743  6149  6149 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
+before: pid=7043
+after: pid=7043 stopped=false
+11-22 11:28:31.933  6160  6160 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
