@@ -4237,6 +4237,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             } else false
         }
         if (prefs.demoContent) widgetRowsAll = demoWidgetRows()
+        // Shizuku hands over (or loses) its connection whenever it starts or stops: refresh Settings.
+        runCatching {
+            rikka.shizuku.Shizuku.addBinderReceivedListenerSticky {
+                android.util.Log.i("PrismShizuku", "Shizuku connected")
+                viewModelScope.launch { resumeTick++ }
+            }
+            rikka.shizuku.Shizuku.addBinderDeadListener { viewModelScope.launch { resumeTick++ } }
+        }
         viewModelScope.launch {
             com.prismtv.launcher.system.ShizukuSetup.events.collect { e ->
                 resumeTick++

@@ -150,7 +150,7 @@ object ShizukuSetup {
                 ctx.getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).edit().putBoolean("adbAuthorized", true).apply()
                 Log.i(TAG, "starter exit ${r.exit}: ${r.output.takeLast(400)}")
                 // Shizuku hands Prism TV its binder once it's up.
-                repeat(40) {
+                repeat(80) {
                     if (alive()) return StartResult.Started
                     Thread.sleep(250)
                 }

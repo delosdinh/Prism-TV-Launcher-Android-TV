@@ -256,16 +256,33 @@ echo "RESTART $R (before $PID0, after $PID1, later $PID2)" | tee "$OUT/restart-t
 # and opens Android's installer; then start it (from the host here: the emulator's adbd has no TCP port
 # for Prism TV's own adb client), allow Prism TV, and close an app through Shizuku.
 SZ=moe.shizuku.privileged.api
-# Taps the on-screen element whose text is exactly $1 (system dialogs differ in button order and focus).
-tap_text() {
+# The screen's view tree, one node per line.
+ui_dump() {
   timeout 30 adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || return 1
+  adb shell cat /sdcard/ui.xml | tr '>' '\n'
+}
+# Taps the element whose text is exactly $1 in a system dialog (they differ in button order and focus).
+# Prism TV's own UI is left out: it's driven by the remote and ignores taps.
+tap_text() {
   local b
-  b="$(adb shell cat /sdcard/ui.xml | tr '>' '\n' | grep -i "text=\"$1\"" | head -n 1 \
+  b="$(ui_dump | grep -i "text=\"$1\"" | grep -v 'package="com.prismtv' | head -n 1 \
     | grep -oE 'bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | grep -oE '[0-9]+' | tr '\n' ' ')"
   [ -n "$b" ] || { echo "no \"$1\" on screen"; return 1; }
   set -- $b
   adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
-  echo "tapped at $(( ($1 + $3) / 2 )),$(( ($2 + $4) / 2 ))"
+  echo "tapped \"$1\""
+}
+# Answers the TV's "Allow USB debugging?" for Prism TV's key (Always allow ticked) if it's showing.
+accept_adb_prompt() {
+  for _ in $(seq 1 ${1:-8}); do adb shell dumpsys window | grep -qi "UsbDebugging" && break; sleep 1; done
+  adb shell dumpsys window | grep -qi "UsbDebugging" || return 1
+  sleep 1
+  cap "${2:-65a-adb-allow-prompt}"
+  ui_dump | grep -i 'text="Always allow from this computer"' | grep -q 'checked="true"' || tap_text "Always allow from this computer"
+  sleep 0.8
+  ui_dump | grep -i 'text="Always allow from this computer"' | grep -q 'checked="true"' && echo "always allow ticked"
+  tap_text "Allow"
+  sleep 2
 }
 {
   adb shell appops set "$PKG" REQUEST_INSTALL_PACKAGES allow >/dev/null 2>&1 || true
@@ -274,13 +291,8 @@ tap_text() {
   adb logcat -c || true
   # Prism TV's own adb client: the TV asks "Allow USB debugging?" for Prism TV's key (focus starts on
   # "Always allow": tick it, then Allow).
-  start "${B[@]}" "${DARK[@]}" --ez adbTest true --es screen settings --es page Shizuku --ei focus 0; sleep 5
-  if adb shell dumpsys window | grep -qi "UsbDebugging"; then
-    cap 65a-adb-allow-prompt
-    tap_text "Always allow from this computer"; sleep 0.8
-    tap_text "Allow" || { key KEYCODE_DPAD_DOWN 0.8; key KEYCODE_DPAD_CENTER; }
-    sleep 4
-  fi
+  start "${B[@]}" "${DARK[@]}" --ez adbTest true --es screen settings --es page Shizuku --ei focus 0; sleep 2
+  accept_adb_prompt 8 65a-adb-allow-prompt
   for _ in $(seq 1 15); do adb logcat -d -s PrismAdb:I | grep -q result= && break; sleep 1; done
   ADB_RESULT="$(adb logcat -d -s PrismAdb:I | grep result= | tail -1)"
   echo "own adb client: $ADB_RESULT"
@@ -288,7 +300,7 @@ tap_text() {
   key KEYCODE_DPAD_CENTER 3; cap 65b-shizuku-downloading
   for _ in $(seq 1 30); do adb shell dumpsys window | grep -qi "packageinstaller" && break; sleep 2; done
   sleep 2; cap 65c-shizuku-installer
-  tap_text "Install" || { key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_CENTER 1; }
+  tap_text "Install"
   for _ in $(seq 1 30); do adb shell pm path "$SZ" 2>/dev/null | grep -q package: && break; sleep 2; done
   sleep 3; cap 65d-shizuku-installed
   echo "installed: $(adb shell pm path "$SZ" | tr -d '\r')"
@@ -298,8 +310,11 @@ tap_text() {
     adb logcat -c || true
     start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 2; sleep 3
     key KEYCODE_DPAD_CENTER 1.5; cap 65d2-shizuku-starting
-    sleep 10
-    echo "started by Prism TV: $(adb logcat -d -s PrismShizuku:I | tail -2)"
+    accept_adb_prompt 5 65d1-adb-prompt-again && echo "(asked again)"
+    sleep 12
+    echo "started by Prism TV: $(adb logcat -d -s PrismShizuku:I | tail -3)"
+    echo "server: $(adb shell ps -A -o PID,USER,NAME | grep -i shizuku | tr '\n' ' ')"
+    adb logcat -d | grep -iE "shizuku" | grep -v PrismShizuku | tail -25
   else
     # This emulator's adbd has no TCP port for Prism TV: start Shizuku as the shell user from the host.
     adb shell 'P=$(pm path moe.shizuku.privileged.api | head -n 1 | cut -d: -f2); D=$(dirname "$P"); S=$(ls "$D"/lib/*/libshizuku.so 2>/dev/null | head -n 1); echo "starter: $S"; cp "$S" /data/local/tmp/shizuku_starter && chmod 700 /data/local/tmp/shizuku_starter && /data/local/tmp/shizuku_starter' 2>&1 | tail -5
@@ -326,8 +341,11 @@ tap_text() {
 {
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0; sleep 3
   key KEYCODE_DPAD_CENTER 2.5; cap 66-allow-notifications-dialog
-  tap_text "Do It for Me" || { key KEYCODE_DPAD_DOWN 0.6; key KEYCODE_DPAD_CENTER; }
-  sleep 6; cap 66b-allow-notifications-done
+  # Do It for Me is the second button when the TV has a Notification access page, else the first.
+  ui_dump | grep -q 'text="Open Notification Access"' && key KEYCODE_DPAD_DOWN 0.6
+  key KEYCODE_DPAD_CENTER 1
+  accept_adb_prompt 6 66a-adb-prompt
+  sleep 5; cap 66b-allow-notifications-done
   echo "listeners: $(adb shell settings get secure enabled_notification_listeners | tr -d '\r')"
 } 2>&1 | tee "$OUT/notif-test.txt"
 
