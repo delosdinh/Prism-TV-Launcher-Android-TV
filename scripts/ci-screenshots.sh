@@ -69,6 +69,33 @@ DARK=(--es appearance dark --es glass liquid)
 # Warm up (first launch decodes artwork).
 start "${B[@]}" "${DARK[@]}" --es screen home --ei col 0; sleep 6
 
+# Reference set (ref-*): Settings & Pop-ups Transparency Low / Medium / High in each colour mode over the
+# same Top Shelf, and Liquid Glass (Tinted, Clear) beside Frosted on each surface.
+REF=(--es screen settings --ei col 2 --ei focus 1)
+for mode in dark light balanced; do
+  for ui in low medium high; do
+    WAIT=5 shot "ref-01-settings-$mode-$ui" "${B[@]}" --es appearance "$mode" --es glass liquid --es ui "$ui" "${REF[@]}"
+  done
+done
+for ui in low high; do
+  WAIT=5 shot "ref-02-popup-dark-$ui"  "${B[@]}" --es appearance dark  --es glass liquid --es ui "$ui" --es screen heroinfo --ei col 2
+  WAIT=5 shot "ref-02-popup-light-$ui" "${B[@]}" --es appearance light --es glass liquid --es ui "$ui" --es screen heroinfo --ei col 2
+done
+for look in "liquid-dark:--es appearance dark --es glass liquid" "liquid-light:--es appearance light --es glass liquid" \
+  "liquid-balanced:--es appearance balanced --es glass liquid" "clear-dark:--es appearance dark --es glass clear" \
+  "frosted-dark:--es appearance dark --es glass frosted"; do
+  name="${look%%:*}"; args=(${look#*:})
+  WAIT=5 shot "ref-10-home-$name"           "${B[@]}" "${args[@]}" --es screen home --ei col 2
+  WAIT=5 shot "ref-11-grid-$name"           "${B[@]}" "${args[@]}" --es screen grid --ei row 1 --ei col 2
+  WAIT=5 shot "ref-12-control-centre-$name" "${B[@]}" "${args[@]}" --es screen controlcentre --ei col 2 --ei focus 3 --es nowPlaying "'Golden Hour'" --ei notify 2
+  WAIT=5 shot "ref-13-sidebar-$name"        "${B[@]}" "${args[@]}" --es screen sidebar --ei focus 1
+  WAIT=5 shot "ref-14-context-menu-$name"   "${B[@]}" "${args[@]}" --es screen menu --ei row 0 --ei col 2 --ei focus 1
+  WAIT=5 shot "ref-15-folder-$name"         "${B[@]}" "${args[@]}" --es screen folder --ei row 1 --ei col 3 --ei focus 1
+  WAIT=5 shot "ref-16-banner-$name"         "${B[@]}" "${args[@]}" --es banner "'Liquid Glass reference'" --es screen home --ei col 2
+done
+WAIT=5 shot ref-17-keyboard-clear "${B[@]}" --es appearance dark --es glass liquid --es keyboardColour clear --es screen keyboard --es text Prism --ei keyRow 1 --ei keyCol 3
+WAIT=5 shot ref-17b-keyboard-light "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --es text Prism --ei keyRow 1 --ei keyCol 3
+
 shot 01-home-dock-liquid-dark      "${B[@]}" "${DARK[@]}" --es screen home --ei col 0
 shot 02-home-dock-music            "${B[@]}" "${DARK[@]}" --es screen home --ei col 2
 shot 03-top-shelf-fullscreen       "${B[@]}" "${DARK[@]}" --es screen hero --ei col 1
