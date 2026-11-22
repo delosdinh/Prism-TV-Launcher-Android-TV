@@ -44,6 +44,51 @@ if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
   PID="$(adb shell pidof "$PKG" | tr -d '\r')"
   adb logcat -d -b crash > "$OUT/release-crash.txt" 2>&1 || true
   if [ -n "$PID" ] && ! grep -q "$PKG" "$OUT/release-crash.txt"; then echo "RELEASE OK (pid $PID)" | tee "$OUT/release-smoke.txt"; else echo "RELEASE FAILED" | tee "$OUT/release-smoke.txt"; fi
+
+  # Performance of the release build, as installed from a store (baseline profile applied).
+  # Emulator numbers: compare runs with each other, not with real TVs.
+  PERF="$OUT/perf.txt"
+  echo "apk bytes: $(stat -c %s "$RELEASE_APK")" | tee "$PERF"
+  adb shell cmd package compile -f -m speed-profile "$PKG" >/dev/null 2>&1
+  median() { sort -n | awk '{a[NR]=$1} END {if (NR) print a[int((NR+1)/2)]; else print "n/a"}'; }
+  cold=""; for _ in 1 2 3 4 5; do
+    adb shell am force-stop "$PKG"; sleep 2
+    t="$(adb shell am start -W -n "$ACT" 2>/dev/null | tr -d '\r' | awk -F': ' '/TotalTime/ {print $2}')"
+    cold="$cold $t"; sleep 4
+  done
+  echo "cold start ms: $cold  (median $(echo $cold | tr ' ' '\n' | median))" | tee -a "$PERF"
+  # Back to Home from another app (Prism's process stays up): what a launcher does all day.
+  warm=""; for _ in 1 2 3 4 5; do
+    adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 3
+    t="$(adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n "$ACT" 2>/dev/null | tr -d '\r' | awk -F': ' '/TotalTime/ {print $2}')"
+    warm="$warm $t"; sleep 3
+  done
+  echo "back to home ms: $warm  (median $(echo $warm | tr ' ' '\n' | median))" | tee -a "$PERF"
+  # D-pad walk: frame timing.
+  sleep 3
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  for k in RIGHT RIGHT RIGHT DOWN RIGHT RIGHT DOWN LEFT LEFT UP UP LEFT RIGHT RIGHT DOWN UP; do adb shell input keyevent "KEYCODE_DPAD_$k"; sleep 0.3; done
+  sleep 1.5
+  adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread" | sed 's/^ */walk: /' | tee -a "$PERF"
+  # Rapid D-pad: 40 presses as fast as adb sends them (key repeat on a held button).
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  adb shell 'for i in 1 2 3 4 5 6 7 8 9 10; do input keyevent KEYCODE_DPAD_RIGHT KEYCODE_DPAD_RIGHT KEYCODE_DPAD_LEFT KEYCODE_DPAD_LEFT; done'
+  sleep 1.5
+  adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|90th percentile|Slow UI thread" | sed 's/^ */rapid: /' | tee -a "$PERF"
+  # Memory after the walk and ten returns to Home.
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 1.5
+    adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n "$ACT" >/dev/null 2>&1; sleep 1.5
+  done
+  sleep 3
+  adb shell dumpsys meminfo "$PKG" | grep -E "TOTAL PSS|TOTAL:|Java Heap|Native Heap|Graphics" | head -5 | sed 's/^ */memory: /' | tee -a "$PERF"
+  # Idle CPU: clock ticks Prism uses in 60 s on Home, then 60 s behind another app.
+  ticks() { adb shell cat "/proc/$(adb shell pidof "$PKG" | tr -d '\r')/stat" 2>/dev/null | awk '{print $14 + $15}'; }
+  a="$(ticks)"; sleep 60; b="$(ticks)"
+  echo "idle on home, 60 s: $((b - a)) ticks" | tee -a "$PERF"
+  adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 5
+  a="$(ticks)"; sleep 60; b="$(ticks)"
+  echo "behind another app, 60 s: $((b - a)) ticks" | tee -a "$PERF"
   adb shell am force-stop "$PKG"
 fi
 
