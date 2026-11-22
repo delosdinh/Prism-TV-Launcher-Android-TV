@@ -256,6 +256,17 @@ echo "RESTART $R (before $PID0, after $PID1, later $PID2)" | tee "$OUT/restart-t
 # and opens Android's installer; then start it (from the host here: the emulator's adbd has no TCP port
 # for Prism TV's own adb client), allow Prism TV, and close an app through Shizuku.
 SZ=moe.shizuku.privileged.api
+# Taps the on-screen element whose text is exactly $1 (system dialogs differ in button order and focus).
+tap_text() {
+  timeout 30 adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || return 1
+  local b
+  b="$(adb shell cat /sdcard/ui.xml | tr '>' '\n' | grep -i "text=\"$1\"" | head -n 1 \
+    | grep -oE 'bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | grep -oE '[0-9]+' | tr '\n' ' ')"
+  [ -n "$b" ] || { echo "no \"$1\" on screen"; return 1; }
+  set -- $b
+  adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+  echo "tapped at $(( ($1 + $3) / 2 )),$(( ($2 + $4) / 2 ))"
+}
 {
   adb shell appops set "$PKG" REQUEST_INSTALL_PACKAGES allow >/dev/null 2>&1 || true
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 0; sleep 4
@@ -266,15 +277,18 @@ SZ=moe.shizuku.privileged.api
   start "${B[@]}" "${DARK[@]}" --ez adbTest true --es screen settings --es page Shizuku --ei focus 0; sleep 5
   if adb shell dumpsys window | grep -qi "UsbDebugging"; then
     cap 65a-adb-allow-prompt
-    key KEYCODE_DPAD_CENTER 0.8; key KEYCODE_DPAD_DOWN 0.8; key KEYCODE_DPAD_CENTER 4
+    tap_text "Always allow from this computer"; sleep 0.8
+    tap_text "Allow" || { key KEYCODE_DPAD_DOWN 0.8; key KEYCODE_DPAD_CENTER; }
+    sleep 4
   fi
+  for _ in $(seq 1 15); do adb logcat -d -s PrismAdb:I | grep -q result= && break; sleep 1; done
   ADB_RESULT="$(adb logcat -d -s PrismAdb:I | grep result= | tail -1)"
   echo "own adb client: $ADB_RESULT"
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 0; sleep 3
   key KEYCODE_DPAD_CENTER 3; cap 65b-shizuku-downloading
   for _ in $(seq 1 30); do adb shell dumpsys window | grep -qi "packageinstaller" && break; sleep 2; done
   sleep 2; cap 65c-shizuku-installer
-  key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_CENTER 1
+  tap_text "Install" || { key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_CENTER 1; }
   for _ in $(seq 1 30); do adb shell pm path "$SZ" 2>/dev/null | grep -q package: && break; sleep 2; done
   sleep 3; cap 65d-shizuku-installed
   echo "installed: $(adb shell pm path "$SZ" | tr -d '\r')"
@@ -294,7 +308,8 @@ SZ=moe.shizuku.privileged.api
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 3; sleep 4
   cap 65e-shizuku-running
   key KEYCODE_DPAD_CENTER 4; cap 65f-shizuku-allow-prompt
-  key KEYCODE_DPAD_CENTER 3
+  tap_text "Allow all the time" || key KEYCODE_DPAD_CENTER
+  sleep 3
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 3; sleep 4
   cap 65g-shizuku-allowed
   if [ -n "$TARGET" ]; then
