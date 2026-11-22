@@ -148,6 +148,7 @@ enum class SettingsPage(val title: String) {
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
     Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
+    Access("Privacy & Access"),
 }
 
 data class SettingsRow(
@@ -2400,28 +2401,37 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun settingsRows(page: SettingsPage): List<SettingsRow> = when (page) {
         // Reading resumeTick refreshes rows (Recent Apps Access, Power & Home Button) as soon as the
         // user comes back from Android's settings.
-        SettingsPage.Root -> resumeTick.let { _ -> listOf(
+        // Grouped like tvOS: you and how it looks, then apps, the remote, and the system.
+        SettingsPage.Root -> resumeTick.let { _ -> listOfNotNull(
+            SettingsRow("profile", "Profiles", "GENERAL", profileName(), chevron = true),
             SettingsRow("appearance", "Appearance", "GENERAL", prefs.appearance.label, chevron = true),
-            SettingsRow("material", "Material", "GENERAL", materialLabel(), chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
             SettingsRow("screensaver", "Screensaver", "GENERAL", prefs.aerialSource.label, chevron = true),
-            SettingsRow("sounds", "Navigation Sounds", "GENERAL", onOff(prefs.sounds)),
             SettingsRow("keyboard", "Keyboard", "GENERAL", keyboardStatus(), chevron = true),
-            SettingsRow("profile", "Profiles", "GENERAL", profileName(), chevron = true),
+            SettingsRow("sounds", "Navigation Sounds", "GENERAL", onOff(prefs.sounds)),
             SettingsRow("apps", "Apps", "APPS", if (prefs.hiddenApps.isEmpty()) null else "${prefs.hiddenApps.size} Hidden", chevron = true),
-            SettingsRow("usage", "Recent Apps Access", "APPS", onOff(status().usage), chevron = true),
             SettingsRow("startupApp", "Open at Startup", "APPS", startupAppLabel(), chevron = true),
             SettingsRow("iconPack", "Icon Pack", "APPS", iconPackLabel(), chevron = true),
-            SettingsRow("inputs", "Inputs", "APPS", if (inputApps.isEmpty()) "None" else inputApps.size.toString(), chevron = true),
-            SettingsRow("a11y", "Power & Home Button", "REMOTE", onOff(PrismAccessibilityService.isEnabled), chevron = true),
-            SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE", onOff(prefs.homeOverride)),
-            SettingsRow("startup", "Open Prism TV at Startup", "REMOTE", onOff(prefs.openAtStartup)),
-            SettingsRow("sleep", "Sleep Timer", "REMOTE", sleepLabel()),
+            // Only TVs have inputs; on a box there'd be nothing behind this row.
+            if (inputApps.isEmpty()) null else SettingsRow("inputs", "Inputs", "APPS", inputApps.size.toString(), chevron = true),
+            SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", onOff(PrismAccessibilityService.isEnabled), chevron = true),
+            SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE & POWER", onOff(prefs.homeOverride)),
+            SettingsRow("startup", "Open Prism TV at Startup", "REMOTE & POWER", onOff(prefs.openAtStartup)),
+            SettingsRow("sleep", "Sleep Timer", "REMOTE & POWER", sleepLabel()),
             SettingsRow("update", "Software Update", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
-            SettingsRow("about", "About", "SYSTEM", chevron = true),
             SettingsRow("backup", "Backup & Restore", "SYSTEM", chevron = true),
+            SettingsRow("access", "Privacy & Access", "SYSTEM", accessLabel(), chevron = true),
+            SettingsRow("about", "About", "SYSTEM", chevron = true),
             SettingsRow("restart", "Restart Launcher", "SYSTEM"),
             SettingsRow("reset", "Reset Launcher", "SYSTEM"),
+        ) }
+        // Everything Prism can be allowed to see, in one place (each also sits where it's used).
+        SettingsPage.Access -> resumeTick.let { _ -> listOf(
+            SettingsRow("notif", "Notifications & Now Playing", "CONTROL CENTRE", if (status().notif) "Allowed" else "Not Allowed", chevron = true),
+            SettingsRow("recs", "Recommendations from Apps", "HOME SCREEN", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
+            SettingsRow("usage", "Recent Apps", "HOME SCREEN", if (status().usage) "Allowed" else "Not Allowed", chevron = true),
+            SettingsRow("acc:photos", "Your Pictures", "WALLPAPER, SCREENSAVER & BANNERS", if (hasPhotoAccess()) "Allowed" else "Not Allowed", chevron = !hasPhotoAccess()),
+            SettingsRow("kb:mic", "Dictation Microphone", "KEYBOARD", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
         ) }
         // Colour Mode colours Settings and pop-ups (always frosted glass); Material and Material Colour
         // are the Home Screen glass (Automatic follows Colour Mode, Clear drops the tint).
@@ -2457,39 +2467,43 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("kb:predictive", "Predictive", "TYPING", onOff(prefs.predictive)),
             SettingsRow("kb:mic", "Dictation Microphone", "DICTATION", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
         ) }
+        // Each group together: focus, the Top Shelf, widgets, the time pill, then the layout.
         SettingsPage.HomeScreen -> FocusEffect.entries.map {
             SettingsRow("fx:${it.name}", it.label, "FOCUS EFFECT", selectable = true, checked = prefs.focusEffect == it)
         } + listOf(
             SettingsRow("wobble", "Focus Wobble", "FOCUS EFFECT", onOff(prefs.focusWobble)),
-            SettingsRow("labels", "App Names", "APP NAMES", prefs.labels.label),
             SettingsRow("hero", "Top Shelf", "TOP SHELF", onOff(prefs.heroEnabled)),
             SettingsRow("topShelf", "Top Shelf Style", "TOP SHELF", prefs.topShelfStyle.label),
+            SettingsRow("source", "Artwork Source", "TOP SHELF", prefs.heroSource.label),
             SettingsRow("logos", "Title Logos", "TOP SHELF", onOff(prefs.titleLogos)),
+            SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
+            SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
             SettingsRow("wallpaper", "Wallpaper", "TOP SHELF", wallpaperLabel(), chevron = true),
             SettingsRow("widgets", "Widgets", "WIDGETS", widgetsLabel(), chevron = true),
-            SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
-            SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
             SettingsRow("weather", "Weather", "TIME PILL", onOff(prefs.weather)),
             SettingsRow("tempUnit", "Temperature", "TIME PILL", prefs.temperatureUnit.label),
             SettingsRow("notif", "Notifications", "TIME PILL", if (status().notif) "Allowed" else "Not Allowed", chevron = true),
-            SettingsRow("source", "Artwork Source", "TOP SHELF", prefs.heroSource.label),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
+            SettingsRow("labels", "App Names", "LAYOUT", prefs.labels.label),
             SettingsRow("resetLayout", "Reset Home Screen Layout", "LAYOUT"),
             SettingsRow("demo", "Demo Content", "LAYOUT", onOff(prefs.demoContent)),
         )
-        SettingsPage.Screensaver -> listOf(
-            SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
-            SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
-            SettingsRow("ss:media", "Wait While Media Plays", "SCREENSAVER", onOff(prefs.screensaverWaitForMedia)),
-            SettingsRow("ss:source", "Source", "SCREENSAVER", prefs.aerialSource.label),
-        ) + (if (prefs.aerialSource == AerialSource.Pictures || prefs.aerialSource == AerialSource.Shuffle) {
-            listOf(SettingsRow("ss:pictures", "Pictures", "SCREENSAVER", screensaverPicturesLabel(), chevron = true))
-        } else emptyList()) + listOf(
-            SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
-            SettingsRow("ss:range", "Dynamic Range", "SCREENSAVER", rangeLabel()),
-            SettingsRow("ss:location", "Show Location", "SCREENSAVER", onOff(prefs.aerialShowLocation)),
-            SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
-        )
+        // When it starts, what it shows, how aerials play, and the system screensaver.
+        SettingsPage.Screensaver -> prefs.aerialSource.let { source ->
+            val pictures = source == AerialSource.Pictures || source == AerialSource.Shuffle
+            val aerials = source == AerialSource.Apple || source == AerialSource.Shuffle
+            listOfNotNull(
+                SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
+                SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
+                SettingsRow("ss:media", "Wait While Media Plays", "SCREENSAVER", onOff(prefs.screensaverWaitForMedia)),
+                SettingsRow("ss:source", "Source", "WHAT TO SHOW", source.label),
+                if (pictures) SettingsRow("ss:pictures", "Pictures", "WHAT TO SHOW", screensaverPicturesLabel(), chevron = true) else null,
+                SettingsRow("ss:location", "Show Location", "WHAT TO SHOW", onOff(prefs.aerialShowLocation)),
+                if (aerials) SettingsRow("ss:quality", "Video Quality", "AERIALS", prefs.aerialQuality.label) else null,
+                if (aerials) SettingsRow("ss:range", "Dynamic Range", "AERIALS", rangeLabel()) else null,
+                SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
+            )
+        }
         SettingsPage.Apps -> allApps.sortedBy { it.label.lowercase() }.map {
             SettingsRow("app:${it.id}", it.label, "SHOW ON HOME SCREEN", app = it, toggle = it.id !in prefs.hiddenApps)
         }.ifEmpty { listOf(SettingsRow("none", "No Apps Installed", "SHOW ON HOME SCREEN")) }
@@ -2889,6 +2903,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     showBanner("Open at Startup", "${it.label} will open when the TV starts.", Icons.Rounded.CheckCircle, Cue.Confirm)
                 }
             }
+            r.id == "access" -> pushPage(SettingsPage.Access)
+            r.id == "acc:photos" -> if (hasPhotoAccess()) {
+                showBanner("Your Pictures", "Prism TV can already see your pictures.", Icons.Rounded.CheckCircle)
+            } else photoPermissionTick++
             r.id == "ss:pictures" -> {
                 pushPage(SettingsPage.ScreensaverPictures)
                 loadPhotoLibrary()
@@ -3317,6 +3335,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun automaticLabel(): String =
         if (weather != null && prefs.weather) "Sunset to Sunrise" else "7 PM to 7 AM"
+
+    /** Privacy & Access: how many of Prism's permissions are on. */
+    private fun accessLabel(): String {
+        val st = status()
+        val on = listOf(st.notif, hasRecommendationAccess(), st.usage, hasPhotoAccess(), hasMicAccess()).count { it }
+        return "$on of 5 Allowed"
+    }
 
     /** The text field above Prism's keyboard (Rename Folder, Profile Name…); other apps draw their own. */
     private fun fieldColourLabel(): String = when (prefs.keyboardFieldColour) {

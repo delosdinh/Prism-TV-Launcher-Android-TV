@@ -96,7 +96,7 @@ shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass li
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
-shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 14
+shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 16
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
@@ -149,6 +149,9 @@ shot 58e-kids-home                 "${B[@]}" "${DARK[@]}" --ez demoProfiles true
 shot 59-screensaver-pictures       "${B[@]}" "${DARK[@]}" --es aerial pictures --ez demoLibrary true --es screen settings --es page ScreensaverPictures --ei focus 2
 shot 59b-keyboard-field-light      "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es fieldColour light --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 2
 shot 59c-restrictions-all          "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 0
+shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 13
+shot 60b-settings-access           "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0
+shot 60c-settings-home-screen      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 6
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14

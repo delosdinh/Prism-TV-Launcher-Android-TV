@@ -60,6 +60,7 @@ import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material.icons.rounded.PrivacyTip
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.ManageAccounts
 import com.prismtv.launcher.ui.components.Avatar
@@ -276,6 +277,8 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "restrictions" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
     "kbField" to glyph(Icons.Rounded.TextFields, 0xFF9C9CA3, 0xFF5E5E64),
     "ss:pictures" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),
+    "acc:photos" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),
+    "access" to glyph(Icons.Rounded.PrivacyTip, 0xFF3D9BFF, 0xFF0A5FE0),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -300,6 +303,7 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Profiles -> Glyphs.getValue("profiles")
     SettingsPage.Restrictions -> Glyphs.getValue("restrictions")
     SettingsPage.ScreensaverPictures -> Glyphs.getValue("ss:pictures")
+    SettingsPage.Access -> Glyphs.getValue("access")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */
