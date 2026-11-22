@@ -1,12 +1,12 @@
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	at com.android.org.conscrypt.Platform.checkServerTrusted(Platform.java:255)
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.verifyCertificateChain(ConscryptEngine.java:1638)
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	at com.android.org.conscrypt.NativeCrypto.ENGINE_SSL_read_direct(Native Method)
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	at com.android.org.conscrypt.NativeSsl.readDirectByteBuffer(NativeSsl.java:569)
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextDataDirect(ConscryptEngine.java:1095)
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	... 29 more
-11-22 18:45:16.476  8789  8789 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
-11-22 18:45:16.476  8789  8789 W PrismAerial: 	... 43 more
-11-22 18:45:56.344  8789  8789 I PrismAerial: Home wallpaper: 12 aerials
-11-22 18:46:01.765  8789  8789 W PrismAerial: Home wallpaper: ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-11-22 18:46:03.578  8789  8789 I PrismAerial: Home wallpaper: playing
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	at com.android.org.conscrypt.Platform.checkServerTrusted(Platform.java:255)
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.verifyCertificateChain(ConscryptEngine.java:1638)
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	at com.android.org.conscrypt.NativeCrypto.ENGINE_SSL_read_direct(Native Method)
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	at com.android.org.conscrypt.NativeSsl.readDirectByteBuffer(NativeSsl.java:569)
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextDataDirect(ConscryptEngine.java:1095)
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	... 29 more
+11-22 19:32:48.482  8856  8856 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+11-22 19:32:48.482  8856  8856 W PrismAerial: 	... 43 more
+11-22 19:33:29.375  8856  8856 I PrismAerial: Home wallpaper: 12 aerials
+11-22 19:33:34.624  8856  8856 W PrismAerial: Home wallpaper: ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+11-22 19:33:36.407  8856  8856 I PrismAerial: Home wallpaper: playing
