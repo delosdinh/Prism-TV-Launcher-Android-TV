@@ -396,7 +396,11 @@ class AerialView(context: Context) : FrameLayout(context) {
         val target = maxOf(resources.displayMetrics.widthPixels, 1280)
         var sample = 1
         while (bounds.outWidth / (sample * 2) >= target && bounds.outHeight / (sample * 2) >= target * 9 / 16) sample *= 2
-        val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+        val opts = BitmapFactory.Options().apply {
+            inSampleSize = sample
+            // Straight into graphics memory: nothing for the app's heap to hold or the GC to sweep.
+            if (android.os.Build.VERSION.SDK_INT >= 26) inPreferredConfig = Bitmap.Config.HARDWARE
+        }
         context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
     }.getOrNull()
 

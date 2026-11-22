@@ -41,6 +41,13 @@ object MediaWatcher {
     private var controllers: List<MediaController> = emptyList()
     private var demo: NowPlaying? = null
 
+    // Playback updates arrive often (pause, seek, buffering): keep the scaled artwork and app icons
+    // instead of rebuilding them each time.
+    private var artKey: String? = null
+    private var artCache: ImageBitmap? = null
+    private val icons = HashMap<String, ImageBitmap?>()
+    private val labels = HashMap<String, String>()
+
     private val callback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) = refresh()
         override fun onMetadataChanged(metadata: MediaMetadata?) = refresh()
@@ -55,6 +62,8 @@ object MediaWatcher {
     fun start(context: Context) {
         val ctx = context.applicationContext
         appContext = ctx
+        // Already following: the sessions listener keeps us up to date, nothing to ask Android again.
+        if (manager != null) return
         val component = ComponentName(ctx, PrismNotificationListener::class.java)
         val m = manager ?: ctx.getSystemService(MediaSessionManager::class.java) ?: return
         try {
@@ -146,27 +155,38 @@ object MediaWatcher {
         demo?.let { state.value = it; return }
         val ctx = appContext
         val c = current()
-        state.value = if (ctx == null || c == null) null else runCatching { describe(ctx, c) }.getOrNull()
+        val next = if (ctx == null || c == null) null else runCatching { describe(ctx, c) }.getOrNull()
+        // The same title, art and state as before: nothing for Control Centre to redraw.
+        if (next != state.value) state.value = next
     }
 
     private fun describe(ctx: Context, c: MediaController): NowPlaying? {
         val md = c.metadata ?: return null
         val pm = ctx.packageManager
-        val label = runCatching { pm.getApplicationLabel(pm.getApplicationInfo(c.packageName, 0)).toString() }.getOrDefault(c.packageName)
+        val label = labels.getOrPut(c.packageName) {
+            runCatching { pm.getApplicationLabel(pm.getApplicationInfo(c.packageName, 0)).toString() }.getOrDefault(c.packageName)
+        }
         fun text(key: String) = runCatching { md.getString(key) }.getOrNull()?.takeIf { it.isNotBlank() }
         val title = text(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: text(MediaMetadata.METADATA_KEY_TITLE) ?: return null
         val subtitle = text(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) ?: text(MediaMetadata.METADATA_KEY_ARTIST)
             ?: text(MediaMetadata.METADATA_KEY_ALBUM_ARTIST) ?: text(MediaMetadata.METADATA_KEY_ALBUM) ?: label
-        val art = listOf(MediaMetadata.METADATA_KEY_DISPLAY_ICON, MediaMetadata.METADATA_KEY_ART, MediaMetadata.METADATA_KEY_ALBUM_ART)
-            .firstNotNullOfOrNull { runCatching { md.getBitmap(it) }.getOrNull() }
-        val icon = runCatching { pm.getApplicationIcon(c.packageName).toBitmap(96, 96) }.getOrNull()
+        val key = c.packageName + "|" + title + "|" + subtitle
+        if (key != artKey) {
+            val art = listOf(MediaMetadata.METADATA_KEY_DISPLAY_ICON, MediaMetadata.METADATA_KEY_ART, MediaMetadata.METADATA_KEY_ALBUM_ART)
+                .firstNotNullOfOrNull { runCatching { md.getBitmap(it) }.getOrNull() }
+            artCache = art?.let { small(it) }?.asImageBitmap()
+            artKey = key
+        }
+        val icon = icons.getOrPut(c.packageName) {
+            runCatching { pm.getApplicationIcon(c.packageName).toBitmap(96, 96).asImageBitmap() }.getOrNull()
+        }
         return NowPlaying(
             pkg = c.packageName,
             appLabel = label,
             title = title,
             subtitle = subtitle,
-            art = art?.let { small(it) }?.asImageBitmap(),
-            appIcon = icon?.asImageBitmap(),
+            art = artCache,
+            appIcon = icon,
             playing = c.playbackState?.state == PlaybackState.STATE_PLAYING,
         )
     }

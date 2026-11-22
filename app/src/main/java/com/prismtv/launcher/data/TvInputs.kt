@@ -27,6 +27,9 @@ object TvInputs {
     /** CI screenshots: two pretend inputs (boxes and emulators have none). */
     @Volatile var demo = false
 
+    /** Banners already drawn, by name and port, so reloading the inputs doesn't redraw them. */
+    private val banners = HashMap<String, androidx.compose.ui.graphics.ImageBitmap>()
+
     fun list(ctx: Context): List<Input> {
         if (demo) return listOf(
             Input("demo.hdmi/HW1", "HDMI 1", "demo.hdmi"),
@@ -50,7 +53,9 @@ object TvInputs {
             label = name,
             packageName = input.pkg,
             activityName = null,
-            banner = banner(name, if (name != input.label) input.label else null).asImageBitmap(),
+            banner = (if (name != input.label) input.label else null).let { port ->
+                synchronized(banners) { banners.getOrPut("$name|$port") { banner(name, port).asImageBitmap() } }
+            },
             tint = Color(0xFF2E3340),
         )
     }

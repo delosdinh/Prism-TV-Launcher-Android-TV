@@ -278,7 +278,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** The TV's HDMI inputs as tiles (TVs only; boxes have none). */
     private var inputApps by mutableStateOf<List<LauncherApp>>(emptyList())
 
-    val allApps: List<LauncherApp> get() = (if (prefs.demoContent) DemoContent.allApps else realApps) + inputApps
+    /** Installed apps plus the TV's inputs; cached until either changes. */
+    val allApps: List<LauncherApp> by derivedStateOf { (if (prefs.demoContent) DemoContent.allApps else realApps) + inputApps }
 
     // ---------------------------------------------------------------- home focus
     var zone by mutableStateOf(Zone.Grid)
@@ -796,10 +797,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun refreshApps() {
+    private var refreshJob: kotlinx.coroutines.Job? = null
+
+    /** Reloads the apps. [debounce]: Store updates arrive as bursts of package changes; refresh once after. */
+    fun refreshApps(debounce: Boolean = false) {
         loadInputs()
         if (prefs.demoContent) return
-        viewModelScope.launch {
+        val wait = debounce && realApps.isNotEmpty()
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
+            if (wait) delay(600)
             val pack = prefs.iconPack
             val custom = prefs.customBanners
             val loaded = withContext(Dispatchers.IO) {
@@ -1738,18 +1745,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Sidebar entries; the store only when the box has one. */
-    val sidebarEntries: List<SidebarEntry>
-        get() {
-            val restricted = activeProfileSpec.restricted
-            return SidebarEntry.entries.filter {
-                when (it) {
-                    SidebarEntry.Store -> storeApp != null && storeApp?.id !in blockedApps
-                    // A profile with restrictions doesn't get a way round them.
-                    SidebarEntry.SystemSettings -> !restricted
-                    else -> true
-                }
+    val sidebarEntries: List<SidebarEntry> by derivedStateOf {
+        val restricted = activeProfileSpec.restricted
+        val store = storeApp
+        SidebarEntry.entries.filter {
+            when (it) {
+                SidebarEntry.Store -> store != null && store.id !in blockedApps
+                // A profile with restrictions doesn't get a way round them.
+                SidebarEntry.SystemSettings -> !restricted
+                else -> true
             }
         }
+    }
 
     fun openSidebar() {
         sidebarFocus = sidebarEntries.indexOf(SidebarEntry.Home).coerceAtLeast(0)
@@ -2148,18 +2155,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private val activeId: String
         get() = prefs.activeProfile.ifEmpty { prefs.profiles.firstOrNull()?.id ?: com.prismtv.launcher.data.Profiles.MainId }
 
-    /** Every profile; the one in use carries the live name and picture. */
-    val profileList: List<com.prismtv.launcher.data.ProfileSpec>
-        get() {
-            val saved = prefs.profiles.ifEmpty {
-                listOf(com.prismtv.launcher.data.ProfileSpec(com.prismtv.launcher.data.Profiles.MainId, prefs.profileName, prefs.avatar))
-            }
-            val id = activeId
-            return saved.map { if (it.id == id) it.copy(name = prefs.profileName, avatar = prefs.avatar) else it }
+    /** Every profile; the one in use carries the live name and picture. Cached until prefs change. */
+    val profileList: List<com.prismtv.launcher.data.ProfileSpec> by derivedStateOf {
+        val saved = prefs.profiles.ifEmpty {
+            listOf(com.prismtv.launcher.data.ProfileSpec(com.prismtv.launcher.data.Profiles.MainId, prefs.profileName, prefs.avatar))
         }
+        val id = activeId
+        saved.map { if (it.id == id) it.copy(name = prefs.profileName, avatar = prefs.avatar) else it }
+    }
 
-    val activeProfileSpec: com.prismtv.launcher.data.ProfileSpec
-        get() = profileList.let { list -> list.firstOrNull { it.id == activeId } ?: list.first() }
+    val activeProfileSpec: com.prismtv.launcher.data.ProfileSpec by derivedStateOf {
+        profileList.let { list -> list.firstOrNull { it.id == activeId } ?: list.first() }
+    }
 
     /** Apps the profile in use can't see (Settings › Profiles › Restrictions). */
     val blockedApps: Set<String> get() = activeProfileSpec.blocked

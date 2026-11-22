@@ -23,6 +23,14 @@ import org.xmlpull.v1.XmlPullParser
 object IconPacks {
     data class Pack(val pkg: String, val label: String)
 
+    // A pack's appfilter.xml can list thousands of apps: read it once per pack version.
+    private var filterKey: String? = null
+    private var filterMap: Map<String, String> = emptyMap()
+    // Banners made from your pictures, by picture (512×288 each).
+    private val photoBanners = object : android.util.LruCache<String, Bitmap>(8 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
+    }
+
     private val themeActions = listOf(
         "org.adw.launcher.THEMES",
         "com.novalauncher.THEME",
@@ -48,7 +56,12 @@ object IconPacks {
     fun apply(ctx: Context, pack: String, apps: List<LauncherApp>): List<LauncherApp> {
         if (pack.isEmpty()) return apps
         val res = runCatching { ctx.packageManager.getResourcesForApplication(pack) }.getOrNull() ?: return apps
-        val map = appFilter(ctx, pack, res)
+        val version = runCatching { ctx.packageManager.getPackageInfo(pack, 0).lastUpdateTime }.getOrDefault(0L)
+        val key = "$pack@$version"
+        val map = if (key == filterKey) filterMap else appFilter(ctx, pack, res).also {
+            filterKey = key
+            filterMap = it
+        }
         if (map.isEmpty()) return apps
         return apps.map { app ->
             val activity = app.activityName ?: return@map app
@@ -85,8 +98,8 @@ object IconPacks {
         if (custom.isEmpty()) return apps
         return apps.map { app ->
             val ref = custom[app.id] ?: return@map app
-            val uri = Uri.parse(ref.removePrefix("photo:"))
-            val b = bannerFromPhoto(ctx, uri) ?: return@map app
+            val b = photoBanners.get(ref) ?: bannerFromPhoto(ctx, Uri.parse(ref.removePrefix("photo:")))?.also { photoBanners.put(ref, it) }
+                ?: return@map app
             app.copy(banner = b.asImageBitmap())
         }
     }

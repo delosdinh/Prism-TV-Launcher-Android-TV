@@ -40,6 +40,14 @@ class AppRepository(private val context: Context) {
         "com.apple.atve.androidtv.appletv",
     )
 
+    /**
+     * Each app's banner, icon and colour as last built, keyed by its activity and the time its APK last
+     * changed: a refresh (another app installed or updated) only redraws the apps that changed.
+     */
+    private class Built(val stamp: Long, val banner: androidx.compose.ui.graphics.ImageBitmap?, val icon: androidx.compose.ui.graphics.ImageBitmap, val tint: Color)
+    private val built = HashMap<String, Built>()
+
+    @Synchronized
     fun load(): List<LauncherApp> {
         val pm = context.packageManager
         val tvActivities = pm.queryIntentActivities(
@@ -57,29 +65,37 @@ class AppRepository(private val context: Context) {
             if (pkg == context.packageName || !seen.add(pkg)) continue
             try {
                 val label = ri.loadLabel(pm)?.toString() ?: pkg
-                val bannerDrawable = info.loadBanner(pm) ?: info.applicationInfo?.loadBanner(pm)
-                val banner = bannerDrawable?.let { d ->
-                    // Settings shows a banner at most ~460 px wide, so 512 × 288 looks the same as the
-                    // full-size 640 × 360 some apps ship, for a third less memory per app.
-                    val w = if (d.intrinsicWidth > 0) d.intrinsicWidth.coerceAtMost(512) else 320
-                    val h = if (d.intrinsicHeight > 0) d.intrinsicHeight.coerceAtMost(288) else 180
-                    d.toBitmap(w, h, Bitmap.Config.ARGB_8888).asImageBitmap()
+                val id = "$pkg/${info.name}"
+                val stamp = runCatching { java.io.File(info.applicationInfo.sourceDir).lastModified() }.getOrDefault(0L)
+                val art = built[id]?.takeIf { it.stamp == stamp && stamp != 0L } ?: run {
+                    val bannerDrawable = info.loadBanner(pm) ?: info.applicationInfo?.loadBanner(pm)
+                    val banner = bannerDrawable?.let { d ->
+                        // Settings shows a banner at most ~460 px wide, so 512 × 288 looks the same as the
+                        // full-size 640 × 360 some apps ship, for a third less memory per app.
+                        val w = if (d.intrinsicWidth > 0) d.intrinsicWidth.coerceAtMost(512) else 320
+                        val h = if (d.intrinsicHeight > 0) d.intrinsicHeight.coerceAtMost(288) else 180
+                        d.toBitmap(w, h, Bitmap.Config.ARGB_8888).asImageBitmap()
+                    }
+                    val iconBitmap = ri.loadIcon(pm).toBitmap(144, 144, Bitmap.Config.ARGB_8888)
+                    Built(stamp, banner, iconBitmap.asImageBitmap(), dominantColor(iconBitmap)).also { built[id] = it }
                 }
-                val iconBitmap = ri.loadIcon(pm).toBitmap(144, 144, Bitmap.Config.ARGB_8888)
                 result += LauncherApp(
-                    id = "$pkg/${info.name}",
+                    id = id,
                     label = label,
                     packageName = pkg,
                     activityName = info.name,
-                    banner = banner,
-                    icon = iconBitmap.asImageBitmap(),
-                    tint = dominantColor(iconBitmap),
+                    banner = art.banner,
+                    icon = art.icon,
+                    tint = art.tint,
                     isTvApp = isTv,
                 )
             } catch (_: Throwable) {
                 // A misbehaving package should never take the launcher down.
             }
         }
+        // Forget apps that are gone.
+        val present = result.mapTo(HashSet()) { it.id }
+        built.keys.retainAll(present)
         return result.sortedWith(
             compareBy<LauncherApp> {
                 val i = preferredOrder.indexOf(it.packageName)
@@ -324,7 +340,10 @@ class ArtRepository(private val context: Context) {
     private val brands = java.util.concurrent.ConcurrentHashMap<String, Brand>()
 
     fun registerBrand(appId: String, banner: Bitmap?, icon: Bitmap?, tint: Int) {
+        val old = brands[appId]
         brands[appId] = Brand(banner, icon, tint)
+        // A new banner (icon pack, your picture, an app update): its Top Shelf backdrop is made again.
+        if (old != null && old.banner !== banner) cache.remove(BannerArt(appId).key)
     }
 
     fun cached(ref: ArtRef): HeroArt? = cache.get(ref.key)

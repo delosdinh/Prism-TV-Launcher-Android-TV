@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            vm.refreshApps()
+            vm.refreshApps(debounce = true)
         }
     }
 
