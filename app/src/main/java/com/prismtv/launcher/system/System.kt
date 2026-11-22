@@ -3,7 +3,6 @@ package com.prismtv.launcher.system
 import android.accessibilityservice.AccessibilityService
 import android.app.ActivityManager
 import android.app.ActivityOptions
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -290,27 +289,4 @@ object SystemActions {
         "TV Speakers"
     }
 
-    fun dndOn(ctx: Context): Boolean = try {
-        val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
-    } catch (_: Throwable) {
-        false
-    }
-
-    /** Returns the new state, or null when the user must first grant access. */
-    fun toggleDnd(ctx: Context): Boolean? = try {
-        val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!nm.isNotificationPolicyAccessGranted) {
-            open(ctx, Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-            null
-        } else {
-            val on = nm.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
-            nm.setInterruptionFilter(
-                if (on) NotificationManager.INTERRUPTION_FILTER_PRIORITY else NotificationManager.INTERRUPTION_FILTER_ALL
-            )
-            on
-        }
-    } catch (_: Throwable) {
-        null
-    }
 }

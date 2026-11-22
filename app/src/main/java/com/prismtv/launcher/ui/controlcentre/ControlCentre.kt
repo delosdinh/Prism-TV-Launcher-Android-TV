@@ -33,6 +33,7 @@ import androidx.compose.material.icons.rounded.SettingsEthernet
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -77,8 +78,10 @@ private const val PillH = 50f
 private const val Gutter = 7f
 private const val Circle = 46f
 private const val CirclesTop = TilesTop + Big + Gutter + PillH + 9f
-private const val NotesTop = CirclesTop + Circle + 40f
-private const val NoteH = 54f
+private const val NotesTop = CirclesTop + Circle + 36f
+private const val NotesHeaderH = 24f
+private const val NoteH = 50f
+private const val ClearW = 62f
 private const val NowTop = CirclesTop + Circle + 38f
 private const val NowH = 72f
 
@@ -234,44 +237,40 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                         .size(ClusterW.dp, NowH.dp),
                 )
             }
-            // Notifications: the latest few, newest first. Select opens one; hold OK clears it.
-            val notesTop = if (np != null) NowTop + NowH + Gutter else NotesTop
+            // Notifications: the latest few, newest first, under a header with a small ✕ (Clear All, as on
+            // iOS). Select opens one; Left or Right slides it aside to show Clear; hold OK clears it too.
             val shown = vm.ccNotificationsShown
-            vm.notifications.take(shown).forEachIndexed { i, n ->
-                NotificationTile(
-                    n, f == CC.Notification + i,
+            if (shown > 0) {
+                val headerTop = if (np != null) NowTop + NowH + Gutter else NotesTop
+                val notesTop = headerTop + NotesHeaderH
+                val more = vm.notifications.size - shown
+                Row(
                     Modifier
-                        .offset(0.dp, (notesTop + i * (NoteH + Gutter)).dp)
-                        .size(ClusterW.dp, NoteH.dp),
-                )
-            }
-            val more = vm.notifications.size - shown
-            if (more > 0 && np == null) {
-                PText(
-                    "$more more", 12.sp, FontWeight.Medium, ink.copy(alpha = 0.75f),
-                    Modifier.offset(6.dp, (notesTop + shown * (NoteH + Gutter)).dp), shadow = true,
-                )
+                        .offset(0.dp, headerTop.dp)
+                        .size(ClusterW.dp, (NotesHeaderH - 4f).dp)
+                        .padding(start = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    PText("Notifications", 13.sp, FontWeight.SemiBold, ink, shadow = true)
+                    if (more > 0) {
+                        HSpace(6.dp)
+                        PText("$more more", 11.sp, FontWeight.Medium, ink.copy(alpha = 0.72f), shadow = true)
+                    }
+                    Box(Modifier.weight(1f))
+                    ClearAllButton(f == CC.ClearAll)
+                }
+                vm.notifications.take(shown).forEachIndexed { i, n ->
+                    NotificationTile(
+                        n,
+                        focused = f == CC.Notification + i,
+                        clearing = f == CC.NotificationClear + i,
+                        modifier = Modifier
+                            .offset(0.dp, (notesTop + i * (NoteH + Gutter)).dp)
+                            .size(ClusterW.dp, NoteH.dp),
+                    )
+                }
             }
         }
-    }
-}
-
-@Composable
-private fun HeaderButton(icon: ImageVector, focused: Boolean) {
-    val theme = LocalPrism.current
-    val scale by animateFloatAsState(if (focused) 1.16f else 1f, spring(dampingRatio = 0.6f, stiffness = 400f), label = "hdr")
-    Box(
-        Modifier
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .size(30.dp)
-            .then(if (focused) Modifier.shadow(10.dp, CircleShape) else Modifier)
-            .then(
-                if (focused) Modifier.background(theme.controlFocused(), CircleShape)
-                else Modifier.glass(CircleShape, theme.controlGlass(), GlassSource.Scene, elevation = 4.dp)
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        PIcon(icon, if (focused) theme.palette.textFocused else if (theme.palette.isDark) Color.White else theme.palette.textPrimary, 18.dp)
     }
 }
 
@@ -346,8 +345,72 @@ private fun PillTile(
     }
 }
 
+/** The small ✕ above the notifications; focused, it opens out into "Clear All". */
 @Composable
-private fun NotificationTile(n: PrismNotification, focused: Boolean, modifier: Modifier) {
+private fun ClearAllButton(focused: Boolean) {
+    val theme = LocalPrism.current
+    val p = theme.palette
+    val open by animateFloatAsState(if (focused) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 420f), label = "clearAll")
+    val h = 20f
+    val fg = if (focused) p.textFocused else Color.White
+    Box(
+        Modifier
+            .size(lerpF(h, 76f, open).dp, h.dp)
+            .then(
+                if (focused) Modifier.shadow(10.dp, CircleShape).background(theme.controlFocused(), CircleShape)
+                else Modifier.glass(CircleShape, theme.overlayVeil(dark = 0.40f, light = 0.56f), GlassSource.Scene, elevation = 3.dp)
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            PIcon(Icons.Rounded.Close, fg, 12.dp)
+            if (open > 0.02f) {
+                HSpace((4f * open).dp)
+                PText("Clear All", 10.5.sp, FontWeight.SemiBold, fg, Modifier.graphicsLayer { alpha = open }, maxLines = 1)
+            }
+        }
+    }
+}
+
+/**
+ * A notification. While [clearing], it slides left to show a Clear button beside it (focused), like
+ * swiping one aside on iOS.
+ */
+@Composable
+private fun NotificationTile(n: PrismNotification, focused: Boolean, clearing: Boolean, modifier: Modifier) {
+    val slide by animateFloatAsState(if (clearing) 1f else 0f, spring(dampingRatio = 0.82f, stiffness = 420f), label = "noteSlide")
+    Box(modifier) {
+        if (slide > 0.01f) {
+            Tile(
+                clearing,
+                Modifier
+                    .offset((ClusterW - ClearW).dp, 0.dp)
+                    .size(ClearW.dp, NoteH.dp)
+                    .graphicsLayer {
+                        alpha = slide
+                        val s = lerpF(0.7f, 1f, slide)
+                        scaleX = s
+                        scaleY = s
+                    },
+                RoundedCornerShape(20.dp),
+            ) { c ->
+                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    PIcon(Icons.Rounded.Close, c, 16.dp)
+                    PText("Clear", 11.sp, FontWeight.SemiBold, c)
+                }
+            }
+        }
+        NotificationCard(
+            n, focused,
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { translationX = -(ClearW + Gutter).dp.toPx() * slide },
+        )
+    }
+}
+
+@Composable
+private fun NotificationCard(n: PrismNotification, focused: Boolean, modifier: Modifier) {
     Tile(focused, modifier, RoundedCornerShape(20.dp)) { c ->
         Row(
             Modifier

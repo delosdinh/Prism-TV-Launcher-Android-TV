@@ -153,13 +153,6 @@ data class PrismTheme(
         )
     )
 
-    /** Large floating panels: Control Centre, dialogs, banners. */
-    fun panelFill(): Color = if (liquid) {
-        liquidVeil(0.30f, 0.42f, 0.48f)
-    } else {
-        palette.panelGlass.copy(alpha = frost(palette.panelOpacity * 0.86f))
-    }
-
     /** Floating controls (Control Centre tiles, sidebar, menus): clear glass with a light veil for legibility. */
     fun controlGlass(): Color = if (liquid) {
         liquidVeil(0.38f, 0.50f, 0.56f)
@@ -198,8 +191,6 @@ data class PrismTheme(
     fun controlIdle(): Color = if (liquid) palette.liquidIdle.copy(alpha = 0.42f) else palette.classicBase.copy(alpha = 0.78f)
 
     fun controlFocused(): Color = if (liquid) palette.liquidFocus else palette.classicFocused
-
-    fun rowFill(): Color = if (liquid) palette.liquidIdle.copy(alpha = 0.40f) else palette.buttonUnfocused.copy(alpha = 0.58f)
 
     /**
      * Veil for lens panels drawn over a dimmed screen (menus, sidebar, Control Centre). The lens samples

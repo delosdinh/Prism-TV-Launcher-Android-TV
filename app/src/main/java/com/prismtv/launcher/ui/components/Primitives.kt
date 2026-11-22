@@ -2,7 +2,6 @@ package com.prismtv.launcher.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,11 +42,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -113,11 +108,6 @@ fun HSpace(w: Dp) = Spacer(Modifier.width(w))
 @Composable
 fun VSpace(h: Dp) = Spacer(Modifier.height(h))
 
-private val Spectrum = listOf(
-    Color(0xFFFF453A), Color(0xFFFF9F0A), Color(0xFFFFD60A),
-    Color(0xFF30D158), Color(0xFF0A84FF), Color(0xFFBF5AF2),
-)
-
 /** The Prism TV logo: the glass play ribbon and "tv" wordmark. */
 @Composable
 fun PrismLogo(modifier: Modifier) {
@@ -128,37 +118,6 @@ fun PrismLogo(modifier: Modifier) {
 @Composable
 fun PrismLogoMark(modifier: Modifier) {
     Image(painterResource(R.drawable.prism_mark), "Prism TV", modifier, contentScale = ContentScale.Fit)
-}
-
-/** Legacy line-art prism (kept for reference; the app uses [PrismLogo]). */
-@Composable
-fun PrismMark(modifier: Modifier, color: Color, beams: Boolean = true) {
-    Canvas(modifier) {
-        val w = size.width
-        val h = size.height
-        val triH = h * 0.78f
-        val triW = triH * 1.1547f
-        val cx = w * 0.5f
-        val top = (h - triH) / 2f
-        val tri = Path().apply {
-            moveTo(cx, top)
-            lineTo(cx + triW / 2f, top + triH)
-            lineTo(cx - triW / 2f, top + triH)
-            close()
-        }
-        val stroke = h * 0.055f
-        if (beams) {
-            val entry = Offset(cx - triW * 0.21f, top + triH * 0.52f)
-            drawLine(color.copy(alpha = 0.9f), Offset(0f, h * 0.66f), entry, strokeWidth = stroke * 0.8f, cap = StrokeCap.Round)
-            val exit = Offset(cx + triW * 0.17f, top + triH * 0.50f)
-            Spectrum.forEachIndexed { i, c ->
-                val ey = h * 0.40f + i * h * 0.075f
-                drawLine(c, exit, Offset(w, ey), strokeWidth = stroke * 0.8f)
-            }
-        }
-        drawPath(tri, color = color.copy(alpha = 0.16f))
-        drawPath(tri, color = color, style = Stroke(width = stroke, join = StrokeJoin.Round))
-    }
 }
 
 /** The profile picture: one of Prism's avatars, or one of the user's own pictures. */

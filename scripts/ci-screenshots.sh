@@ -109,6 +109,8 @@ shot 35c-keyboard-balanced-123     "${B[@]}" --es appearance balanced --es glass
 shot 36-settings-text-size         "${B[@]}" "${DARK[@]}" --es screen settings --es page TextSize --ei textSize 4
 shot 37-cc-notifications           "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 100
 shot 37b-time-pill-badge           "${B[@]}" "${DARK[@]}" --ei notify 2 --es screen top --ei button 0
+shot 37c-cc-notification-clear     "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 200
+shot 37d-cc-clear-all              "${B[@]}" --es appearance light --es glass liquid --ei notify 4 --es screen controlcentre --ei focus 30
 shot 38-settings-wallpaper         "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 1
 shot 39-context-menu-balanced      "${B[@]}" --es appearance balanced --es glass liquid --es screen menu --ei row 1 --ei col 1 --ei focus 1
 shot 40-grid-liquid-dark-labels    "${B[@]}" "${DARK[@]}" --es screen grid --ei row 2 --ei col 0
@@ -164,6 +166,18 @@ key KEYCODE_DPAD_DOWN 2.5; cap 62b-settings-wrap-down-to-first
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14
+# Frame timing for the same D-pad walk around Home, Lite Mode off and on (dumpsys gfxinfo).
+frames() { # label, extra args
+  local label="$1"; shift
+  start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 5
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  for k in RIGHT RIGHT RIGHT DOWN RIGHT RIGHT DOWN LEFT LEFT UP UP LEFT; do adb shell input keyevent "KEYCODE_DPAD_$k"; sleep 0.35; done
+  sleep 1.5
+  adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread|Slow bitmap uploads|Slow issue draw" \
+    | sed "s/^ */$label: /" | tee -a "$OUT/frames.txt"
+}
+frames full
+frames lite --ez lite true
 # Spotlight: a real Up from the dock into the Top Shelf (the spring used to overshoot and crash Prism).
 start "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 1; sleep 4
 adb logcat -c || true
@@ -268,9 +282,10 @@ tap_text() {
   b="$(ui_dump | grep -i "text=\"$1\"" | grep -v 'package="com.prismtv' | head -n 1 \
     | grep -oE 'bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | grep -oE '[0-9]+' | tr '\n' ' ')"
   [ -n "$b" ] || { echo "no \"$1\" on screen"; return 1; }
+  local label="$1"
   set -- $b
   adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
-  echo "tapped \"$1\""
+  echo "tapped \"$label\""
 }
 # Answers the TV's "Allow USB debugging?" for Prism TV's key (Always allow ticked) if it's showing.
 accept_adb_prompt() {

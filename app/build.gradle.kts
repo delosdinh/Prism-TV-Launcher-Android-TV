@@ -62,12 +62,12 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
     // Prism Keyboard (an input method) hosts Compose outside an activity.
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.savedstate.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    // Installs the baseline profile (src/main/baseline-prof.txt) so Prism TV's code is compiled ahead of time.
+    implementation(libs.androidx.profileinstaller)
     implementation(libs.media3.exoplayer)
     // Optional: lets Shizuku users close apps completely (force stop) from the App Switcher.
     implementation(libs.shizuku.api)
@@ -79,6 +79,4 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.animation)
     implementation(libs.compose.material.icons.extended)
-    implementation(libs.compose.ui.tooling.preview)
-    debugImplementation(libs.compose.ui.tooling)
 }

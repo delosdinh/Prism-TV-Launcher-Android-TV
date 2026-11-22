@@ -1,0 +1,5 @@
+# Baseline profile: Prism TV is a launcher that's always running, so all of its own code is compiled
+# ahead of time when installed (Compose and the other libraries bring their own profiles). This takes
+# the just-in-time warm-up jank out of the first focus moves, Settings pages and Control Centre.
+HSPLcom/prismtv/launcher/**;->**(**)**
+Lcom/prismtv/launcher/**;

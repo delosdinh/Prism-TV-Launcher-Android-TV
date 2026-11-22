@@ -51,14 +51,37 @@ class PrismNotificationListener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) = publish()
 
+    /**
+     * Rebuilds the list off the main thread (these callbacks arrive on it, sometimes in bursts), with
+     * each app's name and icon read once and kept.
+     */
     private fun publish() {
-        val active = runCatching { activeNotifications?.toList() }.getOrNull().orEmpty()
-        state.value = active
-            .filter { useful(it) }
-            .sortedByDescending { it.postTime }
-            .take(20)
-            .mapNotNull { entry(it) }
+        worker.removeCallbacksAndMessages(null)
+        worker.post {
+            val active = runCatching { activeNotifications?.toList() }.getOrNull().orEmpty()
+            state.value = active
+                .filter { useful(it) }
+                .sortedByDescending { it.postTime }
+                .take(20)
+                .mapNotNull { entry(it) }
+        }
     }
+
+    private class AppLook(val label: String, val icon: ImageBitmap?)
+
+    private fun look(pkg: String): AppLook = synchronized(looks) {
+        looks[pkg] ?: run {
+            val pm = packageManager
+            val label = runCatching { pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
+            val icon = runCatching { pm.getApplicationIcon(pkg).toBitmap(96, 96).asImageBitmap() }.getOrNull()
+            AppLook(label, icon).also {
+                if (looks.size > 24) looks.remove(looks.keys.first())
+                looks[pkg] = it
+            }
+        }
+    }
+
+    private val looks = LinkedHashMap<String, AppLook>()
 
     private fun useful(sbn: StatusBarNotification): Boolean {
         val n = sbn.notification ?: return false
@@ -79,10 +102,9 @@ class PrismNotificationListener : NotificationListenerService() {
         val text = (extras?.getCharSequence(Notification.EXTRA_TEXT) ?: extras?.getCharSequence(Notification.EXTRA_BIG_TEXT))
             ?.toString().orEmpty()
         if (title.isBlank() && text.isBlank()) return null
-        val pm = packageManager
-        val label = runCatching { pm.getApplicationLabel(pm.getApplicationInfo(sbn.packageName, 0)).toString() }
-            .getOrDefault(sbn.packageName)
-        val icon = runCatching { pm.getApplicationIcon(sbn.packageName).toBitmap(96, 96).asImageBitmap() }.getOrNull()
+        val app = look(sbn.packageName)
+        val label = app.label
+        val icon = app.icon
         return PrismNotification(
             key = sbn.key,
             pkg = sbn.packageName,
@@ -137,6 +159,18 @@ class PrismNotificationListener : NotificationListenerService() {
         fun dismiss(n: PrismNotification) {
             runCatching { instance?.cancelNotification(n.key) }
             state.value = state.value.filterNot { it.key == n.key }
+        }
+
+        /** Control Centre › Clear All: every notification Prism TV lists. */
+        fun dismissAll(list: List<PrismNotification>) {
+            if (list.isEmpty()) return
+            runCatching { instance?.cancelNotifications(list.map { it.key }.toTypedArray()) }
+            val keys = list.map { it.key }.toSet()
+            state.value = state.value.filterNot { it.key in keys }
+        }
+
+        private val worker: android.os.Handler by lazy {
+            android.os.Handler(android.os.HandlerThread("prism-notifications").apply { start() }.looper)
         }
 
         /** CI / demo: pretend these were posted. */

@@ -211,8 +211,19 @@ object CC {
     const val NowPrev = 20
     const val NowPlay = 21
     const val NowNext = 22
+    /** The small ✕ above the notifications (Clear All, as on iOS). */
+    const val ClearAll = 30
     /** Notification rows in Control Centre: [Notification] + index. */
     const val Notification = 100
+    /** A notification slid aside to show its Clear button: [NotificationClear] + index. */
+    const val NotificationClear = 200
+
+    /** The notification row a Control Centre focus belongs to (its card or its Clear button), or null. */
+    fun noteIndex(focus: Int): Int? = when {
+        focus >= NotificationClear -> focus - NotificationClear
+        focus >= Notification -> focus - Notification
+        else -> null
+    }
 }
 
 /** The passcode keypad, left to right (as on tvOS: one row of digits, then delete). */
@@ -938,7 +949,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             while (true) {
                 delay(9_000)
                 val n = currentHeroItems.size
-                val idle = overlay == Overlay.None && dialog == null && launchAnim == null && contextMenu == null && movingId == null
+                // Only on a visible Home Screen: nothing new is decoded while an app (or video) is on top.
+                val idle = homeVisible && overlay == Overlay.None && dialog == null && launchAnim == null && contextMenu == null && movingId == null
                 if (prefs.heroAutoRotate && idle && n > 1 && !isGridMode) {
                     heroIndex = (heroIndex + 1) % n
                 }
@@ -1405,6 +1417,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             movingId != null -> movingId = null
             overlay == Overlay.Settings && settingsStack.size > 1 -> settingsStack = settingsStack.dropLast(1)
             overlay == Overlay.Switcher -> closeSwitcherToHome()
+            // Back slides a notification back first (its Clear button was showing).
+            overlay == Overlay.ControlCentre && ccFocus >= CC.NotificationClear -> ccFocus -= CC.NotificationClear - CC.Notification
             overlay != Overlay.None -> closeOverlay()
             zone == Zone.Widget && !widgetFocusAbove && belowRows.isNotEmpty() && widgetIndex > aboveRows.size -> {
                 widgetIndex = aboveRows.size
@@ -1885,16 +1899,53 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             return true
         }
+        // The ✕ above the notifications: Clear All.
+        if (ccFocus == CC.ClearAll) {
+            when (k) {
+                NavKey.Up -> ccFocus = if (playing) CC.NowNext else CC.Screensaver
+                NavKey.Down -> if (shown > 0) ccFocus = CC.Notification
+                NavKey.Select -> clearAllNotifications()
+                NavKey.Menu -> closeOverlay()
+                else -> Unit
+            }
+            return true
+        }
+        // A notification slid aside, its Clear button focused (as when swiping one on iOS).
+        if (ccFocus >= CC.NotificationClear) {
+            val i = ccFocus - CC.NotificationClear
+            when (k) {
+                NavKey.Left, NavKey.Right -> ccFocus = CC.Notification + i
+                NavKey.Up -> ccFocus = if (i > 0) CC.Notification + i - 1 else CC.ClearAll
+                NavKey.Down -> if (i < shown - 1) ccFocus = CC.Notification + i + 1
+                NavKey.Select, NavKey.LongSelect -> notifications.getOrNull(i)?.let { n ->
+                    PrismNotificationListener.dismiss(n)
+                    notifications = notifications.filterNot { it.key == n.key }
+                    cue(Cue.Delete)
+                    ccFocus = CC.Notification + i
+                    keepCcFocusOnNotifications()
+                }
+                NavKey.Menu -> closeOverlay()
+                NavKey.PlayPause -> Unit
+            }
+            return true
+        }
         if (ccFocus >= CC.Notification) {
             val i = ccFocus - CC.Notification
             when (k) {
-                NavKey.Up -> ccFocus = if (i > 0) ccFocus - 1 else if (playing) CC.NowPlay else CC.Memory
+                NavKey.Up -> ccFocus = if (i > 0) ccFocus - 1 else CC.ClearAll
                 NavKey.Down -> if (i < shown - 1) ccFocus++
+                // Left or Right slides the notification aside to show Clear.
+                NavKey.Left, NavKey.Right -> ccFocus = CC.NotificationClear + i
                 NavKey.Select -> notifications.getOrNull(i)?.let { n ->
                     closeOverlay()
                     if (!PrismNotificationListener.open(ctx, n)) showBanner(n.appLabel, "This notification couldn't be opened.", Icons.Rounded.Info, Cue.Error)
                 }
-                NavKey.LongSelect -> notifications.getOrNull(i)?.let { n -> PrismNotificationListener.dismiss(n); cue(Cue.Delete) }
+                NavKey.LongSelect -> notifications.getOrNull(i)?.let { n ->
+                    PrismNotificationListener.dismiss(n)
+                    notifications = notifications.filterNot { it.key == n.key }
+                    cue(Cue.Delete)
+                    keepCcFocusOnNotifications()
+                }
                 NavKey.Menu -> closeOverlay()
                 else -> Unit
             }
@@ -1918,6 +1969,26 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (next == CC.Notification && shown == 0) return true
         if (next >= 0) ccFocus = next
         return true
+    }
+
+    /** After notifications come or go: focus stays on a row that still exists (or leaves the list). */
+    private fun keepCcFocusOnNotifications() {
+        val shown = ccNotificationsShown
+        val i = CC.noteIndex(ccFocus)
+        when {
+            shown == 0 && (i != null || ccFocus == CC.ClearAll) -> ccFocus = if (nowPlaying != null) CC.NowPlay else CC.Memory
+            i != null && i >= shown -> ccFocus = (if (ccFocus >= CC.NotificationClear) CC.NotificationClear else CC.Notification) + shown - 1
+        }
+    }
+
+    /** Control Centre's ✕: clears every notification, as on iOS. */
+    private fun clearAllNotifications() {
+        val all = notifications
+        if (all.isEmpty()) return
+        PrismNotificationListener.dismissAll(all)
+        notifications = emptyList()
+        cue(Cue.Clear)
+        keepCcFocusOnNotifications()
     }
 
     private fun ccSelect(i: Int) {
@@ -2544,7 +2615,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun closingRows(): List<SettingsRow> {
-        val shizuku = com.prismtv.launcher.system.ShizukuShell.status(ctx)
+        val shizuku = shizukuStatus()
         val a11y = PrismAccessibilityService.isEnabled
         return listOfNotNull(
             SettingsRow("cl:full", "Close Apps Completely", "APP SWITCHER", onOff(prefs.closeCompletely)),
@@ -2585,7 +2656,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         else -> true
     }
 
-    private fun shizukuRunning(): Boolean = com.prismtv.launcher.system.ShizukuShell.status(ctx).let {
+    private var shizukuCache: Pair<Int, com.prismtv.launcher.system.ShizukuShell.Status>? = null
+
+    /** Shizuku's state for Settings rows, read once per refresh (Shizuku connecting bumps [resumeTick]). */
+    private fun shizukuStatus(): com.prismtv.launcher.system.ShizukuShell.Status {
+        val t = resumeTick
+        shizukuCache?.takeIf { it.first == t }?.let { return it.second }
+        return com.prismtv.launcher.system.ShizukuShell.status(ctx).also { shizukuCache = t to it }
+    }
+
+    private fun shizukuRunning(): Boolean = shizukuStatus().let {
         it != com.prismtv.launcher.system.ShizukuShell.Status.NotInstalled && it != com.prismtv.launcher.system.ShizukuShell.Status.NotRunning
     }
 
@@ -2596,8 +2676,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun shizukuRows(): List<SettingsRow> {
-        val installed = com.prismtv.launcher.system.ShizukuShell.installed(ctx)
-        val status = com.prismtv.launcher.system.ShizukuShell.status(ctx)
+        val status = shizukuStatus()
+        val installed = status != com.prismtv.launcher.system.ShizukuShell.Status.NotInstalled
         val running = shizukuRunning()
         val debugging = com.prismtv.launcher.system.LocalAdb.enabled(ctx)
         val download = shizukuDownload
@@ -3836,10 +3916,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         "%.1f of %.1f GB free".format(info.availMem / 1_073_741_824.0, info.totalMem / 1_073_741_824.0)
     }.getOrDefault("")
 
-    private fun materialLabel(): String =
-        (if (prefs.material == GlassMaterial.Frosted) "Frosted Glass" else "Liquid Glass") +
-            if (prefs.glassColour == GlassColour.Clear) " (Clear)" else ""
-
     private fun automaticLabel(): String =
         if (weather != null && prefs.weather) "Sunset to Sunrise" else "7 PM to 7 AM"
 
@@ -4199,9 +4275,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             PrismNotificationListener.notifications.collect { list ->
                 notifications = list
-                if (overlay == Overlay.ControlCentre && ccFocus >= CC.Notification && ccFocus - CC.Notification >= ccNotificationsShown) {
-                    ccFocus = if (ccNotificationsShown == 0) CC.Picture else CC.Notification + (ccNotificationsShown - 1)
-                }
+                if (overlay == Overlay.ControlCentre) keepCcFocusOnNotifications()
             }
         }
         viewModelScope.launch {
@@ -4209,9 +4283,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 nowPlaying = np
                 if (overlay == Overlay.ControlCentre) {
                     if (np == null && ccFocus in CC.NowPrev..CC.NowNext) ccFocus = CC.Memory
-                    if (ccFocus >= CC.Notification && ccFocus - CC.Notification >= ccNotificationsShown) {
-                        ccFocus = if (ccNotificationsShown == 0) CC.Memory else CC.Notification + (ccNotificationsShown - 1)
-                    }
+                    keepCcFocusOnNotifications()
                 }
             }
         }

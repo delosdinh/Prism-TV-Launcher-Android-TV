@@ -132,15 +132,25 @@ object ShizukuSetup {
     /**
      * Starts Shizuku through the TV's own adb. Its start.sh (written when Shizuku is first opened) is
      * used when it's there; otherwise its starter is copied out of the app and run, as start.sh does.
+     *
+     * The starter runs in a session of its own with its output in a file: started straight from the adb
+     * session, Shizuku's server went down with it once the command finished.
      */
     fun start(ctx: Context, allowPrompt: Boolean): StartResult {
         if (!ShizukuShell.installed(ctx)) return StartResult.NotInstalled
         if (alive()) return StartResult.Started
-        val cmd = "if [ -f $StartScript ]; then sh $StartScript; else " +
+        val script = "if [ -f $StartScript ]; then sh $StartScript; else " +
             "P=\$(pm path ${ShizukuShell.Package} | head -n 1 | cut -d: -f2); D=\$(dirname \"\$P\"); " +
             "S=\$(ls \"\$D\"/lib/*/libshizuku.so 2>/dev/null | head -n 1); " +
             "if [ -z \"\$S\" ]; then echo 'no starter'; false; else " +
             "cp \"\$S\" /data/local/tmp/shizuku_starter && chmod 700 /data/local/tmp/shizuku_starter && /data/local/tmp/shizuku_starter; fi; fi"
+        val dir = "/data/local/tmp"
+        val cmd = "cat > $dir/prism_shizuku.sh <<'PRISM'\n$script\nPRISM\n" +
+            "rm -f $dir/prism_shizuku.log; " +
+            "if command -v setsid >/dev/null 2>&1; then setsid sh $dir/prism_shizuku.sh </dev/null >$dir/prism_shizuku.log 2>&1 & " +
+            "else nohup sh $dir/prism_shizuku.sh </dev/null >$dir/prism_shizuku.log 2>&1 & fi; " +
+            "for i in 1 2 3 4 5 6 7 8; do sleep 1; grep -q 'exit with' $dir/prism_shizuku.log 2>/dev/null && break; done; " +
+            "cat $dir/prism_shizuku.log"
         return when (val r = LocalAdb.shell(ctx, cmd, allowPrompt)) {
             LocalAdb.Result.Off -> StartResult.DebuggingOff
             LocalAdb.Result.Unreachable -> StartResult.Unreachable
@@ -148,7 +158,7 @@ object ShizukuSetup {
             is LocalAdb.Result.Failed -> StartResult.Failed(r.why)
             is LocalAdb.Result.Ok -> {
                 ctx.getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).edit().putBoolean("adbAuthorized", true).apply()
-                Log.i(TAG, "starter exit ${r.exit}: ${r.output.takeLast(400)}")
+                Log.i(TAG, "starter: ${r.output.takeLast(400)}")
                 // Shizuku hands Prism TV its binder once it's up.
                 repeat(80) {
                     if (alive()) return StartResult.Started
