@@ -261,8 +261,16 @@ SZ=moe.shizuku.privileged.api
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 0; sleep 4
   cap 65-shizuku-steps
   adb logcat -c || true
-  start "${B[@]}" "${DARK[@]}" --ez adbTest true --es screen settings --es page Shizuku --ei focus 0; sleep 4
-  echo "own adb client: $(adb logcat -d -s PrismAdb:I | grep result= | tail -1)"
+  # Prism TV's own adb client: the TV asks "Allow USB debugging?" for Prism TV's key (focus starts on
+  # "Always allow": tick it, then Allow).
+  start "${B[@]}" "${DARK[@]}" --ez adbTest true --es screen settings --es page Shizuku --ei focus 0; sleep 5
+  if adb shell dumpsys window | grep -qi "UsbDebugging"; then
+    cap 65a-adb-allow-prompt
+    key KEYCODE_DPAD_CENTER 0.8; key KEYCODE_DPAD_DOWN 0.8; key KEYCODE_DPAD_CENTER 4
+  fi
+  ADB_RESULT="$(adb logcat -d -s PrismAdb:I | grep result= | tail -1)"
+  echo "own adb client: $ADB_RESULT"
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 0; sleep 3
   key KEYCODE_DPAD_CENTER 3; cap 65b-shizuku-downloading
   for _ in $(seq 1 30); do adb shell dumpsys window | grep -qi "packageinstaller" && break; sleep 2; done
   sleep 2; cap 65c-shizuku-installer
@@ -271,9 +279,18 @@ SZ=moe.shizuku.privileged.api
   sleep 3; cap 65d-shizuku-installed
   echo "installed: $(adb shell pm path "$SZ" | tr -d '\r')"
   adb shell input keyevent KEYCODE_BACK; sleep 1
-  # Start Shizuku as the shell user (what Prism TV's Start Shizuku runs through the TV's own adb).
-  adb shell 'P=$(pm path moe.shizuku.privileged.api | head -n 1 | cut -d: -f2); D=$(dirname "$P"); S=$(ls "$D"/lib/*/libshizuku.so 2>/dev/null | head -n 1); echo "starter: $S"; cp "$S" /data/local/tmp/shizuku_starter && chmod 700 /data/local/tmp/shizuku_starter && /data/local/tmp/shizuku_starter' 2>&1 | tail -5
-  sleep 4
+  if echo "$ADB_RESULT" | grep -q "Ok("; then
+    # Start Shizuku from Prism TV itself (Settings › … › Shizuku › Start Shizuku, through the TV's own adb).
+    adb logcat -c || true
+    start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 2; sleep 3
+    key KEYCODE_DPAD_CENTER 1.5; cap 65d2-shizuku-starting
+    sleep 10
+    echo "started by Prism TV: $(adb logcat -d -s PrismShizuku:I | tail -2)"
+  else
+    # This emulator's adbd has no TCP port for Prism TV: start Shizuku as the shell user from the host.
+    adb shell 'P=$(pm path moe.shizuku.privileged.api | head -n 1 | cut -d: -f2); D=$(dirname "$P"); S=$(ls "$D"/lib/*/libshizuku.so 2>/dev/null | head -n 1); echo "starter: $S"; cp "$S" /data/local/tmp/shizuku_starter && chmod 700 /data/local/tmp/shizuku_starter && /data/local/tmp/shizuku_starter' 2>&1 | tail -5
+    sleep 4
+  fi
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 3; sleep 4
   cap 65e-shizuku-running
   key KEYCODE_DPAD_CENTER 4; cap 65f-shizuku-allow-prompt
