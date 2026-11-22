@@ -322,6 +322,15 @@ tap_text() {
   fi
 } 2>&1 | tee "$OUT/shizuku-test.txt"
 
+# Notification access through Do It for Me (Prism TV's own adb client, allowed above where it can reach adbd).
+{
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0; sleep 3
+  key KEYCODE_DPAD_CENTER 2.5; cap 66-allow-notifications-dialog
+  tap_text "Do It for Me" || { key KEYCODE_DPAD_DOWN 0.6; key KEYCODE_DPAD_CENTER; }
+  sleep 6; cap 66b-allow-notifications-done
+  echo "listeners: $(adb shell settings get secure enabled_notification_listeners | tr -d '\r')"
+} 2>&1 | tee "$OUT/notif-test.txt"
+
 if [ "$QUICK" = 1 ]; then
   timeout 60 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
   # The switcher last: on the software-rendered API 34 emulator it has stalled the device.
