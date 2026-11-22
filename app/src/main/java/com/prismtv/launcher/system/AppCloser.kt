@@ -119,9 +119,12 @@ object AppCloser {
             when (m) {
                 Method.Shizuku -> withContext(Dispatchers.IO) {
                     running.forEach { (pkg, _) -> if (ShizukuShell.forceStop(pkg)) stopped += pkg }
+                    // Gone from Android's own app switcher too (a force stop leaves its card there).
+                    SystemRecents.remove(targets.map { it.first }) { ShizukuShell.exec(it) }
                 }
                 Method.Root -> withContext(Dispatchers.IO) {
                     running.forEach { (pkg, _) -> if (RootShell.forceStop(pkg)) stopped += pkg }
+                    SystemRecents.remove(targets.map { it.first }) { RootShell.exec(it) }
                 }
                 Method.Accessibility -> if (running.isNotEmpty()) {
                     val still = try {
@@ -310,4 +313,31 @@ object RootShell {
     } catch (_: Throwable) {
         null
     }
+}
+
+
+/**
+ * Android's own app switcher (Recent apps). A force stop leaves an app's card there, so with Shizuku or
+ * root Prism TV removes the cards of the apps it closes, or all of them.
+ */
+object SystemRecents {
+    // "Recent #0: Task{3f9b6e1 #1234 type=standard A=10123:com.example.app}" (Android 11+); older
+    // releases print "TaskRecord{… #12 A=com.example.app …}" or "I=com.example.app/.Main".
+    private val task = Regex("""Recent #\d+: Task(?:Record)?\{[0-9a-f]+ #(\d+)[^}]*?(?:A=(?:\d+:)?|I=)([A-Za-z0-9_.]+)""")
+
+    /** `am stack remove` takes a task id from Android 12 (earlier it took a stack id). */
+    val supported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 31
+
+    /** Removes the cards of [pkgs]; how many went. */
+    fun remove(pkgs: Collection<String>, exec: (String) -> Pair<Int?, String>?): Int {
+        if (!supported || pkgs.isEmpty()) return 0
+        val out = runCatching { exec("dumpsys activity recents")?.second }.getOrNull() ?: return 0
+        val ids = task.findAll(out).filter { it.groupValues[2] in pkgs }.map { it.groupValues[1] }.distinct().toList()
+        if (ids.isEmpty()) return 0
+        runCatching { exec(ids.joinToString("; ") { "am stack remove $it" }) }
+        return ids.size
+    }
+
+    /** Every card goes (Android's own "Clear all"). */
+    const val ClearAll = "am clear-recent-apps"
 }

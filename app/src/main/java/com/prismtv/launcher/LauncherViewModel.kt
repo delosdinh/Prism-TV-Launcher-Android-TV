@@ -201,6 +201,8 @@ data class LaunchAnim(
     val art: ArtRef?,
     val reverse: Boolean = false,
     val id: Long = System.nanoTime(),
+    /** Coming back with Home: the app's screen as you left it, shrinking into its icon (tvOS). */
+    val still: ImageBitmap? = null,
 )
 
 data class MenuAction(val id: String, val label: String, val icon: ImageVector, val destructive: Boolean = false)
@@ -1543,9 +1545,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             pickerOnResume = false
             showProfilePicker()
         }
-        pendingReturn?.let { anim ->
+        val shot = com.prismtv.launcher.system.AppSnapshots
+        val back = pendingReturn
+        if (back != null) {
             pendingReturn = null
-            launchAnim = anim.copy(reverse = true, id = System.nanoTime())
+            val still = shot.takeLive(back.app.packageName)?.asImageBitmap()
+            launchAnim = back.copy(reverse = true, id = System.nanoTime(), still = still)
+        } else if (launchAnim == null && overlay == Overlay.None && dialog == null) {
+            // Home pressed in an app Prism TV didn't open: it still shrinks into its icon if that's in the dock.
+            val pkg = com.prismtv.launcher.system.Foreground.lastPackage
+            val idx = items.take(prefs.columns).indexOfFirst { it is AppItem && it.app.packageName == pkg }
+            val app = (items.getOrNull(idx) as? AppItem)?.app
+            if (app != null) shot.takeLive(pkg)?.let { bmp ->
+                launchAnim = LaunchAnim(app, tileAnchor(idx), null, reverse = true, still = bmp.asImageBitmap())
+            }
         }
         if (pendingClose.isNotEmpty() && !closeFlushing) scheduleClose()
         maybeStartShizuku()
@@ -2231,7 +2244,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             "Turn On Power Controls",
             "To show the power menu and put your TV to sleep, turn on Prism TV Power & Home Button in Accessibility settings.",
             listOf(
-                DialogButton("Open Settings") { SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS) },
+                DialogButton("Set Up") { setUpPowerAndHome() },
                 DialogButton("Not Now") {},
             ),
         )
@@ -2937,7 +2950,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun selectRemote(id: String) {
         val p = prefs
         when {
-            id == "rb:a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            id == "rb:a11y" -> setUpPowerAndHome()
             id == "rb:homeHold" -> {
                 remoteEditing = "home"
                 remoteSlot = "hold"
@@ -2984,15 +2997,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Add a Button: the next button pressed is the one to change. */
     private fun learnRemoteButton() {
         if (!PrismAccessibilityService.isEnabled) {
-            dialog = DialogSpec(
-                "Turn On Power & Home Button",
-                "Remote Buttons work through Power & Home Button, which sees your remote's buttons before apps do. Turn it on in Android's Accessibility settings, then come back.",
-                listOf(
-                    DialogButton("Open Accessibility") { SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS) },
-                    DialogButton("Cancel") {},
-                ),
-            )
-            dialogFocus = 0
+            setUpPowerAndHome()
             return
         }
         val spec = DialogSpec(
@@ -3306,7 +3311,88 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             } else {
                 null
             },
+            if (com.prismtv.launcher.system.SystemRecents.supported) {
+                SettingsRow("cl:recents", "Clear Android's Recent Apps", "ANDROID'S OWN APP SWITCHER")
+            } else null,
         )
+    }
+
+    // ---------------------------------------------------------------- Power & Home Button
+
+    private val a11yComponent get() = "${ctx.packageName}/com.prismtv.launcher.system.PrismAccessibilityService"
+
+    /**
+     * Power & Home Button (Prism TV's accessibility service). Some Google TV builds have no screen for
+     * Android's Accessibility settings ("No application can handle this action"), so Prism TV turns it
+     * on itself where it can (Shizuku, root or the TV's own debugging), keeping any other services on.
+     */
+    private fun setUpPowerAndHome() {
+        val shell = com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)
+        val open = DialogButton("Open Accessibility Settings") {
+            if (!SystemActions.openAccessibility(ctx)) {
+                showBanner("Power & Home Button", "This TV has no Accessibility settings screen. Use Turn On for Me, or the command shown.", Icons.Rounded.Info)
+            }
+        }
+        if (PrismAccessibilityService.isEnabled) {
+            dialog = DialogSpec(
+                "Power & Home Button Is On",
+                "It opens Prism TV from the remote's Home button and runs the power menu, Remote Buttons, App Snapshots, " +
+                    "Banners Over Apps and closing apps.",
+                listOfNotNull(
+                    if (shell) DialogButton("Turn Off") { turnOffPowerAndHome() } else open,
+                    DialogButton("Keep On") {},
+                ),
+            )
+            dialogFocus = 1
+            return
+        }
+        dialog = DialogSpec(
+            "Turn On Power & Home Button",
+            "It lets the remote's Home button open Prism TV, and runs the power menu, Remote Buttons, App Snapshots, " +
+                "Banners Over Apps and closing apps. " +
+                (if (shell) "Select Turn On for Me." else "Find Prism TV Power & Home Button in the TV's Settings › System › Accessibility, or type these commands in a shell on the TV:"),
+            listOfNotNull(
+                DialogButton("Turn On for Me") { turnOnPowerAndHome() },
+                open,
+                DialogButton("Cancel") {},
+            ),
+            code = "settings put secure enabled_accessibility_services $a11yComponent\nsettings put secure accessibility_enabled 1",
+            codeNote = TypeNote,
+        )
+        dialogFocus = 0
+    }
+
+    private fun turnOnPowerAndHome() {
+        val c = a11yComponent
+        // Keeps other accessibility services on; allows "restricted settings" for a sideloaded app first.
+        val command = "appops set ${ctx.packageName} ACCESS_RESTRICTED_SETTINGS allow >/dev/null 2>&1; " +
+            "S=\$(settings get secure enabled_accessibility_services); " +
+            "case \"\$S\" in *PrismAccessibilityService*) ;; ''|null) settings put secure enabled_accessibility_services $c ;; " +
+            "*) settings put secure enabled_accessibility_services \"\$S:$c\" ;; esac; " +
+            "settings put secure accessibility_enabled 1"
+        runShellSteps("Turn On Power & Home Button", command) { ok ->
+            if (!ok) return@runShellSteps
+            viewModelScope.launch {
+                val on = settles(6000) { PrismAccessibilityService.isEnabled }
+                resumeTick++
+                if (on) showBanner("Power & Home Button", "Power & Home Button is on.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                else showBanner("Power & Home Button", "Android didn't start it. Restart the TV, then try again.", Icons.Rounded.Info)
+            }
+        }
+    }
+
+    private fun turnOffPowerAndHome() {
+        val command = "S=\$(settings get secure enabled_accessibility_services); " +
+            "N=\$(echo \"\$S\" | tr ':' '\\n' | grep -v PrismAccessibilityService | tr '\\n' ':' | sed -e 's/:*\$//'); " +
+            "if [ -z \"\$N\" ]; then settings delete secure enabled_accessibility_services; else settings put secure enabled_accessibility_services \"\$N\"; fi"
+        runShellSteps("Turn Off Power & Home Button", command) { ok ->
+            if (!ok) return@runShellSteps
+            viewModelScope.launch {
+                val off = settles(4000) { !PrismAccessibilityService.isEnabled }
+                resumeTick++
+                if (off) showBanner("Power & Home Button", "Power & Home Button is off.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            }
+        }
     }
 
     // ---------------------------------------------------------------- Home app
@@ -3345,58 +3431,113 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         else -> appName(pkg)
     }
 
+    /** The TV's own launcher is turned off (pm disable-user), by Prism TV or anyone else. */
+    private fun launcherHidden(stock: android.content.ComponentName?): Boolean {
+        if (stock == null) return prefs.hiddenLauncher.isNotEmpty()
+        return runCatching {
+            val state = ctx.packageManager.getApplicationEnabledSetting(stock.packageName)
+            state == PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER || state == PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        }.getOrDefault(prefs.hiddenLauncher.isNotEmpty())
+    }
+
+    /**
+     * Settings › Home App: one choice, like tvOS's lists: Prism TV or the TV's own launcher. Choosing
+     * one runs the command (through Shizuku, root or the TV's own debugging), then checks what Android
+     * actually did, since Google TV applies the change a moment later, or keeps its launcher anyway.
+     */
     private fun homeAppRows(): List<SettingsRow> {
         val stock = stockLauncher()
-        val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
-        val hidden = prefs.hiddenLauncher.isNotEmpty()
-        val isHome = currentHomePackage() == ctx.packageName
+        val stockName = stock?.let { appName(it.packageName) } ?: "TV's Own Launcher"
+        val hidden = launcherHidden(stock)
+        val home = currentHomePackage()
+        val isPrism = home == ctx.packageName
+        val isStock = stock != null && home == stock.packageName
+        val ready = isStock && !hidden
         return listOfNotNull(
-            SettingsRow("ha:make", "Make Prism TV the Home App", "HOME APP", if (isHome) "Done" else null, chevron = !isHome),
-            if (stock != null || hidden) {
-                SettingsRow("ha:hide", "Hide $stockName", "HOME APP", onOff(hidden))
-            } else {
-                null
-            },
-            SettingsRow("ha:restore", "Restore $stockName", "BEFORE UNINSTALLING PRISM TV", chevron = true),
+            SettingsRow("ha:prism", "Prism TV", "HOME APP", selectable = true, checked = isPrism),
+            if (stock != null) {
+                SettingsRow("ha:stock", stockName, "HOME APP", if (hidden) "Hidden" else null, selectable = true, checked = isStock)
+            } else null,
+            if (stock != null) {
+                SettingsRow(
+                    "ha:restore", "Switch Back to $stockName", "BEFORE UNINSTALLING PRISM TV",
+                    if (ready) "Done" else null, chevron = !ready,
+                )
+            } else null,
         )
     }
 
     private fun selectHomeApp(id: String) {
         val stock = stockLauncher()
         val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
-        val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
         when (id) {
-            "ha:make" -> if (currentHomePackage() == ctx.packageName) {
-                showBanner("Home App", "Prism TV is already the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
-            } else {
-                shellDialog(
-                    title = "Make Prism TV the Home App",
-                    intro = "Home, startup and the remote's Home button will all open Prism TV. Select Do It for Me, or type this command yourself:",
-                    command = "cmd package set-home-activity --user 0 $main",
-                    done = { currentHomePackage() == ctx.packageName },
-                    doneMessage = "Prism TV is now the Home app.",
-                )
+            "ha:prism" -> makePrismHome()
+            "ha:stock", "ha:restore" -> when {
+                stock == null -> showBanner("Home App", "This TV has no other launcher to go back to.", Icons.Rounded.Info)
+                currentHomePackage() == stock.packageName && !launcherHidden(stock) ->
+                    showBanner(
+                        "Home App",
+                        if (id == "ha:restore") "$stockName is the Home app, so you can uninstall Prism TV safely." else "$stockName is the Home app.",
+                        Icons.Rounded.CheckCircle, Cue.Confirm,
+                    )
+                else -> {
+                    dialog = DialogSpec(
+                        "Switch Back to $stockName?",
+                        "$stockName becomes the Home app again" + (if (launcherHidden(stock)) " (and is shown again)" else "") +
+                            ". Do this before uninstalling Prism TV, so the TV always has a launcher to start to. You can choose Prism TV here again at any time.",
+                        listOf(DialogButton("Switch Back") { switchToStock(stock, stockName) }, DialogButton("Cancel") {}),
+                    )
+                    dialogFocus = 0
+                }
             }
-            "ha:hide" -> if (prefs.hiddenLauncher.isNotEmpty()) {
-                restoreLauncher()
-            } else if (stock != null) {
+        }
+    }
+
+    /** Waits up to [ms] for [check]: Android (Google TV especially) applies Home changes a moment later. */
+    private suspend fun settles(ms: Long, check: () -> Boolean): Boolean {
+        val until = SystemClock.elapsedRealtime() + ms
+        while (true) {
+            if (check()) return true
+            if (SystemClock.elapsedRealtime() >= until) return false
+            delay(400)
+        }
+    }
+
+    private fun makePrismHome() {
+        val stock = stockLauncher()
+        val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
+        if (currentHomePackage() == ctx.packageName) {
+            showBanner(
+                "Home App",
+                if (launcherHidden(stock)) "Prism TV is the Home app. $stockName is hidden: switch back here before you uninstall Prism TV."
+                else "Prism TV is the Home app.",
+                Icons.Rounded.CheckCircle, Cue.Confirm,
+            )
+            return
+        }
+        val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
+        runShellSteps("Make Prism TV the Home App", "cmd package set-home-activity --user 0 $main") { ok ->
+            if (!ok) return@runShellSteps
+            viewModelScope.launch {
+                if (settles(6000) { currentHomePackage() == ctx.packageName }) {
+                    resumeTick++
+                    showBanner("Home App", "Prism TV is now the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    return@launch
+                }
+                resumeTick++
+                if (stock == null) {
+                    showBanner("Home App", "Android didn't change the Home app. Press Home and choose Prism TV if Android asks.", Icons.Rounded.Info)
+                    return@launch
+                }
+                // Google TV accepts the command but keeps its own launcher: offer to hide it.
                 dialog = DialogSpec(
-                    "Hide $stockName?",
-                    "$stockName won't open in its place any more. Before you uninstall Prism TV, come back here and select " +
-                        "Restore $stockName, or the TV may start to a blank screen.",
-                    listOf(
-                        DialogButton("Hide $stockName") { hideLauncher(stock, stockName) },
-                        DialogButton("Cancel") {},
-                    ),
+                    "$stockName Stayed as Home",
+                    "Android accepted the change, but $stockName is still the Home app (Google TV does this). Prism TV can hide " +
+                        "$stockName so Prism TV becomes the Home app. Switch back here before you uninstall Prism TV.",
+                    listOf(DialogButton("Hide $stockName") { hideLauncher(stock, stockName) }, DialogButton("Not Now") {}),
                 )
-                dialogFocus = 1
+                dialogFocus = 0
             }
-            "ha:restore" -> dialog = DialogSpec(
-                "Restore $stockName?",
-                "$stockName comes back as the Home app. Do this before uninstalling Prism TV, so the TV always has a " +
-                    "launcher to start to. You can make Prism TV the Home app again here at any time.",
-                listOf(DialogButton("Restore $stockName") { restoreLauncher() }, DialogButton("Cancel") {}),
-            ).also { dialogFocus = 1 }
         }
     }
 
@@ -3404,29 +3545,41 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
         runShellSteps(
             "Hide $name",
-            "cmd package set-home-activity --user 0 $main && pm disable-user --user 0 ${stock.packageName}",
+            "pm disable-user --user 0 ${stock.packageName} && cmd package set-home-activity --user 0 $main",
         ) { ok ->
-            if (ok) {
-                updatePrefs(prefs.copy(hiddenLauncher = stock.flattenToString()))
-                showBanner("Home App", "$name is hidden and Prism TV is the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            if (!ok) return@runShellSteps
+            updatePrefs(prefs.copy(hiddenLauncher = stock.flattenToString()))
+            viewModelScope.launch {
+                val done = settles(6000) { currentHomePackage() == ctx.packageName }
+                resumeTick++
+                if (done) {
+                    showBanner("Home App", "Prism TV is now the Home app and $name is hidden. Switch back here before you uninstall Prism TV.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                } else {
+                    showBanner("Home App", "$name is hidden. If Android asks which app to use for Home, choose Prism TV.", Icons.Rounded.Info)
+                }
             }
         }
     }
 
-    private fun restoreLauncher() {
-        val stock = stockLauncher()
-        if (stock == null) {
-            showBanner("Home App", "This TV has no other launcher to go back to.", Icons.Rounded.Info)
-            return
-        }
-        val name = appName(stock.packageName)
+    private fun switchToStock(stock: android.content.ComponentName, name: String) {
         runShellSteps(
-            "Restore $name",
+            "Switch Back to $name",
             "pm enable ${stock.packageName} >/dev/null 2>&1; cmd package set-home-activity --user 0 ${stock.flattenToString()}",
         ) { ok ->
-            if (ok) {
-                updatePrefs(prefs.copy(hiddenLauncher = ""))
-                showBanner("Home App", "$name is back as the Home app. Prism TV can now be uninstalled safely.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            if (!ok) return@runShellSteps
+            updatePrefs(prefs.copy(hiddenLauncher = ""))
+            viewModelScope.launch {
+                val done = settles(6000) { currentHomePackage() == stock.packageName && !launcherHidden(stock) }
+                resumeTick++
+                val homeButton = if (PrismAccessibilityService.isEnabled && prefs.homeOverride)
+                    " The remote's Home button still opens Prism TV while Home Button Opens Prism TV is on." else ""
+                if (done) {
+                    showBanner("Home App", "$name is the Home app again, so you can uninstall Prism TV safely.$homeButton", Icons.Rounded.CheckCircle, Cue.Confirm)
+                } else if (!launcherHidden(stock)) {
+                    showBanner("Home App", "$name is shown again. If Android asks which app to use for Home, choose $name.", Icons.Rounded.Info)
+                } else {
+                    showBanner("Home App", "$name couldn't be shown again. Try once more, or run pm enable ${stock.packageName} in a shell.", Icons.Rounded.Info)
+                }
             }
         }
     }
@@ -3776,7 +3929,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 },
                 Icons.Rounded.Info,
             )
-            "cl:a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            "cl:a11y" -> setUpPowerAndHome()
+            "cl:recents" -> runShellSteps("Clear Android's Recent Apps", com.prismtv.launcher.system.SystemRecents.ClearAll) { ok ->
+                if (ok) showBanner("Closing Apps", "Android's own app switcher is clear. Apps you close in Prism TV leave it too, with Shizuku or root.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            }
             "cl:shizuku" -> {
                 pushPage(SettingsPage.Shizuku)
                 focusNextShizukuStep()
@@ -3880,7 +4036,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("logos", "Title Logos", "TOP SHELF", onOff(prefs.titleLogos)),
             SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
             SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
-            SettingsRow("wallpaper", "Wallpaper", "TOP SHELF", wallpaperLabel(), chevron = true),
+            SettingsRow("wallpaper", "Wallpaper", "TOP SHELF", if (wallpaperShown) wallpaperLabel() else "Not Shown", chevron = true),
             SettingsRow("widgets", "Widgets", "WIDGETS", widgetsLabel(), chevron = true),
             SettingsRow("weather", "Weather", "TIME PILL", onOff(prefs.weather)),
             SettingsRow("tempUnit", "Temperature", "TIME PILL", prefs.temperatureUnit.label),
@@ -4199,7 +4355,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 dialogFocus = 0
             }
             r.id == "usage" -> SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
-            r.id == "a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            r.id == "a11y" -> setUpPowerAndHome()
             r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
             r.id == "startup" -> {
                 updatePrefs(p.copy(openAtStartup = !p.openAtStartup))
@@ -4229,9 +4385,26 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "kbField" -> updatePrefs(p.copy(keyboardFieldColour = KeyboardColour.entries[(p.keyboardFieldColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "textSize" -> pushPage(SettingsPage.TextSize)
             r.id == "topShelf" -> updatePrefs(p.copy(topShelfStyle = TopShelfStyle.entries[(p.topShelfStyle.ordinal + 1) % TopShelfStyle.entries.size]))
-            r.id == "wallpaper" -> {
+            r.id == "wallpaper" -> if (wallpaperShown) {
                 loadPhotos()
                 pushPage(SettingsPage.Wallpaper)
+            } else {
+                // Full Screen Top Shelf: the title's artwork fills the screen, so the wallpaper never shows.
+                dialog = DialogSpec(
+                    "Wallpaper Isn't Shown",
+                    "With Top Shelf Style set to Full Screen, each title's artwork fills the screen, so there's no wallpaper. " +
+                        "It shows with Card Spotlight (around the title's card), or with the Top Shelf off.",
+                    listOf(
+                        DialogButton("Use Card Spotlight") {
+                            updatePrefs(prefs.copy(topShelfStyle = TopShelfStyle.Spotlight, heroEnabled = true))
+                            loadPhotos()
+                            pushPage(SettingsPage.Wallpaper)
+                        },
+                        DialogButton("Choose Anyway") { loadPhotos(); pushPage(SettingsPage.Wallpaper) },
+                        DialogButton("Cancel") {},
+                    ),
+                )
+                dialogFocus = 0
             }
             r.id == "widgets" -> {
                 refreshRecommendations(force = true)
@@ -4811,6 +4984,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         prefs.textSize < com.prismtv.launcher.data.DefaultTextSize -> "Smaller"
         else -> "Larger"
     }
+
+    /** The wallpaper is on screen: with Card Spotlight around the title's card, or with no Top Shelf. */
+    private val wallpaperShown: Boolean get() = !prefs.heroEnabled || prefs.topShelfStyle == TopShelfStyle.Spotlight
 
     private fun wallpaperLabel(): String = when {
         prefs.wallpaper.startsWith("photo:") -> "Your Picture"

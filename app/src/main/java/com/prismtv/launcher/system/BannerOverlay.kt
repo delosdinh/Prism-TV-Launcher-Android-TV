@@ -31,6 +31,8 @@ class BannerOverlay(private val service: AccessibilityService) {
     private val main = Handler(Looper.getMainLooper())
     private var root: FrameLayout? = null
     private var card: LinearLayout? = null
+    /** A hairline rim around the card (the glass edge), and what slides in and out. */
+    private var rim: FrameLayout? = null
     private var icon: ImageView? = null
     private var appText: TextView? = null
     private var titleText: TextView? = null
@@ -39,24 +41,46 @@ class BannerOverlay(private val service: AccessibilityService) {
 
     private fun dp(v: Float): Int = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, service.resources.displayMetrics).toInt()
 
+    /**
+     * How banners look: Prism TV's Material (Liquid Glass, Clear or Frosted) and Material Colour, the
+     * same as its own banners. Set by Prism TV whenever they change. Another app's picture can't be
+     * bent or blurred from here, so the glass is a touch denser than in Prism TV, with the same rim.
+     */
+    data class Style(
+        val fill: Int,
+        val rimTop: Int,
+        val rimBottom: Int,
+        val title: Int,
+        val body: Int,
+        val shadow: Boolean,
+    )
+
     /** Shows (or replaces) the banner. Main thread. */
     fun show(app: String, title: String, text: String, appIcon: Bitmap?, light: Boolean) {
         val view = root ?: build() ?: return
-        val ink = if (light) 0xFF1C1C1E.toInt() else 0xFFFFFFFF.toInt()
-        val soft = if (light) 0x991C1C1E.toInt() else 0x99FFFFFF.toInt()
-        (card?.background as? GradientDrawable)?.setColor(if (light) 0xF2F2F2F7.toInt() else 0xE6202024.toInt())
-        appText?.apply { this.text = app.uppercase(); setTextColor(soft) }
-        titleText?.apply { this.text = title; setTextColor(ink) }
+        val st = style ?: if (light) LightStyle else DarkStyle
+        card?.background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(st.fill, st.fill)).apply {
+            cornerRadius = dp(24f).toFloat()
+        }
+        rim?.background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(st.rimTop, st.rimBottom)).apply {
+            cornerRadius = dp(24f).toFloat()
+        }
+        fun TextView.ink(color: Int) {
+            setTextColor(color)
+            if (st.shadow) setShadowLayer(dp(3f).toFloat(), 0f, dp(0.5f).toFloat(), 0x66000000) else setShadowLayer(0f, 0f, 0f, 0)
+        }
+        appText?.apply { this.text = app.uppercase(); ink(st.body) }
+        titleText?.apply { this.text = title; ink(st.title) }
         bodyText?.apply {
             this.text = text
-            setTextColor(soft)
+            ink(st.body)
             visibility = if (text.isBlank()) View.GONE else View.VISIBLE
         }
         icon?.apply {
             if (appIcon != null) { setImageBitmap(appIcon); visibility = View.VISIBLE } else visibility = View.GONE
         }
         main.removeCallbacks(hide)
-        val c = card ?: return
+        val c = rim ?: return
         if (view.visibility != View.VISIBLE || c.alpha < 0.99f) {
             view.visibility = View.VISIBLE
             c.animate().cancel()
@@ -73,7 +97,7 @@ class BannerOverlay(private val service: AccessibilityService) {
     }
 
     private fun slideOut() {
-        val c = card ?: return
+        val c = rim ?: return
         c.animate().cancel()
         c.animate().translationX(dp(60f).toFloat()).alpha(0f).setDuration(300).setInterpolator(AccelerateInterpolator(1.6f))
             .withEndAction { root?.visibility = View.GONE }
@@ -85,6 +109,7 @@ class BannerOverlay(private val service: AccessibilityService) {
         root?.let { runCatching { wm.removeView(it) } }
         root = null
         card = null
+        rim = null
     }
 
     private fun build(): FrameLayout? {
@@ -95,19 +120,22 @@ class BannerOverlay(private val service: AccessibilityService) {
             clipToPadding = false
             clipChildren = false
         }
+        val edge = FrameLayout(ctx).apply {
+            setPadding(dp(1.2f), dp(1.2f), dp(1.2f), dp(1.2f))
+            elevation = dp(12f).toFloat()
+        }
         val box = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14f), dp(12f), dp(18f), dp(12f))
-            background = GradientDrawable().apply { cornerRadius = dp(18f).toFloat(); setColor(0xE6202024.toInt()) }
-            elevation = dp(10f).toFloat()
+            setPadding(dp(12f), dp(12f), dp(16f), dp(12f))
         }
+        edge.addView(box, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         val img = ImageView(ctx).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
             clipToOutline = true
-            background = GradientDrawable().apply { cornerRadius = dp(8f).toFloat(); setColor(0x33FFFFFF) }
+            background = GradientDrawable().apply { cornerRadius = dp(12f).toFloat(); setColor(0x33FFFFFF) }
         }
-        box.addView(img, LinearLayout.LayoutParams(dp(34f), dp(34f)).apply { marginEnd = dp(12f) })
+        box.addView(img, LinearLayout.LayoutParams(dp(42f), dp(42f)).apply { marginEnd = dp(12f) })
         val col = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         val a = TextView(ctx).apply {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 9.5f)
@@ -130,8 +158,8 @@ class BannerOverlay(private val service: AccessibilityService) {
         col.addView(a)
         col.addView(t)
         col.addView(b)
-        box.addView(col, LinearLayout.LayoutParams(dp(250f), LinearLayout.LayoutParams.WRAP_CONTENT))
-        frame.addView(box, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+        box.addView(col, LinearLayout.LayoutParams(dp(232f), LinearLayout.LayoutParams.WRAP_CONTENT))
+        frame.addView(edge, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -141,13 +169,14 @@ class BannerOverlay(private val service: AccessibilityService) {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.END
-            x = dp(12f)
-            y = dp(8f)
+            // Where Prism TV's own banners sit (30 dp from the right), less the window's shadow room.
+            x = dp(14f)
+            y = dp(24f)
             windowAnimations = 0
         }
         return try {
             wm.addView(frame, lp)
-            root = frame; card = box; icon = img; appText = a; titleText = t; bodyText = b
+            root = frame; card = box; rim = edge; icon = img; appText = a; titleText = t; bodyText = b
             frame
         } catch (_: Throwable) {
             null
@@ -157,5 +186,11 @@ class BannerOverlay(private val service: AccessibilityService) {
     companion object {
         const val PrefKey = "bannersOverApps"
         const val ShowMs = 5500L
+
+        /** Prism TV's current banner look (null until Prism TV has drawn once). */
+        @Volatile var style: Style? = null
+
+        private val DarkStyle = Style(0xEB26272D.toInt(), 0x5CFFFFFF, 0x14FFFFFF, 0xFFFFFFFF.toInt(), 0xB3FFFFFF.toInt(), false)
+        private val LightStyle = Style(0xF2F4F4F7.toInt(), 0xCCFFFFFF.toInt(), 0x33FFFFFF, 0xFF15171E.toInt(), 0xA615171E.toInt(), false)
     }
 }

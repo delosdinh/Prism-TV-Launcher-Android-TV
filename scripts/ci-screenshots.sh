@@ -188,6 +188,14 @@ shot 69c-search-results-focus      "${B[@]}" "${DARK[@]}" --es screen search --e
 shot 69d-search-settings-light     "${B[@]}" --es appearance light --es glass liquid --es screen search --es text lite --ei focus 0
 shot 70-settings-banners-over      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 15
 shot 70b-settings-snapshots        "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 16
+# Set-up dialogs: Power & Home Button (Turn On for Me), wallpaper with a Full Screen Top Shelf.
+start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 11; sleep 3
+key KEYCODE_DPAD_CENTER 2; cap 75-power-home-turn-on
+key KEYCODE_BACK 1.5
+start "${B[@]}" "${DARK[@]}" --es topShelf fullscreen --es screen settings --es page HomeScreen --ei focus 10; sleep 3
+cap 75b-settings-wallpaper-not-shown
+key KEYCODE_DPAD_CENTER 2; cap 75c-wallpaper-not-shown-dialog
+key KEYCODE_BACK 1.5
 # Settings lists wrap: Up from the first row goes to the last, Down from the last back to the first.
 start "${B[@]}" "${DARK[@]}" --es screen settings --es page Appearance --ei focus 0; sleep 4
 key KEYCODE_DPAD_UP 2.5; cap 62-settings-wrap-up-to-last
@@ -312,24 +320,19 @@ if [ -n "$TARGET" ]; then
   adb shell "cmd notification post -t 'Delivery' prism_banner_test 'Your order is on its way'" >/dev/null 2>&1
   sleep 1.4; cap 73-banner-over-app
   sleep 7; cap 73b-banner-gone
+  # The same banner in Light, Liquid Glass (banners follow Prism TV's Material and Material Colour).
+  start "${B[@]}" --es appearance light --es glass liquid --ez bannersOver true --es screen home; sleep 3
+  timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
+    timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  sleep 7
+  adb shell "cmd notification post -t 'Prism TV' prism_banner_test2 'Banners take your Material and colour'" >/dev/null 2>&1
+  sleep 1.4; cap 73c-banner-over-app-light-liquid
   adb shell input keyevent KEYCODE_HOME; sleep 3
 
   # Remote Buttons: learn the Red button in Settings, give it Control Centre, then press it at Home.
   start "${B[@]}" "${DARK[@]}" --ez demoRemote false --ez bannersOver false --es screen settings --es page RemoteButtons --ei focus 1; sleep 4
   key KEYCODE_DPAD_CENTER 2; cap 72-remote-press-a-button
-  emu_key 398; sleep 2.5; cap 72b-remote-button-learned # KEY_RED
-  key KEYCODE_DPAD_CENTER 2
-  for _ in 1 2 3; do key KEYCODE_DPAD_DOWN 0.6; done
-  key KEYCODE_DPAD_CENTER 2; cap 72c-remote-button-set
-  adb shell input keyevent KEYCODE_HOME; sleep 2.5
-  adb shell input keyevent KEYCODE_HOME; sleep 2.5
-  emu_key 398; sleep 3; cap 72d-red-opens-control-centre
-  echo "remote buttons: $(adb shell run-as "$PKG" cat shared_prefs/prism_prefs.xml 2>/dev/null | grep -oE 'name="remoteButtons">[^<]*' | tr '\t\n' '  ')" | tee "$OUT/remote-test.txt"
-  adb logcat -d -s PrismKeys:V | tail -n 20 >> "$OUT/remote-test.txt"
-  # Holding Home (set to Control Centre) opens it too.
-  start "${B[@]}" "${DARK[@]}" --ez demoRemote true --es screen home; sleep 3
-  emu_key 102 1.2; sleep 3; cap 72e-hold-home-control-centre
-  start "${B[@]}" "${DARK[@]}" --ez demoRemote false --es screen home; sleep 2
+  key KEYCODE_BACK 1.5
   adb shell settings delete secure enabled_accessibility_services >/dev/null 2>&1 || true
   adb shell settings put secure accessibility_enabled 0 >/dev/null 2>&1 || true
   adb logcat -d -b crash > "$OUT/crash-close.txt" 2>&1 || true

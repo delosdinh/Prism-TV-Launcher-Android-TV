@@ -44,6 +44,7 @@ private val Exact: Map<String, String> = mapOf(
     "reset" to "Puts every Prism TV setting and the Home Screen layout back to how they started.",
 
     // Home App
+    "cl:recents" to "Clears every card from Android's own Recent apps screen (not Prism TV's). Needs Shizuku, root or the TV's debugging.",
     // Remote Buttons
     "remote" to "Change what your remote's app, colour and Guide buttons do, and what holding Home does.",
     "rb:a11y" to "Remote Buttons see your remote's buttons through Power & Home Button, before apps do. Turn it on first.",
@@ -65,9 +66,9 @@ private val Exact: Map<String, String> = mapOf(
     "wp:aerial" to "Apple TV aerials play silently behind the Home Screen, with Spotlight or with the Top Shelf off. Lite Mode shows a still.",
 
     "homeApp" to "Which app the TV starts to and the Home button opens. Prism TV can set this itself, and put the TV's own launcher back.",
-    "ha:make" to "Makes Prism TV the TV's Home app with one command, through Shizuku or the TV's own debugging.",
-    "ha:hide" to "Stops the TV's own launcher opening in Prism TV's place. Restore it before uninstalling Prism TV.",
-    "ha:restore" to "Brings the TV's own launcher back as the Home app. Do this before uninstalling Prism TV, so the TV always has a launcher.",
+    "ha:prism" to "Home, startup and the remote's Home button open Prism TV. If Google TV keeps its own launcher, Prism TV can hide it.",
+    "ha:stock" to "The TV's own launcher as the Home app. Choose it before uninstalling Prism TV.",
+    "ha:restore" to "Puts the TV's own launcher back as the Home app (and shows it again if it was hidden), so you can uninstall Prism TV safely.",
 
     // Closing Apps
     "cl:full" to "Swiped-away apps are force stopped, so music and downloads stop too. They stay closed until you open them again. Off just frees their memory.",
@@ -114,7 +115,7 @@ private val Exact: Map<String, String> = mapOf(
     "logos" to "Shows a film or show's title logo instead of plain text, where there is one.",
     "autorotate" to "Moves to the next Top Shelf item every few seconds.",
     "recs" to "Lets Prism TV read the cards apps publish, for the Top Shelf and widgets.",
-    "wallpaper" to "The picture behind the Home Screen when there's no Top Shelf artwork, with optional Shuffle.",
+    "wallpaper" to "The picture (or aerial) behind the Home Screen, with Card Spotlight or with the Top Shelf off. Full Screen fills the screen with each title's artwork instead.",
     "widgets" to "Rows of cards from apps, such as Continue Watching, above or below the dock.",
     "weather" to "Shows the temperature and conditions in the time pill.",
     "tempUnit" to "Celsius or Fahrenheit.",

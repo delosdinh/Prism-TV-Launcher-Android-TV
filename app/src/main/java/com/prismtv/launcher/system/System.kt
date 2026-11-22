@@ -123,7 +123,8 @@ class PrismAccessibilityService : AccessibilityService() {
     private fun homeKey(event: KeyEvent): Boolean {
         val sp = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE)
         val override = sp.getBoolean("homeOverride", true)
-        val holdSet = event.keyCode == KeyEvent.KEYCODE_HOME && RemoteButtons.homeHold(this) != "default"
+        // Hold Home works for remotes whose Home sends Apps (Xiaomi) too, while Home opens Prism TV.
+        val holdSet = RemoteButtons.homeHold(this) != "default" && (event.keyCode == KeyEvent.KEYCODE_HOME || override)
         if (event.action == KeyEvent.ACTION_DOWN) {
             if (event.repeatCount == 0) {
                 homeHeld = false

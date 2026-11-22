@@ -48,7 +48,7 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (
             trackSelectionParameters = trackSelectionParameters.buildUpon()
                 .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
                 .build()
-            setMediaItems(list.map { MediaItem.fromUri(it.url) }, Resume.index.coerceIn(0, list.size - 1), Resume.position)
+            setMediaItems(list.map { MediaItem.fromUri(if (Resume.http) it.fallbackUrl else it.url) }, Resume.index.coerceIn(0, list.size - 1), Resume.position)
             prepare()
             playWhenReady = true
         }
@@ -63,11 +63,18 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.w("PrismAerial", "Home wallpaper: ${error.errorCodeName}")
-                // Skip a clip that won't play (and stop trying if none will).
-                if (player.mediaItemCount > 1 && Resume.errors++ < 6) {
+                // As the screensaver does: first try the same files over HTTP (some TVs don't trust Apple's
+                // CDN certificate), then skip a clip that won't play, and stop trying if none will.
+                if (Resume.errors++ >= 6) return
+                val index = player.currentMediaItemIndex.coerceAtLeast(0)
+                if (!Resume.http) {
+                    Resume.http = true
+                    player.setMediaItems(list.map { MediaItem.fromUri(it.fallbackUrl) }, index, 0L)
+                } else if (player.mediaItemCount > 1) {
                     player.seekToNextMediaItem()
-                    player.prepare()
                 }
+                player.prepare()
+                player.playWhenReady = true
             }
         }
         player.addListener(listener)
@@ -101,4 +108,5 @@ private object Resume {
     var index = 0
     var position = 0L
     var errors = 0
+    var http = false
 }

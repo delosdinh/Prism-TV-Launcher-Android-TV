@@ -33,6 +33,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import com.prismtv.launcher.ui.theme.uiBlurRadius
@@ -354,6 +355,8 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
         lite = vm.prefs.liteMode,
     )
     val uiTheme = theme.copy(palette = Palettes.of(appearance), material = GlassMaterial.Frosted, clearTint = false)
+    // Banners Over Apps look like Prism TV's own banners: the Home Screen's Material and Material Colour.
+    SideEffect { com.prismtv.launcher.system.BannerOverlay.style = overlayBannerStyle(theme) }
 
     val bg = rememberGraphicsLayer()
     val bgBlur = rememberGraphicsLayer()
@@ -600,4 +603,33 @@ private fun rememberClock(override: String?): String {
         }
     }
     return override ?: android.text.format.DateFormat.getTimeFormat(ctx).format(Date(now))
+}
+
+/** Prism TV's banner look for Banners Over Apps (which can't bend or blur another app's picture). */
+private fun overlayBannerStyle(theme: PrismTheme): com.prismtv.launcher.system.BannerOverlay.Style {
+    val p = theme.palette
+    fun white(a: Float) = androidx.compose.ui.graphics.Color.White.copy(alpha = a).toArgb()
+    return when {
+        theme.clearTint -> com.prismtv.launcher.system.BannerOverlay.Style(
+            fill = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.42f).toArgb(),
+            rimTop = white(0.62f), rimBottom = white(0.16f),
+            title = white(1f), body = white(0.78f), shadow = true,
+        )
+        theme.liquid -> {
+            val f = theme.bannerFill()
+            com.prismtv.launcher.system.BannerOverlay.Style(
+                fill = f.copy(alpha = f.alpha.coerceAtLeast(0.84f)).toArgb(),
+                rimTop = white(if (p.isDark) 0.46f else 0.85f), rimBottom = white(if (p.isDark) 0.10f else 0.30f),
+                title = p.textPrimary.toArgb(), body = p.textSecondary.toArgb(), shadow = p.isDark,
+            )
+        }
+        else -> {
+            val f = theme.bannerFill()
+            com.prismtv.launcher.system.BannerOverlay.Style(
+                fill = f.copy(alpha = f.alpha.coerceAtLeast(0.92f)).toArgb(),
+                rimTop = white(if (p.isDark) 0.16f else 0.55f), rimBottom = white(if (p.isDark) 0.06f else 0.20f),
+                title = p.textPrimary.toArgb(), body = p.textSecondary.toArgb(), shadow = false,
+            )
+        }
+    }
 }

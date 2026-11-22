@@ -285,6 +285,17 @@ fun LaunchOverlay(vm: LauncherViewModel) {
         ) {
             // The tile itself grows to fill the screen (Flow / tvOS style); the app fades in over it.
             AppArtwork(anim.app)
+            // Back to Home (tvOS): the app's own screen shrinks away, turning into its icon as it lands.
+            val still = anim.still
+            if (anim.reverse && still != null) {
+                Image(
+                    still, null,
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = smoothstep(0.28f, 0.8f, pc) },
+                    contentScale = ContentScale.Crop,
+                )
+            }
             if (pc < 0.9f) {
                 // Glass rim catching the light while it travels.
                 Box(

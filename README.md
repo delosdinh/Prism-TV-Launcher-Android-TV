@@ -229,6 +229,9 @@ stops** it, the same as Settings › Apps › the app › Force Stop, using the 
    you swipe away in a row are closed together once you stop swiping. The remote is held for that
    second or two (Home still works).
 
+With Shizuku or root (Android 12+), closed apps also leave **Android's own app switcher** (Recent
+apps), and Closing Apps › **Clear Android's Recent Apps** clears every card there at once.
+
 With none of these, swiped-away apps just have their memory freed and Prism TV says so once.
 A force-stopped app stays closed — no background refreshes, notifications or Top Shelf updates —
 until you open it again. **Close Apps Completely** (Closing Apps) turns it off. Prism TV never
@@ -298,12 +301,12 @@ adb shell settings put secure accessibility_enabled 1
 On Android TV (e.g. NVIDIA SHIELD) you can instead disable the stock launcher:
 `adb shell pm disable-user --user 0 com.google.android.tvlauncher` (undo with `pm enable`).
 
-Or let Prism TV do it: Settings › **Home App** › **Make Prism TV the Home App** runs the same command
-for you (through Shizuku, or the TV's own network debugging — allow it once). The same page can hide
-the TV's own launcher if it keeps coming back.
+Or let Prism TV do it: Settings › **Home App** › choose **Prism TV**. It runs the same command for you
+(through Shizuku, root or the TV's own network debugging — allow it once), then checks that Android
+really switched. Google TV sometimes keeps its own launcher anyway; Prism TV then offers to hide it.
 
-> **Before uninstalling Prism TV**, go to Settings › Home App › **Restore** (Google TV, Android TV
-> Home…) — especially if you hid the stock launcher. Otherwise the TV may be left with no launcher
+> **Before uninstalling Prism TV**, go to Settings › Home App › **Switch Back to** (Google TV, Android
+> TV Home…) — especially if the stock launcher was hidden. Otherwise the TV may be left with no launcher
 > to go Home to. From a shell: `pm enable <launcher package>` and
 > `cmd package set-home-activity --user 0 <launcher package>/<its activity>`.
 
@@ -313,6 +316,10 @@ resets the Home app, so run it again after a reinstall; in-place updates keep it
 Without a computer (Google TV): turn on Prism Settings › **Power & Home Button** (the
 accessibility service). The Home button then opens Prism TV, and **Open Prism TV at Startup**
 brings it up once after the TV restarts.
+
+Settings › **Power & Home Button** › **Turn On for Me** switches the service on through Shizuku, root or
+the TV's own debugging (some Google TV builds have no Accessibility screen to open: "No application can
+handle this action"). It keeps any other accessibility services on.
 
 If the Power & Home Button switch turns itself straight back off, Android 13+ is blocking
 "restricted settings" for an app installed outside the Play Store. Allow them once from a shell

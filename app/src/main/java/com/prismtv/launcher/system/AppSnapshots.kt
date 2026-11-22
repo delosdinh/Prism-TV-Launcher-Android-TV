@@ -84,8 +84,18 @@ object AppSnapshots {
                 service.mainExecutor,
                 object : AccessibilityService.TakeScreenshotCallback {
                     override fun onSuccess(result: AccessibilityService.ScreenshotResult) {
+                        // Straight away, in graphics memory: Prism TV shrinks this picture into the app's
+                        // icon as it comes back (like tvOS). Saving a small copy carries on in the background.
+                        val hw = runCatching { Bitmap.wrapHardwareBuffer(result.hardwareBuffer, result.colorSpace) }.getOrNull()
+                        runCatching { result.hardwareBuffer.close() }
+                        if (hw != null) {
+                            val shot = Live(pkg, hw, android.os.SystemClock.uptimeMillis())
+                            live = shot
+                            // Not kept in graphics memory for long if nothing uses it.
+                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ if (live === shot) live = null }, 6000)
+                        }
                         done()
-                        worker.execute { save(ctx, pkg, result) }
+                        if (hw != null) worker.execute { save(ctx, pkg, hw) }
                     }
 
                     override fun onFailure(errorCode: Int) {
@@ -100,20 +110,16 @@ object AppSnapshots {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun save(ctx: Context, pkg: String, result: AccessibilityService.ScreenshotResult) {
-        val buffer = result.hardwareBuffer
+    private fun save(ctx: Context, pkg: String, hw: Bitmap) {
         try {
-            val hw = Bitmap.wrapHardwareBuffer(buffer, result.colorSpace) ?: return
             // Hardware pictures can't be drawn in software: read it back once, then shrink it.
-            val full = hw.copy(Bitmap.Config.ARGB_8888, false)
-            hw.recycle()
-            if (full == null) return
+            val full = hw.copy(Bitmap.Config.ARGB_8888, false) ?: return
             val small = if (full.width == W && full.height == H) full else Bitmap.createScaledBitmap(full, W, H, true)
             if (small !== full) full.recycle()
             if (isBlank(small)) {
                 // Protected video comes out black: show the app's artwork rather than a black card.
                 Log.i(Tag, "$pkg: black frame (protected content), not kept")
+                if (live?.pkg == pkg) live = null
                 delete(ctx, pkg)
                 small.recycle()
                 return
@@ -127,9 +133,20 @@ object AppSnapshots {
             Log.i(Tag, "$pkg: snapshot saved")
         } catch (t: Throwable) {
             Log.i(Tag, "$pkg: couldn't save snapshot: ${t.message}")
-        } finally {
-            runCatching { buffer.close() }
         }
+    }
+
+    /** The screen as you pressed Home in [pkg] (full size, in graphics memory). */
+    class Live(val pkg: String, val bitmap: Bitmap, val at: Long)
+
+    @Volatile private var live: Live? = null
+
+    /** The picture just taken in [pkg], if it's fresh; handed over once. */
+    fun takeLive(pkg: String?, maxAgeMs: Long = 3000): Bitmap? {
+        val l = live ?: return null
+        if (pkg == null || l.pkg != pkg || android.os.SystemClock.uptimeMillis() - l.at > maxAgeMs) return null
+        live = null
+        return l.bitmap
     }
 
     /** Almost entirely one dark colour: a blanked (protected) frame or a blank screen. */
