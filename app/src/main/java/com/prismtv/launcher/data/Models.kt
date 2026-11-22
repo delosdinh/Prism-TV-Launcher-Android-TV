@@ -61,6 +61,12 @@ data class UriArt(val uri: String) : ArtRef {
     override val key: String get() = uri
 }
 
+/** A picture already in memory (Now Playing artwork). [key] must change when the picture does. */
+class MemoryArt(override val key: String, val bitmap: android.graphics.Bitmap) : ArtRef {
+    override fun equals(other: Any?): Boolean = other is MemoryArt && other.key == key
+    override fun hashCode(): Int = key.hashCode()
+}
+
 /** A full-screen backdrop built from an app's own banner/icon and colour. */
 data class BannerArt(val appId: String) : ArtRef {
     override val key: String get() = "brand:$appId"
@@ -81,6 +87,9 @@ data class HeroItem(
     val intentUri: String? = null,
     /** The title's logo artwork (a clear logo), shown in place of its name when Title Logos is on. */
     val titleArt: ArtRef? = null,
+    /** What another app is playing right now (Now Playing): its buttons are play/pause and next. */
+    val media: Boolean = false,
+    val playing: Boolean = false,
 )
 
 /** Clear title logos for cards that carry an IMDb id (Nuvio, Stremio-style apps), from Metahub. */

@@ -421,6 +421,8 @@ class ArtRepository(private val context: Context) {
             }
         )
         is BannerArt -> brands[ref.appId]?.let { brandBackdrop(it.banner, it.icon, it.tint) }
+        // A copy: what's decoded here gets cropped and recycled.
+        is MemoryArt -> ref.bitmap.copy(Bitmap.Config.ARGB_8888, false)
         is UriArt -> {
             val uri = Uri.parse(ref.uri)
             val stream = when (uri.scheme) {

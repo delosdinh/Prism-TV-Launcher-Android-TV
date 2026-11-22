@@ -4,7 +4,7 @@ import java.security.MessageDigest
 
 /**
  * A person using the TV: their name and picture, an optional passcode (needed to switch to them) and
- * the apps they can't see (tvOS 27's per-profile app blocking). The Home Screen layout is shared.
+ * the apps they can't see (tvOS 27's per-profile app blocking). Each keeps their own Home Screen layout.
  */
 data class ProfileSpec(
     val id: String,

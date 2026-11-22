@@ -73,6 +73,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.DeveloperMode
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.VerifiedUser
@@ -205,7 +206,7 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 // Each tab has its own glyph; on the main list it follows focus, like tvOS.
                 val art: Any = when (pg) {
                     SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard,
-                    SettingsPage.Screensaver, SettingsPage.Access, SettingsPage.Closing, SettingsPage.Shizuku ->
+                    SettingsPage.Screensaver, SettingsPage.Access, SettingsPage.Closing, SettingsPage.Shizuku, SettingsPage.HomeApp ->
                         rows.getOrNull(focus)?.let { if (it.id == "profile") vm.avatarLook else glyphFor(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions, SettingsPage.Inputs ->
                         rows.getOrNull(focus)?.app ?: rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
@@ -332,6 +333,10 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "sz:allow" to glyph(Icons.Rounded.VerifiedUser, 0xFFFF9F0A, 0xFFE06A00),
     "sz:boot" to glyph(Icons.Rounded.PowerSettingsNew, 0xFF4CD964, 0xFF239B3E),
     "sz:open" to glyph(Icons.Rounded.Terminal, 0xFF5AC8FA, 0xFF0A6CFF),
+    "homeApp" to glyph(Icons.Rounded.Home, 0xFF3D9BFF, 0xFF0A5FE0),
+    "ha:make" to glyph(Icons.Rounded.Home, 0xFF3D9BFF, 0xFF0A5FE0),
+    "ha:hide" to glyph(Icons.Rounded.VisibilityOff, 0xFF9C9CA3, 0xFF5E5E64),
+    "ha:restore" to glyph(Icons.Rounded.Restore, 0xFFFF9F0A, 0xFFE06A00),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -359,6 +364,7 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Access -> Glyphs.getValue("access")
     SettingsPage.Closing -> Glyphs.getValue("closing")
     SettingsPage.Shizuku -> Glyphs.getValue("cl:shizuku")
+    SettingsPage.HomeApp -> Glyphs.getValue("homeApp")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */

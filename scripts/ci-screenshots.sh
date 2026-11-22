@@ -96,7 +96,7 @@ shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass li
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
-shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 17
+shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 18
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
@@ -151,7 +151,7 @@ shot 58e-kids-home                 "${B[@]}" "${DARK[@]}" --ez demoProfiles true
 shot 59-screensaver-pictures       "${B[@]}" "${DARK[@]}" --es aerial pictures --ez demoLibrary true --es screen settings --es page ScreensaverPictures --ei focus 2
 shot 59b-keyboard-field-light      "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es fieldColour light --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 2
 shot 59c-restrictions-all          "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 0
-shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 14
+shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 15
 shot 60b-settings-access           "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0
 shot 60c-settings-home-screen      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 6
 # Closing Apps (Settings › Apps), and each Screensaver / Privacy row's own glyph.
@@ -159,6 +159,12 @@ shot 61-settings-root-closing      "${B[@]}" "${DARK[@]}" --es screen settings -
 shot 61b-settings-closing          "${B[@]}" "${DARK[@]}" --es screen settings --es page Closing --ei focus 0
 shot 61c-settings-closing-a11y     "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page Closing --ei focus 3
 shot 61d-settings-screensaver-row  "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 4
+# Home App (make Prism TV the Home app, hide or restore the stock launcher), Now Playing on the Top Shelf.
+shot 63-settings-root-home-app     "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 10
+shot 63b-settings-home-app         "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeApp --ei focus 0
+shot 63c-settings-home-app-restore "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page HomeApp --ei focus 2
+shot 64-top-shelf-now-playing      "${B[@]}" "${DARK[@]}" --es nowPlaying "'Golden Hour'" --es screen hero --ei col 2
+shot 64b-top-shelf-paused-light    "${B[@]}" --es appearance light --es glass liquid --es nowPlaying "'Golden Hour'" --ez paused true --es screen home --ei col 2
 # Settings lists wrap: Up from the first row goes to the last, Down from the last back to the first.
 start "${B[@]}" "${DARK[@]}" --es screen settings --es page Appearance --ei focus 0; sleep 4
 key KEYCODE_DPAD_UP 2.5; cap 62-settings-wrap-up-to-last

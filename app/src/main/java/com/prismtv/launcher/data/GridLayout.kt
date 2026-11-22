@@ -44,6 +44,10 @@ class LayoutStore(context: Context) {
         sp.edit().putString(key, o.toString()).apply()
     }
 
+    fun remove(key: String) {
+        sp.edit().remove(key).apply()
+    }
+
     fun clear() {
         sp.edit().clear().apply()
     }

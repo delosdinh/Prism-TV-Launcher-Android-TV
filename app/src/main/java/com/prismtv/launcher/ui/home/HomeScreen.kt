@@ -46,6 +46,8 @@ import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.AcUnit
 import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.graphics.luminance
@@ -413,9 +415,20 @@ private fun HeroOverlay(
                         }
                         VSpace(20.dp)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            HeroButton("Play", Icons.Rounded.PlayArrow, focusedButton == 0)
-                            HSpace(14.dp)
-                            HeroButton(null, Icons.Rounded.Info, focusedButton == 1)
+                            if (h.media) {
+                                // Now Playing: play/pause and next, for the app that's playing.
+                                HeroButton(
+                                    if (h.playing) "Pause" else "Play",
+                                    if (h.playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                                    focusedButton == 0,
+                                )
+                                HSpace(14.dp)
+                                HeroButton(null, Icons.Rounded.SkipNext, focusedButton == 1)
+                            } else {
+                                HeroButton("Play", Icons.Rounded.PlayArrow, focusedButton == 0)
+                                HSpace(14.dp)
+                                HeroButton(null, Icons.Rounded.Info, focusedButton == 1)
+                            }
                         }
                     }
                 }

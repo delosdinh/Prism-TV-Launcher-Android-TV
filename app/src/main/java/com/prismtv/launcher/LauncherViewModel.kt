@@ -93,6 +93,7 @@ import com.prismtv.launcher.data.RecentEntry
 import com.prismtv.launcher.data.RecentsRepository
 import com.prismtv.launcher.data.RecommendationsRepository
 import com.prismtv.launcher.data.ResArt
+import com.prismtv.launcher.data.MemoryArt
 import com.prismtv.launcher.sound.Cue
 import com.prismtv.launcher.sound.UiSounds
 import com.prismtv.launcher.system.PrismAccessibilityService
@@ -155,7 +156,7 @@ enum class SettingsPage(val title: String) {
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
     Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
-    Access("Privacy & Access"), Closing("Closing Apps"), Shizuku("Shizuku"),
+    Access("Privacy & Access"), Closing("Closing Apps"), Shizuku("Shizuku"), HomeApp("Home App"),
 }
 
 data class SettingsRow(
@@ -283,7 +284,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private var realApps by mutableStateOf<List<LauncherApp>>(emptyList())
     private var heroItemsByApp by mutableStateOf<Map<String, List<HeroItem>>>(emptyMap())
     private var layout by mutableStateOf(layoutStore.load(if (prefs.demoContent) "demo" else "real"))
-    private val layoutKey: String get() = if (prefs.demoContent) "demo" else "real"
+    init {
+        // The layout above is read before the profile is known: switch to this profile's own one.
+        if (!prefs.demoContent && prefs.activeProfile.isNotEmpty() && prefs.activeProfile != com.prismtv.launcher.data.Profiles.MainId) {
+            layout = loadLayout()
+        }
+    }
+    /** Each profile keeps its own Home Screen layout (the first profile keeps the original one). */
+    private val layoutKey: String
+        get() = when {
+            prefs.demoContent -> "demo"
+            prefs.activeProfile.isEmpty() || prefs.activeProfile == com.prismtv.launcher.data.Profiles.MainId -> "real"
+            else -> "real:${prefs.activeProfile}"
+        }
+
+    /** A profile without a layout of its own yet starts from the first profile's. */
+    private fun loadLayout(): GridLayout? = layoutStore.load(layoutKey) ?: if (layoutKey.startsWith("real:")) layoutStore.load("real") else null
 
     /** Visible Home Screen items (apps + folders), in order. */
     val items: List<GridItem> by derivedStateOf {
@@ -795,8 +811,30 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 art = ResArt(DemoContent.sceneFor(app.packageName)),
             )
         }
-        if (prefs.heroSource == HeroSource.AppArtwork) return listOf(fallback)
-        return heroItemsByApp[app.id] ?: DemoContent.heroes[app.id] ?: listOf(fallback)
+        // Something this app is playing comes first, with play/pause and next (like tvOS's Now Playing).
+        val playingNow = nowPlayingHero(app)
+        val list = if (prefs.heroSource == HeroSource.AppArtwork) listOf(fallback)
+        else heroItemsByApp[app.id] ?: DemoContent.heroes[app.id] ?: listOf(fallback)
+        return if (playingNow != null) listOf(playingNow) + list else list
+    }
+
+    private fun nowPlayingHero(app: LauncherApp): HeroItem? {
+        val np = nowPlaying ?: return null
+        if (np.pkg != app.packageName || np.title.isBlank()) return null
+        val art = np.art?.let { a ->
+            runCatching { MemoryArt("np:${np.pkg}:${np.title.hashCode()}:${System.identityHashCode(a)}", a.asAndroidBitmap()) }.getOrNull()
+        }
+        return HeroItem(
+            key = "np:${np.pkg}",
+            appId = app.id,
+            appLabel = np.appLabel.ifBlank { app.label },
+            title = np.title,
+            meta = np.subtitle,
+            badges = listOf(if (np.playing) "Now Playing" else "Paused"),
+            art = art ?: if (app.demo != null) ResArt(DemoContent.sceneFor(app.packageName)) else BannerArt(app.id),
+            media = true,
+            playing = np.playing,
+        )
     }
 
     /** After Lite Mode changes: the Top Shelf and wallpaper load again at the new size. */
@@ -960,6 +998,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun updatePrefs(p: LauncherPrefs) {
         val demoChanged = p.demoContent != prefs.demoContent
+        val profileChanged = p.activeProfile != prefs.activeProfile
         val shuffleChanged = p.wallpaperShuffle != prefs.wallpaperShuffle
         val liteChanged = p.liteMode != prefs.liteMode
         prefs = p
@@ -971,8 +1010,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (shuffleChanged) restartShuffle()
         store.save(p)
         sounds.enabled = p.sounds
+        if (profileChanged && !demoChanged && !p.demoContent) {
+            // Someone else is watching: their own Home Screen.
+            layout = loadLayout()
+            row = 0; col = 0; heroAppIndex = 0; heroIndex = 0
+            if (zone == Zone.Widget) zone = Zone.Grid
+        }
         if (demoChanged) {
-            layout = layoutStore.load(layoutKey)
+            layout = loadLayout()
             row = 0; col = 0; heroAppIndex = 0; heroIndex = 0
             if (zone == Zone.Widget) zone = Zone.Grid
             widgetRowsAll = if (p.demoContent) demoWidgetRows() else emptyList()
@@ -1534,7 +1579,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 NavKey.Down -> { zone = Zone.Grid; row = 0; col = heroAppIndex }
                 NavKey.Left -> if (heroButton > 0) heroButton-- else stepHero(-1)
                 NavKey.Right -> if (heroButton < 1) heroButton++ else stepHero(1)
-                NavKey.Select -> if (heroButton == 0) playHero() else showHeroInfo()
+                NavKey.Select -> if (currentHeroItem?.media == true) {
+                    // Now Playing: play/pause, and next.
+                    if (heroButton == 0) com.prismtv.launcher.system.MediaWatcher.playPause() else com.prismtv.launcher.system.MediaWatcher.next()
+                    cue(Cue.Toggle)
+                } else if (heroButton == 0) playHero() else showHeroInfo()
                 NavKey.PlayPause -> playHero()
                 NavKey.LongSelect -> Unit
                 NavKey.Menu -> openControlCentre()
@@ -2602,9 +2651,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (rest.isEmpty()) return
         confirm(
             "Delete ${nameOf(me)}?",
-            "Their name, picture, passcode and restrictions are removed. Your apps and Home Screen stay as they are.",
+            "Their name, picture, passcode, restrictions and Home Screen layout are removed. Your apps stay installed.",
             "Delete",
         ) {
+            if (me.id != com.prismtv.launcher.data.Profiles.MainId) layoutStore.remove("real:${me.id}")
             val open = rest.firstOrNull { !it.locked }
             if (open != null) {
                 saveProfiles(rest, open)
@@ -2685,6 +2735,166 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 null
             },
         )
+    }
+
+    // ---------------------------------------------------------------- Home app
+
+    private val homeIntent get() = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+
+    /** The TV's Home app right now (its package), or null when Android would ask. */
+    private fun currentHomePackage(): String? = runCatching {
+        ctx.packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+            ?.takeIf { it != "android" }
+    }.getOrNull()
+
+    /** The TV's own launcher (Google TV, Android TV Home…): package and activity. */
+    private fun stockLauncher(): android.content.ComponentName? {
+        prefs.hiddenLauncher.takeIf { it.contains('/') }?.let { return android.content.ComponentName.unflattenFromString(it) }
+        val known = listOf(
+            "com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher", "com.google.android.leanbacklauncher",
+            "com.amazon.tv.launcher", "com.android.tv.launcher",
+        )
+        @Suppress("DEPRECATION")
+        val all = runCatching {
+            ctx.packageManager.queryIntentActivities(homeIntent, PackageManager.MATCH_DISABLED_COMPONENTS)
+        }.getOrDefault(emptyList())
+            .map { android.content.ComponentName(it.activityInfo.packageName, it.activityInfo.name) }
+            .filter { it.packageName != ctx.packageName && it.packageName != "com.android.settings" && it.packageName != "com.android.tv.settings" }
+        return all.minByOrNull { c -> known.indexOf(c.packageName).let { if (it < 0) 99 else it } }
+    }
+
+    private fun appName(pkg: String): String = runCatching {
+        ctx.packageManager.getApplicationLabel(ctx.packageManager.getApplicationInfo(pkg, PackageManager.MATCH_DISABLED_COMPONENTS)).toString()
+    }.getOrDefault(pkg)
+
+    private fun homeAppLabel(): String = when (val pkg = currentHomePackage()) {
+        ctx.packageName -> "Prism TV"
+        null -> "Not Chosen"
+        else -> appName(pkg)
+    }
+
+    private fun homeAppRows(): List<SettingsRow> {
+        val stock = stockLauncher()
+        val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
+        val hidden = prefs.hiddenLauncher.isNotEmpty()
+        val isHome = currentHomePackage() == ctx.packageName
+        return listOfNotNull(
+            SettingsRow("ha:make", "Make Prism TV the Home App", "HOME APP", if (isHome) "Done" else null, chevron = !isHome),
+            if (stock != null || hidden) {
+                SettingsRow("ha:hide", "Hide $stockName", "HOME APP", onOff(hidden))
+            } else {
+                null
+            },
+            SettingsRow("ha:restore", "Restore $stockName", "BEFORE UNINSTALLING PRISM TV", chevron = true),
+        )
+    }
+
+    private fun selectHomeApp(id: String) {
+        val stock = stockLauncher()
+        val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
+        val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
+        when (id) {
+            "ha:make" -> if (currentHomePackage() == ctx.packageName) {
+                showBanner("Home App", "Prism TV is already the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            } else {
+                shellDialog(
+                    title = "Make Prism TV the Home App",
+                    intro = "Home, startup and the remote's Home button will all open Prism TV. Select Do It for Me, or type this command yourself:",
+                    command = "cmd package set-home-activity --user 0 $main",
+                    done = { currentHomePackage() == ctx.packageName },
+                    doneMessage = "Prism TV is now the Home app.",
+                )
+            }
+            "ha:hide" -> if (prefs.hiddenLauncher.isNotEmpty()) {
+                restoreLauncher()
+            } else if (stock != null) {
+                dialog = DialogSpec(
+                    "Hide $stockName?",
+                    "$stockName won't open in its place any more. Before you uninstall Prism TV, come back here and select " +
+                        "Restore $stockName, or the TV may start to a blank screen.",
+                    listOf(
+                        DialogButton("Hide $stockName") { hideLauncher(stock, stockName) },
+                        DialogButton("Cancel") {},
+                    ),
+                )
+                dialogFocus = 1
+            }
+            "ha:restore" -> dialog = DialogSpec(
+                "Restore $stockName?",
+                "$stockName comes back as the Home app. Do this before uninstalling Prism TV, so the TV always has a " +
+                    "launcher to start to. You can make Prism TV the Home app again here at any time.",
+                listOf(DialogButton("Restore $stockName") { restoreLauncher() }, DialogButton("Cancel") {}),
+            ).also { dialogFocus = 1 }
+        }
+    }
+
+    private fun hideLauncher(stock: android.content.ComponentName, name: String) {
+        val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
+        runShellSteps(
+            "Hide $name",
+            "cmd package set-home-activity --user 0 $main && pm disable-user --user 0 ${stock.packageName}",
+        ) { ok ->
+            if (ok) {
+                updatePrefs(prefs.copy(hiddenLauncher = stock.flattenToString()))
+                showBanner("Home App", "$name is hidden and Prism TV is the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            }
+        }
+    }
+
+    private fun restoreLauncher() {
+        val stock = stockLauncher()
+        if (stock == null) {
+            showBanner("Home App", "This TV has no other launcher to go back to.", Icons.Rounded.Info)
+            return
+        }
+        val name = appName(stock.packageName)
+        runShellSteps(
+            "Restore $name",
+            "pm enable ${stock.packageName} >/dev/null 2>&1; cmd package set-home-activity --user 0 ${stock.flattenToString()}",
+        ) { ok ->
+            if (ok) {
+                updatePrefs(prefs.copy(hiddenLauncher = ""))
+                showBanner("Home App", "$name is back as the Home app. Prism TV can now be uninstalled safely.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            }
+        }
+    }
+
+    /** Runs [command] through Shizuku, root or the TV's own adb, telling you what happened. */
+    private fun runShellSteps(title: String, command: String, then: (Boolean) -> Unit) {
+        if (!com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)) {
+            dialog = DialogSpec(
+                title,
+                "This needs USB debugging (Settings › Apps › Closing Apps › Shizuku shows how) or Shizuku. Or type this " +
+                    "command yourself:",
+                listOf(DialogButton("OK") {}),
+                code = command,
+                codeNote = TypeNote,
+            )
+            dialogFocus = 0
+            return
+        }
+        if (!com.prismtv.launcher.system.ShizukuShell.ready()) {
+            showBanner(title, "If your TV asks to allow debugging, tick Always allow and select Allow.", Icons.Rounded.Info, null)
+        }
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                com.prismtv.launcher.system.ShellRunner.run(ctx, command, allowPrompt = true, rootAllowed = prefs.rootClose)
+            }
+            resumeTick++
+            val ok = r is com.prismtv.launcher.system.LocalAdb.Result.Ok && (r.exit == null || r.exit == 0)
+            if (!ok) {
+                val why = when (r) {
+                    is com.prismtv.launcher.system.LocalAdb.Result.Ok -> r.output.lines().firstOrNull { it.isNotBlank() } ?: "It didn't work."
+                    com.prismtv.launcher.system.LocalAdb.Result.Unreachable -> "Prism TV can't reach this TV's debugging."
+                    com.prismtv.launcher.system.LocalAdb.Result.NotAllowed -> "The TV didn't allow debugging for Prism TV."
+                    com.prismtv.launcher.system.LocalAdb.Result.Off -> "USB debugging is off."
+                    is com.prismtv.launcher.system.LocalAdb.Result.Failed -> r.why
+                }
+                dialog = DialogSpec(title, "$why You can also type this command yourself:", listOf(DialogButton("OK") {}), code = command, codeNote = TypeNote)
+                dialogFocus = 0
+            }
+            then(ok)
+        }
     }
 
     // ---------------------------------------------------------------- Shizuku, step by step
@@ -2942,7 +3152,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun runShellForYou(title: String, command: String, done: () -> Boolean, doneMessage: String) {
-        if (!com.prismtv.launcher.system.LocalAdb.enabled(ctx)) {
+        if (!com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)) {
             dialog = DialogSpec(
                 "Turn On USB Debugging",
                 "Do It for Me works through the TV's USB debugging, which is off. Settings › Apps › Closing Apps › Shizuku › " +
@@ -2952,9 +3162,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             dialogFocus = 0
             return
         }
-        showBanner(title, "If your TV asks to allow debugging, tick Always allow and select Allow.", Icons.Rounded.Info, null)
+        if (!com.prismtv.launcher.system.ShizukuShell.ready()) {
+            showBanner(title, "If your TV asks to allow debugging, tick Always allow and select Allow.", Icons.Rounded.Info, null)
+        }
         viewModelScope.launch {
-            val r = withContext(Dispatchers.IO) { com.prismtv.launcher.system.LocalAdb.shell(ctx, command, allowPrompt = true) }
+            val r = withContext(Dispatchers.IO) {
+                com.prismtv.launcher.system.ShellRunner.run(ctx, command, allowPrompt = true, rootAllowed = prefs.rootClose)
+            }
             resumeTick++
             when {
                 r is com.prismtv.launcher.system.LocalAdb.Result.Ok && done() ->
@@ -3028,6 +3242,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             // Only TVs have inputs; on a box there'd be nothing behind this row.
             if (inputApps.isEmpty()) null else SettingsRow("inputs", "Inputs", "APPS", inputApps.size.toString(), chevron = true),
             SettingsRow("closing", "Closing Apps", "APPS", closingLabel(), chevron = true),
+            SettingsRow("homeApp", "Home App", "REMOTE & POWER", homeAppLabel(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE & POWER", onOff(prefs.homeOverride)),
             SettingsRow("startup", "Open Prism TV at Startup", "REMOTE & POWER", onOff(prefs.openAtStartup)),
@@ -3227,6 +3442,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Inputs -> inputRows()
         SettingsPage.Closing -> resumeTick.let { _ -> closingRows() }
         SettingsPage.Shizuku -> resumeTick.let { _ -> shizukuRows() }
+        SettingsPage.HomeApp -> resumeTick.let { _ -> homeAppRows() }
         SettingsPage.Backup -> backupRows()
         SettingsPage.IconPack -> iconPackRows()
         SettingsPage.Banner -> bannerRows()
@@ -3488,6 +3704,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "closing" -> pushPage(SettingsPage.Closing)
             r.id.startsWith("cl:") -> selectClosing(r.id)
             r.id.startsWith("sz:") -> selectShizuku(r.id)
+            r.id == "homeApp" -> pushPage(SettingsPage.HomeApp)
+            r.id.startsWith("ha:") -> selectHomeApp(r.id)
             r.id == "iconPack" -> {
                 pushPage(SettingsPage.IconPack)
                 loadIconPacks()
@@ -3701,7 +3919,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             updatePrefs(store.load())
-            layout = layoutStore.load(layoutKey)
+            layout = loadLayout()
             loadInputs()
             refreshApps()
             restartShuffle()

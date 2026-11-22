@@ -142,6 +142,22 @@ object AppCloser {
 
     private val SafePackage = Regex("[A-Za-z0-9_.]+")
 
+    /** Reads [p]'s output (stdout then stderr) until it ends, up to [ms]; its exit code and output. */
+    internal fun readAll(p: Process, ms: Long): Pair<Int?, String> {
+        var out = ""
+        val reader = Thread {
+            out = runCatching { p.inputStream.bufferedReader().readText() + p.errorStream.bufferedReader().readText() }.getOrDefault("")
+        }
+        reader.isDaemon = true
+        reader.start()
+        reader.join(ms)
+        if (reader.isAlive) {
+            runCatching { p.destroy() }
+            return null to out
+        }
+        return waitFor(p, 2000) to out
+    }
+
     /** Waits up to [ms] for [p] to finish; its exit code, or null if it didn't. */
     internal fun waitFor(p: Process, ms: Long): Int? {
         var code: Int? = null
@@ -229,6 +245,18 @@ object ShizukuShell {
 
     fun forceStop(pkg: String): Boolean = run(arrayOf("am", "force-stop", pkg)) == 0
 
+    /** Runs a shell command as Shizuku's shell user: its exit code and output, or null if Shizuku couldn't. */
+    fun exec(command: String): Pair<Int?, String>? = try {
+        val m = Shizuku::class.java.getDeclaredMethod(
+            "newProcess", Array<String>::class.java, Array<String>::class.java, String::class.java,
+        )
+        m.isAccessible = true
+        val p = m.invoke(null, arrayOf("sh", "-c", command), null, null) as Process
+        AppCloser.readAll(p, 15_000)
+    } catch (_: Throwable) {
+        null
+    }
+
     /** Shizuku API 13 keeps newProcess private (it prefers bound services); it's still the simplest way to run one command. */
     private fun run(cmd: Array<String>): Int? = try {
         val m = Shizuku::class.java.getDeclaredMethod(
@@ -275,5 +303,11 @@ object RootShell {
         AppCloser.waitFor(p, 8000) == 0
     } catch (_: Throwable) {
         false
+    }
+
+    fun exec(command: String): Pair<Int?, String>? = try {
+        AppCloser.readAll(Runtime.getRuntime().exec(arrayOf("su", "-c", command)), 15_000)
+    } catch (_: Throwable) {
+        null
     }
 }

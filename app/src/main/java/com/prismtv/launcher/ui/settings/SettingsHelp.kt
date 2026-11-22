@@ -43,6 +43,12 @@ private val Exact: Map<String, String> = mapOf(
     "restart" to "Closes and reopens Prism TV. Your settings and layout stay as they are.",
     "reset" to "Puts every Prism TV setting and the Home Screen layout back to how they started.",
 
+    // Home App
+    "homeApp" to "Which app the TV starts to and the Home button opens. Prism TV can set this itself, and put the TV's own launcher back.",
+    "ha:make" to "Makes Prism TV the TV's Home app with one command, through Shizuku or the TV's own debugging.",
+    "ha:hide" to "Stops the TV's own launcher opening in Prism TV's place. Restore it before uninstalling Prism TV.",
+    "ha:restore" to "Brings the TV's own launcher back as the Home app. Do this before uninstalling Prism TV, so the TV always has a launcher.",
+
     // Closing Apps
     "cl:full" to "Swiped-away apps are force stopped, so music and downloads stop too. They stay closed until you open them again. Off just frees their memory.",
     "cl:using" to "How Prism TV closes apps right now. Shizuku and root are instant; Power & Home Button presses Force Stop in Settings for you.",

@@ -178,6 +178,8 @@ data class LauncherPrefs(
     val rootClose: Boolean = false,
     /** Shizuku stops when the TV restarts: start it again through the TV's own adb (once set up). */
     val shizukuAutoStart: Boolean = true,
+    /** The TV's own launcher Prism TV hid ("package/activity"), to restore before uninstalling. */
+    val hiddenLauncher: String = "",
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -262,6 +264,7 @@ class PrefsStore(context: Context) {
             closeCompletely = sp.getBoolean("closeCompletely", d.closeCompletely),
             rootClose = sp.getBoolean("rootClose", d.rootClose),
             shizukuAutoStart = sp.getBoolean("shizukuAutoStart", d.shizukuAutoStart),
+            hiddenLauncher = sp.getString("hiddenLauncher", d.hiddenLauncher).orEmpty(),
         )
     }
 
@@ -305,6 +308,7 @@ class PrefsStore(context: Context) {
             .putBoolean("closeCompletely", p.closeCompletely)
             .putBoolean("rootClose", p.rootClose)
             .putBoolean("shizukuAutoStart", p.shizukuAutoStart)
+            .putString("hiddenLauncher", p.hiddenLauncher)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)
