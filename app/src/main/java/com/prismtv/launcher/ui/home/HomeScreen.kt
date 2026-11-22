@@ -59,7 +59,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -232,8 +234,21 @@ private fun HomeBackdrop(
             .backdropSource(backdrop, GlassSource.Background)
     ) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(palette.bgAccent, palette.bgBase))))
+        // Apple TV Aerials: the video sits under the still, which fades once the aerial is playing
+        // (on Android 11 and older it comes back, blurred, behind the grid: there's no live blur there).
+        var aerialShown by remember { mutableStateOf(false) }
+        if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(blur = { blur.value }, modifier = Modifier.fillMaxSize(), onShown = { aerialShown = it })
+        LaunchedEffect(aerial) { if (!aerial) aerialShown = false }
+        val stillAlpha by animateFloatAsState(if (aerial && aerialShown) 0f else 1f, tween(900), label = "aerialStill")
         // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).
-        Crossfade(targetState = art, animationSpec = tween(if (LocalPrism.current.lite) 350 else 900), label = "heroArt") { a ->
+        Crossfade(
+            targetState = art,
+            animationSpec = tween(if (LocalPrism.current.lite) 350 else 900),
+            label = "heroArt",
+            modifier = Modifier.graphicsLayer {
+                alpha = if (android.os.Build.VERSION.SDK_INT >= 31) stillAlpha else maxOf(stillAlpha, blur.value)
+            },
+        ) { a ->
             if (a != null) {
                 Box(Modifier.fillMaxSize()) {
                     Image(a.full, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
@@ -248,7 +263,6 @@ private fun HomeBackdrop(
                 }
             }
         }
-        if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(blur = { blur.value }, modifier = Modifier.fillMaxSize())
         if (!spot) {
             // Hero scrims keep type legible without looking "dimmed".
             Box(

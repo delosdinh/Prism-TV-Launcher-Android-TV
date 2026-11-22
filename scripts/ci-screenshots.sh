@@ -253,6 +253,7 @@ if [ "$QUICK" = 0 ]; then
   # Apple TV Aerials as the Home wallpaper (Spotlight shows the wallpaper around its card).
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen home --ei col 0; sleep 16
   cap 74-home-aerial-wallpaper
+  adb logcat -d -s PrismAerial:V | tail -n 12 > "$OUT/aerial-wallpaper.txt"
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen grid --ei row 1 --ei col 1; sleep 5
   cap 74b-grid-aerial-wallpaper
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --ez lite true --es screen home --ei col 0; sleep 4

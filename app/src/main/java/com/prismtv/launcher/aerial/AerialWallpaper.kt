@@ -29,13 +29,14 @@ import com.prismtv.launcher.data.AerialRange
  * until the first frame and in Lite Mode. Drawn through a TextureView so Liquid Glass can see it.
  */
 @Composable
-fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier) {
+fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (Boolean) -> Unit = {}) {
     val ctx = LocalContext.current
     var videos by remember { mutableStateOf(Resume.list) }
     LaunchedEffect(Unit) {
         if (videos == null) {
             videos = AerialCatalog.load(ctx, AerialQuality.HD, AerialRange.SDR).shuffled().take(12).also { Resume.list = it }
         }
+        android.util.Log.i("PrismAerial", "Home wallpaper: ${videos?.size ?: 0} aerials")
     }
     val list = videos ?: return
     if (list.isEmpty()) return
@@ -55,10 +56,13 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier) {
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() {
+                if (!shown) android.util.Log.i("PrismAerial", "Home wallpaper: playing")
                 shown = true
+                onShown(true)
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                android.util.Log.w("PrismAerial", "Home wallpaper: ${error.errorCodeName}")
                 // Skip a clip that won't play (and stop trying if none will).
                 if (player.mediaItemCount > 1 && Resume.errors++ < 6) {
                     player.seekToNextMediaItem()
@@ -73,14 +77,15 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier) {
             Resume.position = player.currentPosition
             player.removeListener(listener)
             player.release()
+            onShown(false)
         }
     }
-    val alpha by animateFloatAsState(if (shown) 1f else 0f, tween(900), label = "aerialWall")
+    // Always drawn at full strength (a TextureView that's never drawn never gets its first frame):
+    // the still above it fades away once the aerial is playing.
     AndroidView(
         factory = { c -> TextureView(c).also { player.setVideoTextureView(it) } },
         modifier = modifier.graphicsLayer {
             val b = blur()
-            this.alpha = alpha * if (android.os.Build.VERSION.SDK_INT >= 31) 1f else 1f - b
             if (android.os.Build.VERSION.SDK_INT >= 31 && b > 0.01f) {
                 val r = (48f * b).dp.toPx()
                 renderEffect = android.graphics.RenderEffect.createBlurEffect(r, r, android.graphics.Shader.TileMode.CLAMP)
