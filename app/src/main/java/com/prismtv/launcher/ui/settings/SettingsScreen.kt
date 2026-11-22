@@ -61,6 +61,13 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.PrivacyTip
+import androidx.compose.material.icons.rounded.Recommend
+import androidx.compose.material.icons.rounded.Panorama
+import androidx.compose.material.icons.rounded.Collections
+import androidx.compose.material.icons.rounded.Autorenew
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.ManageAccounts
 import com.prismtv.launcher.ui.components.Avatar
@@ -279,6 +286,15 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "ss:pictures" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),
     "acc:photos" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),
     "access" to glyph(Icons.Rounded.PrivacyTip, 0xFF3D9BFF, 0xFF0A5FE0),
+    "recs" to glyph(Icons.Rounded.Recommend, 0xFF3D9BFF, 0xFF0A5FE0),
+    "hero" to glyph(Icons.Rounded.Panorama, 0xFF5AC8FA, 0xFF0A6CFF),
+    "source" to glyph(Icons.Rounded.Collections, 0xFFFF9F0A, 0xFFE06A00),
+    "autorotate" to glyph(Icons.Rounded.Autorenew, 0xFF4CD964, 0xFF239B3E),
+    "ss:show" to glyph(Icons.Rounded.PlayCircle, 0xFF5AC8FA, 0xFF0A84FF),
+    "ss:after" to glyph(Icons.Rounded.Timer, 0xFF9C9CA3, 0xFF5E5E64),
+    "ss:source" to glyph(Icons.Rounded.Landscape, 0xFF64D2FF, 0xFF1A8FB8),
+    "ss:location" to glyph(Icons.Rounded.Place, 0xFFFF6961, 0xFFD63A31),
+    "ss:quality" to glyph(Icons.Rounded.HighQuality, 0xFFBF5AF2, 0xFF8E2DC4),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
