@@ -362,14 +362,22 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     val art = vm.currentArt
     val gridMode = vm.isGridMode
 
+    // Blur settings are applied only when they change: setting a new RenderEffect re-renders the blurred
+    // layers, and this composable also recomposes for unrelated things (art, grid mode).
+    val blurKey = remember { arrayOfNulls<Any>(1) }
+    val blurConfig = listOf(theme.lite, theme.liquid, blurPx, uiBlurPx, uiSat)
     SideEffect {
-        if (SupportsLiveBlur && theme.lite) {
+        if (blurKey[0] == blurConfig) {
+            // unchanged
+        } else if (SupportsLiveBlur && theme.lite) {
+            blurKey[0] = blurConfig
             // Lite Mode: nothing blurs live, so the blurred twins cost nothing even if drawn.
             listOf(backdrop.bgBlur, backdrop.sceneBlur, backdrop.fullBlur, backdrop.sceneUiBlur).forEach {
                 it.renderEffect = null
                 it.colorFilter = null
             }
         } else if (SupportsLiveBlur) {
+            blurKey[0] = blurConfig
             listOf(backdrop.bgBlur, backdrop.sceneBlur).forEach {
                 it.renderEffect = BlurEffect(blurPx, blurPx, TileMode.Clamp)
                 it.colorFilter = if (theme.liquid) LiquidSaturation else null
@@ -461,20 +469,32 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
                 CompositionLocalProvider(LocalPrism provides uiTheme) { SettingsScreen(vm) }
             }
             ContextMenuHost(vm)
-            CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
+            CompositionLocalProvider(LocalPrism provides uiTheme) { DialogLayer(vm) }
             com.prismtv.launcher.ui.home.ProfilePicker(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = keyboardClear, fieldLook = fieldLook, fieldClear = fieldClear) }
             CompositionLocalProvider(LocalPrism provides uiTheme) { com.prismtv.launcher.ui.home.PasscodePad(vm) }
             LaunchOverlay(vm)
             // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.
-            BannerHost(vm.banner)
+            BannerLayer(vm)
         }
     }
 
+    FocusKeeper(vm, focusRequester)
+    BackHandler { vm.onBack() }
+}
+
+// Small wrappers so a dialog's focus, a banner or a refresh only recomposes these, not the whole canvas.
+@Composable
+private fun DialogLayer(vm: LauncherViewModel) = DialogHost(vm.dialog, vm.dialogFocus)
+
+@Composable
+private fun BannerLayer(vm: LauncherViewModel) = BannerHost(vm.banner)
+
+@Composable
+private fun FocusKeeper(vm: LauncherViewModel, focusRequester: FocusRequester) {
     LaunchedEffect(vm.resumeTick) {
         runCatching { focusRequester.requestFocus() }
     }
-    BackHandler { vm.onBack() }
 }
 
 /**

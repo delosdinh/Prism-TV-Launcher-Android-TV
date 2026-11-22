@@ -1476,6 +1476,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         if (pendingClose.isNotEmpty() && !closeFlushing) scheduleClose()
         maybeStartShizuku()
+        // Back from an app: the App Switcher's list has changed.
+        if (!prefs.demoContent) refreshRecents()
     }
 
     private fun rowSize(r: Int): Int {
@@ -1603,7 +1605,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun openWidgetItem(item: HeroItem) {
         val uri = item.intentUri
         if (uri != null && SystemActions.openUri(ctx, uri)) {
-            allApps.firstOrNull { it.id == item.appId }?.let { recentsRepo.record(it.packageName) }
+            allApps.firstOrNull { it.id == item.appId }?.let { noteRecent(it.packageName) }
             return
         }
         allApps.firstOrNull { it.id == item.appId }?.let { app ->
@@ -1704,7 +1706,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val options = if (source != null && rect != null) SystemActions.scaleUpOptions(source, rect) else null
         val starter = source?.context ?: ctx
         if (intent != null && SystemActions.start(starter, intent, options ?: SystemActions.fadeOptions(ctx))) {
-            recentsRepo.record(app.packageName)
+            noteRecent(app.packageName)
             pendingReturn = anim
             launchFailed = false
         } else {
@@ -1833,7 +1835,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 closeOverlay()
                 val intent = SystemActions.launchIntent(ctx, app)
                 if (intent == null || !SystemActions.start(ctx, intent)) showBanner(app.label, "The store couldn't be opened.", Icons.Rounded.Info, Cue.Error)
-                else recentsRepo.record(app.packageName)
+                else noteRecent(app.packageName)
             }
         }
     }
@@ -2030,6 +2032,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     }
                     lastCloseResult = r
                     r.stopped.forEach(recentsRepo::remove)
+                    recentPackagesCache = recentPackagesCache?.filterNot { it in r.stopped }
                     closedApps = r.closed.size
                 }
             }
@@ -2174,23 +2177,59 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================================================================= switcher
 
-    fun openSwitcher() {
-        dialog = null
-        contextMenu = null
-        openFolder = null
+    /**
+     * Recent apps, most recent first. Reading Android's usage history can take a while, so it's read in
+     * the background (whenever Prism TV comes back to the front) and the App Switcher opens from this.
+     */
+    private var recentPackagesCache: List<String>? = null
+    private var recentsRefresh: Job? = null
+
+    private fun refreshRecents(thenUpdateSwitcher: Boolean = false) {
+        recentsRefresh?.cancel()
+        recentsRefresh = viewModelScope.launch {
+            val fresh = withContext(Dispatchers.IO) { recentsRepo.recentPackages() }
+            val changed = fresh != recentPackagesCache
+            recentPackagesCache = fresh
+            // Opened while this was still being read (double-pressing Home in an app): show the app
+            // just left, as long as nothing in the switcher has been touched yet.
+            if (thenUpdateSwitcher && changed && overlay == Overlay.Switcher && dismissingKey == null &&
+                switcherFocus == recents.lastIndex && !switcherClosingToHome
+            ) {
+                recents = recentEntries()
+                switcherFocus = recents.lastIndex
+            }
+        }
+    }
+
+    private fun recentEntries(): List<RecentEntry> {
         val apps: List<LauncherApp> = if (prefs.demoContent) {
             listOf("demo:cinema", "demo:arcade", "demo:music", "demo:prism")
                 .mapNotNull { id -> allApps.firstOrNull { it.id == id } }
         } else {
-            recentsRepo.recentPackages().take(8).reversed()
+            val pkgs = recentPackagesCache ?: recentsRepo.recentPackages().also { recentPackagesCache = it }
+            pkgs.take(8).reversed()
                 .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
                 .filter { it.id !in blockedApps }
         }
         // Oldest on the left, most recent next to Home.
-        recents = apps.map { a ->
+        return apps.map { a ->
             val hero = heroesFor(a).firstOrNull()
             RecentEntry(a.id, a, hero?.art, hero?.title?.takeIf { it.isNotBlank() })
         } + RecentEntry("home", null, null)
+    }
+
+    private fun noteRecent(pkg: String) {
+        recentsRepo.record(pkg)
+        recentPackagesCache = recentPackagesCache?.let { listOf(pkg) + it.filterNot { p -> p == pkg } }
+    }
+
+    fun openSwitcher() {
+        dialog = null
+        contextMenu = null
+        openFolder = null
+        val reading = recentsRefresh?.isActive == true
+        recents = recentEntries()
+        if (reading) refreshRecents(thenUpdateSwitcher = true)
         // Like tvOS: Home shrinks into the focused card; the last app is one press to the left.
         switcherFocus = recents.lastIndex
         switcherLift = false
@@ -2240,6 +2279,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             dismissingKey = null
             if (app.demo == null) {
                 recentsRepo.remove(app.packageName)
+                recentPackagesCache = recentPackagesCache?.filterNot { it == app.packageName }
                 queueClose(app)
             }
         }
@@ -2603,11 +2643,21 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun onOff(b: Boolean) = if (b) "On" else "Off"
 
+    private var closeMethodCache: Triple<Int, LauncherPrefs, com.prismtv.launcher.system.AppCloser.Method>? = null
+
+    /** The closing method for Settings rows, worked out once per refresh (it can ask Shizuku over IPC). */
+    private fun shownCloseMethod(): com.prismtv.launcher.system.AppCloser.Method {
+        val t = resumeTick
+        val p = prefs
+        closeMethodCache?.takeIf { it.first == t && it.second === p }?.let { return it.third }
+        return closeMethod().also { closeMethodCache = Triple(t, p, it) }
+    }
+
     /** Settings › Apps › Closing Apps on the main list: whether swiped-away apps really stop. */
     private fun closingLabel(): String =
-        if (closeMethod() == com.prismtv.launcher.system.AppCloser.Method.MemoryOnly) "Memory Only" else "Completely"
+        if (shownCloseMethod() == com.prismtv.launcher.system.AppCloser.Method.MemoryOnly) "Memory Only" else "Completely"
 
-    private fun closingWithLabel(): String = when (closeMethod()) {
+    private fun closingWithLabel(): String = when (shownCloseMethod()) {
         com.prismtv.launcher.system.AppCloser.Method.Shizuku -> "Shizuku"
         com.prismtv.launcher.system.AppCloser.Method.Root -> "Root Access"
         com.prismtv.launcher.system.AppCloser.Method.Accessibility -> "Power & Home Button"

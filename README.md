@@ -44,7 +44,7 @@ launcher counterpart to the Prism TV skin for Kodi.
   and **Play Store** (with its own icon; Amazon Appstore or Aptoide TV on boxes without Google Play).
 - **Time pill** (top-right) with the current weather, a **notification bell with a badge** (only
   when something's waiting) and the profile avatar — opens Control Centre, which lists the
-  notifications (OK opens one, hold OK clears it). Needs Notification access for Prism TV:
+  notifications (OK opens one; Left or Right slides it aside to show **Clear**, as on iOS; the small ✕ above the list opens into **Clear All**). Needs Notification access for Prism TV:
   Settings › Privacy & Access › **Notifications & Now Playing** opens Android's page, or **Do It
   for Me** turns it on through the TV's USB debugging (see [Shell commands](#shell-commands)).
   Weather comes from Open-Meteo, located from your internet connection; turn it off or change
