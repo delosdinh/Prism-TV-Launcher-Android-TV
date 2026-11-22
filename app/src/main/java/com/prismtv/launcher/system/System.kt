@@ -10,6 +10,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.prismtv.launcher.data.LauncherApp
@@ -67,6 +68,30 @@ class PrismAccessibilityService : AccessibilityService() {
         }
     }
 
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+    private var bannersOrNull: BannerOverlay? = null
+
+    // ---- Home: snapshot first, then Prism TV; a hold action if one's set.
+    private var capturing = false
+    private var pendingHome: Runnable? = null
+    private var homeHeld = false
+    private val homeHoldTimer = Runnable {
+        homeHeld = true
+        runAction(RemoteButtons.homeHold(this))
+    }
+
+    // ---- Changed remote buttons: the one being pressed, and whether its hold action has run.
+    private var downMapping: RemoteButtons.Mapping? = null
+    private var mappingHeld = false
+    private val mappingHoldTimer = Runnable {
+        val m = downMapping ?: return@Runnable
+        mappingHeld = true
+        runAction(m.hold)
+    }
+    /** A key Prism TV sent on itself (the usual press of a button with only a hold action). */
+    private var passThroughCode = -1
+    private var passThroughUntil = 0L
+
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val code = event.keyCode
         if (stopperOrNull?.active == true) {
@@ -75,27 +100,167 @@ class PrismAccessibilityService : AccessibilityService() {
             if (code == KeyEvent.KEYCODE_HOME || code == KeyEvent.KEYCODE_ALL_APPS) stopperOrNull?.abort()
             else return true
         }
-        if (code != KeyEvent.KEYCODE_HOME && code != KeyEvent.KEYCODE_ALL_APPS) return false
-        val enabled = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).getBoolean("homeOverride", true)
-        if (!enabled) return false
-        if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) {
-            val home = Intent(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_HOME)
-                .setClassName(packageName, "com.prismtv.launcher.MainActivity")
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
-            return try {
-                startActivity(home)
-                true
-            } catch (_: Throwable) {
-                false
+        // Settings › Remote Buttons › Add a Button: this press is the button being learned.
+        RemoteButtons.learning?.let { learn ->
+            if (RemoteButtons.canChange(code) || code == KeyEvent.KEYCODE_UNKNOWN) {
+                if (event.action == KeyEvent.ACTION_UP) {
+                    RemoteButtons.learning = null
+                    val scan = event.scanCode
+                    main.post { learn(code, scan) }
+                }
+                return true
             }
         }
+        if (code == passThroughCode && android.os.SystemClock.uptimeMillis() < passThroughUntil) {
+            if (event.action == KeyEvent.ACTION_UP) passThroughCode = -1
+            return false
+        }
+        if (code == KeyEvent.KEYCODE_HOME || code == KeyEvent.KEYCODE_ALL_APPS) return homeKey(event)
+        return mappedKey(event)
+    }
+
+    private fun homeKey(event: KeyEvent): Boolean {
+        val sp = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE)
+        val override = sp.getBoolean("homeOverride", true)
+        val holdSet = event.keyCode == KeyEvent.KEYCODE_HOME && RemoteButtons.homeHold(this) != "default"
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (event.repeatCount == 0) {
+                homeHeld = false
+                captureForSwitcher()
+                if (holdSet) main.postDelayed(homeHoldTimer, RemoteButtons.HoldMs)
+            } else if (holdSet && !homeHeld) {
+                // The remote's own repeat (or a long-press flag) says it's being held.
+                main.removeCallbacks(homeHoldTimer)
+                homeHoldTimer.run()
+            }
+            return override || holdSet
+        }
+        // Key up.
+        main.removeCallbacks(homeHoldTimer)
+        if (homeHeld) {
+            homeHeld = false
+            return true
+        }
+        if (event.isCanceled) return override || holdSet
+        if (!override) {
+            if (!holdSet) return false
+            // Home is held back while we wait to see if it's a hold, so press it now.
+            performGlobalAction(GLOBAL_ACTION_HOME)
+            return true
+        }
+        val go = Runnable {
+            pendingHome = null
+            try {
+                startActivity(prismHome())
+            } catch (_: Throwable) {
+                performGlobalAction(GLOBAL_ACTION_HOME)
+            }
+        }
+        if (capturing) {
+            // The snapshot is a few frames from done: Prism TV comes up once it's taken (or soon anyway).
+            pendingHome = go
+            main.postDelayed({ pendingHome?.run() }, 220)
+        } else go.run()
         return true
+    }
+
+    private fun prismHome(): Intent = Intent(Intent.ACTION_MAIN)
+        .addCategory(Intent.CATEGORY_HOME)
+        .setClassName(packageName, "com.prismtv.launcher.MainActivity")
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+
+    /** App Switcher snapshots: what the app in front is showing, taken as you press Home. */
+    private fun captureForSwitcher() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || capturing) return
+        if (Foreground.prismResumed || !AppSnapshots.enabled(this)) return
+        val pkg = runCatching { rootInActiveWindow?.packageName?.toString() }.getOrNull() ?: Foreground.lastPackage
+        if (!AppSnapshots.worthCapturing(this, pkg)) return
+        capturing = true
+        AppSnapshots.capture(this, pkg!!) {
+            capturing = false
+            pendingHome?.run()
+        }
+    }
+
+    private fun mappedKey(event: KeyEvent): Boolean {
+        val down = downMapping
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (event.repeatCount > 0) {
+                if (down == null || !down.matches(event)) return false
+                if (down.hold != "default" && !mappingHeld) {
+                    main.removeCallbacks(mappingHoldTimer)
+                    mappingHoldTimer.run()
+                }
+                return true
+            }
+            val m = RemoteButtons.mappings(this).firstOrNull { it.matches(event) } ?: return false
+            if (m.press == "default" && m.hold == "default") return false
+            downMapping = m
+            mappingHeld = false
+            if (m.hold != "default") main.postDelayed(mappingHoldTimer, RemoteButtons.HoldMs)
+            return true
+        }
+        if (down == null || !down.matches(event)) return false
+        main.removeCallbacks(mappingHoldTimer)
+        downMapping = null
+        if (mappingHeld || event.isCanceled) return true
+        if (down.press != "default") runAction(down.press)
+        else if (!sendOn(event.keyCode)) Log.i("PrismKeys", "the usual press of ${event.keyCode} needs Shizuku or root")
+        return true
+    }
+
+    /** The button's usual press, sent on for real (only possible with Shizuku, root or adb). */
+    private fun sendOn(code: Int): Boolean {
+        if (code == KeyEvent.KEYCODE_UNKNOWN) return false
+        val ctx = applicationContext
+        val root = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).getBoolean("rootClose", false)
+        if (!ShellRunner.available(ctx, root)) return false
+        passThroughCode = code
+        passThroughUntil = android.os.SystemClock.uptimeMillis() + 3000
+        Thread {
+            val r = ShellRunner.run(ctx, "input keyevent $code", allowPrompt = false, rootAllowed = root)
+            if (r !is LocalAdb.Result.Ok) passThroughCode = -1
+        }.start()
+        return true
+    }
+
+    /** Does what a changed button (or Home held) is set to do. */
+    private fun runAction(action: String) {
+        try {
+            when {
+                action == "default" -> Unit
+                action == "home" -> startActivity(prismHome())
+                action == "playpause" -> MediaWatcher.playPause()
+                action == "sleep" -> sleepNow()
+                action.startsWith("app:") -> {
+                    val pkg = action.removePrefix("app:")
+                    val i = packageManager.getLeanbackLaunchIntentForPackage(pkg) ?: packageManager.getLaunchIntentForPackage(pkg)
+                    i?.let { startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)) }
+                }
+                else -> {
+                    // A Prism TV action: Prism TV opens with it (snapshot first, as for Home).
+                    captureForSwitcher()
+                    val i = Intent(Intent.ACTION_MAIN)
+                        .setClassName(packageName, "com.prismtv.launcher.MainActivity")
+                        .putExtra(ExtraAction, action)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    main.postDelayed({ runCatching { startActivity(i) } }, if (capturing) 120 else 0)
+                }
+            }
+        } catch (t: Throwable) {
+            Log.i("PrismKeys", "couldn't do $action: ${t.message}")
+        }
+    }
+
+    private fun sleepNow() {
+        if (Build.VERSION.SDK_INT >= 28) performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            stopperOrNull?.onWindowChanged(event.packageName?.toString())
+            val pkg = event.packageName?.toString()
+            stopperOrNull?.onWindowChanged(pkg)
+            if (pkg != null && AppSnapshots.worthCapturing(this, pkg)) Foreground.lastPackage = pkg
         }
     }
 
@@ -103,6 +268,8 @@ class PrismAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         stopperOrNull?.abort()
+        bannersOrNull?.remove()
+        main.removeCallbacksAndMessages(null)
         instance = null
         super.onDestroy()
     }
@@ -133,6 +300,17 @@ class PrismAccessibilityService : AccessibilityService() {
 
         fun powerDialog(): Boolean =
             instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG) ?: false
+
+        /** The extra MainActivity reads for a remote button's Prism TV action. */
+        const val ExtraAction = "prism.action"
+
+        /** A notification banner over the app you're watching (main thread). */
+        fun banner(app: String, title: String, text: String, icon: android.graphics.Bitmap?, light: Boolean): Boolean {
+            val s = instance ?: return false
+            val b = s.bannersOrNull ?: BannerOverlay(s).also { s.bannersOrNull = it }
+            b.show(app, title, text, icon, light)
+            return true
+        }
 
         fun sleep(): Boolean = if (Build.VERSION.SDK_INT >= 28) {
             instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN) ?: false

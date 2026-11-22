@@ -18,10 +18,12 @@ class AerialDreamService : DreamService() {
 
     override fun onDreamingStarted() {
         super.onDreamingStarted()
+        com.prismtv.launcher.system.Foreground.screensaver = true
         aerial?.start()
     }
 
     override fun onDreamingStopped() {
+        com.prismtv.launcher.system.Foreground.screensaver = false
         aerial?.stop()
         super.onDreamingStopped()
     }

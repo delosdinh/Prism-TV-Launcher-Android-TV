@@ -111,4 +111,6 @@ data class RecentEntry(
     val app: LauncherApp?, // null = the Home Screen card
     val art: ArtRef?,
     val title: String? = null,
+    /** [art] is a snapshot of the app as you left it (drawn as is, with no title over it). */
+    val snapshot: Boolean = false,
 )

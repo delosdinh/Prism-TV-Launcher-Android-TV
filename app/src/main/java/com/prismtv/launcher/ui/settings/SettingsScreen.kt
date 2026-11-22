@@ -104,6 +104,13 @@ import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SettingsRemote
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.AddCircle
+import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.HourglassBottom
+import androidx.compose.material.icons.rounded.Bedtime
+import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.Timelapse
+import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -206,9 +213,11 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 // Each tab has its own glyph; on the main list it follows focus, like tvOS.
                 val art: Any = when (pg) {
                     SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard,
-                    SettingsPage.Screensaver, SettingsPage.Access, SettingsPage.Closing, SettingsPage.Shizuku, SettingsPage.HomeApp ->
+                    SettingsPage.Screensaver, SettingsPage.Access, SettingsPage.Closing, SettingsPage.Shizuku, SettingsPage.HomeApp,
+                    SettingsPage.RemoteButtons, SettingsPage.RemoteButton, SettingsPage.ScreenTime ->
                         rows.getOrNull(focus)?.let { if (it.id == "profile") vm.avatarLook else glyphFor(it.id) } ?: pageGlyph(pg)
-                    SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions, SettingsPage.Inputs ->
+                    SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions, SettingsPage.Inputs,
+                    SettingsPage.RemoteAction ->
                         rows.getOrNull(focus)?.app ?: rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Banner -> rows.getOrNull(focus)?.let { vm.bannerPreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.ScreensaverPictures -> rows.getOrNull(focus)?.let { vm.picturePreview(it.id) } ?: pageGlyph(pg)
@@ -337,9 +346,30 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "ha:make" to glyph(Icons.Rounded.Home, 0xFF3D9BFF, 0xFF0A5FE0),
     "ha:hide" to glyph(Icons.Rounded.VisibilityOff, 0xFF9C9CA3, 0xFF5E5E64),
     "ha:restore" to glyph(Icons.Rounded.Restore, 0xFFFF9F0A, 0xFFE06A00),
+    "remote" to glyph(Icons.Rounded.SettingsRemote, 0xFFB66CFF, 0xFF7B2FD6),
+    "rb:a11y" to glyph(Icons.Rounded.SettingsRemote, 0xFF9C9CA3, 0xFF5E5E64),
+    "rb:homeHold" to glyph(Icons.Rounded.Home, 0xFF3D9BFF, 0xFF0A5FE0),
+    "rb:add" to glyph(Icons.Rounded.AddCircle, 0xFF34C759, 0xFF1E9E40),
+    "rb:btn" to glyph(Icons.Rounded.SettingsRemote, 0xFFB66CFF, 0xFF7B2FD6),
+    "rbe:press" to glyph(Icons.Rounded.TouchApp, 0xFFB66CFF, 0xFF7B2FD6),
+    "rbe:hold" to glyph(Icons.Rounded.Timer, 0xFFC27BFF, 0xFF8A3FD1),
+    "rbe:remove" to glyph(Icons.Rounded.Restore, 0xFFFF9F0A, 0xFFE06A00),
+    "pr:screentime" to glyph(Icons.Rounded.HourglassBottom, 0xFF7D7AFF, 0xFF4B3FD6),
+    "st:limit" to glyph(Icons.Rounded.HourglassBottom, 0xFF7D7AFF, 0xFF4B3FD6),
+    "st:downtime" to glyph(Icons.Rounded.Bedtime, 0xFF5E5CE6, 0xFF3634A3),
+    "st:used" to glyph(Icons.Rounded.BarChart, 0xFF7D7AFF, 0xFF4B3FD6),
+    "st:left" to glyph(Icons.Rounded.Timelapse, 0xFF7D7AFF, 0xFF4B3FD6),
+    "st:passcode" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
+    "bannersOver" to glyph(Icons.Rounded.NotificationsActive, 0xFFFF6961, 0xFFD63A31),
+    "snapshots" to glyph(Icons.Rounded.ViewCarousel, 0xFF3D9BFF, 0xFF0A5FE0),
 )
 
-private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
+private fun glyphFor(id: String): Any? = when {
+    id == "about" -> LogoGlyph
+    id.startsWith("rb:btn:") -> Glyphs["rb:btn"]
+    id.startsWith("ra:") -> Glyphs["remote"]
+    else -> Glyphs[id]
+}
 
 private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Root, SettingsPage.About -> LogoGlyph
@@ -365,6 +395,8 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Closing -> Glyphs.getValue("closing")
     SettingsPage.Shizuku -> Glyphs.getValue("cl:shizuku")
     SettingsPage.HomeApp -> Glyphs.getValue("homeApp")
+    SettingsPage.RemoteButtons, SettingsPage.RemoteButton, SettingsPage.RemoteAction -> Glyphs.getValue("remote")
+    SettingsPage.ScreenTime -> Glyphs.getValue("pr:screentime")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */

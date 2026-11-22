@@ -180,6 +180,13 @@ data class LauncherPrefs(
     val shizukuAutoStart: Boolean = true,
     /** The TV's own launcher Prism TV hid ("package/activity"), to restore before uninstalling. */
     val hiddenLauncher: String = "",
+    /** App Switcher cards show what each app was showing (a snapshot taken as you press Home). */
+    val appSnapshots: Boolean = true,
+    /** New notifications slide in over the app you're watching (through Power & Home Button). */
+    val bannersOverApps: Boolean = false,
+    /** Settings › Remote Buttons (see RemoteButtons.encode), and what holding Home does. */
+    val remoteButtons: String = "",
+    val homeHold: String = "default",
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -265,6 +272,10 @@ class PrefsStore(context: Context) {
             rootClose = sp.getBoolean("rootClose", d.rootClose),
             shizukuAutoStart = sp.getBoolean("shizukuAutoStart", d.shizukuAutoStart),
             hiddenLauncher = sp.getString("hiddenLauncher", d.hiddenLauncher).orEmpty(),
+            appSnapshots = sp.getBoolean("appSnapshots", d.appSnapshots),
+            bannersOverApps = sp.getBoolean("bannersOverApps", d.bannersOverApps),
+            remoteButtons = sp.getString("remoteButtons", d.remoteButtons).orEmpty(),
+            homeHold = sp.getString("homeHold", d.homeHold) ?: d.homeHold,
         )
     }
 
@@ -309,6 +320,10 @@ class PrefsStore(context: Context) {
             .putBoolean("rootClose", p.rootClose)
             .putBoolean("shizukuAutoStart", p.shizukuAutoStart)
             .putString("hiddenLauncher", p.hiddenLauncher)
+            .putBoolean("appSnapshots", p.appSnapshots)
+            .putBoolean("bannersOverApps", p.bannersOverApps)
+            .putString("remoteButtons", p.remoteButtons)
+            .putString("homeHold", p.homeHold)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)

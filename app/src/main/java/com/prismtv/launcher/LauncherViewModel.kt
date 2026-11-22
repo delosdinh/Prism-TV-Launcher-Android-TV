@@ -144,6 +144,9 @@ data class DialogSpec(
     /** A short line under [code]. */
     val codeNote: String = "",
 )
+/** Settings › Wallpaper › Apple TV Aerials: moving aerials behind Home (a still in Lite Mode). */
+const val AerialWallpaperKey = "aerial"
+
 /** Under a command in a dialog: where to type it. */
 private const val TypeNote = "Type it exactly as shown in ATV Connect's Shell (or any shell running on the TV). From a computer, put adb shell in front."
 
@@ -157,6 +160,24 @@ enum class SettingsPage(val title: String) {
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
     Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
     Access("Privacy & Access"), Closing("Closing Apps"), Shizuku("Shizuku"), HomeApp("Home App"),
+    RemoteButtons("Remote Buttons"), RemoteButton("Button"), RemoteAction("Action"), ScreenTime("Screen Time"),
+}
+
+/** Prism Search results: apps, titles from apps' rows, and places in Settings. */
+sealed interface SearchResult {
+    val key: String
+    val label: String
+}
+data class AppSearchResult(val app: LauncherApp) : SearchResult {
+    override val key: String get() = "app:${app.id}"
+    override val label: String get() = app.label
+}
+data class TitleSearchResult(val item: HeroItem) : SearchResult {
+    override val key: String get() = "title:${item.key}"
+    override val label: String get() = item.title
+}
+data class SettingSearchResult(override val label: String, val where: String, val page: SettingsPage, val rowId: String? = null) : SearchResult {
+    override val key: String get() = "setting:${page.name}:${rowId.orEmpty()}:$label"
 }
 
 data class SettingsRow(
@@ -458,6 +479,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun pageTitle(page: SettingsPage): String = when (page) {
         SettingsPage.WidgetApps -> widgetRowsAll.firstOrNull { it.key == widgetDetailKey }?.title ?: page.title
         SettingsPage.Banner -> allApps.firstOrNull { it.id == bannerAppId }?.label?.let { "$it Banner" } ?: page.title
+        SettingsPage.RemoteButton -> remoteEditingName()
+        SettingsPage.RemoteAction -> if (remoteEditing == "home") "Hold Home" else "${remoteEditingName()} · ${if (remoteSlot == "hold") "Hold" else "Press"}"
+        SettingsPage.ScreenTime -> "Screen Time"
         else -> page.title
     }
     /** Rows shown above the dock, top to bottom (at most two fit above it). */
@@ -1221,6 +1245,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun keyboardKey(@Suppress("UNUSED_PARAMETER") req: KeyboardRequest, k: NavKey): Boolean {
         val kb = keyboardController
+        if (searchOpen && searchKey(k)) return true
         when (k) {
             NavKey.Left -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Left)
             NavKey.Right -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Right)
@@ -1245,6 +1270,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun closeKeyboard() {
         dictation?.cancel()
         keyboard = null
+        searchOpen = false
+        searchFocus = -1
     }
 
     private fun openFolderPicker(app: LauncherApp, base: ContextMenuState) {
@@ -1501,6 +1528,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onResume() {
+        countScreenTime()
         isResumed = true
         homeVisible = true
         noteInteraction()
@@ -1652,6 +1680,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun openWidgetItem(item: HeroItem) {
+        if (!prefs.demoContent && screenTimeBlocks(null)) return
         val uri = item.intentUri
         if (uri != null && SystemActions.openUri(ctx, uri)) {
             allApps.firstOrNull { it.id == item.appId }?.let { noteRecent(it.packageName) }
@@ -1723,6 +1752,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun playHero() {
         val hero = currentHeroItem
+        if (!prefs.demoContent && screenTimeBlocks(null)) return
         val intent = hero?.intentUri
         if (intent != null && SystemActions.openUri(ctx, intent)) return
         openApp(dockItem)
@@ -1731,6 +1761,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ================================================================= launching
 
     fun startLaunch(app: LauncherApp, from: Rect) {
+        if (app.demo == null && screenTimeBlocks(app)) return
         // Apps you just swiped away close first, so (say) their music doesn't play on under the next app.
         if (pendingClose.isNotEmpty() && !closeFlushing) {
             closeTimer?.cancel()
@@ -1875,7 +1906,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun sidebarSelect(e: SidebarEntry) {
         when (e) {
-            SidebarEntry.Search -> { closeOverlay(); SystemActions.search(ctx) }
+            SidebarEntry.Search -> { closeOverlay(); openSearch() }
             SidebarEntry.Home -> { closeOverlay(); zone = Zone.Grid; row = 0; col = 0; setDockCol(0) }
             SidebarEntry.Recents -> openSwitcher()
             SidebarEntry.PrismSettings -> openSettings()
@@ -2124,7 +2155,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private var lastInteraction = SystemClock.elapsedRealtime()
     private var isResumed = false
     /** Prism is on screen (not behind an app). */
-    private var homeVisible by mutableStateOf(false)
+    var homeVisible by mutableStateOf(false)
+        private set
 
     /** Any remote button (MainActivity also reports presses that never reach [onKey]). */
     fun noteInteraction() {
@@ -2134,6 +2166,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun onPause() {
         isResumed = false
         homeVisible = false
+        screenTimeMark = SystemClock.elapsedRealtime()
     }
 
     private fun startupAppLabel(): String =
@@ -2260,10 +2293,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
                 .filter { it.id !in blockedApps }
         }
-        // Oldest on the left, most recent next to Home.
+        // Oldest on the left, most recent next to Home. With snapshots, each card shows the app as you
+        // left it; apps without one (or showing protected video) keep their artwork.
+        val snaps = prefs.appSnapshots && com.prismtv.launcher.system.AppSnapshots.supported()
         return apps.map { a ->
             val hero = heroesFor(a).firstOrNull()
-            RecentEntry(a.id, a, hero?.art, hero?.title?.takeIf { it.isNotBlank() })
+            val snapPkg = if (a.demo != null) demoSnapshotPkg?.takeIf { a.id == "demo:cinema" } else a.packageName
+            val snap = if (snaps && snapPkg != null) com.prismtv.launcher.system.AppSnapshots.art(ctx, snapPkg) else null
+            RecentEntry(a.id, a, snap ?: hero?.art, hero?.title?.takeIf { it.isNotBlank() }, snapshot = snap != null)
         } + RecentEntry("home", null, null)
     }
 
@@ -2286,6 +2323,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         dismissingKey = null
         overlay = Overlay.Switcher
         cue(Cue.SwitcherOpen)
+        // The snapshot of the app you just left is still being saved: swap it in when it lands.
+        if (prefs.appSnapshots) {
+            val v = com.prismtv.launcher.system.AppSnapshots.version
+            viewModelScope.launch {
+                repeat(8) {
+                    delay(200)
+                    if (overlay != Overlay.Switcher) return@launch
+                    if (com.prismtv.launcher.system.AppSnapshots.version != v && dismissingKey == null) {
+                        val focusKey = recents.getOrNull(switcherFocus)?.key
+                        recents = recentEntries()
+                        switcherFocus = recents.indexOfFirst { it.key == focusKey }.takeIf { it >= 0 } ?: recents.lastIndex
+                        return@launch
+                    }
+                }
+            }
+        }
     }
 
     private fun switcherKey(k: NavKey): Boolean {
@@ -2329,6 +2382,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             if (app.demo == null) {
                 recentsRepo.remove(app.packageName)
                 recentPackagesCache = recentPackagesCache?.filterNot { it == app.packageName }
+                com.prismtv.launcher.system.AppSnapshots.delete(ctx, app.packageName)
                 queueClose(app)
             }
         }
@@ -2663,6 +2717,520 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 saveProfiles(rest, rest.first())
                 showProfilePicker(forced = true)
             }
+        }
+    }
+
+    // ================================================================= Prism Search
+
+    /** Search is open (on Prism's keyboard, with results above it). */
+    var searchOpen by mutableStateOf(false)
+        private set
+    /** -1: the keyboard; otherwise the focused result. */
+    var searchFocus by mutableStateOf(-1)
+        private set
+
+    /** What matches what's typed (or, before anything's typed, the apps you used last). */
+    val searchResults: List<SearchResult> by derivedStateOf {
+        if (!searchOpen) emptyList() else search(keyboardText)
+    }
+
+    val searchHeading: String get() = if (keyboardText.isBlank()) "Recently Used" else if (searchResults.isEmpty()) "No Results" else "Top Results"
+
+    fun openSearch() {
+        dialog = null
+        contextMenu = null
+        if (overlay != Overlay.None && overlay != Overlay.Settings) overlay = Overlay.None
+        openKeyboard("", "", "Search Apps, Titles and Settings") { q -> search(q).firstOrNull()?.let { openSearchResult(it) } }
+        keyboardController.actionLabel = "search"
+        searchOpen = true
+        searchFocus = -1
+    }
+
+    /** Remote keys while Search is open; false lets the keyboard have them. */
+    private fun searchKey(k: NavKey): Boolean {
+        val results = searchResults
+        if (searchFocus >= 0) {
+            when (k) {
+                NavKey.Left -> if (searchFocus > 0) { searchFocus--; cue(Cue.FocusSmall) }
+                NavKey.Right -> if (searchFocus < results.size - 1) { searchFocus++; cue(Cue.FocusSmall) }
+                NavKey.Down, NavKey.Menu -> { searchFocus = -1; cue(Cue.FocusSmall) }
+                NavKey.Select -> results.getOrNull(searchFocus)?.let { openSearchResult(it) }
+                else -> Unit
+            }
+            return true
+        }
+        if (k == NavKey.Up && !keyboardController.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up)) {
+            // Up from the keyboard's top row goes to the results.
+            if (results.isNotEmpty()) {
+                searchFocus = 0
+                cue(Cue.FocusSmall)
+            }
+            return true
+        }
+        return k == NavKey.Up
+    }
+
+    private fun openSearchResult(r: SearchResult) {
+        closeKeyboard()
+        when (r) {
+            is AppSearchResult -> {
+                val idx = items.indexOfFirst { it is AppItem && it.app.id == r.app.id }
+                startLaunch(r.app, if (idx >= 0) tileAnchor(idx) else SwitcherLayout.focusedRect())
+            }
+            is TitleSearchResult -> openWidgetItem(r.item)
+            is SettingSearchResult -> unlockSettings {
+                showSettings()
+                if (r.page != SettingsPage.Root) pushPage(r.page)
+                r.rowId?.let { id ->
+                    val i = settingsRows(r.page).indexOfFirst { it.id == id }
+                    if (i >= 0) settingsFocus[r.page] = i
+                }
+            }
+        }
+    }
+
+    /** Places in Settings worth finding by name (the page, and the row on it). */
+    private val settingsIndex: List<SettingSearchResult> by lazy {
+        val pages = listOf(
+            SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Screensaver, SettingsPage.Keyboard,
+            SettingsPage.Apps, SettingsPage.Wallpaper, SettingsPage.Widgets, SettingsPage.TextSize, SettingsPage.Profiles,
+            SettingsPage.Backup, SettingsPage.IconPack, SettingsPage.Access, SettingsPage.Closing, SettingsPage.Shizuku,
+            SettingsPage.HomeApp, SettingsPage.RemoteButtons, SettingsPage.SoftwareUpdate, SettingsPage.About,
+        ).map { SettingSearchResult(it.title, "Settings", it) }
+        val rows = listOf(
+            SettingSearchResult("Lite Mode", "Appearance", SettingsPage.Appearance, "lite"),
+            SettingSearchResult("Liquid Glass", "Appearance", SettingsPage.Appearance, "material"),
+            SettingSearchResult("Dark Mode", "Appearance", SettingsPage.Appearance),
+            SettingSearchResult("Light Mode", "Appearance", SettingsPage.Appearance),
+            SettingSearchResult("Focus Effect", "Home Screen", SettingsPage.HomeScreen),
+            SettingSearchResult("Top Shelf", "Home Screen", SettingsPage.HomeScreen, "hero"),
+            SettingSearchResult("Banners Over Apps", "Home Screen", SettingsPage.HomeScreen, "bannersOver"),
+            SettingSearchResult("App Snapshots", "Home Screen", SettingsPage.HomeScreen, "snapshots"),
+            SettingSearchResult("Weather", "Home Screen", SettingsPage.HomeScreen, "weather"),
+            SettingSearchResult("Aerials", "Wallpaper", SettingsPage.Wallpaper, "wp:aerial"),
+            SettingSearchResult("Screen Time", "Profiles", SettingsPage.ScreenTime),
+            SettingSearchResult("Restrictions", "Profiles", SettingsPage.Restrictions),
+            SettingSearchResult("Passcode", "Profiles", SettingsPage.Profiles, "pr:passcode"),
+            SettingSearchResult("Sleep Timer", "Settings", SettingsPage.Root, "sleep"),
+            SettingSearchResult("Power & Home Button", "Settings", SettingsPage.Root, "a11y"),
+            SettingSearchResult("Navigation Sounds", "Settings", SettingsPage.Root, "sounds"),
+            SettingSearchResult("Restart Launcher", "Settings", SettingsPage.Root, "restart"),
+            SettingSearchResult("Notifications", "Privacy & Access", SettingsPage.Access, "notif"),
+            SettingSearchResult("Dictation", "Keyboard", SettingsPage.Keyboard),
+        )
+        pages + rows
+    }
+
+    private fun search(query: String): List<SearchResult> {
+        val q = query.trim().lowercase()
+        val blocked = blockedApps
+        val visibleApps = allApps.filter { it.id !in blocked && it.id !in prefs.hiddenApps }
+        if (q.isEmpty()) {
+            return recentEntries().mapNotNull { it.app }.reversed().filter { it.id !in blocked }.take(8).map { AppSearchResult(it) }
+        }
+        // Best first: the name starts with it, then a word in it does, then it's anywhere.
+        fun rank(text: String): Int {
+            val t = text.lowercase()
+            return when {
+                t.startsWith(q) -> 0
+                t.split(' ', '-', ':', '.').any { it.startsWith(q) } -> 1
+                q.length >= 3 && t.contains(q) -> 2
+                else -> -1
+            }
+        }
+        val apps = visibleApps.mapNotNull { a -> rank(a.label).takeIf { it >= 0 }?.let { it to a } }
+            .sortedWith(compareBy({ it.first }, { it.second.label.length })).map { AppSearchResult(it.second) }.take(8)
+        val seen = HashSet<String>()
+        val titles = (heroItemsByApp.values.flatten() + widgetRowsAll.flatMap { it.items } + if (prefs.demoContent) DemoContent.heroes.values.flatten() else emptyList())
+            .filter { it.title.isNotBlank() && it.appId !in blocked && seen.add(it.title.lowercase()) }
+            .mapNotNull { h -> rank(h.title).takeIf { it >= 0 }?.let { it to h } }
+            .sortedBy { it.first }.map { TitleSearchResult(it.second) }.take(8)
+        val settings = if (activeProfileSpec.restricted) emptyList() else settingsIndex
+            .mapNotNull { st -> rank(st.label).takeIf { it >= 0 }?.let { it to st } }
+            .sortedBy { it.first }.map { it.second }.distinctBy { it.label }.take(4)
+        return (apps + titles + settings).take(16)
+    }
+
+    // ================================================================= remote buttons
+
+    /** A remote button's Prism TV action (from Power & Home Button, through MainActivity). */
+    fun remoteAction(action: String) {
+        when (action) {
+            "switcher" -> if (overlay == Overlay.Switcher) closeSwitcherToHome() else openSwitcher()
+            "cc" -> if (overlay == Overlay.ControlCentre) closeOverlay() else openControlCentre()
+            "search" -> if (!searchOpen) openSearch()
+            "screensaver" -> startScreensaver()
+            "timesup" -> activeProfileSpec.let { me ->
+                com.prismtv.launcher.data.ScreenTime.blocked(ctx, me)?.let { b -> if (dialog == null) showTimesUp(me, b) }
+            }
+            "previous" -> {
+                // The app before the one you were watching (or the last one, from Home).
+                val pkgs = recentPackagesCache ?: recentsRepo.recentPackages()
+                val current = com.prismtv.launcher.system.Foreground.lastPackage
+                val target = pkgs.firstOrNull { it != current && it != ctx.packageName }
+                realApps.firstOrNull { it.packageName == target }?.let { startLaunch(it, SwitcherLayout.focusedRect()) }
+            }
+        }
+    }
+
+    /** The button being changed ("home", or a mapping id) and which of its actions. */
+    private var remoteEditing by mutableStateOf("")
+    private var remoteSlot by mutableStateOf("press")
+
+    private fun remoteMappings(): List<com.prismtv.launcher.system.RemoteButtons.Mapping> =
+        com.prismtv.launcher.system.RemoteButtons.decode(prefs.remoteButtons)
+
+    private fun saveRemoteMappings(list: List<com.prismtv.launcher.system.RemoteButtons.Mapping>) {
+        updatePrefs(prefs.copy(remoteButtons = com.prismtv.launcher.system.RemoteButtons.encode(list)))
+    }
+
+    private fun remoteEditingName(): String =
+        if (remoteEditing == "home") "Home Button"
+        else remoteMappings().firstOrNull { it.id == remoteEditing }?.let { com.prismtv.launcher.system.RemoteButtons.name(it.code, it.scan) } ?: "Button"
+
+    private fun actionLabel(action: String): String = com.prismtv.launcher.system.RemoteButtons.label(action) { pkg ->
+        realApps.firstOrNull { it.packageName == pkg }?.label ?: appName(pkg)
+    }
+
+    private fun remoteButtonsLabel(): String {
+        val n = remoteMappings().size + if (prefs.homeHold != "default") 1 else 0
+        return if (n == 0) "None Changed" else if (n == 1) "1 Changed" else "$n Changed"
+    }
+
+    private fun remoteButtonRows(): List<SettingsRow> {
+        val a11y = PrismAccessibilityService.isEnabled
+        val rows = mutableListOf<SettingsRow>()
+        if (!a11y) rows += SettingsRow("rb:a11y", "Turn On Power & Home Button", "NEEDED FOR REMOTE BUTTONS", "Off", chevron = true)
+        rows += SettingsRow("rb:homeHold", "Hold Home", "HOME BUTTON", actionLabel(prefs.homeHold), chevron = true)
+        remoteMappings().forEach { m ->
+            val hold = if (m.hold != "default") " · Hold: ${actionLabel(m.hold)}" else ""
+            rows += SettingsRow("rb:btn:${m.id}", com.prismtv.launcher.system.RemoteButtons.name(m.code, m.scan), "CHANGED BUTTONS", actionLabel(m.press) + hold, chevron = true)
+        }
+        rows += SettingsRow("rb:add", "Add a Button…", "CHANGED BUTTONS", if (a11y) null else "Needs Power & Home Button", chevron = a11y)
+        return rows
+    }
+
+    private fun remoteButtonEditRows(): List<SettingsRow> {
+        val m = remoteMappings().firstOrNull { it.id == remoteEditing } ?: return emptyList()
+        return listOf(
+            SettingsRow("rbe:press", "Press", "WHEN YOU…", actionLabel(m.press), chevron = true),
+            SettingsRow("rbe:hold", "Hold", "WHEN YOU…", actionLabel(m.hold), chevron = true),
+            SettingsRow("rbe:remove", "Put Back as It Was", "BUTTON"),
+        )
+    }
+
+    private fun currentRemoteAction(): String =
+        if (remoteEditing == "home") prefs.homeHold
+        else remoteMappings().firstOrNull { it.id == remoteEditing }?.let { if (remoteSlot == "hold") it.hold else it.press } ?: "default"
+
+    private fun remoteActionRows(): List<SettingsRow> {
+        val now = currentRemoteAction()
+        val actions = com.prismtv.launcher.system.RemoteButtons.Action.entries
+            .filter { !(remoteEditing == "home" && it == com.prismtv.launcher.system.RemoteButtons.Action.Home) }
+            .map { a -> SettingsRow("ra:${a.id}", if (a.id == "default" && remoteEditing == "home") "Nothing" else a.label, "DO", selectable = true, checked = now == a.id) }
+        val apps = realApps.filter { it.id !in blockedApps && !com.prismtv.launcher.data.TvInputs.isInput(it) }
+            .sortedBy { it.label.lowercase() }
+            .map { SettingsRow("ra:app:${it.packageName}", it.label, "OPEN AN APP", selectable = true, checked = now == "app:${it.packageName}", app = it) }
+        return actions + apps
+    }
+
+    private fun selectRemote(id: String) {
+        val p = prefs
+        when {
+            id == "rb:a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            id == "rb:homeHold" -> {
+                remoteEditing = "home"
+                remoteSlot = "hold"
+                pushPage(SettingsPage.RemoteAction)
+                settingsFocus[SettingsPage.RemoteAction] = remoteActionRows().indexOfFirst { it.checked }.coerceAtLeast(0)
+            }
+            id.startsWith("rb:btn:") -> {
+                remoteEditing = id.removePrefix("rb:btn:")
+                pushPage(SettingsPage.RemoteButton)
+            }
+            id == "rb:add" -> learnRemoteButton()
+            id == "rbe:press" || id == "rbe:hold" -> {
+                remoteSlot = id.removePrefix("rbe:")
+                pushPage(SettingsPage.RemoteAction)
+                settingsFocus[SettingsPage.RemoteAction] = remoteActionRows().indexOfFirst { it.checked }.coerceAtLeast(0)
+            }
+            id == "rbe:remove" -> {
+                saveRemoteMappings(remoteMappings().filterNot { it.id == remoteEditing })
+                settingsStack = settingsStack.dropLast(1)
+                cue(Cue.Confirm)
+            }
+            id.startsWith("ra:") -> {
+                val action = id.removePrefix("ra:")
+                if (remoteEditing == "home") updatePrefs(p.copy(homeHold = action))
+                else saveRemoteMappings(remoteMappings().map { m ->
+                    if (m.id != remoteEditing) m else if (remoteSlot == "hold") m.copy(hold = action) else m.copy(press = action)
+                })
+                settingsStack = settingsStack.dropLast(1)
+                cue(Cue.Confirm)
+                val m = remoteMappings().firstOrNull { it.id == remoteEditing }
+                if (m != null && m.press == "default" && m.hold != "default" &&
+                    !com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)
+                ) {
+                    showBanner(
+                        "Remote Buttons",
+                        "Holding works now. To keep the button's usual press as well, set up Shizuku (Settings › Apps › Closing Apps), or choose a Press action.",
+                        Icons.Rounded.Info,
+                    )
+                }
+            }
+        }
+    }
+
+    /** Add a Button: the next button pressed is the one to change. */
+    private fun learnRemoteButton() {
+        if (!PrismAccessibilityService.isEnabled) {
+            dialog = DialogSpec(
+                "Turn On Power & Home Button",
+                "Remote Buttons work through Power & Home Button, which sees your remote's buttons before apps do. Turn it on in Android's Accessibility settings, then come back.",
+                listOf(
+                    DialogButton("Open Accessibility") { SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS) },
+                    DialogButton("Cancel") {},
+                ),
+            )
+            dialogFocus = 0
+            return
+        }
+        val spec = DialogSpec(
+            "Press a Button",
+            "Press the button on your remote you'd like to change, such as an app button, a colour button or Guide. Home, Back, Select, the arrows, volume and power stay as they are.",
+            listOf(DialogButton("Cancel") { com.prismtv.launcher.system.RemoteButtons.learning = null }),
+        )
+        dialog = spec
+        dialogFocus = 0
+        val learn: (Int, Int) -> Unit = { code, scan ->
+            if (dialog === spec) {
+                dialog = null
+                val list = remoteMappings()
+                val m = com.prismtv.launcher.system.RemoteButtons.Mapping(code, scan, "default", "default")
+                if (list.none { it.id == m.id }) saveRemoteMappings(list + m)
+                remoteEditing = m.id
+                cue(Cue.Confirm)
+                pushPage(SettingsPage.RemoteButton)
+            }
+        }
+        com.prismtv.launcher.system.RemoteButtons.learning = learn
+        // Stops listening once the dialog's gone (or after a while), so no later press is taken.
+        viewModelScope.launch {
+            val until = SystemClock.elapsedRealtime() + 20_000L
+            while (dialog === spec && SystemClock.elapsedRealtime() < until) delay(300)
+            if (dialog === spec) dialog = null
+            if (com.prismtv.launcher.system.RemoteButtons.learning === learn) com.prismtv.launcher.system.RemoteButtons.learning = null
+        }
+    }
+
+    // ================================================================= snapshots & banners
+
+    private fun snapshotsLabel(): String = when {
+        !com.prismtv.launcher.system.AppSnapshots.supported() -> "Needs Android 11"
+        !prefs.appSnapshots -> "Off"
+        !PrismAccessibilityService.isEnabled -> "Needs Power & Home Button"
+        else -> "On"
+    }
+
+    private fun toggleSnapshots() {
+        if (!com.prismtv.launcher.system.AppSnapshots.supported()) {
+            showBanner("App Snapshots", "Snapshots need Android 11 or later. The App Switcher shows each app's artwork instead.", Icons.Rounded.Info)
+            return
+        }
+        val on = !prefs.appSnapshots
+        updatePrefs(prefs.copy(appSnapshots = on))
+        if (!on) com.prismtv.launcher.system.AppSnapshots.clear(ctx)
+        else if (!PrismAccessibilityService.isEnabled) {
+            showBanner("App Snapshots", "Turn on Power & Home Button so Prism TV can take a snapshot as you press Home.", Icons.Rounded.Info)
+        }
+    }
+
+    private fun bannersOverLabel(): String = when {
+        !prefs.bannersOverApps -> "Off"
+        !PrismAccessibilityService.isEnabled -> "Needs Power & Home Button"
+        !status().notif -> "Needs Notifications"
+        else -> "On"
+    }
+
+    private fun toggleBannersOver() {
+        val on = !prefs.bannersOverApps
+        updatePrefs(prefs.copy(bannersOverApps = on))
+        if (!on) return
+        when {
+            !PrismAccessibilityService.isEnabled ->
+                showBanner("Banners Over Apps", "Turn on Power & Home Button too: banners are shown through it, over whatever's playing.", Icons.Rounded.Info)
+            !status().notif ->
+                showBanner("Banners Over Apps", "Allow Notifications for Prism TV too (the row above), so it can see what arrives.", Icons.Rounded.Info)
+            else -> viewModelScope.launch {
+                // A sample over Settings, so you can see where they appear.
+                delay(600)
+                com.prismtv.launcher.system.PrismAccessibilityService.banner(
+                    "Prism TV", "Banners Over Apps", "New notifications appear here while you watch.", null,
+                    prefs.appearance == AppearanceSetting.Light,
+                )
+            }
+        }
+    }
+
+    // ================================================================= Screen Time
+
+    /** When Prism TV last went behind an app (elapsed time), for counting Screen Time. */
+    private var screenTimeMark = 0L
+    /** Bumped when Screen Time numbers change, so its page refreshes. */
+    private var screenTimeTick by mutableStateOf(0)
+
+    private fun screenTimeLabel(p: com.prismtv.launcher.data.ProfileSpec): String = when {
+        p.limitMinutes > 0 -> com.prismtv.launcher.data.ScreenTime.limitLabel(p.limitMinutes) + " a Day"
+        p.downtime.isNotEmpty() -> "Downtime"
+        else -> "Off"
+    }
+
+    private fun screenTimeRows(): List<SettingsRow> {
+        val me = activeProfileSpec
+        val st = com.prismtv.launcher.data.ScreenTime
+        val used = st.usedToday(ctx, me.id) + pendingScreenTime()
+        val section = "SCREEN TIME FOR ${nameOf(me).uppercase()}"
+        return listOfNotNull(
+            SettingsRow("st:limit", "Daily Limit", section, st.limitLabel(me.limitMinutes)),
+            SettingsRow("st:downtime", "Downtime", section, st.downtimeLabel(me.downtime)),
+            SettingsRow("st:used", "Used Today", "TODAY", st.duration(used)),
+            st.remaining(ctx, me)?.let { SettingsRow("st:left", "Left Today", "TODAY", st.duration((it - pendingScreenTime()).coerceAtLeast(0))) },
+            if (profileList.none { it.locked }) SettingsRow("st:passcode", "Add a Passcode", "SO ONLY YOU CAN GIVE MORE TIME", chevron = true) else null,
+        )
+    }
+
+    private fun selectScreenTime(id: String) {
+        val st = com.prismtv.launcher.data.ScreenTime
+        when (id) {
+            "st:limit" -> updateActive { pr ->
+                val i = st.Limits.indexOf(pr.limitMinutes)
+                pr.copy(limitMinutes = st.Limits[(i + 1).mod(st.Limits.size)])
+            }
+            "st:downtime" -> updateActive { pr ->
+                val i = st.Downtimes.indexOf(pr.downtime)
+                pr.copy(downtime = st.Downtimes[(i + 1).mod(st.Downtimes.size)])
+            }
+            "st:used", "st:left" -> showBanner(
+                "Screen Time",
+                "Time counts while an app is on screen, not while you're on the Home Screen. It starts again at midnight.",
+                Icons.Rounded.Info,
+            )
+            "st:passcode" -> {
+                settingsStack = listOf(SettingsPage.Root, SettingsPage.Profiles)
+                showBanner("Screen Time", "Choose the profile that gives more time (usually yours), then turn on its Passcode.", Icons.Rounded.Lock)
+            }
+        }
+        screenTimeTick++
+    }
+
+    /** App time not yet added: Prism TV has been behind an app since [screenTimeMark]. */
+    private fun pendingScreenTime(): Long =
+        if (!isResumed && screenTimeMark > 0) (SystemClock.elapsedRealtime() - screenTimeMark).coerceAtLeast(0) else 0L
+
+    /** Adds the time since Prism TV went behind an app to the active profile's Screen Time. */
+    private fun countScreenTime() {
+        val mark = screenTimeMark
+        if (mark <= 0 || isResumed) return
+        val now = SystemClock.elapsedRealtime()
+        screenTimeMark = now
+        val pm = ctx.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+        if (!pm.isInteractive || com.prismtv.launcher.system.Foreground.screensaver) return
+        // Long gaps are the TV asleep or Prism TV stopped: they don't count.
+        val ms = (now - mark).coerceAtMost(5 * 60_000L)
+        val me = activeProfileSpec
+        if (me.timeLimited) com.prismtv.launcher.data.ScreenTime.add(ctx, me.id, ms)
+    }
+
+    /** Checks once a minute (and as Prism TV goes behind an app) whether the active profile's time is up. */
+    private fun watchScreenTime() {
+        viewModelScope.launch {
+            while (true) {
+                delay(if (isResumed) 60_000L else 20_000L)
+                val me = activeProfileSpec
+                if (!me.timeLimited || debugDriven) continue
+                if (!isResumed) {
+                    countScreenTime()
+                    if (com.prismtv.launcher.system.Foreground.screensaver) continue
+                    val block = com.prismtv.launcher.data.ScreenTime.blocked(ctx, me) ?: continue
+                    timesUp(me, block)
+                }
+            }
+        }
+    }
+
+    /** Time's up while an app is on screen: Prism TV comes forward (closing the app if it can). */
+    private fun timesUp(me: com.prismtv.launcher.data.ProfileSpec, block: com.prismtv.launcher.data.ScreenTime.Block) {
+        val pkg = com.prismtv.launcher.system.Foreground.lastPackage
+        runCatching {
+            // Not as Home (which closes dialogs): with the Time's Up action, shown once Prism TV is up.
+            ctx.startActivity(
+                Intent(Intent.ACTION_MAIN)
+                    .setClassName(ctx, "com.prismtv.launcher.MainActivity")
+                    .putExtra(PrismAccessibilityService.ExtraAction, "timesup")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            )
+        }
+        showTimesUp(me, block)
+        if (pkg != null && pkg != ctx.packageName) {
+            val label = realApps.firstOrNull { it.packageName == pkg }?.label ?: appName(pkg)
+            viewModelScope.launch {
+                delay(1500)
+                if (isResumed) {
+                    pendingClose[pkg] = label
+                    scheduleClose()
+                }
+            }
+        }
+    }
+
+    /** An app can't open: time's up or it's downtime. Shows why, with Ask for More Time. */
+    private fun screenTimeBlocks(@Suppress("UNUSED_PARAMETER") app: LauncherApp?): Boolean {
+        val me = activeProfileSpec
+        if (!me.timeLimited || debugDriven) return false
+        val block = com.prismtv.launcher.data.ScreenTime.blocked(ctx, me) ?: return false
+        showTimesUp(me, block)
+        return true
+    }
+
+    private fun showTimesUp(me: com.prismtv.launcher.data.ProfileSpec, block: com.prismtv.launcher.data.ScreenTime.Block) {
+        val st = com.prismtv.launcher.data.ScreenTime
+        val (title, message) = when (block) {
+            com.prismtv.launcher.data.ScreenTime.Block.Limit ->
+                "Time's Up" to "You've reached your ${st.limitLabel(me.limitMinutes).lowercase()} limit for today, ${nameOf(me)}. Apps open again tomorrow."
+            com.prismtv.launcher.data.ScreenTime.Block.Downtime ->
+                "Downtime" to "It's downtime (${st.downtimeLabel(me.downtime)}), ${nameOf(me)}. Apps open again when it ends."
+        }
+        sounds.play(Cue.Notify)
+        dialog = DialogSpec(
+            title, message,
+            listOfNotNull(
+                DialogButton("OK") {},
+                if (profileList.any { it.locked }) DialogButton("Ask for More Time") { askForMoreTime(me, block) } else null,
+            ),
+        )
+        dialogFocus = 0
+    }
+
+    private fun askForMoreTime(me: com.prismtv.launcher.data.ProfileSpec, block: com.prismtv.launcher.data.ScreenTime.Block) {
+        askPasscode(
+            "Ask for More Time",
+            "Enter a passcode to give ${nameOf(me)} more time.",
+            { code -> profileList.any { com.prismtv.launcher.data.Profiles.matches(it, code) } },
+        ) {
+            val st = com.prismtv.launcher.data.ScreenTime
+            fun grant(label: String, ms: Long) = DialogButton(label) {
+                if (block == com.prismtv.launcher.data.ScreenTime.Block.Downtime) {
+                    st.skipDowntime(ctx, me.id, if (ms == Long.MAX_VALUE) st.downtimeEnds(me) else System.currentTimeMillis() + ms)
+                }
+                if (ms == Long.MAX_VALUE) st.grant(ctx, me.id, 24 * 60 * 60_000L) else st.grant(ctx, me.id, ms)
+                screenTimeTick++
+                showBanner("Screen Time", if (ms == Long.MAX_VALUE) "No more limits today for ${nameOf(me)}." else "${nameOf(me)} has ${st.duration(ms)} more.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            }
+            dialog = DialogSpec(
+                "More Time for ${nameOf(me)}", "How much more?",
+                listOf(grant("15 Minutes", 15 * 60_000L), grant("1 Hour", 60 * 60_000L), grant("All Day", Long.MAX_VALUE), DialogButton("Cancel") {}),
+            )
+            dialogFocus = 0
         }
     }
 
@@ -3244,6 +3812,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("closing", "Closing Apps", "APPS", closingLabel(), chevron = true),
             SettingsRow("homeApp", "Home App", "REMOTE & POWER", homeAppLabel(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", onOff(PrismAccessibilityService.isEnabled), chevron = true),
+            SettingsRow("remote", "Remote Buttons", "REMOTE & POWER", remoteButtonsLabel(), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE & POWER", onOff(prefs.homeOverride)),
             SettingsRow("startup", "Open Prism TV at Startup", "REMOTE & POWER", onOff(prefs.openAtStartup)),
             SettingsRow("sleep", "Sleep Timer", "REMOTE & POWER", sleepLabel()),
@@ -3312,6 +3881,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("weather", "Weather", "TIME PILL", onOff(prefs.weather)),
             SettingsRow("tempUnit", "Temperature", "TIME PILL", prefs.temperatureUnit.label),
             SettingsRow("notif", "Notifications", "TIME PILL", if (status().notif) "Allowed" else "Not Allowed", chevron = true),
+            SettingsRow("bannersOver", "Banners Over Apps", "TIME PILL", bannersOverLabel()),
+            SettingsRow("snapshots", "App Snapshots", "APP SWITCHER", snapshotsLabel()),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
             SettingsRow("labels", "App Names", "LAYOUT", prefs.labels.label),
             SettingsRow("resetLayout", "Reset Home Screen Layout", "LAYOUT"),
@@ -3356,6 +3927,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             fun toggle(key: String): Boolean? = if (shuffling) key in inShuffle else null
             listOf(
                 SettingsRow("wp:shuffle", "Shuffle", "SHUFFLE", com.prismtv.launcher.data.shuffleLabel(prefs.wallpaperShuffle)),
+                SettingsRow(
+                    "wp:aerial", "Apple TV Aerials", "MOVING WALLPAPER",
+                    if (prefs.liteMode && prefs.wallpaper == AerialWallpaperKey) "Still in Lite Mode" else null,
+                    selectable = !shuffling, checked = checked(AerialWallpaperKey),
+                ),
             ) + Wallpapers.map { (name, _) ->
                 SettingsRow(
                     "wp:scene:$name", wallpaperName(name),
@@ -3443,6 +4019,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Closing -> resumeTick.let { _ -> closingRows() }
         SettingsPage.Shizuku -> resumeTick.let { _ -> shizukuRows() }
         SettingsPage.HomeApp -> resumeTick.let { _ -> homeAppRows() }
+        SettingsPage.RemoteButtons -> resumeTick.let { _ -> remoteButtonRows() }
+        SettingsPage.RemoteButton -> remoteButtonEditRows()
+        SettingsPage.RemoteAction -> remoteActionRows()
+        SettingsPage.ScreenTime -> screenTimeTick.let { _ -> screenTimeRows() }
         SettingsPage.Backup -> backupRows()
         SettingsPage.IconPack -> iconPackRows()
         SettingsPage.Banner -> bannerRows()
@@ -3522,6 +4102,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "pr:passcode" -> if (activeProfileSpec.locked) turnOffPasscode() else setPasscode()
             r.id == "pr:restrict" -> pushPage(SettingsPage.Restrictions)
+            r.id == "pr:screentime" -> pushPage(SettingsPage.ScreenTime)
+            r.id.startsWith("st:") -> selectScreenTime(r.id)
+            r.id == "remote" -> pushPage(SettingsPage.RemoteButtons)
+            r.id.startsWith("rb:") || r.id.startsWith("rbe:") || r.id.startsWith("ra:") -> selectRemote(r.id)
+            r.id == "bannersOver" -> toggleBannersOver()
+            r.id == "snapshots" -> toggleSnapshots()
+            r.id == "wp:aerial" -> {
+                if (p.wallpaperShuffle > 0) cue(Cue.Error)
+                else {
+                    updatePrefs(p.copy(wallpaper = AerialWallpaperKey))
+                    if (p.liteMode) showBanner("Apple TV Aerials", "Lite Mode shows a still. Turn off Lite Mode for moving aerials on the Home Screen.", Icons.Rounded.Info)
+                    else if (!spotlight && p.heroEnabled) showBanner("Apple TV Aerials", "Aerials play behind Home with Top Shelf Style set to Spotlight, or with the Top Shelf off.", Icons.Rounded.Info)
+                }
+            }
             r.id == "pr:delete" -> deleteActiveProfile()
             r.id == "rs:all" -> updateActive { pr ->
                 pr.copy(blocked = if (pr.blocked.isEmpty()) allApps.map { it.id }.toSet() else emptySet())
@@ -3976,6 +4570,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("pr:edit", "Name & Picture", mine, chevron = true),
             SettingsRow("pr:passcode", "Passcode", mine, onOff(me.locked)),
             SettingsRow("pr:restrict", "Restrictions", mine, if (me.blocked.isEmpty()) "None" else "${me.blocked.size} Blocked", chevron = true),
+            SettingsRow("pr:screentime", "Screen Time", mine, screenTimeLabel(me), chevron = true),
         ) + if (list.size > 1) listOf(SettingsRow("pr:delete", "Delete Profile", mine)) else emptyList()
     }
 
@@ -3998,6 +4593,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         private set
     /** CI: show the picture page with pretend albums (the emulator has no photos or access). */
     private var demoLibrary = false
+    /** CI: the demo App Switcher's first card shows this (real) app's snapshot. */
+    private var demoSnapshotPkg: String? = null
 
     fun loadPhotoLibrary() {
         if (demoLibrary) return
@@ -4213,6 +4810,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun wallpaperLabel(): String = when {
         prefs.wallpaper.startsWith("photo:") -> "Your Picture"
+        prefs.wallpaper == AerialWallpaperKey -> "Apple TV Aerials"
         else -> wallpaperName(prefs.wallpaper)
     }
 
@@ -4340,7 +4938,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 else -> emptyMap()
             },
         )
-        b.getString("wallpaper")?.let { p = p.copy(wallpaper = "scene:$it") }
+        b.getString("wallpaper")?.let { p = p.copy(wallpaper = if (it == AerialWallpaperKey) it else "scene:$it") }
         // Each CI shot states its glass colour (or gets Automatic), so one shot can't leak into the next.
         p = p.copy(
             glassColour = if (glassArg.equals("clear", true)) GlassColour.Clear
@@ -4373,6 +4971,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
         )
+        demoSnapshotPkg = b.getString("demoSnapshot")?.takeIf { it.isNotBlank() }
         // A banner that stays up for the screenshot.
         bannerJob?.cancel()
         banner = b.getString("banner")?.let { BannerSpec("Prism TV Updated", it, Icons.Rounded.CheckCircle) }
@@ -4380,10 +4979,33 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         b.getString("aerial")?.let { v -> AerialSource.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(aerialSource = it) } }
         if (b.containsKey("autorotate")) p = p.copy(heroAutoRotate = b.getBoolean("autorotate"))
         if (b.containsKey("columns")) p = p.copy(columns = b.getInt("columns", 6).coerceIn(5, 6))
+        // Remote Buttons: a Red button that opens Control Centre (Search when held), Guide → App Switcher.
+        if (b.containsKey("demoRemote")) {
+            p = if (b.getBoolean("demoRemote")) p.copy(remoteButtons = "183\t0\tcc\tsearch\n172\t0\tswitcher\tdefault", homeHold = "cc")
+            else p.copy(remoteButtons = "", homeHold = "default")
+        }
+        if (b.containsKey("snapshots")) p = p.copy(appSnapshots = b.getBoolean("snapshots"))
+        if (b.containsKey("bannersOver")) p = p.copy(bannersOverApps = b.getBoolean("bannersOver"))
+        // Screen Time for the profile in use.
+        if (b.containsKey("screenLimit") || b.containsKey("downtime")) {
+            val id = p.activeProfile.ifEmpty { com.prismtv.launcher.data.Profiles.MainId }
+            val limit = b.getInt("screenLimit", 0)
+            val down = b.getString("downtime").orEmpty()
+            val base = p.profiles.ifEmpty { listOf(com.prismtv.launcher.data.ProfileSpec(id, p.profileName, p.avatar)) }
+            p = p.copy(profiles = base.map { if (it.id == id) it.copy(limitMinutes = limit, downtime = down) else it })
+            b.getInt("usedMinutes", 0).takeIf { it > 0 }?.let { m ->
+                val used = com.prismtv.launcher.data.ScreenTime.usedToday(ctx, id)
+                com.prismtv.launcher.data.ScreenTime.add(ctx, id, m * 60_000L - used)
+            }
+        }
+        remoteEditing = b.getString("remoteEditing") ?: remoteEditing
+        b.getString("remoteSlot")?.let { remoteSlot = it }
         updatePrefs(p)
         b.getString("clock")?.let { clockOverride = it }
         PrismNotificationListener.demo(if (b.getInt("notify", 0) > 0) demoNotifications(b.getInt("notify", 0)) else emptyList())
         keyboard = null
+        searchOpen = false
+        searchFocus = -1
 
         dialog = null
         contextMenu = null
@@ -4486,6 +5108,21 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             "aerial" -> startScreensaver()
+            "search" -> {
+                openSearch()
+                b.getString("text")?.let { keyboardEditor.text = it }
+                val kr = b.getInt("keyRow", 0)
+                val kc = b.getInt("keyCol", 2)
+                viewModelScope.launch {
+                    withContext(Dispatchers.IO) { com.prismtv.launcher.ui.keyboard.WordPredictor.get(ctx) }
+                    keyboardController.debugState(0, kr, kc)
+                    searchFocus = b.getInt("focus", -1)
+                }
+            }
+            "timesup" -> showTimesUp(
+                activeProfileSpec,
+                if (b.getString("block") == "downtime") com.prismtv.launcher.data.ScreenTime.Block.Downtime else com.prismtv.launcher.data.ScreenTime.Block.Limit,
+            )
         }
         // CI: Prism TV's own adb client against the emulator's adbd.
         if (b.getBoolean("adbTest", false)) {
@@ -4507,6 +5144,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 delay(b.getInt("closeDelay", 1500).toLong())
                 closeTimer?.cancel()
                 pendingClose[pkg] = label
+                com.prismtv.launcher.system.AppSnapshots.delete(ctx, pkg)
                 flushCloses()
                 val r = lastCloseResult
                 android.util.Log.i(
@@ -4540,6 +5178,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             announceInstalledVersion()
         }
         watchForIdle()
+        watchScreenTime()
         viewModelScope.launch {
             PrismNotificationListener.notifications.collect { list ->
                 notifications = list

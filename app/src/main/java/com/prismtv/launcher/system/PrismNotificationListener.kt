@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -47,7 +48,39 @@ class PrismNotificationListener : NotificationListenerService() {
         state.value = emptyList()
     }
 
-    override fun onNotificationPosted(sbn: StatusBarNotification?) = publish()
+    override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        publish()
+        if (sbn != null) maybeBanner(sbn)
+    }
+
+    /** Posted times of notifications already shown as a banner, so updates don't show again. */
+    private val bannered = LinkedHashMap<String, Long>()
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /**
+     * Banners Over Apps: a new notification slides in over the app you're watching (Prism TV shows
+     * its own in the time pill). Only new, ordinary notifications that would make a sound or show on
+     * a phone: no quiet ones, media, progress or updates to one already shown.
+     */
+    private fun maybeBanner(sbn: StatusBarNotification) {
+        if (Foreground.prismResumed || !PrismAccessibilityService.isEnabled) return
+        val sp = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE)
+        if (!sp.getBoolean(BannerOverlay.PrefKey, false) || !useful(sbn)) return
+        if (System.currentTimeMillis() - sbn.postTime > 15_000L) return
+        if (bannered[sbn.key] == sbn.postTime) return
+        val ranking = NotificationListenerService.Ranking()
+        if (runCatching { currentRanking?.getRanking(sbn.key, ranking) }.getOrNull() == true &&
+            ranking.importance in 0 until android.app.NotificationManager.IMPORTANCE_DEFAULT
+        ) return
+        bannered[sbn.key] = sbn.postTime
+        if (bannered.size > 40) bannered.remove(bannered.keys.first())
+        val light = sp.getString("appearance", null) == "Light"
+        worker.post {
+            val e = entry(sbn) ?: return@post
+            val icon = runCatching { e.icon?.asAndroidBitmap() }.getOrNull()
+            main.post { PrismAccessibilityService.banner(e.appLabel, e.title, e.text, icon, light) }
+        }
+    }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) = publish()
 

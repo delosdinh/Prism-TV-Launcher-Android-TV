@@ -387,8 +387,10 @@ fun KeyboardOverlay(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // The text being edited, iOS-style: a rounded field with a blinking caret.
-            PText(req.title, 15.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.9f), shadow = true)
-            Box(Modifier.height(8.dp))
+            if (req.title.isNotBlank()) {
+                PText(req.title, 15.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.9f), shadow = true)
+                Box(Modifier.height(8.dp))
+            }
             val caret = rememberInfiniteTransition(label = "caret")
             val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
             // The text field is Liquid Glass in its own colour (or the keyboard's): frosty, lavender, smoked or clear.

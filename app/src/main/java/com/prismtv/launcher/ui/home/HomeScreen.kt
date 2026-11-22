@@ -149,6 +149,9 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
         HomeBackdrop(
             backdropArt, blurred = gridMode, palette = p, backdrop = LocalBackdrop.current,
             card = if (spotlight) vm.currentArt else null, expanded = expanded,
+            // Moving aerials behind Home (a still in Lite Mode, and while Home is behind an app).
+            aerial = (spotlight || !heroOn) && vm.wallpaperKey == com.prismtv.launcher.AerialWallpaperKey &&
+                vm.homeVisible && !vm.prefs.liteMode,
         )
 
         HeroOverlay(
@@ -219,6 +222,7 @@ private fun HomeBackdrop(
     backdrop: BackdropState,
     card: HeroArt? = null,
     expanded: Boolean = false,
+    aerial: Boolean = false,
 ) {
     val blur = animateFloatAsState(if (blurred) 1f else 0f, tween(650, easing = FastOutSlowInEasing), label = "wallBlur")
     val spot = card != null
@@ -244,6 +248,7 @@ private fun HomeBackdrop(
                 }
             }
         }
+        if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(blur = { blur.value }, modifier = Modifier.fillMaxSize())
         if (!spot) {
             // Hero scrims keep type legible without looking "dimmed".
             Box(

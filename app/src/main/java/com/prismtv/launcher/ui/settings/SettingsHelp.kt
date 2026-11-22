@@ -44,6 +44,26 @@ private val Exact: Map<String, String> = mapOf(
     "reset" to "Puts every Prism TV setting and the Home Screen layout back to how they started.",
 
     // Home App
+    // Remote Buttons
+    "remote" to "Change what your remote's app, colour and Guide buttons do, and what holding Home does.",
+    "rb:a11y" to "Remote Buttons see your remote's buttons through Power & Home Button, before apps do. Turn it on first.",
+    "rb:homeHold" to "Hold Home for a moment to open Control Centre, the App Switcher, Search or anything else, as on Apple TV.",
+    "rb:add" to "Press the button you'd like to change, then choose what it does when pressed and when held.",
+    "rbe:press" to "What a quick press does. Usual Action leaves the button as it was.",
+    "rbe:hold" to "What holding the button for a moment does. Keeping the usual press as well needs Shizuku.",
+    "rbe:remove" to "The button goes back to doing what it did before.",
+    // Screen Time
+    "pr:screentime" to "A daily limit and downtime for this profile. When time's up, apps close and a passcode gives more time.",
+    "st:limit" to "How long apps can be used each day. Time on the Home Screen doesn't count.",
+    "st:downtime" to "Hours with no apps, such as bedtime. A passcode lifts it until it next starts.",
+    "st:used" to "How long apps have been on screen today in this profile.",
+    "st:left" to "Time left today before apps close.",
+    "st:passcode" to "With a passcode on your profile, only you can give more time or change Screen Time.",
+    // Home Screen extras
+    "bannersOver" to "New notifications slide in at the top right over whatever you're watching, then slide away.",
+    "snapshots" to "App Switcher cards show each app as you left it. A snapshot is taken as you press Home, kept on the TV and deleted when you swipe the app away.",
+    "wp:aerial" to "Apple TV aerials play silently behind the Home Screen, with Spotlight or with the Top Shelf off. Lite Mode shows a still.",
+
     "homeApp" to "Which app the TV starts to and the Home button opens. Prism TV can set this itself, and put the TV's own launcher back.",
     "ha:make" to "Makes Prism TV the TV's Home app with one command, through Shizuku or the TV's own debugging.",
     "ha:hide" to "Stops the TV's own launcher opening in Prism TV's place. Restore it before uninstalling Prism TV.",
@@ -192,6 +212,9 @@ private val Exact: Map<String, String> = mapOf(
 /** Lines shared by rows made per app, album, profile, picture… (checked in order). */
 private val Prefixes: List<Pair<String, String>> = listOf(
     "app:" to "Show or hide this app on the Home Screen.",
+    "rb:btn:" to "What this button does when pressed, and when held.",
+    "ra:app:" to "The button opens this app.",
+    "ra:" to "What the button does.",
     "su:app:" to "Opens this app each time the TV starts.",
     "in:show:" to "Show or hide this input on the Home Screen.",
     "in:name:" to "Give this input your own name, like PlayStation 5.",

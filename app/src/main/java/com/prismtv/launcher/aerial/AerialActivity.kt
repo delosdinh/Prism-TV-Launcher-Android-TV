@@ -44,10 +44,12 @@ class AerialActivity : Activity() {
 
     override fun onStart() {
         super.onStart()
+        com.prismtv.launcher.system.Foreground.screensaver = true
         aerial?.start()
     }
 
     override fun onStop() {
+        com.prismtv.launcher.system.Foreground.screensaver = false
         aerial?.stop()
         super.onStop()
         // Leaving the screensaver (Home, another app, screen off) should never resume it later.

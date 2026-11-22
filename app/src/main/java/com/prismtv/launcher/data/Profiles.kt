@@ -15,9 +15,14 @@ data class ProfileSpec(
     val passcode: String = "",
     /** App ids hidden from this profile. */
     val blocked: Set<String> = emptySet(),
+    /** Screen Time: minutes of apps a day (0 = no limit). */
+    val limitMinutes: Int = 0,
+    /** Screen Time: no apps between these hours ("21:00-07:00"; empty = no downtime). */
+    val downtime: String = "",
 ) {
     val locked: Boolean get() = passcode.isNotEmpty()
-    val restricted: Boolean get() = blocked.isNotEmpty()
+    val restricted: Boolean get() = blocked.isNotEmpty() || timeLimited
+    val timeLimited: Boolean get() = limitMinutes > 0 || downtime.isNotEmpty()
 }
 
 object Profiles {
@@ -32,9 +37,9 @@ object Profiles {
 
     fun newId(): String = "p" + System.currentTimeMillis().toString(36)
 
-    /** One line per profile: id, name, avatar, passcode hash, blocked app ids (tab-separated). */
+    /** One line per profile: id, name, avatar, passcode hash, blocked app ids, daily limit, downtime (tab-separated). */
     fun encode(list: List<ProfileSpec>): String = list.joinToString("\n") { p ->
-        listOf(p.id, p.name, p.avatar, p.passcode, p.blocked.joinToString(","))
+        listOf(p.id, p.name, p.avatar, p.passcode, p.blocked.joinToString(","), p.limitMinutes.toString(), p.downtime)
             .joinToString("\t") { it.replace('\t', ' ').replace('\n', ' ') }
     }
 
@@ -49,6 +54,8 @@ object Profiles {
                 avatar = f[2].ifBlank { "preset:0" },
                 passcode = f.getOrNull(3).orEmpty(),
                 blocked = f.getOrNull(4).orEmpty().split(',').filter { it.isNotBlank() }.toSet(),
+                limitMinutes = f.getOrNull(5)?.toIntOrNull() ?: 0,
+                downtime = f.getOrNull(6).orEmpty(),
             )
         }
     }

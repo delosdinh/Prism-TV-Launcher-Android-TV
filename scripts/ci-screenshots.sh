@@ -96,7 +96,7 @@ shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass li
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
-shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 18
+shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 19
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
@@ -111,7 +111,8 @@ shot 37-cc-notifications           "${B[@]}" "${DARK[@]}" --ei notify 4 --es scr
 shot 37b-time-pill-badge           "${B[@]}" "${DARK[@]}" --ei notify 2 --es screen top --ei button 0
 shot 37c-cc-notification-clear     "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 200
 shot 37d-cc-clear-all              "${B[@]}" --es appearance light --es glass liquid --ei notify 4 --es screen controlcentre --ei focus 30
-shot 38-settings-wallpaper         "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 1
+shot 38-settings-wallpaper         "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 2
+shot 38b-settings-wallpaper-aerial  "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 1
 shot 39-context-menu-balanced      "${B[@]}" --es appearance balanced --es glass liquid --es screen menu --ei row 1 --ei col 1 --ei focus 1
 shot 40-grid-liquid-dark-labels    "${B[@]}" "${DARK[@]}" --es screen grid --ei row 2 --ei col 0
 # Appearance (Colour Mode, Material, Material Colour, Settings & Pop-ups Transparency), Keyboard, Profile,
@@ -151,7 +152,7 @@ shot 58e-kids-home                 "${B[@]}" "${DARK[@]}" --ez demoProfiles true
 shot 59-screensaver-pictures       "${B[@]}" "${DARK[@]}" --es aerial pictures --ez demoLibrary true --es screen settings --es page ScreensaverPictures --ei focus 2
 shot 59b-keyboard-field-light      "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es fieldColour light --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 2
 shot 59c-restrictions-all          "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 0
-shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 15
+shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 16
 shot 60b-settings-access           "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0
 shot 60c-settings-home-screen      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 6
 # Closing Apps (Settings › Apps), and each Screensaver / Privacy row's own glyph.
@@ -160,11 +161,26 @@ shot 61b-settings-closing          "${B[@]}" "${DARK[@]}" --es screen settings -
 shot 61c-settings-closing-a11y     "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page Closing --ei focus 3
 shot 61d-settings-screensaver-row  "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 4
 # Home App (make Prism TV the Home app, hide or restore the stock launcher), Now Playing on the Top Shelf.
-shot 63-settings-root-home-app     "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 10
-shot 63b-settings-home-app         "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeApp --ei focus 0
-shot 63c-settings-home-app-restore "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page HomeApp --ei focus 2
-shot 64-top-shelf-now-playing      "${B[@]}" "${DARK[@]}" --es nowPlaying "'Golden Hour'" --es screen hero --ei col 2
-shot 64b-top-shelf-paused-light    "${B[@]}" --es appearance light --es glass liquid --es nowPlaying "'Golden Hour'" --ez paused true --es screen home --ei col 2
+shot 65-settings-root-home-app     "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 10
+shot 65b-settings-home-app         "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeApp --ei focus 0
+shot 65c-settings-home-app-restore "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page HomeApp --ei focus 2
+shot 66-top-shelf-now-playing      "${B[@]}" "${DARK[@]}" --es nowPlaying "'Golden Hour'" --es screen hero --ei col 2
+shot 66b-top-shelf-paused-light    "${B[@]}" --es appearance light --es glass liquid --es nowPlaying "'Golden Hour'" --ez paused true --es screen home --ei col 2
+# Remote Buttons, Screen Time, Prism Search, Banners Over Apps and App Snapshots.
+shot 67-settings-root-remote       "${B[@]}" "${DARK[@]}" --ez demoRemote false --es screen settings --ei focus 12
+shot 67b-settings-remote-buttons   "${B[@]}" "${DARK[@]}" --ez demoRemote true --es screen settings --es page RemoteButtons --ei focus 2
+shot 67c-settings-remote-button    "${B[@]}" "${DARK[@]}" --ez demoRemote true --es remoteEditing k183 --es screen settings --es page RemoteButton --ei focus 1
+shot 67d-settings-remote-action    "${B[@]}" --es appearance light --es glass liquid --ez demoRemote true --es remoteEditing k183 --es remoteSlot press --es screen settings --es page RemoteAction --ei focus 3
+shot 68-settings-screen-time       "${B[@]}" "${DARK[@]}" --ez demoRemote false --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --es downtime 21:00-07:00 --ei usedMinutes 42 --es screen settings --es page ScreenTime --ei focus 0
+shot 68b-screen-time-up            "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --ei usedMinutes 60 --es screen timesup
+shot 68c-downtime-light            "${B[@]}" --es appearance light --es glass liquid --ez demoProfiles true --es activeProfile p-kids --es downtime 21:00-07:00 --es screen timesup --es block downtime
+shot 68d-settings-profiles-time    "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --es screen settings --es page Profiles --ei focus 8
+shot 69-search-recent              "${B[@]}" "${DARK[@]}" --es screen search
+shot 69b-search-typed              "${B[@]}" "${DARK[@]}" --es screen search --es text ci --ei keyRow 1 --ei keyCol 2
+shot 69c-search-results-focus      "${B[@]}" "${DARK[@]}" --es screen search --es text s --ei focus 1
+shot 69d-search-settings-light     "${B[@]}" --es appearance light --es glass liquid --es screen search --es text lite --ei focus 0
+shot 70-settings-banners-over      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 15
+shot 70b-settings-snapshots        "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 16
 # Settings lists wrap: Up from the first row goes to the last, Down from the last back to the first.
 start "${B[@]}" "${DARK[@]}" --es screen settings --es page Appearance --ei focus 0; sleep 4
 key KEYCODE_DPAD_UP 2.5; cap 62-settings-wrap-up-to-last
@@ -227,6 +243,13 @@ if [ "$QUICK" = 0 ]; then
   start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple
   sleep 10; cap 32-aerial-apple-later
   adb shell input keyevent KEYCODE_BACK; sleep 2
+  # Apple TV Aerials as the Home wallpaper (Spotlight shows the wallpaper around its card).
+  start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen home --ei col 0; sleep 16
+  cap 74-home-aerial-wallpaper
+  start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen grid --ei row 1 --ei col 1; sleep 5
+  cap 74b-grid-aerial-wallpaper
+  start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --ez lite true --es screen home --ei col 0; sleep 4
+  cap 74c-aerial-wallpaper-lite-still
 fi
 
 # Closing apps for real: with Power & Home Button on, swiping an app away presses Force Stop in Settings
@@ -249,6 +272,18 @@ if [ -n "$TARGET" ]; then
   sleep 8
   cap 63-close-test-app-open
   echo "before: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
+  # App Switcher snapshots: pressing Home in the app takes one (Android 11+) for its card.
+  adb logcat -c || true
+  adb shell input keyevent KEYCODE_HOME; sleep 4
+  cap 63a-home-after-snapshot
+  echo "snapshots: $(adb shell run-as "$PKG" ls files/snapshots 2>&1 | tr -d '\r' | tr '\n' ' ')" | tee "$OUT/snapshot-test.txt"
+  adb logcat -d -s PrismSnap:V | tail -n 5 | tee -a "$OUT/snapshot-test.txt"
+  if [ "$QUICK" = 0 ]; then
+    shot 63s-switcher-snapshot "${B[@]}" "${DARK[@]}" --es demoSnapshot "$TARGET" --es screen switcher --ei focus 0
+  fi
+  timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
+    timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  sleep 5
   adb logcat -c || true
   # The switcher stalls the software-rendered API 34 emulator (see the end), so close from Home there.
   CLOSE_FROM=switcher; [ "$QUICK" = 1 ] && CLOSE_FROM=home
@@ -258,6 +293,34 @@ if [ -n "$TARGET" ]; then
   sleep 8; cap 63d-closed-back-in-switcher
   echo "after: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
   adb logcat -d -s PrismClose:V | tee -a "$OUT/close-test.txt"
+  echo "snapshots after closing: $(adb shell run-as "$PKG" ls files/snapshots 2>&1 | tr -d '\r' | tr '\n' ' ')" | tee -a "$OUT/snapshot-test.txt"
+
+  # Banners Over Apps: a notification arriving while an app is on screen slides in at the top right.
+  adb shell cmd notification allow_listener "$PKG/$PKG.system.PrismNotificationListener" >/dev/null 2>&1 || true
+  start "${B[@]}" "${DARK[@]}" --ez bannersOver true --es screen home; sleep 3
+  timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
+    timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  sleep 7
+  adb shell cmd notification post -t "Delivery" prism_banner_test "Your order is on its way" >/dev/null 2>&1
+  sleep 1.4; cap 73-banner-over-app
+  sleep 7; cap 73b-banner-gone
+  adb shell input keyevent KEYCODE_HOME; sleep 3
+
+  # Remote Buttons: learn the Red button in Settings, give it Control Centre, then press it at Home.
+  start "${B[@]}" "${DARK[@]}" --ez demoRemote false --ez bannersOver false --es screen settings --es page RemoteButtons --ei focus 1; sleep 4
+  key KEYCODE_DPAD_CENTER 2; cap 72-remote-press-a-button
+  key KEYCODE_PROG_RED 2.5; cap 72b-remote-button-learned
+  key KEYCODE_DPAD_CENTER 2
+  for _ in 1 2 3; do key KEYCODE_DPAD_DOWN 0.6; done
+  key KEYCODE_DPAD_CENTER 2; cap 72c-remote-button-set
+  adb shell input keyevent KEYCODE_HOME; sleep 2.5
+  adb shell input keyevent KEYCODE_HOME; sleep 2.5
+  key KEYCODE_PROG_RED 3; cap 72d-red-opens-control-centre
+  echo "remote buttons: $(adb shell run-as "$PKG" cat shared_prefs/prism_prefs.xml 2>/dev/null | grep -oE 'name="remoteButtons">[^<]*' | tr '\t\n' '  ')" | tee "$OUT/remote-test.txt"
+  # Holding Home (set to Control Centre) opens it too.
+  start "${B[@]}" "${DARK[@]}" --ez demoRemote true --es screen home; sleep 3
+  adb shell input keyevent --longpress KEYCODE_HOME; sleep 3; cap 72e-hold-home-control-centre
+  start "${B[@]}" "${DARK[@]}" --ez demoRemote false --es screen home; sleep 2
   adb shell settings delete secure enabled_accessibility_services >/dev/null 2>&1 || true
   adb shell settings put secure accessibility_enabled 0 >/dev/null 2>&1 || true
   adb logcat -d -b crash > "$OUT/crash-close.txt" 2>&1 || true

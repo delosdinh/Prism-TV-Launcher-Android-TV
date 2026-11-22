@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         hideSystemBars()
         intent?.let { i -> i.extras?.let { if (isDebugIntent(i)) vm.applyDebug(it) } }
+        intent?.getStringExtra(com.prismtv.launcher.system.PrismAccessibilityService.ExtraAction)?.let { vm.remoteAction(it) }
         setContent { PrismApp(vm) }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
@@ -240,6 +241,11 @@ class MainActivity : ComponentActivity() {
             vm.applyDebug(extras)
             return
         }
+        // A remote button set to a Prism TV action (Settings › Remote Buttons).
+        intent.getStringExtra(com.prismtv.launcher.system.PrismAccessibilityService.ExtraAction)?.let {
+            vm.remoteAction(it)
+            return
+        }
         if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_HOME)) {
             // Double-press Home/TV opens the App Switcher, like tvOS.
             val now = SystemClock.uptimeMillis()
@@ -255,11 +261,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.prismtv.launcher.system.Foreground.prismResumed = true
         hideSystemBars()
         vm.onResume()
     }
 
     override fun onPause() {
+        com.prismtv.launcher.system.Foreground.prismResumed = false
         vm.onPause()
         super.onPause()
     }
@@ -472,6 +480,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogLayer(vm) }
             com.prismtv.launcher.ui.home.ProfilePicker(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = keyboardClear, fieldLook = fieldLook, fieldClear = fieldClear) }
+            com.prismtv.launcher.ui.search.SearchResults(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { com.prismtv.launcher.ui.home.PasscodePad(vm) }
             LaunchOverlay(vm)
             // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.

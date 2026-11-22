@@ -202,6 +202,9 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                             }
                         }
                 )
+            } else if (e.snapshot) {
+                // The app as you left it, like tvOS.
+                if (heroArt != null) Image(heroArt, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             } else {
                 if (heroArt != null) {
                     Image(heroArt, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
