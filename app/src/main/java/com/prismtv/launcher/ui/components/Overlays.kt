@@ -123,7 +123,7 @@ fun DialogHost(spec: DialogSpec?, focus: Int) {
                         lineHeight = 15.sp,
                         color = p.textPrimary,
                     ),
-                    maxLines = 5,
+                    maxLines = 8,
                 )
                 if (shown.codeNote.isNotEmpty()) {
                     VSpace(6.dp)

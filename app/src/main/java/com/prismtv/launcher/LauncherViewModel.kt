@@ -3356,7 +3356,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 open,
                 DialogButton("Cancel") {},
             ),
-            code = "settings put secure enabled_accessibility_services $a11yComponent\nsettings put secure accessibility_enabled 1",
+            code = "settings put secure enabled_accessibility_services ${ctx.packageName}/.system.PrismAccessibilityService\n" +
+                "settings put secure accessibility_enabled 1",
             codeNote = TypeNote,
         )
         dialogFocus = 0
