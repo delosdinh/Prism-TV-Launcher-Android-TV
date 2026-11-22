@@ -55,6 +55,13 @@ start() { timeout 120 adb shell am start -W -n "$ACT" "$@" >/dev/null 2>&1; }
 cap() { timeout 120 adb exec-out screencap -p > "$OUT/$1.png"; echo "captured $1"; }
 shot() { local name="$1"; shift; start "$@"; sleep "${WAIT:-4}"; cap "$name"; }
 key() { adb shell input keyevent "$1"; sleep "${2:-0.9}"; }
+# A key from the emulator's own keyboard device (a Linux key code). Unlike `input keyevent`, it goes
+# through Android's input filter, so Power & Home Button (accessibility) sees it like a remote press.
+emu_key() { # linux code, hold seconds
+  adb emu event send "1:$1:1" "0:0:0" >/dev/null 2>&1
+  sleep "${2:-0.08}"
+  adb emu event send "1:$1:0" "0:0:0" >/dev/null 2>&1
+}
 
 B=(--ez demo true --ez autorotate false --es clock "9:41")
 DARK=(--es appearance dark --es glass liquid)
@@ -274,10 +281,10 @@ if [ -n "$TARGET" ]; then
   echo "before: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
   # App Switcher snapshots: pressing Home in the app takes one (Android 11+) for its card.
   adb logcat -c || true
-  adb shell input keyevent KEYCODE_HOME; sleep 4
+  emu_key 102; sleep 4 # KEY_HOME → KEYCODE_HOME on the emulator's keyboard
   cap 63a-home-after-snapshot
   echo "snapshots: $(adb shell run-as "$PKG" ls files/snapshots 2>&1 | tr -d '\r' | tr '\n' ' ')" | tee "$OUT/snapshot-test.txt"
-  adb logcat -d -s PrismSnap:V | tail -n 5 | tee -a "$OUT/snapshot-test.txt"
+  adb logcat -d -s PrismSnap:V PrismKeys:V | tail -n 8 | tee -a "$OUT/snapshot-test.txt"
   if [ "$QUICK" = 0 ]; then
     shot 63s-switcher-snapshot "${B[@]}" "${DARK[@]}" --es demoSnapshot "$TARGET" --es screen switcher --ei focus 0
   fi
@@ -301,7 +308,7 @@ if [ -n "$TARGET" ]; then
   timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
     timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
   sleep 7
-  adb shell cmd notification post -t "Delivery" prism_banner_test "Your order is on its way" >/dev/null 2>&1
+  adb shell "cmd notification post -t 'Delivery' prism_banner_test 'Your order is on its way'" >/dev/null 2>&1
   sleep 1.4; cap 73-banner-over-app
   sleep 7; cap 73b-banner-gone
   adb shell input keyevent KEYCODE_HOME; sleep 3
@@ -309,17 +316,18 @@ if [ -n "$TARGET" ]; then
   # Remote Buttons: learn the Red button in Settings, give it Control Centre, then press it at Home.
   start "${B[@]}" "${DARK[@]}" --ez demoRemote false --ez bannersOver false --es screen settings --es page RemoteButtons --ei focus 1; sleep 4
   key KEYCODE_DPAD_CENTER 2; cap 72-remote-press-a-button
-  key KEYCODE_PROG_RED 2.5; cap 72b-remote-button-learned
+  emu_key 398; sleep 2.5; cap 72b-remote-button-learned # KEY_RED
   key KEYCODE_DPAD_CENTER 2
   for _ in 1 2 3; do key KEYCODE_DPAD_DOWN 0.6; done
   key KEYCODE_DPAD_CENTER 2; cap 72c-remote-button-set
   adb shell input keyevent KEYCODE_HOME; sleep 2.5
   adb shell input keyevent KEYCODE_HOME; sleep 2.5
-  key KEYCODE_PROG_RED 3; cap 72d-red-opens-control-centre
+  emu_key 398; sleep 3; cap 72d-red-opens-control-centre
   echo "remote buttons: $(adb shell run-as "$PKG" cat shared_prefs/prism_prefs.xml 2>/dev/null | grep -oE 'name="remoteButtons">[^<]*' | tr '\t\n' '  ')" | tee "$OUT/remote-test.txt"
+  adb logcat -d -s PrismKeys:V | tail -n 20 >> "$OUT/remote-test.txt"
   # Holding Home (set to Control Centre) opens it too.
   start "${B[@]}" "${DARK[@]}" --ez demoRemote true --es screen home; sleep 3
-  adb shell input keyevent --longpress KEYCODE_HOME; sleep 3; cap 72e-hold-home-control-centre
+  emu_key 102 1.2; sleep 3; cap 72e-hold-home-control-centre
   start "${B[@]}" "${DARK[@]}" --ez demoRemote false --es screen home; sleep 2
   adb shell settings delete secure enabled_accessibility_services >/dev/null 2>&1 || true
   adb shell settings put secure accessibility_enabled 0 >/dev/null 2>&1 || true

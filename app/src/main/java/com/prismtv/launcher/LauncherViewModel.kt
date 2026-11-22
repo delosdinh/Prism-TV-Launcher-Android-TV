@@ -3094,7 +3094,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("st:limit", "Daily Limit", section, st.limitLabel(me.limitMinutes)),
             SettingsRow("st:downtime", "Downtime", section, st.downtimeLabel(me.downtime)),
             SettingsRow("st:used", "Used Today", "TODAY", st.duration(used)),
-            st.remaining(ctx, me)?.let { SettingsRow("st:left", "Left Today", "TODAY", st.duration((it - pendingScreenTime()).coerceAtLeast(0))) },
+            st.remaining(ctx, me)?.let { left ->
+                // Rounded up: a minute and a bit left reads as 2 Min, not 1.
+                val ms = (left - pendingScreenTime()).coerceAtLeast(0)
+                SettingsRow("st:left", "Left Today", "TODAY", st.duration((ms + 59_999L) / 60_000L * 60_000L))
+            },
             if (profileList.none { it.locked }) SettingsRow("st:passcode", "Add a Passcode", "SO ONLY YOU CAN GIVE MORE TIME", chevron = true) else null,
         )
     }

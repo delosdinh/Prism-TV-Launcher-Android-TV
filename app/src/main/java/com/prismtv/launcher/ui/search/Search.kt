@@ -60,6 +60,13 @@ fun SearchResults(vm: LauncherViewModel) {
     val first = if (focus < 0) 0 else (focus - visible + 2).coerceIn(0, (results.size - visible).coerceAtLeast(0))
     val scroll by animateFloatAsState(first * (CardW + Gap), spring(dampingRatio = 0.9f, stiffness = 260f), label = "searchScroll")
 
+    // A deeper shade over the top of the screen, so results read clearly over the Top Shelf.
+    Box(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = t }
+            .background(Brush.verticalGradient(0f to Color.Black.copy(alpha = 0.62f), 0.42f to Color.Black.copy(alpha = 0.38f), 0.6f to Color.Transparent))
+    )
     Box(
         Modifier
             .fillMaxSize()

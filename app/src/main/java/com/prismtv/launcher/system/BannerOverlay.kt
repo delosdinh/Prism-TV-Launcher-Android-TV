@@ -89,7 +89,12 @@ class BannerOverlay(private val service: AccessibilityService) {
 
     private fun build(): FrameLayout? {
         val ctx = service
-        val frame = FrameLayout(ctx)
+        // Room inside the window for the card's shadow and its slide.
+        val frame = FrameLayout(ctx).apply {
+            setPadding(dp(16f), dp(16f), dp(16f), dp(20f))
+            clipToPadding = false
+            clipChildren = false
+        }
         val box = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -136,8 +141,8 @@ class BannerOverlay(private val service: AccessibilityService) {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.END
-            x = dp(28f)
-            y = dp(24f)
+            x = dp(12f)
+            y = dp(8f)
             windowAnimations = 0
         }
         return try {

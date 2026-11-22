@@ -20,6 +20,12 @@ launcher counterpart to the Prism TV skin for Kodi.
   Stremio-style apps) show the title's logo artwork in place of its name, from Metahub.
 - **Wallpaper Shuffle** (Settings › Home Screen › Wallpaper): every 30 seconds up to daily, through
   the Prism wallpapers and your own pictures you tick.
+- **Apple TV Aerials as the wallpaper** (Settings › Home Screen › Wallpaper › Apple TV Aerials): the
+  aerials play silently behind Home (with Card Spotlight, or with the Top Shelf off), in 1080p SDR so
+  they're light on the TV. They pause behind apps, blur with the grid, and Liquid Glass bends them
+  like any wallpaper. Lite Mode shows a still instead.
+- **Now Playing on the Top Shelf**: when an app is playing (music, a video in the background), its
+  dock tile's Top Shelf leads with a Now Playing card — artwork, title, Play/Pause and Skip.
 - **Widgets** (Settings › Home Screen › Widgets): rows of cards from your apps — Continue Watching,
   Up Next, each app's recommendation channels, and Recommended for You / Continue Watching across
   all apps — placed **above** or **below** the dock. Choose which apps the all-app rows draw from,
@@ -129,7 +135,28 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **App Switcher**, laid out like tvOS: the Home Screen shrinks into a centred card, recent apps
   recede in a stacked deck to its left with their icon and name above each card, and the newer card
   lies over the focused one's edge. Press up to fling an app away — and it really closes (see
-  [Closing apps](#closing-apps)).
+  [Closing apps](#closing-apps)). **App Snapshots** (Settings › Home Screen, Android 11+, with
+  Power & Home Button on): each card shows the app as you left it, from one screenshot taken as you
+  press Home. Snapshots stay in Prism TV's private files, are deleted when you swipe the app away or
+  turn the setting off, and protected video (which Android blanks) falls back to the app's artwork.
+- **Prism Search** (Sidebar › Search, or a remote button): type on Prism Keyboard (or dictate) and
+  results update above it with each letter — apps, titles from your apps' rows and Continue
+  Watching, and places in Settings. Up from the keyboard's top row moves into the results.
+- **Banners Over Apps** (Settings › Home Screen, opt-in): new notifications slide in at the top
+  right over whatever you're watching, like tvOS, then slide away. They never take focus. Needs
+  Notifications and Power & Home Button.
+- **Remote Buttons** (Settings › Remote & Power): give your remote's app, colour, Guide or Bookmark
+  buttons a new job — open any app, the App Switcher, Control Centre, Search, the previous app, the
+  screensaver, Play/Pause or Sleep — for a press, a hold, or both. **Hold Home** can open Control
+  Centre, as on Apple TV. Add a Button… learns whichever button you press. Home, Back, Select, the
+  arrows, volume and power always stay as they are. (Keeping a button's usual press while giving it
+  a hold action needs Shizuku.)
+- **Screen Time** (Settings › Profiles › Screen Time): a daily limit and a downtime for each profile.
+  Time counts while apps are on screen (not on the Home Screen or the screensaver). When time's up,
+  Prism TV comes forward, closes the app and says so; **Ask for More Time** takes a passcode and adds
+  15 minutes, an hour or the rest of the day. Settings are locked for a profile with limits.
+- **Home layout per profile**: each profile keeps its own Home Screen arrangement and folders (a new
+  profile starts from the main one's).
 - **Launch transitions** (matched to tvOS): the tile's artwork grows out of its slot to fill the
   screen while the Home Screen blurs behind it, and the app fades in over the top — no black
   frame. Coming back shrinks the artwork into its icon.
@@ -153,7 +180,10 @@ launcher counterpart to the Prism TV skin for Kodi.
 | Up from the dock | Full-screen Top Shelf → time pill |
 | Menu (or the time pill) | Control Centre |
 | Home twice | App Switcher (or the App Switch key on remotes that have one) |
+| Hold Home | Whatever Settings › Remote Buttons › Hold Home is set to (Control Centre, Search…) |
 | Back | Close the current layer |
+
+Any other button (app buttons, colour buttons, Guide…) can be changed in Settings › Remote Buttons.
 
 ## Optional permissions
 
@@ -167,7 +197,9 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Accessibility › Prism TV Power & Home Button** — makes the remote's Home button open Prism TV
   (including Google TV boxes and Xiaomi remotes, which send `KEYCODE_ALL_APPS` for Home), and lets
   Control Centre open the power menu and the Sleep Timer put the TV to sleep. It also closes apps
-  you swipe away (below). It only reads the screen while doing that, and only in Settings.
+  you swipe away (below), runs Remote Buttons, shows Banners Over Apps, and takes the App Switcher
+  snapshot as you press Home (Android 11+). It reads the screen only to press Force Stop in
+  Settings and to know which app is in front.
 
 ### Closing apps
 
@@ -265,6 +297,15 @@ adb shell settings put secure accessibility_enabled 1
 
 On Android TV (e.g. NVIDIA SHIELD) you can instead disable the stock launcher:
 `adb shell pm disable-user --user 0 com.google.android.tvlauncher` (undo with `pm enable`).
+
+Or let Prism TV do it: Settings › **Home App** › **Make Prism TV the Home App** runs the same command
+for you (through Shizuku, or the TV's own network debugging — allow it once). The same page can hide
+the TV's own launcher if it keeps coming back.
+
+> **Before uninstalling Prism TV**, go to Settings › Home App › **Restore** (Google TV, Android TV
+> Home…) — especially if you hid the stock launcher. Otherwise the TV may be left with no launcher
+> to go Home to. From a shell: `pm enable <launcher package>` and
+> `cmd package set-home-activity --user 0 <launcher package>/<its activity>`.
 
 Tools such as TV Box Tools do the same `set-home-activity` step for you. Uninstalling Prism TV
 resets the Home app, so run it again after a reinstall; in-place updates keep it.

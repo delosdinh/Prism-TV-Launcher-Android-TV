@@ -94,6 +94,7 @@ class PrismAccessibilityService : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val code = event.keyCode
+        if (com.prismtv.launcher.BuildConfig.DEBUG) Log.d("PrismKeys", "key $code scan ${event.scanCode} action ${event.action} repeat ${event.repeatCount}")
         if (stopperOrNull?.active == true) {
             // Settings is open behind the still while an app closes: hold the remote so nothing lands
             // there. Home still works (and stops the closing).
