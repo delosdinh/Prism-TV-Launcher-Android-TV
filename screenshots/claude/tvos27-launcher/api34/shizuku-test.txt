@@ -3,44 +3,44 @@ captured 65a-adb-allow-prompt
 tapped "Always allow from this computer"
 always allow ticked
 tapped "Allow"
-own adb client: 11-22 13:36:29.750  7630  7630 I PrismAdb: result=Ok(output=prism-adb-ok
+own adb client: 11-22 14:12:08.681  7568  7568 I PrismAdb: result=Ok(output=prism-adb-ok
 captured 65b-shizuku-downloading
 captured 65c-shizuku-installer
 tapped "Install"
 captured 65d-shizuku-installed
-installed: package:/data/app/~~2GnUWfYm1CcAvn_rP05uuA==/moe.shizuku.privileged.api-05ZL3JOrIjf385brO26KKA==/base.apk
+installed: package:/data/app/~~UjO8i8I_wVN-NuynFqe82g==/moe.shizuku.privileged.api-qEVDjTHo74I7VsPjPfol3A==/base.apk
 captured 65d2-shizuku-starting
-started by Prism TV: 11-22 13:36:54.200  7630  7668 I PrismShizuku: info: starting server...
-11-22 13:36:54.200  7630  7668 I PrismShizuku: info: shizuku_server pid is 8187
-11-22 13:36:54.200  7630  7668 I PrismShizuku: info: shizuku_starter exit with 0
-server:  8187 shell        shizuku_server  8201 u0_a123      moe.shizuku.privileged.api 
-11-22 13:36:53.291  8182  8182 D Shizuku : start_server
-11-22 13:36:53.296  8187  8187 D Shizuku : child
-11-22 13:36:53.296  8187  8187 D Shizuku : exec app_process
-11-22 13:36:53.391  8187  8187 I shizuku_server: Using CollectorTypeCC GC.
-11-22 13:36:53.461  8187  8187 D shizuku_server: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
-11-22 13:36:53.461  8187  8187 D shizuku_server: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
-11-22 13:36:53.473  8187  8187 W shizuku_server: Unexpected CPU variant for x86: x86.
-11-22 13:36:53.473  8187  8187 W shizuku_server: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
-11-22 13:36:53.474  8187  8187 W shizuku_server: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system_ext/framework/androidx.window.extensions.jar*3801209684]#PCL[/system_ext/framework/androidx.window.sidecar.jar*2709203797]} | PCL[])
-11-22 13:36:53.492  8187  8187 D AndroidRuntime: Calling main entry rikka.shizuku.server.ShizukuService
-11-22 13:36:53.498  8187  8187 I ConfigManager: no existing config file /data/user_de/0/com.android.shell/shizuku.json; starting empty
-11-22 13:36:53.526  8187  8187 W main    : type=1400 audit(0.0:77): avc:  denied  { watch } for  path="/data/app/~~2GnUWfYm1CcAvn_rP05uuA==/moe.shizuku.privileged.api-05ZL3JOrIjf385brO26KKA==" dev="dm-38" ino=41354 scontext=u:r:shell:s0 tcontext=u:object_r:apk_data_file:s0 tclass=dir permissive=0
-11-22 13:36:53.561  7630  7641 D ShizukuProvider: binder received
-11-22 13:36:53.563  7630  7641 I ShizukuApplication: attachApplication
-11-22 13:36:53.569  8187  8187 V Service : Add 0:moe.shizuku.privileged.api to power save temp whitelist for 30s
-11-22 13:36:53.579   484   516 I ActivityManager: Start proc 8201:moe.shizuku.privileged.api/u0a123 for content provider {moe.shizuku.privileged.api/moe.shizuku.manager.ShizukuManagerProvider}
-11-22 13:36:53.612  8187  8198 V Service : Add 0:moe.shizuku.privileged.api to power save temp whitelist for 30s
-11-22 13:36:53.618  8201  8201 D nativeloader: Configuring clns-6 for other apk /data/app/~~2GnUWfYm1CcAvn_rP05uuA==/moe.shizuku.privileged.api-05ZL3JOrIjf385brO26KKA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~2GnUWfYm1CcAvn_rP05uuA==/moe.shizuku.privileged.api-05ZL3JOrIjf385brO26KKA==/lib/x86:/data/app/~~2GnUWfYm1CcAvn_rP05uuA==/moe.shizuku.privileged.api-05ZL3JOrIjf385brO26KKA==/base.apk!/lib/x86, permitted_path=/data:/mnt/expand:/data/user/0/moe.shizuku.privileged.api
-11-22 13:36:53.638  8201  8201 V GraphicsEnvironment: ANGLE GameManagerService for moe.shizuku.privileged.api: false
-11-22 13:36:53.638  8201  8201 V GraphicsEnvironment: moe.shizuku.privileged.api is not listed in per-application setting
-11-22 13:36:53.704  8187  8187 I Service : send binder to user app moe.shizuku.privileged.api in user 0
-11-22 13:36:53.705  8201  8217 I ShizukuApplication: attachApplication
-11-22 13:36:53.705  8187  8198 I Service : send binder to user app moe.shizuku.privileged.api in user 0
+started by Prism TV: 11-22 14:12:33.013  7568  7610 I PrismShizuku: info: starting server...
+11-22 14:12:33.013  7568  7610 I PrismShizuku: info: shizuku_server pid is 8070
+11-22 14:12:33.013  7568  7610 I PrismShizuku: info: shizuku_starter exit with 0
+server:  8070 shell        shizuku_server  8084 u0_a123      moe.shizuku.privileged.api 
+11-22 14:12:32.054  8062  8062 D Shizuku : start_server
+11-22 14:12:32.055  8070  8070 D Shizuku : child
+11-22 14:12:32.055  8070  8070 D Shizuku : exec app_process
+11-22 14:12:32.145  8070  8070 I shizuku_server: Using CollectorTypeCC GC.
+11-22 14:12:32.374  8070  8070 D shizuku_server: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-22 14:12:32.374  8070  8070 D shizuku_server: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-22 14:12:32.380  8070  8070 W shizuku_server: Unexpected CPU variant for x86: x86.
+11-22 14:12:32.380  8070  8070 W shizuku_server: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-22 14:12:32.381  8070  8070 W shizuku_server: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system_ext/framework/androidx.window.extensions.jar*3801209684]#PCL[/system_ext/framework/androidx.window.sidecar.jar*2709203797]} | PCL[])
+11-22 14:12:32.412  8070  8070 D AndroidRuntime: Calling main entry rikka.shizuku.server.ShizukuService
+11-22 14:12:32.428  8070  8070 I ConfigManager: no existing config file /data/user_de/0/com.android.shell/shizuku.json; starting empty
+11-22 14:12:32.466  8070  8070 W main    : type=1400 audit(0.0:77): avc:  denied  { watch } for  path="/data/app/~~UjO8i8I_wVN-NuynFqe82g==/moe.shizuku.privileged.api-qEVDjTHo74I7VsPjPfol3A==" dev="dm-38" ino=41376 scontext=u:r:shell:s0 tcontext=u:object_r:apk_data_file:s0 tclass=dir permissive=0
+11-22 14:12:32.527  7568  7599 D ShizukuProvider: binder received
+11-22 14:12:32.529  7568  7599 I ShizukuApplication: attachApplication
+11-22 14:12:32.530  8070  8070 V Service : Add 0:moe.shizuku.privileged.api to power save temp whitelist for 30s
+11-22 14:12:32.536   484   519 I ActivityManager: Start proc 8084:moe.shizuku.privileged.api/u0a123 for content provider {moe.shizuku.privileged.api/moe.shizuku.manager.ShizukuManagerProvider}
+11-22 14:12:32.573  8084  8084 D nativeloader: Configuring clns-6 for other apk /data/app/~~UjO8i8I_wVN-NuynFqe82g==/moe.shizuku.privileged.api-qEVDjTHo74I7VsPjPfol3A==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~UjO8i8I_wVN-NuynFqe82g==/moe.shizuku.privileged.api-qEVDjTHo74I7VsPjPfol3A==/lib/x86:/data/app/~~UjO8i8I_wVN-NuynFqe82g==/moe.shizuku.privileged.api-qEVDjTHo74I7VsPjPfol3A==/base.apk!/lib/x86, permitted_path=/data:/mnt/expand:/data/user/0/moe.shizuku.privileged.api
+11-22 14:12:32.576  8070  8081 V Service : Add 0:moe.shizuku.privileged.api to power save temp whitelist for 30s
+11-22 14:12:32.593  8084  8084 V GraphicsEnvironment: ANGLE GameManagerService for moe.shizuku.privileged.api: false
+11-22 14:12:32.593  8084  8084 V GraphicsEnvironment: moe.shizuku.privileged.api is not listed in per-application setting
+11-22 14:12:32.635  8070  8070 I Service : send binder to user app moe.shizuku.privileged.api in user 0
+11-22 14:12:32.636  8084  8094 I ShizukuApplication: attachApplication
+11-22 14:12:32.636  8070  8081 I Service : send binder to user app moe.shizuku.privileged.api in user 0
 captured 65e-shizuku-running
 captured 65f-shizuku-allow-prompt
 tapped "Allow all the time"
 captured 65g-shizuku-allowed
-before: pid=7303
+before: pid=7258
 after: pid= stopped=true
-11-22 13:37:41.910  7630  7630 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
+11-22 14:13:20.716  7568  7568 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
