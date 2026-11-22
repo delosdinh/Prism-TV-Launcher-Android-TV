@@ -298,6 +298,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     var clockOverride by mutableStateOf<String?>(null)
     var resumeTick by mutableIntStateOf(0)
     var restartTick by mutableIntStateOf(0)
+
+    private val handledTicks = HashMap<String, Int>()
+
+    /** True the first time the window sees this value of a one-off request tick ([restartTick] and co). */
+    fun consumeTick(name: String, value: Int): Boolean {
+        if (value <= 0 || handledTicks[name] == value) return false
+        handledTicks[name] = value
+        return true
+    }
     var permissionRequestTick by mutableIntStateOf(0)
 
     // ---------------------------------------------------------------- editing
@@ -3857,6 +3866,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "aerial" -> startScreensaver()
         }
+        // CI: Settings › Restart Launcher.
+        if (b.getBoolean("restart", false)) restartTick++
         // CI: close a real app the way a swipe-up in the App Switcher does, and log what happened.
         b.getString("closeApp")?.takeIf { it.isNotBlank() }?.let { pkg ->
             val label = runCatching {

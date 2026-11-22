@@ -389,20 +389,24 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     val keys = remember { RemoteKeys(vm, scope) }
     val focusRequester = remember { FocusRequester() }
     val activity = LocalContext.current as? Activity
+    // One-off requests from the view model. It outlives the window, so each request is marked as handled:
+    // otherwise a rebuilt window saw the same request again (Restart Launcher restarted forever).
     LaunchedEffect(vm.restartTick) {
-        if (vm.restartTick > 0) activity?.recreate()
+        if (vm.consumeTick("restart", vm.restartTick)) {
+            if (activity == null || !com.prismtv.launcher.system.RestartActivity.restart(activity)) activity?.recreate()
+        }
     }
     LaunchedEffect(vm.permissionRequestTick) {
-        if (vm.permissionRequestTick > 0) (activity as? MainActivity)?.requestRecommendationAccess()
+        if (vm.consumeTick("recs", vm.permissionRequestTick)) (activity as? MainActivity)?.requestRecommendationAccess()
     }
     LaunchedEffect(vm.backupPickTick) {
-        if (vm.backupPickTick > 0) (activity as? MainActivity)?.pickBackupFile()
+        if (vm.consumeTick("backup", vm.backupPickTick)) (activity as? MainActivity)?.pickBackupFile()
     }
     LaunchedEffect(vm.photoPermissionTick) {
-        if (vm.photoPermissionTick > 0) (activity as? MainActivity)?.requestPhotoAccess()
+        if (vm.consumeTick("photos", vm.photoPermissionTick)) (activity as? MainActivity)?.requestPhotoAccess()
     }
     LaunchedEffect(vm.micPermissionTick) {
-        if (vm.micPermissionTick > 0) (activity as? MainActivity)?.requestMicAccess()
+        if (vm.consumeTick("mic", vm.micPermissionTick)) (activity as? MainActivity)?.requestMicAccess()
     }
     val keyboardLook = when (vm.prefs.keyboardColour) {
         KeyboardColour.Automatic -> appearance

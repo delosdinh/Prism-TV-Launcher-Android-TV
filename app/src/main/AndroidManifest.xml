@@ -113,6 +113,15 @@
                 android:resource="@xml/method" />
         </service>
 
+        <!-- Settings › Restart Launcher: a moment in its own process that restarts Prism TV's. -->
+        <activity
+            android:name=".system.RestartActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:process=":restart"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- Android's voice input screen, for dictation when the keyboard can't listen itself. -->
         <activity
             android:name=".ime.VoiceInputActivity"

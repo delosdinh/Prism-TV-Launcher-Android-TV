@@ -243,6 +243,15 @@ if [ -n "$TARGET" ]; then
   adb logcat -d -b crash > "$OUT/crash-close.txt" 2>&1 || true
 fi
 
+# Restart Launcher: Prism TV comes back once in a new process (it used to restart over and over).
+PID0="$(adb shell pidof "$PKG" | tr -d '\r')"
+start "${B[@]}" "${DARK[@]}" --es screen settings --ez restart true; sleep 9
+PID1="$(adb shell pidof "$PKG" | tr -d '\r')"; sleep 5
+PID2="$(adb shell pidof "$PKG" | tr -d '\r')"
+cap 64-after-restart
+if [ -n "$PID1" ] && [ "$PID1" != "$PID0" ] && [ "$PID1" = "$PID2" ]; then R=OK; else R=FAILED; fi
+echo "RESTART $R (before $PID0, after $PID1, later $PID2)" | tee "$OUT/restart-test.txt"
+
 if [ "$QUICK" = 1 ]; then
   timeout 60 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
   # The switcher last: on the software-rendered API 34 emulator it has stalled the device.
