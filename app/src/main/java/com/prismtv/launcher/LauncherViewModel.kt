@@ -148,7 +148,7 @@ enum class SettingsPage(val title: String) {
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
     Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
-    Access("Privacy & Access"),
+    Access("Privacy & Access"), Closing("Closing Apps"),
 }
 
 data class SettingsRow(
@@ -1238,7 +1238,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================================================================= input
 
-    fun onKey(k: NavKey): Boolean {
+    /** The key being handled is a held-down repeat (lists stop at their ends instead of wrapping). */
+    private var keyRepeat = false
+
+    fun onKey(k: NavKey, repeat: Boolean = false): Boolean {
+        keyRepeat = repeat
         noteInteraction()
         if (launchAnim != null) return true
         val focusBefore = focusSignature()
@@ -1439,6 +1443,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             pendingReturn = null
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
         }
+        if (pendingClose.isNotEmpty() && !closeFlushing) scheduleClose()
     }
 
     private fun rowSize(r: Int): Int {
@@ -1643,6 +1648,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ================================================================= launching
 
     fun startLaunch(app: LauncherApp, from: Rect) {
+        // Apps you just swiped away close first, so (say) their music doesn't play on under the next app.
+        if (pendingClose.isNotEmpty() && !closeFlushing) {
+            closeTimer?.cancel()
+            viewModelScope.launch {
+                flushCloses()
+                startLaunch(app, from)
+            }
+            return
+        }
         launchFailed = false
         launchAnim = LaunchAnim(app, from, heroesFor(app).firstOrNull()?.art)
     }
@@ -1909,6 +1923,27 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Closes background apps (everything that isn't the foreground or a system service). */
     private fun freeUpMemory() {
         viewModelScope.launch {
+            // The App Switcher's apps are closed completely when Closing Apps can (and leave the switcher).
+            var closedApps = 0
+            if (closeMethod() != com.prismtv.launcher.system.AppCloser.Method.MemoryOnly && !closeFlushing) {
+                val open = withContext(Dispatchers.IO) { recentsRepo.recentPackages().take(8) }
+                    .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
+                    .filter { it.id !in blockedApps && !com.prismtv.launcher.data.TvInputs.isInput(it) }
+                    .distinctBy { it.packageName }
+                if (open.isNotEmpty()) {
+                    closeFlushing = true
+                    val r = try {
+                        withContext(kotlinx.coroutines.NonCancellable) {
+                            com.prismtv.launcher.system.AppCloser.close(ctx, open.map { it.packageName to it.label }, true, prefs.rootClose)
+                        }
+                    } finally {
+                        closeFlushing = false
+                    }
+                    lastCloseResult = r
+                    r.stopped.forEach(recentsRepo::remove)
+                    closedApps = r.closed.size
+                }
+            }
             val closed = withContext(Dispatchers.IO) {
                 val pm = ctx.packageManager
                 val launchable = allApps.filter { it.demo == null }.map { it.packageName }.distinct()
@@ -1922,7 +1957,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             val freeGb = info.availMem / 1_073_741_824.0
             showBanner(
                 "Free Up Memory",
-                "Closed background apps · %.1f GB available".format(freeGb).takeIf { closed > 0 } ?: "%.1f GB available".format(freeGb),
+                when {
+                    closedApps == 1 -> "Closed 1 app · %.1f GB available".format(freeGb)
+                    closedApps > 1 -> "Closed $closedApps apps · %.1f GB available".format(freeGb)
+                    closed > 0 -> "Closed background apps · %.1f GB available".format(freeGb)
+                    else -> "%.1f GB available".format(freeGb)
+                },
                 Icons.Rounded.Memory,
                 Cue.Clear,
             )
@@ -2111,10 +2151,86 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             dismissingKey = null
             if (app.demo == null) {
                 recentsRepo.remove(app.packageName)
-                SystemActions.killBackground(ctx, app.packageName)
+                queueClose(app)
             }
         }
     }
+
+    // ================================================================= closing apps
+
+    /** Swiped away and waiting to be closed (package → name); closed together. */
+    private val pendingClose = LinkedHashMap<String, String>()
+    private var closeTimer: Job? = null
+    private var closeFlushing = false
+    private var closeHintShown = false
+
+    private fun closeMethod() = com.prismtv.launcher.system.AppCloser.method(prefs.closeCompletely, prefs.rootClose)
+
+    private fun queueClose(app: LauncherApp) {
+        // An HDMI input tile has nothing to stop: its memory is freed and that's all.
+        if (com.prismtv.launcher.data.TvInputs.isInput(app)) {
+            SystemActions.killBackground(ctx, app.packageName)
+            return
+        }
+        pendingClose[app.packageName] = app.label
+        scheduleClose()
+    }
+
+    /**
+     * Shizuku and root close straight away. Closing through Settings waits until you've stopped swiping
+     * (so several apps close in one go) and only while Prism TV is on screen.
+     */
+    private fun scheduleClose() {
+        if (!closeFlushing) closeTimer?.cancel()
+        val viaSettings = com.prismtv.launcher.system.AppCloser.opensSettings(closeMethod())
+        closeTimer = viewModelScope.launch {
+            if (viaSettings) {
+                delay(900)
+                if (!isResumed || launchAnim != null) return@launch // closes when you're back (onResume)
+            }
+            flushCloses()
+        }
+    }
+
+    /** Closes everything swiped away so far. */
+    private suspend fun flushCloses() {
+        if (pendingClose.isEmpty() || closeFlushing) return
+        val batch = pendingClose.toList()
+        pendingClose.clear()
+        closeFlushing = true
+        val result = try {
+            withContext(kotlinx.coroutines.NonCancellable) {
+                com.prismtv.launcher.system.AppCloser.close(ctx, batch, prefs.closeCompletely, prefs.rootClose)
+            }
+        } finally {
+            closeFlushing = false
+        }
+        lastCloseResult = result
+        if (result.method == com.prismtv.launcher.system.AppCloser.Method.MemoryOnly) {
+            // Once per run: say why apps may keep running, and where to change it.
+            if (prefs.closeCompletely && !closeHintShown && !debugDriven) {
+                closeHintShown = true
+                showBanner(
+                    "Closing Apps",
+                    "Only memory was freed, so some apps keep running. Settings › Apps › Closing Apps can close them completely.",
+                    Icons.Rounded.Info,
+                )
+            }
+        } else if (result.failed.isNotEmpty()) {
+            val names = batch.filter { it.first in result.failed }.map { it.second }
+            val message = if (names.size == 1) {
+                "${names[0]} couldn't be closed completely, so only its memory was freed."
+            } else {
+                "${names.size} apps couldn't be closed completely, so only their memory was freed."
+            }
+            showBanner("Closing Apps", message, Icons.Rounded.Info)
+        }
+        if (pendingClose.isNotEmpty()) scheduleClose()
+    }
+
+    /** CI: what the last close did. */
+    var lastCloseResult: com.prismtv.launcher.system.AppCloser.Result? = null
+        private set
 
     // ================================================================= profiles
 
@@ -2398,6 +2514,97 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun onOff(b: Boolean) = if (b) "On" else "Off"
 
+    /** Settings › Apps › Closing Apps on the main list: whether swiped-away apps really stop. */
+    private fun closingLabel(): String =
+        if (closeMethod() == com.prismtv.launcher.system.AppCloser.Method.MemoryOnly) "Memory Only" else "Completely"
+
+    private fun closingWithLabel(): String = when (closeMethod()) {
+        com.prismtv.launcher.system.AppCloser.Method.Shizuku -> "Shizuku"
+        com.prismtv.launcher.system.AppCloser.Method.Root -> "Root Access"
+        com.prismtv.launcher.system.AppCloser.Method.Accessibility -> "Power & Home Button"
+        com.prismtv.launcher.system.AppCloser.Method.MemoryOnly -> if (prefs.closeCompletely) "Not Set Up" else "Freeing Memory"
+    }
+
+    private fun closingRows(): List<SettingsRow> {
+        val shizuku = com.prismtv.launcher.system.ShizukuShell.status(ctx)
+        val a11y = PrismAccessibilityService.isEnabled
+        return listOfNotNull(
+            SettingsRow("cl:full", "Close Apps Completely", "APP SWITCHER", onOff(prefs.closeCompletely)),
+            SettingsRow("cl:using", "Closing With", "APP SWITCHER", closingWithLabel()),
+            SettingsRow(
+                "cl:shizuku", "Shizuku", "WAYS TO CLOSE APPS", shizuku.label,
+                chevron = shizuku != com.prismtv.launcher.system.ShizukuShell.Status.Ready,
+            ),
+            SettingsRow(
+                "cl:a11y", "Power & Home Button", "WAYS TO CLOSE APPS",
+                if (a11y && !PrismAccessibilityService.canCloseApps) "Turn Off and On" else onOff(a11y),
+                chevron = true,
+            ),
+            if (com.prismtv.launcher.system.RootShell.present() || prefs.rootClose) {
+                SettingsRow("cl:root", "Root Access", "WAYS TO CLOSE APPS", onOff(prefs.rootClose))
+            } else {
+                null
+            },
+        )
+    }
+
+    private fun selectClosing(id: String) {
+        val p = prefs
+        when (id) {
+            "cl:full" -> updatePrefs(p.copy(closeCompletely = !p.closeCompletely))
+            "cl:using" -> showBanner(
+                "Closing Apps",
+                when (closeMethod()) {
+                    com.prismtv.launcher.system.AppCloser.Method.Shizuku -> "Shizuku force stops apps you swipe away, straight away."
+                    com.prismtv.launcher.system.AppCloser.Method.Root -> "Root access force stops apps you swipe away, straight away."
+                    com.prismtv.launcher.system.AppCloser.Method.Accessibility ->
+                        "Prism TV presses Force Stop in Settings for you, behind a still of the screen. It takes a moment."
+                    com.prismtv.launcher.system.AppCloser.Method.MemoryOnly ->
+                        if (p.closeCompletely) "Turn on Shizuku or Power & Home Button below to close apps completely."
+                        else "Apps you swipe away have their memory freed, and may keep running."
+                },
+                Icons.Rounded.Info,
+            )
+            "cl:a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            "cl:shizuku" -> when (com.prismtv.launcher.system.ShizukuShell.status(ctx)) {
+                com.prismtv.launcher.system.ShizukuShell.Status.NotInstalled -> showBanner(
+                    "Shizuku", "Install Shizuku on this TV and start it with Wireless debugging or adb, then come back here.", Icons.Rounded.Info,
+                )
+                com.prismtv.launcher.system.ShizukuShell.Status.Ready ->
+                    showBanner("Shizuku", "Shizuku is closing apps for Prism TV.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                com.prismtv.launcher.system.ShizukuShell.Status.NeedsPermission ->
+                    com.prismtv.launcher.system.ShizukuShell.requestPermission { granted ->
+                        viewModelScope.launch {
+                            resumeTick++
+                            if (granted) showBanner("Shizuku", "Apps you swipe away now close completely.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                            else showBanner("Shizuku", "Prism TV wasn't allowed. You can allow it in Shizuku's app list.", Icons.Rounded.Info)
+                        }
+                    }
+                else -> {
+                    // Not running, too old, or denied before: Shizuku's own app is where that's fixed.
+                    val open = ctx.packageManager.getLeanbackLaunchIntentForPackage(com.prismtv.launcher.system.ShizukuShell.Package)
+                        ?: ctx.packageManager.getLaunchIntentForPackage(com.prismtv.launcher.system.ShizukuShell.Package)
+                    if (open == null || !SystemActions.start(ctx, open)) {
+                        showBanner("Shizuku", "Start Shizuku, allow Prism TV, then come back here.", Icons.Rounded.Info)
+                    }
+                }
+            }
+            "cl:root" -> if (p.rootClose) {
+                updatePrefs(p.copy(rootClose = false))
+            } else {
+                viewModelScope.launch {
+                    val ok = withContext(Dispatchers.IO) { com.prismtv.launcher.system.RootShell.test() }
+                    if (ok) {
+                        updatePrefs(prefs.copy(rootClose = true))
+                        showBanner("Root Access", "Apps you swipe away now close completely.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    } else {
+                        showBanner("Root Access", "Root access wasn't allowed.", Icons.Rounded.Info)
+                    }
+                }
+            }
+        }
+    }
+
     fun settingsRows(page: SettingsPage): List<SettingsRow> = when (page) {
         // Reading resumeTick refreshes rows (Recent Apps Access, Power & Home Button) as soon as the
         // user comes back from Android's settings.
@@ -2414,6 +2621,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("iconPack", "Icon Pack", "APPS", iconPackLabel(), chevron = true),
             // Only TVs have inputs; on a box there'd be nothing behind this row.
             if (inputApps.isEmpty()) null else SettingsRow("inputs", "Inputs", "APPS", inputApps.size.toString(), chevron = true),
+            SettingsRow("closing", "Closing Apps", "APPS", closingLabel(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE & POWER", onOff(prefs.homeOverride)),
             SettingsRow("startup", "Open Prism TV at Startup", "REMOTE & POWER", onOff(prefs.openAtStartup)),
@@ -2611,6 +2819,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("su:app:${it.id}", it.label, "OPEN AN APP", selectable = true, checked = prefs.startupApp == it.id, app = it)
         }
         SettingsPage.Inputs -> inputRows()
+        SettingsPage.Closing -> resumeTick.let { _ -> closingRows() }
         SettingsPage.Backup -> backupRows()
         SettingsPage.IconPack -> iconPackRows()
         SettingsPage.Banner -> bannerRows()
@@ -2650,8 +2859,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             return true
         }
         when (k) {
-            NavKey.Up -> settingsFocus[page] = (f - 1).coerceAtLeast(0)
-            NavKey.Down -> settingsFocus[page] = (f + 1).coerceAtMost(rows.size - 1)
+            // Up from the first row goes to the last and Down from the last to the first (a fresh press;
+            // holding the button stops at the end).
+            NavKey.Up -> settingsFocus[page] = when {
+                f > 0 -> f - 1
+                !keyRepeat && rows.size > 1 -> rows.size - 1
+                else -> 0
+            }
+            NavKey.Down -> settingsFocus[page] = when {
+                f < rows.size - 1 -> f + 1
+                !keyRepeat && rows.size > 1 -> 0
+                else -> f
+            }
             NavKey.Select -> rows.getOrNull(f)?.let { settingsSelect(it) }
             NavKey.Left -> if (settingsStack.size > 1) { widgetMoving = null; settingsStack = settingsStack.dropLast(1) }
             NavKey.Menu -> closeOverlay()
@@ -2857,6 +3076,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "startupApp" -> pushPage(SettingsPage.Startup)
             r.id == "inputs" -> pushPage(SettingsPage.Inputs)
+            r.id == "closing" -> pushPage(SettingsPage.Closing)
+            r.id.startsWith("cl:") -> selectClosing(r.id)
             r.id == "iconPack" -> {
                 pushPage(SettingsPage.IconPack)
                 loadIconPacks()
@@ -3611,7 +3832,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "dialog" -> {
                 overlay = Overlay.Settings
-                settingsFocus[SettingsPage.Root] = 16
+                settingsFocus[SettingsPage.Root] = settingsRows(SettingsPage.Root).indexOfFirst { it.id == "reset" }.coerceAtLeast(0)
                 confirm(
                     "Reset Prism TV?",
                     "This restores the default appearance, layout and hidden apps. Your installed apps aren't affected.",
@@ -3634,6 +3855,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             "aerial" -> startScreensaver()
+        }
+        // CI: close a real app the way a swipe-up in the App Switcher does, and log what happened.
+        b.getString("closeApp")?.takeIf { it.isNotBlank() }?.let { pkg ->
+            val label = runCatching {
+                ctx.packageManager.getApplicationLabel(ctx.packageManager.getApplicationInfo(pkg, 0)).toString()
+            }.getOrDefault(pkg)
+            viewModelScope.launch {
+                delay(b.getInt("closeDelay", 1500).toLong())
+                closeTimer?.cancel()
+                pendingClose[pkg] = label
+                flushCloses()
+                val r = lastCloseResult
+                android.util.Log.i(
+                    "PrismClose",
+                    "pkg=$pkg method=${r?.method} stopped=${r?.stopped} closed=${r?.closed} failed=${r?.failed} " +
+                        "isStopped=${com.prismtv.launcher.system.AppCloser.isStopped(ctx, pkg)}",
+                )
+            }
         }
     }
 

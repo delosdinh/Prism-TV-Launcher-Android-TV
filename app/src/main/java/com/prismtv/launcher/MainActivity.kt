@@ -127,6 +127,34 @@ class MainActivity : ComponentActivity() {
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         if (savedInstanceState == null && intent?.let { isDebugIntent(it) } != true) askForRecommendationsOnce()
+        com.prismtv.launcher.system.AppCloser.snapshotter = snapshot
+    }
+
+    /** A still of this window, shown over Settings while it closes apps you swiped away. */
+    private val snapshot: suspend () -> android.graphics.Bitmap? = { captureWindow() }
+
+    private suspend fun captureWindow(): android.graphics.Bitmap? {
+        if (Build.VERSION.SDK_INT < 26 || isFinishing) return null
+        val v = window.decorView
+        if (v.width <= 0 || v.height <= 0) return null
+        val bmp = try {
+            android.graphics.Bitmap.createBitmap(v.width, v.height, android.graphics.Bitmap.Config.ARGB_8888)
+        } catch (_: Throwable) {
+            return null
+        }
+        return kotlinx.coroutines.withTimeoutOrNull(1000) {
+            kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+                try {
+                    android.view.PixelCopy.request(
+                        window, bmp,
+                        { result -> if (cont.isActive) cont.resumeWith(Result.success(if (result == android.view.PixelCopy.SUCCESS) bmp else null)) },
+                        android.os.Handler(android.os.Looper.getMainLooper()),
+                    )
+                } catch (_: Throwable) {
+                    if (cont.isActive) cont.resumeWith(Result.success(null))
+                }
+            }
+        }
     }
 
     /** First launch: ask once for access to other apps' recommendation cards. */
@@ -249,6 +277,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        if (com.prismtv.launcher.system.AppCloser.snapshotter === snapshot) com.prismtv.launcher.system.AppCloser.snapshotter = null
         runCatching { unregisterReceiver(packageReceiver) }
         runCatching { unregisterReceiver(screenReceiver) }
         super.onDestroy()
@@ -483,7 +512,7 @@ private class RemoteKeys(private val vm: LauncherViewModel, private val scope: C
             }
             else -> return false
         }
-        if (native.action == AndroidKeyEvent.ACTION_DOWN) vm.onKey(key)
+        if (native.action == AndroidKeyEvent.ACTION_DOWN) vm.onKey(key, repeat = native.repeatCount > 0)
         return true
     }
 

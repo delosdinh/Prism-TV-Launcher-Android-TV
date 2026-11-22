@@ -69,6 +69,9 @@ dependencies {
     implementation(libs.androidx.savedstate.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.media3.exoplayer)
+    // Optional: lets Shizuku users close apps completely (force stop) from the App Switcher.
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

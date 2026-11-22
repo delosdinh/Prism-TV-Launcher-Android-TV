@@ -14,15 +14,20 @@ import android.provider.Settings
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.prismtv.launcher.data.LauncherApp
+import kotlin.coroutines.resume
 
 /**
  * Optional accessibility service. Third-party launchers can't power off or sleep the device
  * directly; with this enabled, Control Centre can open the system power menu and the Sleep
  * Timer can put the TV to sleep. It also lets the remote's Home button open Prism TV on
  * Google TV devices that keep Home bound to their own launcher (Xiaomi remotes send
- * KEYCODE_ALL_APPS for Home). It never reads window content.
+ * KEYCODE_ALL_APPS for Home). And it lets the App Switcher close apps completely: it presses Force
+ * Stop on the app's page in Settings (see [ForceStopper]) — the only time it reads what's on screen.
  */
 class PrismAccessibilityService : AccessibilityService() {
+    private var stopperOrNull: ForceStopper? = null
+    private val stopper: ForceStopper get() = stopperOrNull ?: ForceStopper(this).also { stopperOrNull = it }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
@@ -65,6 +70,12 @@ class PrismAccessibilityService : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val code = event.keyCode
+        if (stopperOrNull?.active == true) {
+            // Settings is open behind the still while an app closes: hold the remote so nothing lands
+            // there. Home still works (and stops the closing).
+            if (code == KeyEvent.KEYCODE_HOME || code == KeyEvent.KEYCODE_ALL_APPS) stopperOrNull?.abort()
+            else return true
+        }
         if (code != KeyEvent.KEYCODE_HOME && code != KeyEvent.KEYCODE_ALL_APPS) return false
         val enabled = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).getBoolean("homeOverride", true)
         if (!enabled) return false
@@ -83,10 +94,16 @@ class PrismAccessibilityService : AccessibilityService() {
         return true
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            stopperOrNull?.onWindowChanged(event.packageName?.toString())
+        }
+    }
+
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
+        stopperOrNull?.abort()
         instance = null
         super.onDestroy()
     }
@@ -97,6 +114,23 @@ class PrismAccessibilityService : AccessibilityService() {
             private set
 
         val isEnabled: Boolean get() = instance != null
+
+        /** On, and Android has given it the (newer) ability to see the Settings screen it presses Force Stop in. */
+        val canCloseApps: Boolean
+            get() = instance?.let { s ->
+                runCatching {
+                    (s.serviceInfo.capabilities and android.accessibilityservice.AccessibilityServiceInfo.CAPABILITY_CAN_RETRIEVE_WINDOW_CONTENT) != 0
+                }.getOrDefault(false)
+            } ?: false
+
+        /** Force stops [targets] (package → name) through Settings; the packages that stopped. */
+        suspend fun forceStop(targets: List<Pair<String, String>>, still: android.graphics.Bitmap?): Set<String> =
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                val s = instance ?: return@withContext emptySet()
+                kotlinx.coroutines.suspendCancellableCoroutine<Set<String>> { cont ->
+                    s.stopper.start(targets, still) { stopped -> if (cont.isActive) cont.resume(stopped) }
+                }
+            }
 
         fun powerDialog(): Boolean =
             instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG) ?: false

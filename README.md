@@ -128,7 +128,8 @@ launcher counterpart to the Prism TV skin for Kodi.
   as Kodi. It opens once per start, only if nobody has pressed anything in the meantime.
 - **App Switcher**, laid out like tvOS: the Home Screen shrinks into a centred card, recent apps
   recede in a stacked deck to its left with their icon and name above each card, and the newer card
-  lies over the focused one's edge. Press up to fling an app away.
+  lies over the focused one's edge. Press up to fling an app away — and it really closes (see
+  [Closing apps](#closing-apps)).
 - **Launch transitions** (matched to tvOS): the tile's artwork grows out of its slot to fill the
   screen while the Home Screen blurs behind it, and the app fades in over the top — no black
   frame. Coming back shrinks the artwork into its icon.
@@ -136,8 +137,10 @@ launcher counterpart to the Prism TV skin for Kodi.
   left follows focus with a short description of the focused setting beneath it, and the Apps page
   shows each app's artwork; pop-up dialogs and banners.
   Grouped like tvOS: General (Profiles, Appearance, Home Screen, Screensaver, Keyboard, Sounds),
-  Apps (Apps, Open at Startup, Icon Pack, Inputs on TVs), Remote & Power, and System (Software
-  Update, Backup & Restore, **Privacy & Access** with every permission in one place, About).
+  Apps (Apps, Open at Startup, Icon Pack, Inputs on TVs, **Closing Apps**), Remote & Power, and
+  System (Software Update, Backup & Restore, **Privacy & Access** with every permission in one
+  place, About). Lists wrap: Up on the first row goes to the last, Down on the last to the first
+  (holding the button stops at the end).
 
 ## Remote controls
 
@@ -163,8 +166,31 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Dictation Microphone** (Settings › Keyboard) — lets Prism Keyboard listen through the remote.
 - **Accessibility › Prism TV Power & Home Button** — makes the remote's Home button open Prism TV
   (including Google TV boxes and Xiaomi remotes, which send `KEYCODE_ALL_APPS` for Home), and lets
-  Control Centre open the power menu and the Sleep Timer put the TV to sleep. It never reads screen
-  content.
+  Control Centre open the power menu and the Sleep Timer put the TV to sleep. It also closes apps
+  you swipe away (below). It only reads the screen while doing that, and only in Settings.
+
+### Closing apps
+
+Android doesn't let one app stop another, so on its own a launcher can only ask Android to free
+an app's cached memory (`killBackgroundProcesses`). Apps with something running in the
+background — music, a download, a cast session — carry on, and Android's own Recents still lists
+them. So when you swipe an app away (or use Control Centre › Free Up Memory) Prism TV **force
+stops** it, the same as Settings › Apps › the app › Force Stop, using the first of these it can:
+
+1. **Shizuku** (instant and invisible). Install [Shizuku](https://shizuku.rikka.app), start it
+   (Wireless debugging on Android 11+, or `adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh`),
+   then Settings › Apps › **Closing Apps** › Shizuku › Allow.
+2. **Root Access** on rooted boxes (turn it on in Closing Apps; your root manager asks once).
+3. **Power & Home Button** (the accessibility service above): Prism TV opens the app's page in
+   Settings behind a still of the screen, presses Force Stop and OK for you, and comes back. Apps
+   you swipe away in a row are closed together once you stop swiping. The remote is held for that
+   second or two (Home still works).
+
+With none of these, swiped-away apps just have their memory freed and Prism TV says so once.
+A force-stopped app stays closed — no background refreshes, notifications or Top Shelf updates —
+until you open it again. **Close Apps Completely** (Closing Apps) turns it off. Prism TV never
+stops itself, Settings, the keyboard in use, accessibility services, Shizuku or Android's
+persistent system apps.
 
 ### HDR aerials
 

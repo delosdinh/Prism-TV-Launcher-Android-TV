@@ -31,7 +31,8 @@ private val Exact: Map<String, String> = mapOf(
     "startupApp" to "Open an app automatically each time the TV starts, such as Kodi.",
     "iconPack" to "Use an installed icon pack's artwork for app banners.",
     "inputs" to "The TV's HDMI inputs as Home Screen tiles: show, hide or rename them.",
-    "a11y" to "Lets Prism TV handle the remote's Home button and power menu, through Android Accessibility.",
+    "closing" to "Whether apps you swipe away in the App Switcher stop completely, and how Prism TV stops them.",
+    "a11y" to "Lets Prism TV handle the remote's Home button and power menu, and close apps completely, through Android Accessibility.",
     "homeOverride" to "Pressing Home on the remote comes back to Prism TV instead of the TV's own Home.",
     "startup" to "Shows Prism TV once after the TV starts, even when it isn't the default Home app.",
     "sleep" to "Turns the TV off after a set time. Select to choose how long.",
@@ -41,6 +42,13 @@ private val Exact: Map<String, String> = mapOf(
     "about" to "The version, this TV's details, memory use and the last problem Prism TV ran into.",
     "restart" to "Closes and reopens Prism TV. Your settings and layout stay as they are.",
     "reset" to "Puts every Prism TV setting and the Home Screen layout back to how they started.",
+
+    // Closing Apps
+    "cl:full" to "Swiped-away apps are force stopped, so music and downloads stop too. They stay closed until you open them again. Off just frees their memory.",
+    "cl:using" to "How Prism TV closes apps right now. Shizuku and root are instant; Power & Home Button presses Force Stop in Settings for you.",
+    "cl:shizuku" to "Closes apps instantly and out of sight. Install Shizuku, start it with Wireless debugging or adb, then allow Prism TV here.",
+    "cl:a11y" to "Prism TV opens the app's page in Settings behind a still of the screen and presses Force Stop for you. It takes a moment.",
+    "cl:root" to "On a rooted box, closes apps instantly with root. Your root manager asks once.",
 
     // Appearance
     "ap:Light" to "Light Settings, menus and pop-ups.",

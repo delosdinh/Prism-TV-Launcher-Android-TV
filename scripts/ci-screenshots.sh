@@ -96,7 +96,7 @@ shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass li
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
-shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 16
+shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 17
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
@@ -149,9 +149,18 @@ shot 58e-kids-home                 "${B[@]}" "${DARK[@]}" --ez demoProfiles true
 shot 59-screensaver-pictures       "${B[@]}" "${DARK[@]}" --es aerial pictures --ez demoLibrary true --es screen settings --es page ScreensaverPictures --ei focus 2
 shot 59b-keyboard-field-light      "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es fieldColour light --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 2
 shot 59c-restrictions-all          "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 0
-shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 13
+shot 60-settings-root-new          "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 14
 shot 60b-settings-access           "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0
 shot 60c-settings-home-screen      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 6
+# Closing Apps (Settings › Apps), and each Screensaver / Privacy row's own glyph.
+shot 61-settings-root-closing      "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 9
+shot 61b-settings-closing          "${B[@]}" "${DARK[@]}" --es screen settings --es page Closing --ei focus 0
+shot 61c-settings-closing-a11y     "${B[@]}" --es appearance light --es glass liquid --es screen settings --es page Closing --ei focus 3
+shot 61d-settings-screensaver-row  "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 4
+# Settings lists wrap: Up from the first row goes to the last, Down from the last back to the first.
+start "${B[@]}" "${DARK[@]}" --es screen settings --es page Appearance --ei focus 0; sleep 4
+key KEYCODE_DPAD_UP 2.5; cap 62-settings-wrap-up-to-last
+key KEYCODE_DPAD_DOWN 2.5; cap 62b-settings-wrap-down-to-first
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14
@@ -198,6 +207,38 @@ if [ "$QUICK" = 0 ]; then
   start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple
   sleep 10; cap 32-aerial-apple-later
   adb shell input keyevent KEYCODE_BACK; sleep 2
+fi
+
+# Closing apps for real: with Power & Home Button on, swiping an app away presses Force Stop in Settings
+# (behind a still of Prism TV). Open a real app, come back, close it, and check Android stopped it.
+TARGET=""
+for cand in com.google.android.youtube.tv com.google.android.tv com.android.tv com.google.android.videos \
+  com.android.vending com.google.android.play.games com.google.android.apps.mediashell com.android.gallery3d \
+  $(adb shell cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER 2>/dev/null \
+    | tr -d '\r' | grep -oE 'packageName=[A-Za-z0-9_.]+' | cut -d= -f2 | sort -u); do
+  case "$cand" in "$PKG"|*settings*|*launcher*|*Launcher*|*katniss*|*setupwraith*) continue;; esac
+  if adb shell pm path "$cand" 2>/dev/null | grep -q package:; then TARGET="$cand"; break; fi
+done
+echo "close test target: ${TARGET:-none}" | tee "$OUT/close-test.txt"
+if [ -n "$TARGET" ]; then
+  adb shell settings put secure enabled_accessibility_services "$PKG/$PKG.system.PrismAccessibilityService"
+  adb shell settings put secure accessibility_enabled 1
+  sleep 4
+  adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
+    adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  sleep 8
+  cap 63-close-test-app-open
+  echo "before: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
+  adb logcat -c || true
+  start "${B[@]}" "${DARK[@]}" --es screen switcher --es closeApp "$TARGET" --ei closeDelay 3000; sleep 3.2
+  cap 63b-closing-still
+  sleep 1.2; cap 63c-closing-still-later
+  sleep 8; cap 63d-closed-back-in-switcher
+  echo "after: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
+  adb logcat -d -s PrismClose:I | tee -a "$OUT/close-test.txt"
+  adb shell settings delete secure enabled_accessibility_services >/dev/null 2>&1 || true
+  adb shell settings put secure accessibility_enabled 0 >/dev/null 2>&1 || true
+  adb logcat -d -b crash > "$OUT/crash-close.txt" 2>&1 || true
 fi
 
 if [ "$QUICK" = 1 ]; then

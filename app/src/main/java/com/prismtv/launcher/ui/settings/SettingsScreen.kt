@@ -68,6 +68,10 @@ import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.HighQuality
+import androidx.compose.material.icons.rounded.HighlightOff
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Terminal
+import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.ManageAccounts
 import com.prismtv.launcher.ui.components.Avatar
@@ -196,7 +200,8 @@ fun SettingsScreen(vm: LauncherViewModel) {
                 val focus = (vm.settingsFocus[pg] ?: 0).coerceIn(0, (rows.size - 1).coerceAtLeast(0))
                 // Each tab has its own glyph; on the main list it follows focus, like tvOS.
                 val art: Any = when (pg) {
-                    SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard ->
+                    SettingsPage.Root, SettingsPage.Appearance, SettingsPage.HomeScreen, SettingsPage.Keyboard,
+                    SettingsPage.Screensaver, SettingsPage.Access, SettingsPage.Closing ->
                         rows.getOrNull(focus)?.let { if (it.id == "profile") vm.avatarLook else glyphFor(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions, SettingsPage.Inputs ->
                         rows.getOrNull(focus)?.app ?: rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
@@ -311,6 +316,12 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "ss:source" to glyph(Icons.Rounded.Landscape, 0xFF64D2FF, 0xFF1A8FB8),
     "ss:location" to glyph(Icons.Rounded.Place, 0xFFFF6961, 0xFFD63A31),
     "ss:quality" to glyph(Icons.Rounded.HighQuality, 0xFFBF5AF2, 0xFF8E2DC4),
+    "closing" to glyph(Icons.Rounded.HighlightOff, 0xFFFF6961, 0xFFD63A31),
+    "cl:full" to glyph(Icons.Rounded.HighlightOff, 0xFFFF6961, 0xFFD63A31),
+    "cl:using" to glyph(Icons.Rounded.Tune, 0xFF9C9CA3, 0xFF5E5E64),
+    "cl:shizuku" to glyph(Icons.Rounded.Terminal, 0xFF5AC8FA, 0xFF0A6CFF),
+    "cl:a11y" to glyph(Icons.Rounded.SettingsRemote, 0xFF9C9CA3, 0xFF5E5E64),
+    "cl:root" to glyph(Icons.Rounded.AdminPanelSettings, 0xFF4CD964, 0xFF239B3E),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -336,6 +347,7 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Restrictions -> Glyphs.getValue("restrictions")
     SettingsPage.ScreensaverPictures -> Glyphs.getValue("ss:pictures")
     SettingsPage.Access -> Glyphs.getValue("access")
+    SettingsPage.Closing -> Glyphs.getValue("closing")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */

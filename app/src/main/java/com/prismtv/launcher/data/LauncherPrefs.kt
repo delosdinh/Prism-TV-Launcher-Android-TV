@@ -172,6 +172,10 @@ data class LauncherPrefs(
     val profilePickerOnWake: Boolean = true,
     /** Prism's own keyboard text field; Automatic matches the keyboard. */
     val keyboardFieldColour: KeyboardColour = KeyboardColour.Automatic,
+    /** Apps swiped away in the App Switcher are force stopped (Shizuku, root or Power & Home Button), not just trimmed. */
+    val closeCompletely: Boolean = true,
+    /** Closing Apps may use `su` (asked for once, from Settings). */
+    val rootClose: Boolean = false,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -253,6 +257,8 @@ class PrefsStore(context: Context) {
             activeProfile = sp.getString("activeProfile", d.activeProfile).orEmpty(),
             profilePickerOnWake = sp.getBoolean("profilePickerOnWake", d.profilePickerOnWake),
             keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name == sp.getString("keyboardFieldColour", null) } ?: d.keyboardFieldColour,
+            closeCompletely = sp.getBoolean("closeCompletely", d.closeCompletely),
+            rootClose = sp.getBoolean("rootClose", d.rootClose),
         )
     }
 
@@ -293,6 +299,8 @@ class PrefsStore(context: Context) {
             .putString("activeProfile", p.activeProfile)
             .putBoolean("profilePickerOnWake", p.profilePickerOnWake)
             .putString("keyboardFieldColour", p.keyboardFieldColour.name)
+            .putBoolean("closeCompletely", p.closeCompletely)
+            .putBoolean("rootClose", p.rootClose)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)
