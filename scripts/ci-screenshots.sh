@@ -146,6 +146,9 @@ shot 58b-passcode                  "${B[@]}" "${DARK[@]}" --ez demoProfiles true
 shot 58c-settings-profiles         "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es screen settings --es page Profiles --ei focus 3
 shot 58d-settings-restrictions     "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 1
 shot 58e-kids-home                 "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen sidebar --ei focus 1
+shot 59-screensaver-pictures       "${B[@]}" "${DARK[@]}" --es aerial pictures --ez demoLibrary true --es screen settings --es page ScreensaverPictures --ei focus 2
+shot 59b-keyboard-field-light      "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es fieldColour light --es screen keyboard --es text Delos --ei keyRow 1 --ei keyCol 2
+shot 59c-restrictions-all          "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --es screen settings --es page Restrictions --ei focus 0
 shot 54-home-lite                  "${B[@]}" "${DARK[@]}" --ez lite true --es screen grid --ei row 1 --ei col 2
 shot 54b-settings-lite             "${B[@]}" "${DARK[@]}" --ez lite true --es screen settings --es page Appearance --ei focus 16
 shot 54c-control-centre-lite       "${B[@]}" "${DARK[@]}" --ez lite true --es screen controlcentre --ei focus 14

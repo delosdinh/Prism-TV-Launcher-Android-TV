@@ -382,6 +382,16 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
         KeyboardColour.Dark -> Appearance.Dark
         KeyboardColour.Clear -> Appearance.Dark
     }
+    // The text field above the keyboard: its own colour, or the keyboard's.
+    val keyboardClear = vm.prefs.keyboardColour == KeyboardColour.Clear
+    val fieldColour = vm.prefs.keyboardFieldColour
+    val fieldLook = when (fieldColour) {
+        KeyboardColour.Automatic -> keyboardLook
+        KeyboardColour.Light -> Appearance.Light
+        KeyboardColour.Balanced -> Appearance.Balanced
+        KeyboardColour.Dark, KeyboardColour.Clear -> Appearance.Dark
+    }
+    val fieldClear = if (fieldColour == KeyboardColour.Automatic) keyboardClear else fieldColour == KeyboardColour.Clear
 
     CompositionLocalProvider(
         LocalDensity provides density,
@@ -420,7 +430,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             ContextMenuHost(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogHost(vm.dialog, vm.dialogFocus) }
             com.prismtv.launcher.ui.home.ProfilePicker(vm)
-            CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = vm.prefs.keyboardColour == KeyboardColour.Clear) }
+            CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = keyboardClear, fieldLook = fieldLook, fieldClear = fieldClear) }
             CompositionLocalProvider(LocalPrism provides uiTheme) { com.prismtv.launcher.ui.home.PasscodePad(vm) }
             LaunchOverlay(vm)
             // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.

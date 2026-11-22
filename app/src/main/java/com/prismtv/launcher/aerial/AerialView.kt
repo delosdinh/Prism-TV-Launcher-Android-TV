@@ -1,12 +1,10 @@
 package com.prismtv.launcher.aerial
 
-import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.Uri
-import android.provider.MediaStore
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -271,18 +269,11 @@ class AerialView(context: Context) : FrameLayout(context) {
 
     private fun sceneStills(): List<Still> = scenes.map { (res, label) -> Still(res = res, label = label) }.shuffled()
 
-    /** Your pictures, newest first (needs the same photo access as Settings › Wallpaper). */
-    private fun photoStills(): List<Still> {
-        val out = ArrayList<Still>()
-        runCatching {
-            val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val proj = arrayOf(MediaStore.Images.Media._ID)
-            context.contentResolver.query(uri, proj, null, null, MediaStore.Images.Media.DATE_ADDED + " DESC")?.use { c ->
-                while (c.moveToNext() && out.size < 120) out += Still(uri = ContentUris.withAppendedId(uri, c.getLong(0)))
-            }
-        }
-        return out.shuffled()
-    }
+    /** Your pictures: all of them, or the albums and pictures chosen in Settings › Screensaver › Pictures. */
+    private fun photoStills(): List<Still> =
+        com.prismtv.launcher.data.PhotoLibrary.chosen(context, prefs.screensaverAllPictures, prefs.screensaverPictures)
+            .map { Still(uri = it) }
+            .shuffled()
 
     /** A slideshow of [list] (Prism Scenes, Your Pictures, or Shuffle without a network). */
     private fun startStills(list: List<Still>) {

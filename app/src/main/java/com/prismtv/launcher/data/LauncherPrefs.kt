@@ -116,6 +116,10 @@ data class LauncherPrefs(
     val screensaverAfter: Int = 2,
     /** Don't start the screensaver while music or a video is playing. */
     val screensaverWaitForMedia: Boolean = true,
+    /** Your Pictures / Shuffle: every picture, or just [screensaverPictures]. */
+    val screensaverAllPictures: Boolean = true,
+    /** Chosen albums ("album:<id>") and pictures ("photo:<id>") for the screensaver. */
+    val screensaverPictures: Set<String> = emptySet(),
     /** Index into [TextScales]. */
     val textSize: Int = DefaultTextSize,
     val topShelfStyle: TopShelfStyle = TopShelfStyle.FullScreen,
@@ -166,6 +170,8 @@ data class LauncherPrefs(
     val activeProfile: String = "",
     /** Show "Who's Watching?" when the TV wakes (with two or more profiles). */
     val profilePickerOnWake: Boolean = true,
+    /** Prism's own keyboard text field; Automatic matches the keyboard. */
+    val keyboardFieldColour: KeyboardColour = KeyboardColour.Automatic,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -236,6 +242,8 @@ class PrefsStore(context: Context) {
             sounds = sp.getBoolean("sounds", d.sounds),
             screensaverAfter = sp.getInt("screensaverAfter", d.screensaverAfter).takeIf { it in StartAfterChoices } ?: d.screensaverAfter,
             screensaverWaitForMedia = sp.getBoolean("screensaverWaitForMedia", d.screensaverWaitForMedia),
+            screensaverAllPictures = sp.getBoolean("screensaverAllPictures", d.screensaverAllPictures),
+            screensaverPictures = sp.getStringSet("screensaverPictures", null)?.toSet() ?: d.screensaverPictures,
             startupApp = sp.getString("startupApp", d.startupApp).orEmpty(),
             startupDelay = sp.getInt("startupDelay", d.startupDelay).takeIf { it in StartupDelays } ?: d.startupDelay,
             inputNames = parseStringMap(sp.getString("inputNames", null)),
@@ -244,6 +252,7 @@ class PrefsStore(context: Context) {
             profiles = Profiles.decode(sp.getString("profiles", null)),
             activeProfile = sp.getString("activeProfile", d.activeProfile).orEmpty(),
             profilePickerOnWake = sp.getBoolean("profilePickerOnWake", d.profilePickerOnWake),
+            keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name == sp.getString("keyboardFieldColour", null) } ?: d.keyboardFieldColour,
         )
     }
 
@@ -273,6 +282,8 @@ class PrefsStore(context: Context) {
             .putString("glassColour", p.glassColour.name)
             .putInt("screensaverAfter", p.screensaverAfter)
             .putBoolean("screensaverWaitForMedia", p.screensaverWaitForMedia)
+            .putBoolean("screensaverAllPictures", p.screensaverAllPictures)
+            .putStringSet("screensaverPictures", p.screensaverPictures)
             .putString("startupApp", p.startupApp)
             .putInt("startupDelay", p.startupDelay)
             .putString("inputNames", encodeStringMap(p.inputNames))
@@ -281,6 +292,7 @@ class PrefsStore(context: Context) {
             .putString("profiles", Profiles.encode(p.profiles))
             .putString("activeProfile", p.activeProfile)
             .putBoolean("profilePickerOnWake", p.profilePickerOnWake)
+            .putString("keyboardFieldColour", p.keyboardFieldColour.name)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)

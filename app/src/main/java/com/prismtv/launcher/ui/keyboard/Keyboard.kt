@@ -354,7 +354,14 @@ private fun KeyCap(
 
 /** Prism TV's own text entry (Rename Folder, Profile Name): a field over the keyboard, sliding up. */
 @Composable
-fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance, clear: Boolean = false) {
+fun KeyboardOverlay(
+    vm: LauncherViewModel,
+    look: Appearance,
+    clear: Boolean = false,
+    /** The text field's own colour (Settings › Keyboard › Text Field Colour); the keyboard's by default. */
+    fieldLook: Appearance = look,
+    fieldClear: Boolean = clear,
+) {
     val live = vm.keyboard
     val holder = remember { arrayOfNulls<com.prismtv.launcher.KeyboardRequest>(1) }
     if (live != null) holder[0] = live
@@ -384,10 +391,10 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance, clear: Boolean = fa
             Box(Modifier.height(8.dp))
             val caret = rememberInfiniteTransition(label = "caret")
             val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
-            // The text field is Liquid Glass in the keyboard's colour: frosty, lavender or smoked.
+            // The text field is Liquid Glass in its own colour (or the keyboard's): frosty, lavender, smoked or clear.
             val base = LocalPrism.current
-            val fieldTheme = base.copy(palette = Palettes.of(look), material = GlassMaterial.Liquid, clearTint = clear)
-            val fieldInk = if (look == Appearance.Light && !clear) Color(0xFF111318) else Color.White
+            val fieldTheme = base.copy(palette = Palettes.of(fieldLook), material = GlassMaterial.Liquid, clearTint = fieldClear)
+            val fieldInk = if (fieldLook == Appearance.Light && !fieldClear) Color(0xFF111318) else Color.White
             CompositionLocalProvider(LocalPrism provides fieldTheme) {
                 // As wide as the keyboard below it.
                 Row(
@@ -396,8 +403,8 @@ fun KeyboardOverlay(vm: LauncherViewModel, look: Appearance, clear: Boolean = fa
                         .height(50.dp)
                         .glass(
                             RoundedCornerShape(25.dp),
-                            if (clear) Color.White.copy(alpha = 0.08f)
-                            else fieldTheme.palette.liquidTint.copy(alpha = if (look == Appearance.Light) 0.58f else 0.50f),
+                            if (fieldClear) Color.White.copy(alpha = 0.08f)
+                            else fieldTheme.palette.liquidTint.copy(alpha = if (fieldLook == Appearance.Light) 0.58f else 0.50f),
                             GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f,
                         )
                         .padding(horizontal = 20.dp),

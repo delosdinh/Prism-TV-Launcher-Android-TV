@@ -147,7 +147,7 @@ enum class SettingsPage(val title: String) {
     TextSize("Text Size"), Wallpaper("Wallpaper"), Widgets("Widgets"),
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
-    Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"),
+    Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
 }
 
 data class SettingsRow(
@@ -2445,6 +2445,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Keyboard -> resumeTick.let { _ -> listOf(
             SettingsRow("kb:system", "Prism Keyboard", "SYSTEM KEYBOARD", keyboardStatus(), chevron = true),
             SettingsRow("kbColour", "Keyboard Colour", "APPEARANCE", keyboardColourLabel()),
+            SettingsRow("kbField", "Text Field Colour", "APPEARANCE", fieldColourLabel()),
             SettingsRow("kb:autocorrect", "Auto-Correction", "TYPING", onOff(prefs.autoCorrect)),
             SettingsRow("kb:predictive", "Predictive", "TYPING", onOff(prefs.predictive)),
             SettingsRow("kb:mic", "Dictation Microphone", "DICTATION", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
@@ -2474,6 +2475,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
             SettingsRow("ss:media", "Wait While Media Plays", "SCREENSAVER", onOff(prefs.screensaverWaitForMedia)),
             SettingsRow("ss:source", "Source", "SCREENSAVER", prefs.aerialSource.label),
+        ) + (if (prefs.aerialSource == AerialSource.Pictures || prefs.aerialSource == AerialSource.Shuffle) {
+            listOf(SettingsRow("ss:pictures", "Pictures", "SCREENSAVER", screensaverPicturesLabel(), chevron = true))
+        } else emptyList()) + listOf(
             SettingsRow("ss:quality", "Video Quality", "SCREENSAVER", prefs.aerialQuality.label),
             SettingsRow("ss:range", "Dynamic Range", "SCREENSAVER", rangeLabel()),
             SettingsRow("ss:location", "Show Location", "SCREENSAVER", onOff(prefs.aerialShowLocation)),
@@ -2591,6 +2595,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Banner -> bannerRows()
         SettingsPage.Profiles -> profileRows()
         SettingsPage.Restrictions -> restrictionRows()
+        SettingsPage.ScreensaverPictures -> screensaverPictureRows()
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
@@ -2655,6 +2660,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "pr:passcode" -> if (activeProfileSpec.locked) turnOffPasscode() else setPasscode()
             r.id == "pr:restrict" -> pushPage(SettingsPage.Restrictions)
             r.id == "pr:delete" -> deleteActiveProfile()
+            r.id == "rs:all" -> updateActive { pr ->
+                pr.copy(blocked = if (pr.blocked.isEmpty()) allApps.map { it.id }.toSet() else emptySet())
+            }
             r.id.startsWith("rs:") -> {
                 val id = r.id.removePrefix("rs:")
                 updateActive { pr -> pr.copy(blocked = if (id in pr.blocked) pr.blocked - id else pr.blocked + id) }
@@ -2757,6 +2765,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
             r.id == "kbColour" -> updatePrefs(p.copy(keyboardColour = KeyboardColour.entries[(p.keyboardColour.ordinal + 1) % KeyboardColour.entries.size]))
+            r.id == "kbField" -> updatePrefs(p.copy(keyboardFieldColour = KeyboardColour.entries[(p.keyboardFieldColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "textSize" -> pushPage(SettingsPage.TextSize)
             r.id == "topShelf" -> updatePrefs(p.copy(topShelfStyle = TopShelfStyle.entries[(p.topShelfStyle.ordinal + 1) % TopShelfStyle.entries.size]))
             r.id == "wallpaper" -> {
@@ -2872,6 +2881,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 allApps.firstOrNull { it.id == id }?.let {
                     showBanner("Open at Startup", "${it.label} will open when the TV starts.", Icons.Rounded.CheckCircle, Cue.Confirm)
                 }
+            }
+            r.id == "ss:pictures" -> {
+                pushPage(SettingsPage.ScreensaverPictures)
+                loadPhotoLibrary()
+            }
+            r.id == "sp:allow" -> photoPermissionTick++
+            r.id == "sp:all" -> {
+                updatePrefs(p.copy(screensaverAllPictures = !p.screensaverAllPictures))
+                if (p.screensaverAllPictures && p.screensaverPictures.isEmpty()) {
+                    showBanner("Pictures", "Choose the albums or pictures to show below.", Icons.Rounded.Info)
+                }
+            }
+            r.id.startsWith("sp:album:") -> togglePicturePick("album:" + r.id.removePrefix("sp:album:"))
+            r.id.startsWith("sp:photo:") -> {
+                val id = r.id.removePrefix("sp:photo:")
+                togglePicturePick("photo:$id", libraryPhotos.firstOrNull { it.id.toString() == id }?.album)
             }
             r.id == "ss:media" -> updatePrefs(p.copy(screensaverWaitForMedia = !p.screensaverWaitForMedia))
             r.id == "ss:source" -> {
@@ -3076,9 +3101,93 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun restrictionRows(): List<SettingsRow> {
         val me = activeProfileSpec
-        return allApps.sortedBy { it.label.lowercase() }.map {
-            SettingsRow("rs:${it.id}", it.label, "ALLOWED FOR ${nameOf(me).uppercase()}", app = it, toggle = it.id !in me.blocked)
+        val section = "ALLOWED FOR ${nameOf(me).uppercase()}"
+        // All Apps on top: on when nothing is blocked; select it to block or allow everything at once.
+        return listOf(SettingsRow("rs:all", "All Apps", section, toggle = me.blocked.isEmpty())) +
+            allApps.sortedBy { it.label.lowercase() }.map {
+                SettingsRow("rs:${it.id}", it.label, section, app = it, toggle = it.id !in me.blocked)
+            }
+    }
+
+    // ------------------------------------------------------------ screensaver pictures
+
+    /** Settings › Screensaver › Pictures: albums and the newest pictures on the TV. */
+    var photoAlbums by mutableStateOf<List<com.prismtv.launcher.data.PhotoLibrary.Album>>(emptyList())
+        private set
+    var libraryPhotos by mutableStateOf<List<com.prismtv.launcher.data.PhotoLibrary.Photo>>(emptyList())
+        private set
+    /** CI: show the picture page with pretend albums (the emulator has no photos or access). */
+    private var demoLibrary = false
+
+    fun loadPhotoLibrary() {
+        if (demoLibrary) return
+        if (!hasPhotoAccess()) {
+            photoAlbums = emptyList()
+            libraryPhotos = emptyList()
+            return
         }
+        viewModelScope.launch {
+            val (albums, recent) = withContext(Dispatchers.IO) {
+                com.prismtv.launcher.data.PhotoLibrary.albums(ctx) to com.prismtv.launcher.data.PhotoLibrary.recent(ctx, 60)
+            }
+            photoAlbums = albums
+            libraryPhotos = recent
+        }
+    }
+
+    private fun screensaverPicturesLabel(): String {
+        if (prefs.screensaverAllPictures) return "All Pictures"
+        val picks = prefs.screensaverPictures
+        val albums = picks.count { it.startsWith("album:") }
+        val photos = picks.count { it.startsWith("photo:") }
+        return listOfNotNull(
+            albums.takeIf { it > 0 }?.let { if (it == 1) "1 Album" else "$it Albums" },
+            photos.takeIf { it > 0 }?.let { if (it == 1) "1 Picture" else "$it Pictures" },
+        ).joinToString(", ").ifEmpty { "None" }
+    }
+
+    private fun screensaverPictureRows(): List<SettingsRow> {
+        if (!hasPhotoAccess() && !demoLibrary) {
+            return listOf(SettingsRow("sp:allow", "Allow Access to Your Pictures", "PICTURES", chevron = true))
+        }
+        val all = prefs.screensaverAllPictures
+        val picks = prefs.screensaverPictures
+        val rows = mutableListOf(SettingsRow("sp:all", "All Pictures", "PICTURES", toggle = all))
+        photoAlbums.forEach { a ->
+            rows += SettingsRow("sp:album:${a.id}", "${a.name}  ·  ${a.count}", "ALBUMS", toggle = all || "album:${a.id}" in picks)
+        }
+        libraryPhotos.forEach { ph ->
+            rows += SettingsRow(
+                "sp:photo:${ph.id}", ph.name, "RECENT PICTURES",
+                toggle = all || "photo:${ph.id}" in picks || "album:${ph.album}" in picks,
+            )
+        }
+        if (photoAlbums.isEmpty() && libraryPhotos.isEmpty()) {
+            rows += SettingsRow("sp:none", "Save pictures to the TV to see them here", "ALBUMS")
+        }
+        return rows
+    }
+
+    /** Settings › Screensaver › Pictures: the focused album's cover or picture. */
+    fun picturePreview(rowId: String): Any? = when {
+        rowId.startsWith("sp:album:") -> photoAlbums.firstOrNull { it.id == rowId.removePrefix("sp:album:") }?.let { thumb(UriArt(it.cover.toString())) }
+        rowId.startsWith("sp:photo:") -> libraryPhotos.firstOrNull { it.id.toString() == rowId.removePrefix("sp:photo:") }?.let { thumb(UriArt(it.uri.toString())) }
+        else -> null
+    }
+
+    /** Choosing from "All Pictures" starts a selection with just that album or picture. */
+    private fun togglePicturePick(key: String, album: String? = null) {
+        val p = prefs
+        if (p.screensaverAllPictures) {
+            updatePrefs(p.copy(screensaverAllPictures = false, screensaverPictures = setOf(key)))
+            return
+        }
+        if (album != null && "album:$album" in p.screensaverPictures) {
+            showBanner("Pictures", "This picture's whole album is on. Turn the album off to choose its pictures one by one.", Icons.Rounded.Info)
+            return
+        }
+        val now = if (key in p.screensaverPictures) p.screensaverPictures - key else p.screensaverPictures + key
+        updatePrefs(p.copy(screensaverPictures = now))
     }
 
     /** Settings › Banner: the picture on the focused row. */
@@ -3201,6 +3310,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun automaticLabel(): String =
         if (weather != null && prefs.weather) "Sunset to Sunrise" else "7 PM to 7 AM"
+
+    /** The text field above Prism's keyboard (Rename Folder, Profile Name…); other apps draw their own. */
+    private fun fieldColourLabel(): String = when (prefs.keyboardFieldColour) {
+        KeyboardColour.Automatic -> "Same as Keyboard"
+        else -> prefs.keyboardFieldColour.label
+    }
 
     private fun keyboardColourLabel(): String = when (prefs.keyboardColour) {
         KeyboardColour.Automatic -> "Automatic"
@@ -3333,6 +3448,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             topShelfStyle = if (b.getString("topShelf").equals("spotlight", true)) TopShelfStyle.Spotlight else TopShelfStyle.FullScreen,
             textSize = b.getInt("textSize", com.prismtv.launcher.data.DefaultTextSize).coerceIn(0, TextScales.size - 1),
             keyboardColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("keyboardColour"), true) } ?: KeyboardColour.Automatic,
+            keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("fieldColour"), true) } ?: KeyboardColour.Automatic,
             widgets = when (b.getString("widgets")) {
                 "above" -> mapOf("all:continue" to WidgetPlace.Above)
                 "below" -> mapOf("all:continue" to WidgetPlace.Below, "all:recommended" to WidgetPlace.Below)
@@ -3443,6 +3559,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 if (page == SettingsPage.WidgetApps) widgetDetailKey = b.getString("widgetKey") ?: "all:continue"
                 if (page == SettingsPage.Wallpaper || page == SettingsPage.Profile) loadPhotos()
                 if (page == SettingsPage.Backup) loadBackups()
+                if (page == SettingsPage.ScreensaverPictures) {
+                    demoLibrary = b.getBoolean("demoLibrary", false)
+                    if (demoLibrary) {
+                        val fake = android.net.Uri.parse("content://demo/1")
+                        photoAlbums = listOf(
+                            com.prismtv.launcher.data.PhotoLibrary.Album("cam", "Camera", 214, fake),
+                            com.prismtv.launcher.data.PhotoLibrary.Album("dl", "Download", 38, fake),
+                            com.prismtv.launcher.data.PhotoLibrary.Album("trip", "Japan 2026", 96, fake),
+                        )
+                        libraryPhotos = listOf("Sunset", "Shibuya", "Harbour", "Mount Fuji").mapIndexed { i, n ->
+                            com.prismtv.launcher.data.PhotoLibrary.Photo(i.toLong(), fake, n, if (i == 3) "trip" else "cam")
+                        }
+                    } else loadPhotoLibrary()
+                }
                 if (page == SettingsPage.IconPack) loadIconPacks()
                 settingsStack = if (page == SettingsPage.Root) listOf(SettingsPage.Root) else listOf(SettingsPage.Root, page)
                 settingsFocus[page] = b.getInt("focus", 0)

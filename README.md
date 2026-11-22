@@ -75,7 +75,8 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Dictation**: the mic key (or the remote's Search / mic button while the keyboard is up) listens
   through the remote's microphone once Dictation Microphone is allowed, or opens Android's voice
   input screen.
-- Light, Balanced, Dark or **Clear** — **Keyboard Colour** follows Colour Mode or is set by hand.
+- Light, Balanced, Dark or **Clear** — **Keyboard Colour** follows Colour Mode or is set by hand;
+  **Text Field Colour** gives Prism's own text field its own colour (or matches the keyboard).
   Clear is clear Liquid Glass over the Home Screen; in other apps (which a keyboard can't see
   through to blur or bend) it's smoked see-through glass. Prism uses the same keyboard for its own
   text entry (Rename Folder, Profile Name).
@@ -103,7 +104,8 @@ launcher counterpart to the Prism TV skin for Kodi.
   shots and the location shown at the start of each. Falls back to slowly drifting Prism scenes
   offline. Other sources: **Your Pictures** (the same slow pan and zoom over your photos) and
   **Shuffle** (like tvOS 27.2: an aerial, then a few of your pictures and Prism's scenes, then the
-  next aerial). **Wait While Media Plays** (on by default) holds the screensaver back while music
+  next aerial). **Pictures** chooses which of your photos they use: all of them, whole albums
+  (Camera, Download…) or single pictures. **Wait While Media Plays** (on by default) holds the screensaver back while music
   or a video is playing. Available on demand and as the system screensaver ("Prism Aerials").
 - **Inputs** (TVs with HDMI inputs): each input is a tile on the Home Screen, one press to the
   console or set-top box, like Projectivy's input shortcuts. Rename them (hold OK › Rename Input, or
@@ -112,7 +114,7 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Profiles** (Settings › Profiles): everyone gets a name, a picture and, if they like, a 4-digit
   passcode. **Who's Watching?** (tvOS style) appears when the TV wakes and from Control Centre's
   profile picture; switching to a profile with a passcode asks for it (the remote's number keys work).
-  **Restrictions** hides apps from a profile (tvOS 27's per-profile app blocking): they leave the
+  **Restrictions** (with All Apps on top to allow or block everything at once) hides apps from a profile (tvOS 27's per-profile app blocking): they leave the
   Home Screen, widgets, recent apps and startup, and a restricted profile needs a passcode to open
   Settings and doesn't get Android Settings in the sidebar. The Home Screen layout is shared.
 - **Icon Pack** (Settings › Icon Pack): use an installed icon pack (the usual launcher format).

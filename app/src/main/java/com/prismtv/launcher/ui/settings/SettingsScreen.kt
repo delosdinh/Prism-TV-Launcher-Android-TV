@@ -58,6 +58,8 @@ import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.ManageAccounts
 import com.prismtv.launcher.ui.components.Avatar
@@ -191,6 +193,7 @@ fun SettingsScreen(vm: LauncherViewModel) {
                     SettingsPage.Apps, SettingsPage.WidgetApps, SettingsPage.Startup, SettingsPage.Restrictions, SettingsPage.Inputs ->
                         rows.getOrNull(focus)?.app ?: rows.getOrNull(focus)?.let { glyphFor(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Banner -> rows.getOrNull(focus)?.let { vm.bannerPreview(it.id) } ?: pageGlyph(pg)
+                    SettingsPage.ScreensaverPictures -> rows.getOrNull(focus)?.let { vm.picturePreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Profiles -> rows.getOrNull(focus)?.let { vm.profileListPreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Wallpaper -> rows.getOrNull(focus)?.let { vm.wallpaperPreview(it.id) } ?: pageGlyph(pg)
                     SettingsPage.Profile -> rows.getOrNull(focus)?.let { vm.profilePreview(it.id) } ?: vm.avatarLook
@@ -271,6 +274,8 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "banner" to glyph(Icons.Rounded.Image, 0xFFFF9F0A, 0xFFE06A00),
     "profiles" to glyph(Icons.Rounded.Groups, 0xFF3D9BFF, 0xFF0A5FE0),
     "restrictions" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
+    "kbField" to glyph(Icons.Rounded.TextFields, 0xFF9C9CA3, 0xFF5E5E64),
+    "ss:pictures" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),
 )
 
 private fun glyphFor(id: String): Any? = if (id == "about") LogoGlyph else Glyphs[id]
@@ -294,6 +299,7 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Banner -> Glyphs.getValue("banner")
     SettingsPage.Profiles -> Glyphs.getValue("profiles")
     SettingsPage.Restrictions -> Glyphs.getValue("restrictions")
+    SettingsPage.ScreensaverPictures -> Glyphs.getValue("ss:pictures")
 }
 
 /** The large artwork on the left of Settings: the tab's glyph, the logo, an app or a wallpaper. */
