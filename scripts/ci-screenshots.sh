@@ -287,6 +287,14 @@ frames() { # label, extra args
 }
 frames full
 frames lite --ez lite true
+# The same for Settings: down the main list (rebuilt rows and page art on every press), into Apps and down.
+start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0; sleep 4
+adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_DOWN; sleep 0.3; done
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_UP; sleep 0.3; done
+sleep 1.5
+adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread" \
+  | sed "s/^ */settings: /" | tee -a "$OUT/frames.txt"
 # Spotlight: a real Up from the dock into the Top Shelf (the spring used to overshoot and crash Prism).
 start "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 1; sleep 4
 adb logcat -c || true
