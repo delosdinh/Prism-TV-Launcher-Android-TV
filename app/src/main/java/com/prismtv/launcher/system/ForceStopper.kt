@@ -124,6 +124,7 @@ internal class ForceStopper(private val service: AccessibilityService) {
         val now = SystemClock.uptimeMillis()
         val inPhase = now - j.phaseAt
         if (j.phase != Phase.Return && now - j.targetAt > 7000) {
+            log("gave up on ${j.pkg} in ${j.phase} (window: ${service.rootInActiveWindow?.packageName})")
             // This page isn't what we expect (or Settings is slow): leave the app to memory freeing.
             if (!next(j)) toReturn(j)
             return
@@ -139,9 +140,11 @@ internal class ForceStopper(private val service: AccessibilityService) {
                 val target = clickable(node)
                 if (target == null || !node.isEnabled || !target.isEnabled) {
                     // Force Stop is greyed out: the app isn't running (or Android protects it).
+                    log("Force Stop is greyed out for ${j.pkg}")
                     if (AppCloser.isStopped(service, j.pkg)) j.stopped += j.pkg
                     advance(j)
                 } else if (target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                    log("pressed Force Stop for ${j.pkg} after ${inPhase}ms")
                     j.phase = Phase.Confirm
                     j.phaseAt = now
                 }
@@ -150,6 +153,7 @@ internal class ForceStopper(private val service: AccessibilityService) {
                 val ok = if (inSettings) find(root!!, okLabels(j.settingsPkg!!)) else null
                 val target = ok?.let { clickable(it) }
                 if (target != null && target.isEnabled && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                    log("pressed OK after ${inPhase}ms")
                     j.phase = Phase.Verify
                     j.phaseAt = now
                 } else if (inPhase > 1800) {
@@ -166,17 +170,24 @@ internal class ForceStopper(private val service: AccessibilityService) {
             }
             Phase.Return -> {
                 val pkg = root?.packageName?.toString()
-                // Back is only ever pressed while Settings is in front, never on Prism TV.
+                // Back is pressed once, and only while Settings is in front: a second press could land on
+                // Prism TV once Settings has gone (closing the App Switcher). If Settings is still there
+                // after that, Prism TV is brought back over it instead.
                 when {
-                    pkg != null && pkg != j.settingsPkg -> finish(j) // Prism TV (or whatever was under Settings) is back
-                    inPhase > 3200 -> finish(j)
-                    pkg == j.settingsPkg && inPhase > 2200 && !j.relaunched -> {
-                        j.relaunched = true
-                        bringBackPrism()
+                    pkg != null && pkg != j.settingsPkg -> {
+                        log("back in $pkg after ${inPhase}ms")
+                        finish(j)
                     }
-                    pkg == j.settingsPkg && inPhase >= 700L * j.backs && j.backs < 3 -> {
-                        j.backs++
+                    inPhase > 3200 -> finish(j)
+                    pkg == j.settingsPkg && j.backs == 0 -> {
+                        j.backs = 1
+                        log("back")
                         service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                    }
+                    pkg == j.settingsPkg && inPhase > 1800 && !j.relaunched -> {
+                        j.relaunched = true
+                        log("Settings still open: bringing Prism TV back")
+                        bringBackPrism()
                     }
                 }
             }
@@ -205,8 +216,13 @@ internal class ForceStopper(private val service: AccessibilityService) {
         }
     }
 
+    private fun log(msg: String) {
+        android.util.Log.i("PrismClose", msg)
+    }
+
     private fun finish(j: Job) {
         if (job !== j) return
+        log("done: ${j.stopped}")
         job = null
         handler.removeCallbacks(tick)
         hideOverlay()

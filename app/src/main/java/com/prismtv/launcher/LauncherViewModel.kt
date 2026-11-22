@@ -1356,6 +1356,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun onBack() {
+        if (BuildConfig.DEBUG) android.util.Log.d("PrismClose", "Prism got Back (overlay $overlay)")
         if (launchAnim != null) return
         if (passcode != null) {
             sounds.play(Cue.Back)

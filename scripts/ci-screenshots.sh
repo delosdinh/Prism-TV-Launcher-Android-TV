@@ -235,7 +235,7 @@ if [ -n "$TARGET" ]; then
   sleep 1.2; cap 63c-closing-still-later
   sleep 8; cap 63d-closed-back-in-switcher
   echo "after: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
-  adb logcat -d -s PrismClose:I | tee -a "$OUT/close-test.txt"
+  adb logcat -d -s PrismClose:V | tee -a "$OUT/close-test.txt"
   adb shell settings delete secure enabled_accessibility_services >/dev/null 2>&1 || true
   adb shell settings put secure accessibility_enabled 0 >/dev/null 2>&1 || true
   adb logcat -d -b crash > "$OUT/crash-close.txt" 2>&1 || true
