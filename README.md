@@ -177,9 +177,20 @@ background — music, a download, a cast session — carry on, and Android's own
 them. So when you swipe an app away (or use Control Centre › Free Up Memory) Prism TV **force
 stops** it, the same as Settings › Apps › the app › Force Stop, using the first of these it can:
 
-1. **Shizuku** (instant and invisible). Install [Shizuku](https://shizuku.rikka.app), start it
-   (Wireless debugging on Android 11+, or `adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh`),
-   then Settings › Apps › **Closing Apps** › Shizuku › Allow.
+1. **Shizuku** (instant and invisible). Settings › Apps › **Closing Apps** › **Shizuku** walks
+   through it on the TV:
+   1. **Install Shizuku** downloads the latest release from
+      [Shizuku's GitHub](https://github.com/RikkaApps/Shizuku/releases) and opens Android's installer
+      (allow Prism TV to install apps the first time).
+   2. **Turn On USB Debugging** opens Developer options (or About, to turn them on).
+   3. **Start Shizuku** connects to the TV's own adb (127.0.0.1:5555, like ATV Connect does) and runs
+      Shizuku's starter. The TV asks to allow debugging once: tick **Always allow**. TVs whose adb
+      only listens for Wireless debugging (TLS pairing) need Shizuku started once from a computer:
+      `adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh`.
+   4. **Allow Prism TV** shows Shizuku's own prompt.
+
+   Shizuku stops when the TV restarts; **Start Shizuku When the TV Starts** has Prism TV start it
+   again quietly a few seconds after it opens.
 2. **Root Access** on rooted boxes (turn it on in Closing Apps; your root manager asks once).
 3. **Power & Home Button** (the accessibility service above): Prism TV opens the app's page in
    Settings behind a still of the screen, presses Force Stop and OK for you, and comes back. Apps

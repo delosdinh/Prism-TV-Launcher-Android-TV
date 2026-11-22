@@ -176,6 +176,8 @@ data class LauncherPrefs(
     val closeCompletely: Boolean = true,
     /** Closing Apps may use `su` (asked for once, from Settings). */
     val rootClose: Boolean = false,
+    /** Shizuku stops when the TV restarts: start it again through the TV's own adb (once set up). */
+    val shizukuAutoStart: Boolean = true,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -259,6 +261,7 @@ class PrefsStore(context: Context) {
             keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name == sp.getString("keyboardFieldColour", null) } ?: d.keyboardFieldColour,
             closeCompletely = sp.getBoolean("closeCompletely", d.closeCompletely),
             rootClose = sp.getBoolean("rootClose", d.rootClose),
+            shizukuAutoStart = sp.getBoolean("shizukuAutoStart", d.shizukuAutoStart),
         )
     }
 
@@ -301,6 +304,7 @@ class PrefsStore(context: Context) {
             .putString("keyboardFieldColour", p.keyboardFieldColour.name)
             .putBoolean("closeCompletely", p.closeCompletely)
             .putBoolean("rootClose", p.rootClose)
+            .putBoolean("shizukuAutoStart", p.shizukuAutoStart)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)

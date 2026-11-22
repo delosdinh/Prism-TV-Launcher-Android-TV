@@ -23,7 +23,7 @@ object Backup {
 
     private val files = listOf("prism_prefs", "prism_layout", "prism_keyboard")
     /** Per-TV bookkeeping that shouldn't travel with a backup. */
-    private val skipKeys = setOf("startupBootAt", "startupAppBootAt", "skippedUpdate", "askedTvListings", "deniedTvListings")
+    private val skipKeys = setOf("startupBootAt", "startupAppBootAt", "skippedUpdate", "askedTvListings", "deniedTvListings", "adbAuthorized")
     private const val Folder = "Prism TV"
     private const val Prefix = "Prism TV Backup"
 

@@ -252,6 +252,44 @@ cap 64-after-restart
 if [ -n "$PID1" ] && [ "$PID1" != "$PID0" ] && [ "$PID1" = "$PID2" ]; then R=OK; else R=FAILED; fi
 echo "RESTART $R (before $PID0, after $PID1, later $PID2)" | tee "$OUT/restart-test.txt"
 
+# Shizuku, step by step (Settings › Apps › Closing Apps › Shizuku): Install downloads Shizuku from GitHub
+# and opens Android's installer; then start it (from the host here: the emulator's adbd has no TCP port
+# for Prism TV's own adb client), allow Prism TV, and close an app through Shizuku.
+SZ=moe.shizuku.privileged.api
+{
+  adb shell appops set "$PKG" REQUEST_INSTALL_PACKAGES allow >/dev/null 2>&1 || true
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 0; sleep 4
+  cap 65-shizuku-steps
+  adb logcat -c || true
+  start "${B[@]}" "${DARK[@]}" --ez adbTest true --es screen settings --es page Shizuku --ei focus 0; sleep 4
+  echo "own adb client: $(adb logcat -d -s PrismAdb:I | grep result= | tail -1)"
+  key KEYCODE_DPAD_CENTER 3; cap 65b-shizuku-downloading
+  for _ in $(seq 1 30); do adb shell dumpsys window | grep -qi "packageinstaller" && break; sleep 2; done
+  sleep 2; cap 65c-shizuku-installer
+  key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_CENTER 1
+  for _ in $(seq 1 30); do adb shell pm path "$SZ" 2>/dev/null | grep -q package: && break; sleep 2; done
+  sleep 3; cap 65d-shizuku-installed
+  echo "installed: $(adb shell pm path "$SZ" | tr -d '\r')"
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+  # Start Shizuku as the shell user (what Prism TV's Start Shizuku runs through the TV's own adb).
+  adb shell 'P=$(pm path moe.shizuku.privileged.api | head -n 1 | cut -d: -f2); D=$(dirname "$P"); S=$(ls "$D"/lib/*/libshizuku.so 2>/dev/null | head -n 1); echo "starter: $S"; cp "$S" /data/local/tmp/shizuku_starter && chmod 700 /data/local/tmp/shizuku_starter && /data/local/tmp/shizuku_starter' 2>&1 | tail -5
+  sleep 4
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 3; sleep 4
+  cap 65e-shizuku-running
+  key KEYCODE_DPAD_CENTER 4; cap 65f-shizuku-allow-prompt
+  key KEYCODE_DPAD_CENTER 3
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Shizuku --ei focus 3; sleep 4
+  cap 65g-shizuku-allowed
+  if [ -n "$TARGET" ]; then
+    timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1; sleep 8
+    echo "before: pid=$(adb shell pidof "$TARGET" | tr -d '\r')"
+    adb logcat -c || true
+    start "${B[@]}" "${DARK[@]}" --es screen home --es closeApp "$TARGET" --ei closeDelay 2000; sleep 8
+    echo "after: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')"
+    adb logcat -d -s PrismClose:I | grep "method=" | tail -1
+  fi
+} 2>&1 | tee "$OUT/shizuku-test.txt"
+
 if [ "$QUICK" = 1 ]; then
   timeout 60 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
   # The switcher last: on the software-rendered API 34 emulator it has stalled the device.

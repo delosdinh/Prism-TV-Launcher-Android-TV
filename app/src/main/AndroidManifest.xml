@@ -88,6 +88,11 @@
             android:name=".update.UpdateReceiver"
             android:exported="false" />
 
+        <!-- Settings › Closing Apps › Shizuku › Install Shizuku: the installer's answer. -->
+        <receiver
+            android:name=".system.ShizukuInstallReceiver"
+            android:exported="false" />
+
         <!-- Notifications in the time pill and Control Centre (needs Notification access). -->
         <service
             android:name=".system.PrismNotificationListener"

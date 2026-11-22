@@ -46,7 +46,15 @@ private val Exact: Map<String, String> = mapOf(
     // Closing Apps
     "cl:full" to "Swiped-away apps are force stopped, so music and downloads stop too. They stay closed until you open them again. Off just frees their memory.",
     "cl:using" to "How Prism TV closes apps right now. Shizuku and root are instant; Power & Home Button presses Force Stop in Settings for you.",
-    "cl:shizuku" to "Closes apps instantly and out of sight. Install Shizuku, start it with Wireless debugging or adb, then allow Prism TV here.",
+    "cl:shizuku" to "Closes apps instantly and out of sight. Select to install and set up Shizuku, step by step.",
+
+    // Shizuku
+    "sz:install" to "Downloads the latest Shizuku from its official GitHub page and installs it. Android asks you to confirm.",
+    "sz:debug" to "Shizuku is started through the TV's own debugging. Turn on Developer options, then USB debugging.",
+    "sz:start" to "Starts Shizuku through this TV's debugging. The first time, the TV asks to allow it: tick Always allow.",
+    "sz:allow" to "Shizuku asks whether Prism TV may use it. Then apps you swipe away close instantly.",
+    "sz:boot" to "Shizuku stops when the TV restarts. Prism TV starts it again quietly, once it's set up.",
+    "sz:open" to "Opens the Shizuku app: its status, and the apps allowed to use it.",
     "cl:a11y" to "Prism TV opens the app's page in Settings behind a still of the screen and presses Force Stop for you. It takes a moment.",
     "cl:root" to "On a rooted box, closes apps instantly with root. Your root manager asks once.",
 

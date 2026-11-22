@@ -148,7 +148,7 @@ enum class SettingsPage(val title: String) {
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
     Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
-    Access("Privacy & Access"), Closing("Closing Apps"),
+    Access("Privacy & Access"), Closing("Closing Apps"), Shizuku("Shizuku"),
 }
 
 data class SettingsRow(
@@ -1454,6 +1454,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             launchAnim = anim.copy(reverse = true, id = System.nanoTime())
         }
         if (pendingClose.isNotEmpty() && !closeFlushing) scheduleClose()
+        maybeStartShizuku()
     }
 
     private fun rowSize(r: Int): Int {
@@ -2558,6 +2559,209 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
+    // ---------------------------------------------------------------- Shizuku, step by step
+
+    /** Install Shizuku: download progress in percent while it downloads. */
+    var shizukuDownload by mutableStateOf<Int?>(null)
+        private set
+    var shizukuStarting by mutableStateOf(false)
+        private set
+    private var shizukuAutoStartTried = false
+
+    private val shizukuSteps = listOf("sz:install", "sz:debug", "sz:start", "sz:allow")
+
+    private fun shizukuStepDone(id: String): Boolean = when (id) {
+        "sz:install" -> com.prismtv.launcher.system.ShizukuShell.installed(ctx)
+        "sz:debug" -> com.prismtv.launcher.system.LocalAdb.enabled(ctx)
+        "sz:start" -> shizukuRunning()
+        "sz:allow" -> com.prismtv.launcher.system.ShizukuShell.ready()
+        else -> true
+    }
+
+    private fun shizukuRunning(): Boolean = com.prismtv.launcher.system.ShizukuShell.status(ctx).let {
+        it != com.prismtv.launcher.system.ShizukuShell.Status.NotInstalled && it != com.prismtv.launcher.system.ShizukuShell.Status.NotRunning
+    }
+
+    /** Puts focus on the first step that's still to do (or the last one when all are done). */
+    private fun focusNextShizukuStep() {
+        val next = shizukuSteps.indexOfFirst { !shizukuStepDone(it) }
+        settingsFocus[SettingsPage.Shizuku] = if (next >= 0) next else shizukuSteps.size - 1
+    }
+
+    private fun shizukuRows(): List<SettingsRow> {
+        val installed = com.prismtv.launcher.system.ShizukuShell.installed(ctx)
+        val status = com.prismtv.launcher.system.ShizukuShell.status(ctx)
+        val running = shizukuRunning()
+        val debugging = com.prismtv.launcher.system.LocalAdb.enabled(ctx)
+        val download = shizukuDownload
+        return listOfNotNull(
+            SettingsRow(
+                "sz:install", "Install Shizuku", "SET UP SHIZUKU",
+                when {
+                    download != null -> "Downloading $download%"
+                    installed -> "Installed"
+                    else -> "Install"
+                },
+                chevron = !installed && download == null,
+            ),
+            SettingsRow("sz:debug", "Turn On USB Debugging", "SET UP SHIZUKU", if (debugging) "Turned On" else "Turn On", chevron = !debugging),
+            SettingsRow(
+                "sz:start", "Start Shizuku", "SET UP SHIZUKU",
+                when {
+                    shizukuStarting -> "Starting…"
+                    running -> "Running"
+                    else -> "Start"
+                },
+                chevron = !running && !shizukuStarting,
+            ),
+            SettingsRow(
+                "sz:allow", "Allow Prism TV", "SET UP SHIZUKU",
+                when (status) {
+                    com.prismtv.launcher.system.ShizukuShell.Status.Ready -> "Allowed"
+                    com.prismtv.launcher.system.ShizukuShell.Status.Denied -> "Not Allowed"
+                    com.prismtv.launcher.system.ShizukuShell.Status.TooOld -> "Update Shizuku"
+                    else -> "Allow"
+                },
+                chevron = status != com.prismtv.launcher.system.ShizukuShell.Status.Ready,
+            ),
+            SettingsRow("sz:boot", "Start Shizuku When the TV Starts", "OPTIONS", onOff(prefs.shizukuAutoStart)),
+            if (installed) SettingsRow("sz:open", "Open Shizuku", "OPTIONS", chevron = true) else null,
+        )
+    }
+
+    private fun selectShizuku(id: String) {
+        val p = prefs
+        when (id) {
+            "sz:install" -> installShizuku()
+            "sz:debug" -> when {
+                com.prismtv.launcher.system.LocalAdb.enabled(ctx) ->
+                    showBanner("USB Debugging", "USB debugging is on. Next, start Shizuku.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                com.prismtv.launcher.system.LocalAdb.developerOptions(ctx) -> {
+                    SystemActions.open(ctx, Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                    showBanner("USB Debugging", "Turn on USB debugging (and Network debugging, if it's there), then come back.", Icons.Rounded.Info)
+                }
+                else -> {
+                    SystemActions.open(ctx, Settings.ACTION_DEVICE_INFO_SETTINGS)
+                    showBanner(
+                        "Developer Options",
+                        "Select Android TV OS build (or Build) seven times to turn on Developer options, then come back and select this again.",
+                        Icons.Rounded.Info,
+                    )
+                }
+            }
+            "sz:start" -> startShizuku()
+            "sz:allow" -> when (com.prismtv.launcher.system.ShizukuShell.status(ctx)) {
+                com.prismtv.launcher.system.ShizukuShell.Status.Ready ->
+                    showBanner("Shizuku", "Prism TV is allowed. Apps you swipe away now close completely.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                com.prismtv.launcher.system.ShizukuShell.Status.NotInstalled, com.prismtv.launcher.system.ShizukuShell.Status.NotRunning ->
+                    showBanner("Shizuku", "Start Shizuku first.", Icons.Rounded.Info)
+                com.prismtv.launcher.system.ShizukuShell.Status.NeedsPermission ->
+                    com.prismtv.launcher.system.ShizukuShell.requestPermission { granted ->
+                        viewModelScope.launch {
+                            resumeTick++
+                            if (granted) {
+                                showBanner("Shizuku", "All set. Apps you swipe away now close completely.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                            } else {
+                                showBanner("Shizuku", "Prism TV wasn't allowed. Open Shizuku to allow it in its app list.", Icons.Rounded.Info)
+                            }
+                        }
+                    }
+                else -> openShizukuApp("Allow Prism TV in Shizuku's app list, then come back.")
+            }
+            "sz:boot" -> updatePrefs(p.copy(shizukuAutoStart = !p.shizukuAutoStart))
+            "sz:open" -> openShizukuApp(null)
+        }
+    }
+
+    private fun openShizukuApp(hint: String?) {
+        val pkg = com.prismtv.launcher.system.ShizukuShell.Package
+        val open = ctx.packageManager.getLeanbackLaunchIntentForPackage(pkg) ?: ctx.packageManager.getLaunchIntentForPackage(pkg)
+        if (open != null && SystemActions.start(ctx, open)) {
+            hint?.let { showBanner("Shizuku", it, Icons.Rounded.Info) }
+        } else {
+            showBanner("Shizuku", "Shizuku couldn't be opened.", Icons.Rounded.Info)
+        }
+    }
+
+    private fun installShizuku() {
+        if (com.prismtv.launcher.system.ShizukuShell.installed(ctx)) {
+            showBanner("Shizuku", "Shizuku is installed. Next, turn on USB debugging.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            focusNextShizukuStep()
+            return
+        }
+        if (shizukuDownload != null) return
+        if (!Updater.canInstall(ctx)) {
+            if (!SystemActions.start(ctx, Updater.permissionIntent(ctx))) SystemActions.open(ctx, Settings.ACTION_SECURITY_SETTINGS)
+            showBanner("Install Shizuku", "Allow Prism TV to install apps, then come back and select Install Shizuku again.", Icons.Rounded.Info)
+            return
+        }
+        shizukuDownload = 0
+        viewModelScope.launch {
+            val apk = com.prismtv.launcher.system.ShizukuSetup.download(ctx) { f -> shizukuDownload = (f * 100).toInt() }
+            if (apk == null) {
+                shizukuDownload = null
+                showBanner("Install Shizuku", "Shizuku couldn't be downloaded. Check the TV's internet connection and try again.", Icons.Rounded.Info)
+                return@launch
+            }
+            runCatching { com.prismtv.launcher.system.ShizukuSetup.install(ctx, apk) }.onFailure {
+                showBanner("Install Shizuku", "Shizuku couldn't be installed.", Icons.Rounded.Info)
+            }
+            shizukuDownload = null
+        }
+    }
+
+    private fun startShizuku() {
+        if (shizukuStarting) return
+        if (shizukuRunning()) {
+            showBanner("Shizuku", "Shizuku is running. Next, allow Prism TV.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            focusNextShizukuStep()
+            return
+        }
+        shizukuStarting = true
+        // The TV may ask "Allow debugging?" now: tick Always allow so Shizuku can start again after a restart.
+        showBanner("Start Shizuku", "If your TV asks to allow debugging, tick Always allow and select Allow.", Icons.Rounded.Info, null)
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) { com.prismtv.launcher.system.ShizukuSetup.start(ctx, allowPrompt = true) }
+            shizukuStarting = false
+            resumeTick++
+            when (r) {
+                com.prismtv.launcher.system.ShizukuSetup.StartResult.Started -> {
+                    showBanner("Shizuku", "Shizuku is running. Next, allow Prism TV.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    if (overlay == Overlay.Settings && settingsStack.last() == SettingsPage.Shizuku) focusNextShizukuStep()
+                }
+                com.prismtv.launcher.system.ShizukuSetup.StartResult.NotInstalled -> showBanner("Shizuku", "Install Shizuku first.", Icons.Rounded.Info)
+                com.prismtv.launcher.system.ShizukuSetup.StartResult.DebuggingOff -> showBanner("Shizuku", "Turn on USB debugging first.", Icons.Rounded.Info)
+                com.prismtv.launcher.system.ShizukuSetup.StartResult.NotAllowed ->
+                    showBanner("Shizuku", "The TV didn't allow debugging for Prism TV. Select Start Shizuku to ask again.", Icons.Rounded.Info)
+                com.prismtv.launcher.system.ShizukuSetup.StartResult.Unreachable -> {
+                    dialog = DialogSpec(
+                        "Start Shizuku",
+                        "Prism TV couldn't reach this TV's debugging. If Developer options has Network debugging (or ADB over network), " +
+                            "turn it on and try again. Otherwise start Shizuku once from a computer or phone: " +
+                            "adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh",
+                        listOf(DialogButton("OK") {}),
+                    )
+                    dialogFocus = 0
+                    cue(Cue.Error)
+                }
+                is com.prismtv.launcher.system.ShizukuSetup.StartResult.Failed ->
+                    showBanner("Shizuku", "Shizuku didn't start: ${r.detail}", Icons.Rounded.Info)
+            }
+        }
+    }
+
+    /** Once per run, a little after Prism TV opens: Shizuku stops when the TV restarts, so start it again. */
+    private fun maybeStartShizuku() {
+        if (shizukuAutoStartTried || !prefs.shizukuAutoStart || debugDriven) return
+        shizukuAutoStartTried = true
+        if (!com.prismtv.launcher.system.ShizukuShell.installed(ctx)) return
+        viewModelScope.launch {
+            delay(6_000)
+            val started = withContext(Dispatchers.IO) { com.prismtv.launcher.system.ShizukuSetup.startQuietly(ctx) }
+            if (started) resumeTick++
+        }
+    }
+
     private fun selectClosing(id: String) {
         val p = prefs
         when (id) {
@@ -2576,28 +2780,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 Icons.Rounded.Info,
             )
             "cl:a11y" -> SystemActions.open(ctx, Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            "cl:shizuku" -> when (com.prismtv.launcher.system.ShizukuShell.status(ctx)) {
-                com.prismtv.launcher.system.ShizukuShell.Status.NotInstalled -> showBanner(
-                    "Shizuku", "Install Shizuku on this TV and start it with Wireless debugging or adb, then come back here.", Icons.Rounded.Info,
-                )
-                com.prismtv.launcher.system.ShizukuShell.Status.Ready ->
-                    showBanner("Shizuku", "Shizuku is closing apps for Prism TV.", Icons.Rounded.CheckCircle, Cue.Confirm)
-                com.prismtv.launcher.system.ShizukuShell.Status.NeedsPermission ->
-                    com.prismtv.launcher.system.ShizukuShell.requestPermission { granted ->
-                        viewModelScope.launch {
-                            resumeTick++
-                            if (granted) showBanner("Shizuku", "Apps you swipe away now close completely.", Icons.Rounded.CheckCircle, Cue.Confirm)
-                            else showBanner("Shizuku", "Prism TV wasn't allowed. You can allow it in Shizuku's app list.", Icons.Rounded.Info)
-                        }
-                    }
-                else -> {
-                    // Not running, too old, or denied before: Shizuku's own app is where that's fixed.
-                    val open = ctx.packageManager.getLeanbackLaunchIntentForPackage(com.prismtv.launcher.system.ShizukuShell.Package)
-                        ?: ctx.packageManager.getLaunchIntentForPackage(com.prismtv.launcher.system.ShizukuShell.Package)
-                    if (open == null || !SystemActions.start(ctx, open)) {
-                        showBanner("Shizuku", "Start Shizuku, allow Prism TV, then come back here.", Icons.Rounded.Info)
-                    }
-                }
+            "cl:shizuku" -> {
+                pushPage(SettingsPage.Shizuku)
+                focusNextShizukuStep()
             }
             "cl:root" -> if (p.rootClose) {
                 updatePrefs(p.copy(rootClose = false))
@@ -2830,6 +3015,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
         SettingsPage.Inputs -> inputRows()
         SettingsPage.Closing -> resumeTick.let { _ -> closingRows() }
+        SettingsPage.Shizuku -> resumeTick.let { _ -> shizukuRows() }
         SettingsPage.Backup -> backupRows()
         SettingsPage.IconPack -> iconPackRows()
         SettingsPage.Banner -> bannerRows()
@@ -3088,6 +3274,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "inputs" -> pushPage(SettingsPage.Inputs)
             r.id == "closing" -> pushPage(SettingsPage.Closing)
             r.id.startsWith("cl:") -> selectClosing(r.id)
+            r.id.startsWith("sz:") -> selectShizuku(r.id)
             r.id == "iconPack" -> {
                 pushPage(SettingsPage.IconPack)
                 loadIconPacks()
@@ -3866,6 +4053,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             "aerial" -> startScreensaver()
         }
+        // CI: Prism TV's own adb client against the emulator's adbd.
+        if (b.getBoolean("adbTest", false)) {
+            viewModelScope.launch {
+                val r = withContext(Dispatchers.IO) {
+                    com.prismtv.launcher.system.LocalAdb.shell(ctx, "echo prism-adb-ok; id -u", allowPrompt = true)
+                }
+                android.util.Log.i("PrismAdb", "result=$r")
+            }
+        }
         // CI: Settings › Restart Launcher.
         if (b.getBoolean("restart", false)) restartTick++
         // CI: close a real app the way a swipe-up in the App Switcher does, and log what happened.
@@ -3951,6 +4147,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             } else false
         }
         if (prefs.demoContent) widgetRowsAll = demoWidgetRows()
+        viewModelScope.launch {
+            com.prismtv.launcher.system.ShizukuSetup.events.collect { e ->
+                resumeTick++
+                when (e) {
+                    com.prismtv.launcher.system.ShizukuSetup.Event.Installed -> {
+                        showBanner("Shizuku", "Shizuku is installed. Next, turn on USB debugging.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                        if (overlay == Overlay.Settings && settingsStack.last() == SettingsPage.Shizuku) focusNextShizukuStep()
+                    }
+                    is com.prismtv.launcher.system.ShizukuSetup.Event.Failed -> showBanner("Install Shizuku", e.message, Icons.Rounded.Info)
+                }
+            }
+        }
         viewModelScope.launch {
             Updater.events.collect { e ->
                 when (e) {
