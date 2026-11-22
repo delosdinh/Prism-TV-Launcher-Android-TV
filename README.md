@@ -133,7 +133,8 @@ launcher counterpart to the Prism TV skin for Kodi.
   screen while the Home Screen blurs behind it, and the app fades in over the top — no black
   frame. Coming back shrinks the artwork into its icon.
 - **Settings** in the tvOS Settings style: each tab has its own glyph, the large artwork on the
-  left follows focus, and the Apps page shows each app's artwork; pop-up dialogs and banners.
+  left follows focus with a short description of the focused setting beneath it, and the Apps page
+  shows each app's artwork; pop-up dialogs and banners.
   Grouped like tvOS: General (Profiles, Appearance, Home Screen, Screensaver, Keyboard, Sounds),
   Apps (Apps, Open at Startup, Icon Pack, Inputs on TVs), Remote & Power, and System (Software
   Update, Backup & Restore, **Privacy & Access** with every permission in one place, About).

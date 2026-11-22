@@ -214,6 +214,22 @@ fun SettingsScreen(vm: LauncherViewModel) {
                         .size(228.dp),
                     p,
                 )
+                // What the focused setting does, under its artwork (as on tvOS).
+                androidx.compose.animation.Crossfade(
+                    settingsHelp(pg, rows.getOrNull(focus)?.id),
+                    Modifier
+                        .offset(80.dp, 404.dp)
+                        .width(320.dp),
+                    animationSpec = tween(220),
+                    label = "settingsHelp",
+                ) { text ->
+                    if (text != null) {
+                        PText(
+                            text, 13.sp, FontWeight.Normal, p.textSecondary,
+                            Modifier.fillMaxWidth(), maxLines = 4, align = TextAlign.Center, lineHeight = 18.sp,
+                        )
+                    }
+                }
                 SettingsList(
                     rows = rows,
                     focus = if (pg == page) focus else -1,
