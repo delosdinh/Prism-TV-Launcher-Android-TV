@@ -1,47 +1,52 @@
-11-22 11:30:06.567   490   981 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:30:15.478   490  3321 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:30:21.545  9203  9203 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-22 11:30:21.547  9203  9203 I AndroidRuntime: Using default boot image
-11-22 11:30:21.547  9203  9203 I AndroidRuntime: Leaving lock profiling enabled
-11-22 11:30:21.607  9203  9203 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-22 11:30:22.659  9203  9203 D AndroidRuntime: Shutting down VM
-11-22 11:30:24.150   490  1341 D AdbDebuggingManager: Received disconnected message: QAAAAEHs9VQ/3LPPRzNmnCeLJCxVDY8t31bvF9nbCEDCsNQQyKTb4UWzOAa9ul1Ctvnay9c6CbP3z0c9nb4jxxg7TX4uCDimy89wVrVlzb22MJbn8hv1L33VIW5kfDjm/IbHvwqPuT2bjcO5R4WrY/KpfmCP3fRDlms89pWTvrg8hKabnpKeGKsPb4BL80/BUt4Ypw9cU9GXpJQewvCEjR7cV1V88qfdAeK5A6wXE8clVIV83XNplkGHXIJrk2PqCm5sffIgXt04pTKgkPASJl8iC7FKRJta8J+122lAw8ixdeNbg2up+YD9oiNXQF1l8g+sCSEnRH1CnD7ZC4vk+aFPEbvOIFfVYhk2OOH9v0km1tuZWzmkEXsYlCSMZC5HP0RA7fKg8wIGh0knsbO4VNMcr+XuYdTF8o9N3QccoI1JIucmAuk9GEtAFUUfN1WFqzkfY++JGEJm5f4VkO2OqH7yn8lLg1wTyNtQhUsuhJoqXvnTw/MTdpeeDzODCFOTIjpXsDvvLdPjfHhhemULR5tV7w+cV6CIwqquuaXzrf+lux5XdUenTCb9CPxbb2ITRBw7gh2h77C949oTEK/4i0TOJPI7i5PTYvKm21FKqoR7ZRgWOhjD4JhmnMatKm2c8Jt/X3N3TyuDc9zrvrvt4IkuiRK+obC7nIMxeyJBdPw52WnnLW5YWwEAAQA= prismtv@tv
-11-22 11:30:24.150   490  1341 D AdbDebuggingManager: Received public key: QAAAAEHs9VQ/3LPPRzNmnCeLJCxVDY8t31bvF9nbCEDCsNQQyKTb4UWzOAa9ul1Ctvnay9c6CbP3z0c9nb4jxxg7TX4uCDimy89wVrVlzb22MJbn8hv1L33VIW5kfDjm/IbHvwqPuT2bjcO5R4WrY/KpfmCP3fRDlms89pWTvrg8hKabnpKeGKsPb4BL80/BUt4Ypw9cU9GXpJQewvCEjR7cV1V88qfdAeK5A6wXE8clVIV83XNplkGHXIJrk2PqCm5sffIgXt04pTKgkPASJl8iC7FKRJta8J+122lAw8ixdeNbg2up+YD9oiNXQF1l8g+sCSEnRH1CnD7ZC4vk+aFPEbvOIFfVYhk2OOH9v0km1tuZWzmkEXsYlCSMZC5HP0RA7fKg8wIGh0knsbO4VNMcr+XuYdTF8o9N3QccoI1JIucmAuk9GEtAFUUfN1WFqzkfY++JGEJm5f4VkO2OqH7yn8lLg1wTyNtQhUsuhJoqXvnTw/MTdpeeDzODCFOTIjpXsDvvLdPjfHhhemULR5tV7w+cV6CIwqquuaXzrf+lux5XdUenTCb9CPxbb2ITRBw7gh2h77C949oTEK/4i0TOJPI7i5PTYvKm21FKqoR7ZRgWOhjD4JhmnMatKm2c8Jt/X3N3TyuDc9zrvrvt4IkuiRK+obC7nIMxeyJBdPw52WnnLW5YWwEAAQA= prismtv@tv
-11-22 11:30:24.150   490   521 D AdbDebuggingManager: Logging key QAAAAEHs9VQ/3LPPRzNmnCeLJCxVDY8t31bvF9nbCEDCsNQQyKTb4UWzOAa9ul1Ctvnay9c6CbP3z0c9nb4jxxg7TX4uCDimy89wVrVlzb22MJbn8hv1L33VIW5kfDjm/IbHvwqPuT2bjcO5R4WrY/KpfmCP3fRDlms89pWTvrg8hKabnpKeGKsPb4BL80/BUt4Ypw9cU9GXpJQewvCEjR7cV1V88qfdAeK5A6wXE8clVIV83XNplkGHXIJrk2PqCm5sffIgXt04pTKgkPASJl8iC7FKRJta8J+122lAw8ixdeNbg2up+YD9oiNXQF1l8g+sCSEnRH1CnD7ZC4vk+aFPEbvOIFfVYhk2OOH9v0km1tuZWzmkEXsYlCSMZC5HP0RA7fKg8wIGh0knsbO4VNMcr+XuYdTF8o9N3QccoI1JIucmAuk9GEtAFUUfN1WFqzkfY++JGEJm5f4VkO2OqH7yn8lLg1wTyNtQhUsuhJoqXvnTw/MTdpeeDzODCFOTIjpXsDvvLdPjfHhhemULR5tV7w+cV6CIwqquuaXzrf+lux5XdUenTCb9CPxbb2ITRBw7gh2h77C949oTEK/4i0TOJPI7i5PTYvKm21FKqoR7ZRgWOhjD4JhmnMatKm2c8Jt/X3N3TyuDc9zrvrvt4IkuiRK+obC7nIMxeyJBdPw52WnnLW5YWwEAAQA= prismtv@tv, state = 7, alwaysAllow = true, lastConnectionTime = 1795347024150, authWindow = 604800000
-11-22 11:30:24.150   490   521 D AdbDebuggingManager: Logging key QAAAAEHs9VQ/3LPPRzNmnCeLJCxVDY8t31bvF9nbCEDCsNQQyKTb4UWzOAa9ul1Ctvnay9c6CbP3z0c9nb4jxxg7TX4uCDimy89wVrVlzb22MJbn8hv1L33VIW5kfDjm/IbHvwqPuT2bjcO5R4WrY/KpfmCP3fRDlms89pWTvrg8hKabnpKeGKsPb4BL80/BUt4Ypw9cU9GXpJQewvCEjR7cV1V88qfdAeK5A6wXE8clVIV83XNplkGHXIJrk2PqCm5sffIgXt04pTKgkPASJl8iC7FKRJta8J+122lAw8ixdeNbg2up+YD9oiNXQF1l8g+sCSEnRH1CnD7ZC4vk+aFPEbvOIFfVYhk2OOH9v0km1tuZWzmkEXsYlCSMZC5HP0RA7fKg8wIGh0knsbO4VNMcr+XuYdTF8o9N3QccoI1JIucmAuk9GEtAFUUfN1WFqzkfY++JGEJm5f4VkO2OqH7yn8lLg1wTyNtQhUsuhJoqXvnTw/MTdpeeDzODCFOTIjpXsDvvLdPjfHhhemULR5tV7w+cV6CIwqquuaXzrf+lux5XdUenTCb9CPxbb2ITRBw7gh2h77C949oTEK/4i0TOJPI7i5PTYvKm21FKqoR7ZRgWOhjD4JhmnMatKm2c8Jt/X3N3TyuDc9zrvrvt4IkuiRK+obC7nIMxeyJBdPw52WnnLW5YWwEAAQA= prismtv@tv, state = 1, alwaysAllow = false, lastConnectionTime = 1795347024150, authWindow = 604800000
-11-22 11:30:24.660   490   524 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{b95611c u0 com.prismtv.launcher/.MainActivity t11}
-11-22 11:30:24.660   490   524 W ActivityTaskManager: Activity pause timeout for ActivityRecord{b95611c u0 com.prismtv.launcher/.MainActivity t11}
-11-22 11:30:27.098  9249  9249 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-22 11:30:27.101  9249  9249 I AndroidRuntime: Using default boot image
-11-22 11:30:27.101  9249  9249 I AndroidRuntime: Leaving lock profiling enabled
-11-22 11:30:27.160  9249  9249 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-22 11:30:28.190  9249  9249 D AndroidRuntime: Shutting down VM
-11-22 11:30:29.068  9267  9267 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-22 11:30:29.070  9267  9267 I AndroidRuntime: Using default boot image
-11-22 11:30:29.070  9267  9267 I AndroidRuntime: Leaving lock profiling enabled
-11-22 11:30:29.131  9267  9267 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-22 11:30:30.145  9267  9267 D AndroidRuntime: Shutting down VM
-11-22 11:30:31.937  9292  9292 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-22 11:30:31.941  9292  9292 I AndroidRuntime: Using default boot image
-11-22 11:30:31.941  9292  9292 I AndroidRuntime: Leaving lock profiling enabled
-11-22 11:30:32.038  9292  9292 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-22 11:30:33.051  9292  9292 D AndroidRuntime: Shutting down VM
-11-22 11:30:33.928  9309  9309 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-22 11:30:33.930  9309  9309 I AndroidRuntime: Using default boot image
-11-22 11:30:33.930  9309  9309 I AndroidRuntime: Leaving lock profiling enabled
-11-22 11:30:33.991  9309  9309 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-22 11:30:35.005  9309  9309 D AndroidRuntime: Shutting down VM
-11-22 11:30:35.849   490   521 D AdbDebuggingManager: Logging key QAAAAEHs9VQ/3LPPRzNmnCeLJCxVDY8t31bvF9nbCEDCsNQQyKTb4UWzOAa9ul1Ctvnay9c6CbP3z0c9nb4jxxg7TX4uCDimy89wVrVlzb22MJbn8hv1L33VIW5kfDjm/IbHvwqPuT2bjcO5R4WrY/KpfmCP3fRDlms89pWTvrg8hKabnpKeGKsPb4BL80/BUt4Ypw9cU9GXpJQewvCEjR7cV1V88qfdAeK5A6wXE8clVIV83XNplkGHXIJrk2PqCm5sffIgXt04pTKgkPASJl8iC7FKRJta8J+122lAw8ixdeNbg2up+YD9oiNXQF1l8g+sCSEnRH1CnD7ZC4vk+aFPEbvOIFfVYhk2OOH9v0km1tuZWzmkEXsYlCSMZC5HP0RA7fKg8wIGh0knsbO4VNMcr+XuYdTF8o9N3QccoI1JIucmAuk9GEtAFUUfN1WFqzkfY++JGEJm5f4VkO2OqH7yn8lLg1wTyNtQhUsuhJoqXvnTw/MTdpeeDzODCFOTIjpXsDvvLdPjfHhhemULR5tV7w+cV6CIwqquuaXzrf+lux5XdUenTCb9CPxbb2ITRBw7gh2h77C949oTEK/4i0TOJPI7i5PTYvKm21FKqoR7ZRgWOhjD4JhmnMatKm2c8Jt/X3N3TyuDc9zrvrvt4IkuiRK+obC7nIMxeyJBdPw52WnnLW5YWwEAAQA= prismtv@tv, state = 2, alwaysAllow = true, lastConnectionTime = 1795347035849, authWindow = 604800000
-11-22 11:30:36.086   490  2537 I ConditionProviders:  Allowing condition provider com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
-11-22 11:30:36.086   490  2537 I NotificationListeners:  Allowing notification listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
-11-22 11:30:36.086   490  2537 V NotificationListeners: enabling notification listener for 0: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-22 11:30:36.086   490  2537 V NotificationListeners: binding: Intent { act=android.service.notification.NotificationListenerService cmp=com.prismtv.launcher/.system.PrismNotificationListener (has extras) }
-11-22 11:30:36.111   490   490 V NotificationListeners: 0 notification listener service connected: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-22 11:30:43.551   490  2537 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:30:59.868   490  2537 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:31:20.947   490  2163 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:31:26.186   490   981 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:31:39.730   490  2538 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:31:52.048   490  2538 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:32:09.451   490  2538 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-22 11:32:21.832   490  2538 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:58:09.184   491   908 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:58:09.194  8980  9125 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-22 11:58:09.194  8980  9006 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-22 11:58:09.194  8980  9125 I Service : send binder to user app com.prismtv.launcher in user 0
+11-22 11:58:09.195  8980  9006 I Service : send binder to user app com.prismtv.launcher in user 0
+11-22 11:58:10.075  8268  8274 I rismtv.launche: JIT allocated 57KB for compiled code of java.util.List com.prismtv.launcher.LauncherViewModel.settingsRows(com.prismtv.launcher.SettingsPage)
+11-22 11:58:17.913   491  3461 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:58:23.892  9343  9343 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 11:58:23.894  9343  9343 I AndroidRuntime: Using default boot image
+11-22 11:58:23.894  9343  9343 I AndroidRuntime: Leaving lock profiling enabled
+11-22 11:58:23.947  9343  9343 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 11:58:25.015  9343  9343 D AndroidRuntime: Shutting down VM
+11-22 11:58:26.503   491  1344 D AdbDebuggingManager: Received disconnected message: QAAAAKdqM9fpYqA9LA9UGsoWLMsNJg2zRhld5/zegamypHLBRDwSQHMzEraEdWBCybhdG23CfbJ2kkJ7Ca5aJ/Qh682YPtgi6L6Qg3QhNCvAPHGX3273McZ8IajuwSxxuCfdDYw7zXwpLu9GRwesBHerIrYu+e3XjI0jyfg/OclXu3waOIdwhASykp7zyF4D5bXshE9ufl3NmTMSZokF+ZF0opIQFI532Poa5rUIctmY5oI0lVhx7yq2qukMvBchZsgS5nI7xp8KjD9v/1xthDo0Jl0Oe98q8+v3rhJD3A/dDL+lrPBM27BwYfP7JcFADoSofDG5YHiTVFVCsvexJu7z8BpTNuGT03OASsrGszTYGNYmN7KhyqCoH9TXBsxaJIBFmn9S00xam0mDncEqGly/cBsE6dlQK+NNaLdAS4V2KA4A5bvIFSRrEmuUNnDYMzrnMCVkCjss9hMxYF7xrHFmX870h498EGZUiyTfegQEmfrYKm+cXnmBlPM0HhQyLa5qFoM61hmk85PdMM7PkqpoSqU5pjpwphdrdY7rDKKyxjADlivQQj96i88S3rdNuTOrA95SI1Ogvl4t4zi6L75Om9k0H4yEFskkJXIC3UJ7uVb5tZaBToA81wceIbc+EhdPjAnLiHgITIF3y1yOpUVypMGRiUxXc/qTRFGIRMzrVQkk5dZMAwEAAQA= prismtv@tv
+11-22 11:58:26.503   491  1344 D AdbDebuggingManager: Received public key: QAAAAKdqM9fpYqA9LA9UGsoWLMsNJg2zRhld5/zegamypHLBRDwSQHMzEraEdWBCybhdG23CfbJ2kkJ7Ca5aJ/Qh682YPtgi6L6Qg3QhNCvAPHGX3273McZ8IajuwSxxuCfdDYw7zXwpLu9GRwesBHerIrYu+e3XjI0jyfg/OclXu3waOIdwhASykp7zyF4D5bXshE9ufl3NmTMSZokF+ZF0opIQFI532Poa5rUIctmY5oI0lVhx7yq2qukMvBchZsgS5nI7xp8KjD9v/1xthDo0Jl0Oe98q8+v3rhJD3A/dDL+lrPBM27BwYfP7JcFADoSofDG5YHiTVFVCsvexJu7z8BpTNuGT03OASsrGszTYGNYmN7KhyqCoH9TXBsxaJIBFmn9S00xam0mDncEqGly/cBsE6dlQK+NNaLdAS4V2KA4A5bvIFSRrEmuUNnDYMzrnMCVkCjss9hMxYF7xrHFmX870h498EGZUiyTfegQEmfrYKm+cXnmBlPM0HhQyLa5qFoM61hmk85PdMM7PkqpoSqU5pjpwphdrdY7rDKKyxjADlivQQj96i88S3rdNuTOrA95SI1Ogvl4t4zi6L75Om9k0H4yEFskkJXIC3UJ7uVb5tZaBToA81wceIbc+EhdPjAnLiHgITIF3y1yOpUVypMGRiUxXc/qTRFGIRMzrVQkk5dZMAwEAAQA= prismtv@tv
+11-22 11:58:26.503   491   520 D AdbDebuggingManager: Logging key QAAAAKdqM9fpYqA9LA9UGsoWLMsNJg2zRhld5/zegamypHLBRDwSQHMzEraEdWBCybhdG23CfbJ2kkJ7Ca5aJ/Qh682YPtgi6L6Qg3QhNCvAPHGX3273McZ8IajuwSxxuCfdDYw7zXwpLu9GRwesBHerIrYu+e3XjI0jyfg/OclXu3waOIdwhASykp7zyF4D5bXshE9ufl3NmTMSZokF+ZF0opIQFI532Poa5rUIctmY5oI0lVhx7yq2qukMvBchZsgS5nI7xp8KjD9v/1xthDo0Jl0Oe98q8+v3rhJD3A/dDL+lrPBM27BwYfP7JcFADoSofDG5YHiTVFVCsvexJu7z8BpTNuGT03OASsrGszTYGNYmN7KhyqCoH9TXBsxaJIBFmn9S00xam0mDncEqGly/cBsE6dlQK+NNaLdAS4V2KA4A5bvIFSRrEmuUNnDYMzrnMCVkCjss9hMxYF7xrHFmX870h498EGZUiyTfegQEmfrYKm+cXnmBlPM0HhQyLa5qFoM61hmk85PdMM7PkqpoSqU5pjpwphdrdY7rDKKyxjADlivQQj96i88S3rdNuTOrA95SI1Ogvl4t4zi6L75Om9k0H4yEFskkJXIC3UJ7uVb5tZaBToA81wceIbc+EhdPjAnLiHgITIF3y1yOpUVypMGRiUxXc/qTRFGIRMzrVQkk5dZMAwEAAQA= prismtv@tv, state = 7, alwaysAllow = true, lastConnectionTime = 1795348706503, authWindow = 604800000
+11-22 11:58:26.504   491   520 D AdbDebuggingManager: Logging key QAAAAKdqM9fpYqA9LA9UGsoWLMsNJg2zRhld5/zegamypHLBRDwSQHMzEraEdWBCybhdG23CfbJ2kkJ7Ca5aJ/Qh682YPtgi6L6Qg3QhNCvAPHGX3273McZ8IajuwSxxuCfdDYw7zXwpLu9GRwesBHerIrYu+e3XjI0jyfg/OclXu3waOIdwhASykp7zyF4D5bXshE9ufl3NmTMSZokF+ZF0opIQFI532Poa5rUIctmY5oI0lVhx7yq2qukMvBchZsgS5nI7xp8KjD9v/1xthDo0Jl0Oe98q8+v3rhJD3A/dDL+lrPBM27BwYfP7JcFADoSofDG5YHiTVFVCsvexJu7z8BpTNuGT03OASsrGszTYGNYmN7KhyqCoH9TXBsxaJIBFmn9S00xam0mDncEqGly/cBsE6dlQK+NNaLdAS4V2KA4A5bvIFSRrEmuUNnDYMzrnMCVkCjss9hMxYF7xrHFmX870h498EGZUiyTfegQEmfrYKm+cXnmBlPM0HhQyLa5qFoM61hmk85PdMM7PkqpoSqU5pjpwphdrdY7rDKKyxjADlivQQj96i88S3rdNuTOrA95SI1Ogvl4t4zi6L75Om9k0H4yEFskkJXIC3UJ7uVb5tZaBToA81wceIbc+EhdPjAnLiHgITIF3y1yOpUVypMGRiUxXc/qTRFGIRMzrVQkk5dZMAwEAAQA= prismtv@tv, state = 1, alwaysAllow = false, lastConnectionTime = 1795348706503, authWindow = 604800000
+11-22 11:58:27.018   491   523 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{ddd7682 u0 com.prismtv.launcher/.MainActivity t11}
+11-22 11:58:27.019   491   523 W ActivityTaskManager: Activity pause timeout for ActivityRecord{ddd7682 u0 com.prismtv.launcher/.MainActivity t11}
+11-22 11:58:29.412  9388  9388 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 11:58:29.414  9388  9388 I AndroidRuntime: Using default boot image
+11-22 11:58:29.414  9388  9388 I AndroidRuntime: Leaving lock profiling enabled
+11-22 11:58:29.465  9388  9388 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 11:58:30.488  9388  9388 D AndroidRuntime: Shutting down VM
+11-22 11:58:31.355  9406  9406 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 11:58:31.357  9406  9406 I AndroidRuntime: Using default boot image
+11-22 11:58:31.357  9406  9406 I AndroidRuntime: Leaving lock profiling enabled
+11-22 11:58:31.410  9406  9406 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 11:58:32.422  9406  9406 D AndroidRuntime: Shutting down VM
+11-22 11:58:34.154  9431  9431 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 11:58:34.157  9431  9431 I AndroidRuntime: Using default boot image
+11-22 11:58:34.157  9431  9431 I AndroidRuntime: Leaving lock profiling enabled
+11-22 11:58:34.279  9431  9431 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 11:58:35.295  9431  9431 D AndroidRuntime: Shutting down VM
+11-22 11:58:36.164  9448  9448 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 11:58:36.166  9448  9448 I AndroidRuntime: Using default boot image
+11-22 11:58:36.166  9448  9448 I AndroidRuntime: Leaving lock profiling enabled
+11-22 11:58:36.220  9448  9448 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 11:58:37.231  9448  9448 D AndroidRuntime: Shutting down VM
+11-22 11:58:38.066   491   520 D AdbDebuggingManager: Logging key QAAAAKdqM9fpYqA9LA9UGsoWLMsNJg2zRhld5/zegamypHLBRDwSQHMzEraEdWBCybhdG23CfbJ2kkJ7Ca5aJ/Qh682YPtgi6L6Qg3QhNCvAPHGX3273McZ8IajuwSxxuCfdDYw7zXwpLu9GRwesBHerIrYu+e3XjI0jyfg/OclXu3waOIdwhASykp7zyF4D5bXshE9ufl3NmTMSZokF+ZF0opIQFI532Poa5rUIctmY5oI0lVhx7yq2qukMvBchZsgS5nI7xp8KjD9v/1xthDo0Jl0Oe98q8+v3rhJD3A/dDL+lrPBM27BwYfP7JcFADoSofDG5YHiTVFVCsvexJu7z8BpTNuGT03OASsrGszTYGNYmN7KhyqCoH9TXBsxaJIBFmn9S00xam0mDncEqGly/cBsE6dlQK+NNaLdAS4V2KA4A5bvIFSRrEmuUNnDYMzrnMCVkCjss9hMxYF7xrHFmX870h498EGZUiyTfegQEmfrYKm+cXnmBlPM0HhQyLa5qFoM61hmk85PdMM7PkqpoSqU5pjpwphdrdY7rDKKyxjADlivQQj96i88S3rdNuTOrA95SI1Ogvl4t4zi6L75Om9k0H4yEFskkJXIC3UJ7uVb5tZaBToA81wceIbc+EhdPjAnLiHgITIF3y1yOpUVypMGRiUxXc/qTRFGIRMzrVQkk5dZMAwEAAQA= prismtv@tv, state = 2, alwaysAllow = true, lastConnectionTime = 1795348718066, authWindow = 604800000
+11-22 11:58:38.108   491  3335 I ConditionProviders:  Allowing condition provider com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
+11-22 11:58:38.108   491  3335 I NotificationListeners:  Allowing notification listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
+11-22 11:58:38.109   491  3335 V NotificationListeners: enabling notification listener for 0: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-22 11:58:38.109   491  3335 V NotificationListeners: binding: Intent { act=android.service.notification.NotificationListenerService cmp=com.prismtv.launcher/.system.PrismNotificationListener (has extras) }
+11-22 11:58:38.301   491   491 V NotificationListeners: 0 notification listener service connected: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-22 11:58:45.673   491  3335 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:59:01.698   491  3335 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:59:22.047   491  3335 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:59:27.291   491   518 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:59:39.688   491  3335 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 11:59:52.018   491   518 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 12:00:09.415   491  3335 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-22 12:00:21.611   491  3461 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
