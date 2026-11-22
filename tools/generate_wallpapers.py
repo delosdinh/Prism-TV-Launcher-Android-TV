@@ -1,6 +1,6 @@
 """Prism TV wallpapers: soft light fields with a prism's spectral beam (Python 3, NumPy, Pillow).
 
-Usage: python generate_wallpapers.py OUTPUT_DIR  -> wall_prism_light.jpg, wall_prism_dusk.jpg, wall_prism_night.jpg
+Usage: python generate_wallpapers.py OUTPUT_DIR  -> wall_prism_light.jpg, wall_prism_dusk.jpg, wall_prism_night.jpg, wall_prism_blue.jpg
 """
 import sys
 from pathlib import Path
@@ -65,6 +65,10 @@ def main(out):
     night = field([(.2, .2, .4, (.09, .1, .2), .95), (.8, .3, .35, (.2, .12, .35), .9),
                    (.5, 1.0, .5, (.04, .05, .1), .9), (.95, .9, .25, (.1, .2, .35), .6)], (.05, .06, .1))
     save(grain(beam(night, .58, .5, .16, .42), 3), out / "wall_prism_night.jpg")
+
+    blue = field([(.15, .2, .4, (.16, .42, .86), .95), (.85, .2, .35, (.32, .72, .98), .85),
+                  (.55, .95, .45, (.04, .16, .42), .9), (.95, .85, .3, (.18, .6, .78), .6)], (.07, .25, .58))
+    save(grain(beam(blue, .52, .53, .18, .34), 4), out / "wall_prism_blue.jpg")
 
 
 if __name__ == "__main__":

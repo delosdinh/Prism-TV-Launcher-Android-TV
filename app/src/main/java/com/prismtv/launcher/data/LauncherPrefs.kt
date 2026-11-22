@@ -187,6 +187,9 @@ data class LauncherPrefs(
     /** Settings › Remote Buttons (see RemoteButtons.encode), and what holding Home does. */
     val remoteButtons: String = "",
     val homeHold: String = "default",
+    /** The still (and Shuffle) to go back to when Apple TV Aerials are turned off. */
+    val lastStillWallpaper: String = "",
+    val lastShuffle: Int = 0,
 ) {
     /** The material glass is drawn with: Liquid Glass (Tinted or Clear) or Frosted. */
     val glass: GlassMaterial
@@ -276,6 +279,8 @@ class PrefsStore(context: Context) {
             bannersOverApps = sp.getBoolean("bannersOverApps", d.bannersOverApps),
             remoteButtons = sp.getString("remoteButtons", d.remoteButtons).orEmpty(),
             homeHold = sp.getString("homeHold", d.homeHold) ?: d.homeHold,
+            lastStillWallpaper = sp.getString("lastStillWallpaper", d.lastStillWallpaper).orEmpty(),
+            lastShuffle = sp.getInt("lastShuffle", d.lastShuffle),
         )
     }
 
@@ -324,6 +329,8 @@ class PrefsStore(context: Context) {
             .putBoolean("bannersOverApps", p.bannersOverApps)
             .putString("remoteButtons", p.remoteButtons)
             .putString("homeHold", p.homeHold)
+            .putString("lastStillWallpaper", p.lastStillWallpaper)
+            .putInt("lastShuffle", p.lastShuffle)
             .remove("liquidTint")
             .putString("uiTransparency", p.uiTransparency.name)
             .putBoolean("focusWobble", p.focusWobble)

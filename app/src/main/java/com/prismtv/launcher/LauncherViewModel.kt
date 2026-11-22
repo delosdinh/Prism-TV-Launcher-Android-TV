@@ -265,6 +265,10 @@ val Wallpapers: List<Pair<String, Int>> = listOf(
     "prism-light" to R.drawable.wall_prism_light,
     "prism-dusk" to R.drawable.wall_prism_dusk,
     "prism-night" to R.drawable.wall_prism_night,
+    "prism-blue" to R.drawable.wall_prism_blue,
+    "ocean-blue" to R.drawable.wall_ocean_blue,
+    "beach" to R.drawable.wall_beach,
+    "deep-blue" to R.drawable.wall_deep_blue,
     "aurora" to R.drawable.hero_aurora,
     "glacier" to R.drawable.hero_glacier,
     "dunes" to R.drawable.hero_dunes,
@@ -272,7 +276,10 @@ val Wallpapers: List<Pair<String, Int>> = listOf(
     "ocean" to R.drawable.hero_ocean,
 )
 
-fun wallpaperName(key: String): String = key.removePrefix("scene:").split('-').joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+fun wallpaperName(key: String): String = when (val k = key.removePrefix("scene:")) {
+    "ocean" -> "Ocean Sunset"
+    else -> k.split('-').joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+}
 
 enum class SidebarEntry(val label: String) {
     Search("Search"), Home("Home"), Recents("Recent Apps"),
@@ -3986,9 +3993,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         ) }
         // Everything Prism can be allowed to see, in one place (each also sits where it's used).
         SettingsPage.Access -> resumeTick.let { _ -> listOf(
-            SettingsRow("notif", "Notifications & Now Playing", "CONTROL CENTRE", if (status().notif) "Allowed" else "Not Allowed", chevron = true),
-            SettingsRow("recs", "Recommendations from Apps", "HOME SCREEN", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
-            SettingsRow("usage", "Recent Apps", "HOME SCREEN", if (status().usage) "Allowed" else "Not Allowed", chevron = true),
+            // An arrow only where selecting goes on to set something up (tvOS: the arrow opens more).
+            SettingsRow("notif", "Notifications & Now Playing", "CONTROL CENTRE", if (status().notif) "Allowed" else "Not Allowed", chevron = !status().notif),
+            SettingsRow("recs", "Recommendations from Apps", "HOME SCREEN", if (hasRecommendationAccess()) "Allowed" else "Not Allowed", chevron = !hasRecommendationAccess()),
+            SettingsRow("usage", "Recent Apps", "HOME SCREEN", if (status().usage) "Allowed" else "Not Allowed", chevron = !status().usage),
             SettingsRow("acc:photos", "Your Pictures", "WALLPAPER, SCREENSAVER & BANNERS", if (hasPhotoAccess()) "Allowed" else "Not Allowed", chevron = !hasPhotoAccess()),
             SettingsRow("kb:mic", "Dictation Microphone", "KEYBOARD", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
         ) }
@@ -4036,12 +4044,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("source", "Artwork Source", "TOP SHELF", prefs.heroSource.label),
             SettingsRow("logos", "Title Logos", "TOP SHELF", onOff(prefs.titleLogos)),
             SettingsRow("autorotate", "Auto-Advance", "TOP SHELF", onOff(prefs.heroAutoRotate)),
-            SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed"),
+            SettingsRow("recs", "Recommendations from Apps", "TOP SHELF", if (hasRecommendationAccess()) "Allowed" else "Not Allowed", chevron = !hasRecommendationAccess()),
             SettingsRow("wallpaper", "Wallpaper", "TOP SHELF", if (wallpaperShown) wallpaperLabel() else "Not Shown", chevron = true),
             SettingsRow("widgets", "Widgets", "WIDGETS", widgetsLabel(), chevron = true),
             SettingsRow("weather", "Weather", "TIME PILL", onOff(prefs.weather)),
             SettingsRow("tempUnit", "Temperature", "TIME PILL", prefs.temperatureUnit.label),
-            SettingsRow("notif", "Notifications", "TIME PILL", if (status().notif) "Allowed" else "Not Allowed", chevron = true),
+            SettingsRow("notif", "Notifications", "TIME PILL", if (status().notif) "Allowed" else "Not Allowed", chevron = !status().notif),
             SettingsRow("bannersOver", "Banners Over Apps", "TIME PILL", bannersOverLabel()),
             SettingsRow("snapshots", "App Snapshots", "APP SWITCHER", snapshotsLabel()),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
@@ -4088,11 +4096,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             fun toggle(key: String): Boolean? = if (shuffling) key in inShuffle else null
             listOf(
                 SettingsRow("wp:shuffle", "Shuffle", "SHUFFLE", com.prismtv.launcher.data.shuffleLabel(prefs.wallpaperShuffle)),
-                SettingsRow(
-                    "wp:aerial", "Apple TV Aerials", "MOVING WALLPAPER",
-                    if (prefs.liteMode && prefs.wallpaper == AerialWallpaperKey) "Still in Lite Mode" else null,
-                    selectable = !shuffling, checked = checked(AerialWallpaperKey),
-                ),
+                SettingsRow("wp:aerial", "Apple TV Aerials", "MOVING WALLPAPER", toggle = aerialWallpaperOn),
             ) + Wallpapers.map { (name, _) ->
                 SettingsRow(
                     "wp:scene:$name", wallpaperName(name),
@@ -4269,12 +4273,26 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id.startsWith("rb:") || r.id.startsWith("rbe:") || r.id.startsWith("ra:") -> selectRemote(r.id)
             r.id == "bannersOver" -> toggleBannersOver()
             r.id == "snapshots" -> toggleSnapshots()
-            r.id == "wp:aerial" -> {
-                if (p.wallpaperShuffle > 0) cue(Cue.Error)
-                else {
-                    updatePrefs(p.copy(wallpaper = AerialWallpaperKey))
-                    if (p.liteMode) showBanner("Apple TV Aerials", "Lite Mode shows a still. Turn off Lite Mode for moving aerials on the Home Screen.", Icons.Rounded.Info)
-                    else if (!spotlight && p.heroEnabled) showBanner("Apple TV Aerials", "Aerials play behind Home with Top Shelf Style set to Spotlight, or with the Top Shelf off.", Icons.Rounded.Info)
+            r.id == "wp:aerial" -> if (aerialWallpaperOn) {
+                // Off: back to the still (or shuffle) you had before.
+                val back = p.lastStillWallpaper.ifEmpty { "scene:${Wallpapers.first().first}" }
+                updatePrefs(p.copy(wallpaper = back, wallpaperShuffle = p.lastShuffle))
+                shuffleKey = null
+            } else {
+                // On: the aerials take over (they change shot by themselves, so Shuffle pauses).
+                updatePrefs(
+                    p.copy(
+                        wallpaper = AerialWallpaperKey,
+                        lastStillWallpaper = if (p.wallpaper != AerialWallpaperKey) p.wallpaper else p.lastStillWallpaper,
+                        lastShuffle = p.wallpaperShuffle,
+                        wallpaperShuffle = 0,
+                    )
+                )
+                shuffleKey = null
+                when {
+                    p.liteMode -> showBanner("Apple TV Aerials", "Lite Mode shows a still. Turn off Lite Mode for moving aerials on the Home Screen.", Icons.Rounded.Info)
+                    !wallpaperShown -> showBanner("Apple TV Aerials", "Aerials play behind Home with Top Shelf Style set to Card Spotlight, or with the Top Shelf off.", Icons.Rounded.Info)
+                    p.wallpaperShuffle > 0 -> showBanner("Apple TV Aerials", "Aerials are on. Shuffle is paused while they play: each aerial moves on to the next by itself.", Icons.Rounded.Info)
                 }
             }
             r.id == "pr:delete" -> deleteActiveProfile()
@@ -4314,9 +4332,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "wp:shuffle" -> {
                 val i = com.prismtv.launcher.data.ShuffleChoices.indexOf(p.wallpaperShuffle).coerceAtLeast(0)
                 val next = com.prismtv.launcher.data.ShuffleChoices[(i + 1) % com.prismtv.launcher.data.ShuffleChoices.size]
+                // Shuffle is for stills: turning it on turns the aerials off.
+                val still = if (p.wallpaper == AerialWallpaperKey) p.lastStillWallpaper.ifEmpty { "scene:${Wallpapers.first().first}" } else p.wallpaper
                 // Turning Shuffle on starts from every Prism wallpaper plus the current one.
-                val set = if (p.shuffleSet.isEmpty() && next > 0) (Wallpapers.map { "scene:${it.first}" } + p.wallpaper).toSet() else p.shuffleSet
-                updatePrefs(p.copy(wallpaperShuffle = next, shuffleSet = set))
+                val set = if (p.shuffleSet.isEmpty() && next > 0) (Wallpapers.map { "scene:${it.first}" } + still).toSet() else p.shuffleSet
+                updatePrefs(p.copy(wallpaperShuffle = next, shuffleSet = set, wallpaper = if (next > 0) still else p.wallpaper))
             }
             r.id == "w:order" -> { widgetMoving = null; pushPage(SettingsPage.WidgetOrder) }
             r.id.startsWith("wo:") && r.id != "wo:none" -> {
@@ -4355,7 +4375,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 dialogFocus = 0
             }
-            r.id == "usage" -> SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            r.id == "usage" -> if (status().usage) {
+                showBanner("Recent Apps", "Prism TV can already see the apps you've used. To turn this off, open Android's Settings › Apps › Special app access › Usage access.", Icons.Rounded.Info)
+            } else SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
             r.id == "a11y" -> setUpPowerAndHome()
             r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
             r.id == "startup" -> {
@@ -4985,6 +5007,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         prefs.textSize < com.prismtv.launcher.data.DefaultTextSize -> "Smaller"
         else -> "Larger"
     }
+
+    /** Apple TV Aerials are the wallpaper (Shuffle is for stills, so it's off while they play). */
+    private val aerialWallpaperOn: Boolean get() = prefs.wallpaper == AerialWallpaperKey && prefs.wallpaperShuffle == 0
 
     /** The wallpaper is on screen: with Card Spotlight around the title's card, or with no Top Shelf. */
     private val wallpaperShown: Boolean get() = !prefs.heroEnabled || prefs.topShelfStyle == TopShelfStyle.Spotlight

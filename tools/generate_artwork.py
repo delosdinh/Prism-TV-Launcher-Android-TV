@@ -260,9 +260,125 @@ def nebula():
     save(img, "hero_nebula.jpg")
 
 
+def perspective_noise(seed, horizon, base=10, stretch_x=10.0, octaves=5, k=3.0):
+    """Wave texture for water seen from above the horizon: fine near the horizon, broad up close."""
+    tall = fbm2(H * 2, W, octaves=octaves, base=base, seed=seed, stretch_x=stretch_x)
+    yy = np.arange(H)
+    depth = np.clip((yy - horizon) / (H - horizon), 0, 1)
+    src = (np.power(depth, 1.0 / k) * (H * 2 - 1)).astype(int)
+    return tall[src]
+
+
+def ocean_blue():
+    """Open ocean on a clear day: deep blue water, soft clouds on the horizon, a glitter path."""
+    horizon = int(0.5 * H)
+    sky = vgrad([(0.0, col("#0f4c94")), (0.22, col("#2f78c4")), (0.42, col("#7fb8e6")), (0.5, col("#cfe6f5")), (1.0, col("#cfe6f5"))])
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    sun_x, sun_y = 0.74 * W, 0.16 * H
+    d = np.sqrt((xx - sun_x) ** 2 + (yy - sun_y) ** 2)
+    sky = sky + (np.exp(-d / 260.0) * 70)[..., None] * np.array([1.0, 0.97, 0.9], np.float32)
+    # cumulus banks resting on the horizon
+    cl = fbm2(H, W, octaves=6, base=4, seed=201, stretch_x=3.5)
+    band = smoothstep(0.24, 0.44, yy / H) * (1 - smoothstep(0.475, 0.5, yy / H))
+    cloud = smoothstep(0.44, 0.62, cl) * band
+    shade = np.clip((cl - 0.5) * 3.0, 0, 1)
+    ccol = col("#ffffff")[None, None, :] * (0.78 + shade[..., None] * 0.22) * np.array([0.93, 0.96, 1.0], np.float32)
+    sky = blend(sky, ccol, cloud * 0.95)
+    img = sky
+    # sea: hazy and light at the horizon, deep blue up close
+    sea = vgrad([(0.0, col("#3f87c2")), (0.5, col("#3f87c2")), (0.56, col("#1d64a8")), (0.75, col("#0c4a8c")), (1.0, col("#052c5c"))])
+    waves = perspective_noise(211, horizon, base=9, stretch_x=9.0)
+    sea = sea * (0.82 + waves[..., None] * 0.36)
+    crest = smoothstep(0.64, 0.76, waves) * np.clip((yy - horizon) / (H - horizon), 0.15, 1)
+    sea = blend(sea, col("#9fd2f2"), crest * 0.35)
+    # glitter below the sun: many small sparkles, finer towards the horizon
+    spread = 30 + (yy - horizon) * 0.42
+    path = np.exp(-((xx - sun_x) ** 2) / (2 * spread ** 2))
+    fine = perspective_noise(215, horizon, base=70, stretch_x=5.0, octaves=3, k=2.0)
+    glint = path * smoothstep(0.66, 0.8, fine)
+    sea = sea + glint[..., None] * np.array([255, 248, 232], np.float32) * 0.9
+    sea = sea + (path * 0.10)[..., None] * np.array([120, 170, 220], np.float32)
+    img = blend(img, sea, (yy >= horizon).astype(np.float32))
+    # a soft line of haze at the horizon
+    img = blend(img, col("#dcecf7"), np.exp(-((yy - horizon) ** 2) / 60.0) * 0.6)
+    save(img, "wall_ocean_blue.jpg")
+
+
+def beach():
+    """A tropical beach: turquoise shallows, a curl of foam, white sand."""
+    horizon = int(0.38 * H)
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    sky = vgrad([(0.0, col("#2a7fd0")), (0.25, col("#5ba7e3")), (0.38, col("#bfe2f5")), (1.0, col("#bfe2f5"))])
+    cl = fbm2(H, W, octaves=6, base=4, seed=301, stretch_x=3.0)
+    cloud = smoothstep(0.46, 0.64, cl) * smoothstep(0.08, 0.2, yy / H) * (1 - smoothstep(0.3, 0.37, yy / H))
+    sky = blend(sky, col("#ffffff"), cloud * 0.85)
+    img = sky
+    # the shoreline curves across the frame
+    wob = fbm1(W, octaves=5, base=2, seed=311, smooth=True)
+    shore = 0.70 * H - 70 * np.sin(np.linspace(0.3, 2.6, W)) + (wob - 0.5) * 60
+    t = np.clip((yy - horizon) / (shore[None, :] - horizon), 0, 1)
+    water = vgrad([(0, col("#000000")), (1, col("#000000"))])
+    deep, mid, shallow = col("#0b4f96"), col("#108db5"), col("#3fd6cf")
+    water = np.where((t < 0.5)[..., None], deep + (mid - deep) * (t / 0.5)[..., None],
+                     mid + (shallow - mid) * ((t - 0.5) / 0.5)[..., None])
+    waves = perspective_noise(321, horizon, base=10, stretch_x=8.0)
+    water = water * (0.86 + waves[..., None] * 0.28)
+    water = blend(water, col("#bff3ec"), smoothstep(0.66, 0.78, waves) * t * 0.35)
+    # sand, with a damp edge and a little texture
+    sand = vgrad([(0.0, col("#f3e3c3")), (0.7, col("#f1dcb4")), (1.0, col("#e5c693"))])
+    grains = fbm2(H, W, octaves=6, base=40, seed=331)
+    ripples = fbm2(H, W, octaves=4, base=6, seed=341, stretch_x=6.0)
+    sand = sand * (0.95 + grains[..., None] * 0.08 + (ripples[..., None] - 0.5) * 0.08)
+    below = yy - shore[None, :]
+    damp = np.exp(-np.clip(below, 0, None) / 38.0) * (below > 0)
+    sand = blend(sand, col("#bfa27a"), damp * 0.7)
+    img = blend(img, water, ((yy >= horizon) & (below <= 0)).astype(np.float32))
+    img = blend(img, sand, (below > 0).astype(np.float32))
+    # foam where the water meets the sand (and a second, fainter line further out)
+    fn = fbm2(H, W, octaves=5, base=30, seed=351, stretch_x=3.0)
+    foam = np.exp(-((below + 6) ** 2) / 90.0) * smoothstep(0.35, 0.6, fn)
+    foam2 = np.exp(-((below + 70) ** 2) / 160.0) * smoothstep(0.5, 0.7, fn) * 0.55
+    img = blend(img, col("#ffffff"), np.clip(foam + foam2, 0, 1) * 0.9)
+    img = blend(img, col("#e8f6fb"), np.exp(-((yy - horizon) ** 2) / 40.0) * 0.5)
+    save(img, "wall_beach.jpg")
+
+
+def deep_blue():
+    """Under the sea: light falling through clear blue water, shimmering at the surface."""
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    x, y = xx / W, yy / H
+    img = vgrad([(0.0, col("#3fb6e0")), (0.18, col("#1a86c6")), (0.5, col("#0b4d93")), (1.0, col("#041b45"))])
+    # the surface seen from below: soft bright ripples near the top
+    rip = fbm2(H, W, octaves=5, base=9, seed=501, stretch_x=3.5)
+    shimmer = smoothstep(0.52, 0.78, rip) * (1 - smoothstep(0.0, 0.24, y))
+    shimmer = np.asarray(Image.fromarray((np.clip(shimmer, 0, 1) * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(8.0)), np.float32) / 255.0
+    img = img + shimmer[..., None] * np.array([170, 235, 255], np.float32) * 0.30
+    # god rays fanning down from a bright patch above the top edge
+    ox, oy = 0.62 * W, -0.35 * H
+    ang = np.arctan2(xx - ox, yy - oy)
+    rays = fbm1(4096, octaves=5, base=24, seed=511, smooth=True)
+    idx = np.clip(((ang + 1.2) / 2.4 * 4095).astype(int), 0, 4095)
+    ray = smoothstep(0.52, 0.8, rays[idx]) * np.exp(-y * 1.9) * np.exp(-((ang - 0.0) ** 2) / 0.35)
+    img = img + ray[..., None] * np.array([150, 220, 255], np.float32) * 0.55
+    # glow where the light comes in
+    d = np.sqrt((xx - ox) ** 2 + (yy - 0) ** 2)
+    img = img + (np.exp(-d / 520.0) * 70)[..., None] * np.array([0.7, 0.95, 1.0], np.float32)
+    # a few drifting particles
+    rng = np.random.default_rng(521)
+    n = 900
+    px, py = rng.integers(0, W, n), rng.integers(0, H, n)
+    dots = np.zeros((H, W), np.float32)
+    dots[py, px] = rng.random(n) ** 2 * 200 * (1 - py / H)[...]
+    dots = np.asarray(Image.fromarray(np.clip(dots, 0, 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(1.4)), np.float32) * 2.2
+    img = img + dots[..., None] * np.array([0.8, 0.95, 1.0], np.float32)
+    # vignette into the deep
+    img = img * (1 - smoothstep(0.55, 1.15, np.sqrt((x - 0.55) ** 2 * 1.2 + (y - 0.25) ** 2)) * 0.45)[..., None]
+    save(img, "wall_deep_blue.jpg", blur=0.4)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    which = sys.argv[1:] or ["glacier", "aurora", "dunes", "ocean", "nebula"]
+    which = sys.argv[1:] or ["glacier", "aurora", "dunes", "ocean", "nebula", "ocean_blue", "beach", "deep_blue"]
     for name in which:
         globals()[name]()
 

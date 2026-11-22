@@ -63,7 +63,7 @@ private val Exact: Map<String, String> = mapOf(
     // Home Screen extras
     "bannersOver" to "New notifications slide in at the top right over whatever you're watching, then slide away.",
     "snapshots" to "App Switcher cards show each app as you left it. A snapshot is taken as you press Home, kept on the TV and deleted when you swipe the app away.",
-    "wp:aerial" to "Apple TV aerials play silently behind the Home Screen, with Spotlight or with the Top Shelf off. Lite Mode shows a still.",
+    "wp:aerial" to "Apple TV aerials play silently behind the Home Screen (with Card Spotlight, or with the Top Shelf off), moving on to a new shot by themselves, so Shuffle pauses while they're on. Lite Mode shows a still.",
 
     "homeApp" to "Which app the TV starts to and the Home button opens. Prism TV can set this itself, and put the TV's own launcher back.",
     "ha:prism" to "Home, startup and the remote's Home button open Prism TV. If Google TV keeps its own launcher, Prism TV can hide it.",
