@@ -63,9 +63,19 @@ if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
     cold="$cold $t"; sleep 4
   done
   echo "cold start ms: $cold  (median $(echo $cold | tr ' ' '\n' | median))" | tee -a "$PERF"
-  # Back to Home from another app (Prism's process stays up): what a launcher does all day.
+  # Back to Home from another app (Prism's process stays up): what a launcher does all day. A full-screen
+  # app, so Prism is really stopped (Android TV's own Settings is a side panel on 12+ that leaves it showing).
+  OTHER=""
+  for cand in com.google.android.youtube.tv com.google.android.videos com.android.vending com.android.gallery3d; do
+    OTHER="$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER "$cand" 2>/dev/null | tr -d '\r' | tail -n 1 | grep / || true)"
+    [ -n "$OTHER" ] && break
+  done
+  echo "other app: ${OTHER:-Android TV Settings}" | tee -a "$PERF"
+  other() { if [ -n "$OTHER" ]; then adb shell am start -W -n "$OTHER" >/dev/null 2>&1; else adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; fi; }
+  other; sleep 8 # first open: let it settle
+  adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n "$ACT" >/dev/null 2>&1; sleep 3
   warm=""; for _ in 1 2 3 4 5; do
-    adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 3
+    other; sleep 3
     t="$(adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n "$ACT" 2>/dev/null | tr -d '\r' | awk -F': ' '/TotalTime/ {print $2}')"
     warm="$warm $t"; sleep 3
   done
@@ -83,7 +93,7 @@ if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
   adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|90th percentile|Slow UI thread" | sed 's/^ */rapid: /' | tee -a "$PERF"
   # Memory after the walk and ten returns to Home.
   for _ in 1 2 3 4 5 6 7 8 9 10; do
-    adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 1.5
+    other; sleep 1.5
     adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n "$ACT" >/dev/null 2>&1; sleep 1.5
   done
   sleep 3
@@ -92,10 +102,11 @@ if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
   ticks() { adb shell cat "/proc/$(adb shell pidof "$PKG" | tr -d '\r')/stat" 2>/dev/null | awk '{print $14 + $15}'; }
   a="$(ticks)"; sleep 60; b="$(ticks)"
   echo "idle on home, 60 s: $((b - a)) ticks" | tee -a "$PERF"
-  adb shell am start -W -a android.settings.SETTINGS >/dev/null 2>&1; sleep 5
+  other; sleep 5
   a="$(ticks)"; sleep 60; b="$(ticks)"
   echo "behind another app, 60 s: $((b - a)) ticks" | tee -a "$PERF"
   adb shell am force-stop "$PKG"
+  if [ -n "$OTHER" ]; then adb shell am force-stop "${OTHER%%/*}"; fi
 fi
 
 adb install -r -g "$APK" || { adb uninstall "$PKG"; adb install -r -g "$APK"; }
