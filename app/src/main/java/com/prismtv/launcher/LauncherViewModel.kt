@@ -138,7 +138,14 @@ data class DialogSpec(
     val subtitle: String = "",
     /** Outlined chips (4K, Dolby Vision…) under the subtitle. */
     val badges: List<String> = emptyList(),
+    /** A shell command to type, shown exactly (monospace, in its own box) under the message. */
+    val code: String = "",
+    /** A short line under [code]. */
+    val codeNote: String = "",
 )
+/** Under a command in a dialog: where to type it. */
+private const val TypeNote = "Type it exactly as shown in ATV Connect's Shell (or any shell running on the TV). From a computer, put adb shell in front."
+
 data class BannerSpec(val title: String, val message: String, val icon: ImageVector, val id: Long = System.nanoTime())
 
 enum class SettingsPage(val title: String) {
@@ -2634,19 +2641,34 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         when (id) {
             "sz:install" -> installShizuku()
             "sz:debug" -> when {
-                com.prismtv.launcher.system.LocalAdb.enabled(ctx) ->
+                com.prismtv.launcher.system.LocalAdb.enabled(ctx) -> {
                     showBanner("USB Debugging", "USB debugging is on. Next, start Shizuku.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    focusNextShizukuStep()
+                }
                 com.prismtv.launcher.system.LocalAdb.developerOptions(ctx) -> {
-                    SystemActions.open(ctx, Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
-                    showBanner("USB Debugging", "Turn on USB debugging (and Network debugging, if it's there), then come back.", Icons.Rounded.Info)
+                    dialog = DialogSpec(
+                        "Turn On USB Debugging",
+                        "1. Select Open Developer Options.\n2. Turn on USB debugging. If there's also Network debugging " +
+                            "or ADB over network, turn that on too.\n3. Press Back to return here.",
+                        listOf(
+                            DialogButton("Open Developer Options") { SystemActions.open(ctx, Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS) },
+                            DialogButton("Cancel") {},
+                        ),
+                    )
+                    dialogFocus = 0
                 }
                 else -> {
-                    SystemActions.open(ctx, Settings.ACTION_DEVICE_INFO_SETTINGS)
-                    showBanner(
-                        "Developer Options",
-                        "Select Android TV OS build (or Build) seven times to turn on Developer options, then come back and select this again.",
-                        Icons.Rounded.Info,
+                    dialog = DialogSpec(
+                        "Turn On Developer Options",
+                        "USB debugging lives in Developer options, which are hidden at first.\n1. Select Open About.\n" +
+                            "2. Select Android TV OS build (or Build) seven times, until it says you're a developer.\n" +
+                            "3. Press Back to return here, then select Turn On USB Debugging again.",
+                        listOf(
+                            DialogButton("Open About") { SystemActions.open(ctx, Settings.ACTION_DEVICE_INFO_SETTINGS) },
+                            DialogButton("Cancel") {},
+                        ),
                     )
+                    dialogFocus = 0
                 }
             }
             "sz:start" -> startShizuku()
@@ -2736,10 +2758,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 com.prismtv.launcher.system.ShizukuSetup.StartResult.Unreachable -> {
                     dialog = DialogSpec(
                         "Start Shizuku",
-                        "Prism TV couldn't reach this TV's debugging. If Developer options has Network debugging (or ADB over network), " +
-                            "turn it on and try again. Otherwise start Shizuku once from a computer or phone: " +
-                            "adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh",
+                        "Prism TV couldn't reach this TV's debugging. If Developer options has Network debugging (or ADB over " +
+                            "network), turn it on and try again.\n\nOtherwise open Shizuku once, then type this in ATV Connect's Shell " +
+                            "(or another shell connected to the TV):",
                         listOf(DialogButton("OK") {}),
+                        code = "sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh",
+                        codeNote = TypeNote,
                     )
                     dialogFocus = 0
                     cue(Cue.Error)
@@ -2759,6 +2783,63 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             delay(6_000)
             val started = withContext(Dispatchers.IO) { com.prismtv.launcher.system.ShizukuSetup.startQuietly(ctx) }
             if (started) resumeTick++
+        }
+    }
+
+    /**
+     * For things only Android's shell may change: a Do It for Me button (through the TV's own debugging,
+     * [com.prismtv.launcher.system.LocalAdb]) and the exact command for doing it yourself.
+     */
+    private fun shellDialog(
+        title: String,
+        intro: String,
+        command: String,
+        done: () -> Boolean,
+        doneMessage: String,
+        open: Pair<String, () -> Unit>? = null,
+    ) {
+        dialog = DialogSpec(
+            title, intro,
+            listOfNotNull(
+                open?.let { (label, action) -> DialogButton(label, action) },
+                DialogButton("Do It for Me") { runShellForYou(title, command, done, doneMessage) },
+                DialogButton("Cancel") {},
+            ),
+            code = command,
+            codeNote = TypeNote,
+        )
+        dialogFocus = 0
+    }
+
+    private fun runShellForYou(title: String, command: String, done: () -> Boolean, doneMessage: String) {
+        if (!com.prismtv.launcher.system.LocalAdb.enabled(ctx)) {
+            dialog = DialogSpec(
+                "Turn On USB Debugging",
+                "Do It for Me works through the TV's USB debugging, which is off. Settings › Apps › Closing Apps › Shizuku › " +
+                    "Turn On USB Debugging shows how to turn it on. Or type the command in ATV Connect's Shell.",
+                listOf(DialogButton("OK") {}),
+            )
+            dialogFocus = 0
+            return
+        }
+        showBanner(title, "If your TV asks to allow debugging, tick Always allow and select Allow.", Icons.Rounded.Info, null)
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) { com.prismtv.launcher.system.LocalAdb.shell(ctx, command, allowPrompt = true) }
+            resumeTick++
+            when {
+                r is com.prismtv.launcher.system.LocalAdb.Result.Ok && done() ->
+                    showBanner(title, doneMessage, Icons.Rounded.CheckCircle, Cue.Confirm)
+                r is com.prismtv.launcher.system.LocalAdb.Result.Ok ->
+                    showBanner(title, "That didn't take${r.output.lines().firstOrNull { it.isNotBlank() }?.let { ": $it" } ?: "."}", Icons.Rounded.Info)
+                r == com.prismtv.launcher.system.LocalAdb.Result.Unreachable ->
+                    showBanner(title, "Prism TV can't reach this TV's debugging. Type the command in a shell instead.", Icons.Rounded.Info)
+                r == com.prismtv.launcher.system.LocalAdb.Result.NotAllowed ->
+                    showBanner(title, "The TV didn't allow debugging for Prism TV. Try again and select Allow.", Icons.Rounded.Info)
+                r == com.prismtv.launcher.system.LocalAdb.Result.Off ->
+                    showBanner(title, "Turn on USB debugging in Developer options first.", Icons.Rounded.Info)
+                r is com.prismtv.launcher.system.LocalAdb.Result.Failed ->
+                    showBanner(title, "That didn't work: ${r.why}", Icons.Rounded.Info)
+            }
         }
     }
 
@@ -3241,15 +3322,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "notif" -> if (PrismNotificationListener.isEnabled(ctx)) {
                 showBanner("Notifications", "Prism TV can already show your notifications.", Icons.Rounded.Notifications)
             } else {
-                val opened = SystemActions.start(ctx, PrismNotificationListener.settingsIntent())
-                dialog = DialogSpec(
-                    "Allow Notifications",
-                    (if (opened) "Turn on Prism TV in Notification access, then press Back. " else "") +
-                        "If your TV has no such page, run this from a computer: adb shell cmd notification allow_listener " +
-                        "com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener",
-                    listOf(DialogButton("OK") {}),
+                val page = PrismNotificationListener.settingsIntent()
+                val hasPage = SystemActions.canHandle(ctx, page)
+                shellDialog(
+                    title = "Allow Notifications",
+                    intro = (if (hasPage) "Open Notification Access and turn on Prism TV. If it isn't listed there, " else "This TV has no Notification access page. ") +
+                        "Select Do It for Me, or type this command yourself:",
+                    command = "cmd notification allow_listener ${ctx.packageName}/com.prismtv.launcher.system.PrismNotificationListener",
+                    done = { PrismNotificationListener.isEnabled(ctx) },
+                    doneMessage = "Done. Notifications and Now Playing now show in Prism TV.",
+                    open = if (hasPage) "Open Notification Access" to { SystemActions.start(ctx, page); Unit } else null,
                 )
-                dialogFocus = 0
             }
             r.id.startsWith("gc:") -> updatePrefs(p.copy(glassColour = GlassColour.valueOf(r.id.removePrefix("gc:"))))
             r.id == "reduce" -> updatePrefs(p.copy(reduceTransparency = !p.reduceTransparency))
@@ -3369,15 +3452,21 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "tempUnit" -> updatePrefs(p.copy(temperatureUnit = TemperatureUnit.entries[(p.temperatureUnit.ordinal + 1) % TemperatureUnit.entries.size]))
             r.id == "ss:system" -> {
-                val opened = SystemActions.start(ctx, Intent(Settings.ACTION_DREAM_SETTINGS))
-                dialog = DialogSpec(
-                    "Use as System Screensaver",
-                    (if (opened) "Choose Prism Aerials in the screensaver list. " else "") +
-                        "On Google TV, set it from a computer with: adb shell settings put secure screensaver_components " +
-                        "com.prismtv.launcher/.aerial.AerialDreamService",
-                    listOf(DialogButton("OK") {}),
+                val page = Intent(Settings.ACTION_DREAM_SETTINGS)
+                val hasPage = SystemActions.canHandle(ctx, page)
+                val component = "${ctx.packageName}/com.prismtv.launcher.aerial.AerialDreamService"
+                shellDialog(
+                    title = "Use as System Screensaver",
+                    intro = (if (hasPage) "Open Screensaver settings and choose Prism Aerials. If it isn't listed (Google TV), " else "") +
+                        "Select Do It for Me, or type this command yourself:",
+                    open = if (hasPage) "Open Screensaver Settings" to { SystemActions.start(ctx, page); Unit } else null,
+                    command = "settings put secure screensaver_components $component",
+                    done = {
+                        runCatching { Settings.Secure.getString(ctx.contentResolver, "screensaver_components") }.getOrNull()
+                            ?.contains("AerialDreamService") == true
+                    },
+                    doneMessage = "Prism Aerials is now the TV's screensaver.",
                 )
-                dialogFocus = 0
             }
             r.id.startsWith("app:") -> {
                 val id = r.id.removePrefix("app:")
@@ -3841,7 +3930,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         banner = spec
         bannerJob?.cancel()
         bannerJob = viewModelScope.launch {
-            delay(3_600)
+            // Longer messages stay up longer, so there's time to read them.
+            delay((3_600L + (message.length - 70).coerceAtLeast(0) * 45L).coerceAtMost(9_000L))
             if (banner?.id == spec.id) banner = null
         }
     }

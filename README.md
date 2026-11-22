@@ -44,9 +44,9 @@ launcher counterpart to the Prism TV skin for Kodi.
   and **Play Store** (with its own icon; Amazon Appstore or Aptoide TV on boxes without Google Play).
 - **Time pill** (top-right) with the current weather, a **notification bell with a badge** (only
   when something's waiting) and the profile avatar — opens Control Centre, which lists the
-  notifications (OK opens one, hold OK clears it). Needs Notification access for Prism TV
-  (Settings › Home Screen › Notifications, or
-  `adb shell cmd notification allow_listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener`).
+  notifications (OK opens one, hold OK clears it). Needs Notification access for Prism TV:
+  Settings › Privacy & Access › **Notifications & Now Playing** opens Android's page, or **Do It
+  for Me** turns it on through the TV's USB debugging (see [Shell commands](#shell-commands)).
   Weather comes from Open-Meteo, located from your internet connection; turn it off or change
   °C/°F in Settings › Home Screen.
 
@@ -213,8 +213,9 @@ the box's "match content dynamic range" option so the TV switches into Dolby Vis
 ### Prism Aerials as the system screensaver
 
 Settings › System › Ambient mode / Screen saver › choose **Prism Aerials**. On Google TV, where the
-picker is hidden:
-`adb shell settings put secure screensaver_components com.prismtv.launcher/.aerial.AerialDreamService`
+picker is hidden, Prism Settings › Screensaver › **Use as System Screensaver** › **Do It for Me** sets
+it, or type `settings put secure screensaver_components com.prismtv.launcher/.aerial.AerialDreamService`
+(see [Shell commands](#shell-commands)).
 
 Or let Prism TV start them itself: Settings › Screensaver › **Start After** (Never, 2–30 minutes; 2 minutes by default) shows
 the aerials when the Home Screen has been left alone that long. After 30 minutes the screensaver
@@ -232,7 +233,27 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 Every build of the working branch is published to the `preview` release:
 `github.com/delosdinh/prism-tv-launcher-android-tv/releases/download/preview/prismtv.apk`
 
+### Shell commands
+
+Some settings can only be changed by Android's shell. Where Prism TV can, it offers **Do It for
+Me**, which runs the command through the TV's own USB debugging (Developer options › USB
+debugging; the TV asks once to allow Prism TV — tick **Always allow**). To type a command
+yourself:
+
+- **In ATV Connect's Shell, TV Box Tools or another shell that's already on the TV**: type it as
+  shown here, *without* `adb shell` (there's no `adb` on the TV, so `adb shell …` fails with
+  "adb: inaccessible or not found").
+- **From a computer**: `adb connect <tv-ip>`, then put `adb shell` in front of the command.
+
+Notification access (time pill bell and Now Playing):
+
+```
+cmd notification allow_listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener
+```
+
 ### Make it the Home app
+
+From a computer (in a shell on the TV, leave out `adb connect` and the `adb shell` prefixes):
 
 ```bash
 adb connect <box-ip>

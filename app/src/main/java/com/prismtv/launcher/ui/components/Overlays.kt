@@ -104,8 +104,31 @@ fun DialogHost(spec: DialogSpec?, focus: Int) {
                 VSpace(if (shown.subtitle.isNotEmpty() || shown.badges.isNotEmpty()) 12.dp else 8.dp)
                 PText(
                     shown.message, 13.sp, FontWeight.Normal, p.textSecondary,
-                    maxLines = 8, align = TextAlign.Center, lineHeight = 18.sp,
+                    maxLines = 10, align = if (shown.message.contains("\n1.")) TextAlign.Start else TextAlign.Center,
+                    lineHeight = 18.sp, modifier = Modifier.fillMaxWidth(),
                 )
+            }
+            if (shown.code.isNotEmpty()) {
+                // A command to type: exactly as shown, in a box of its own.
+                VSpace(10.dp)
+                androidx.compose.foundation.text.BasicText(
+                    shown.code,
+                    Modifier
+                        .fillMaxWidth()
+                        .background(p.textPrimary.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        color = p.textPrimary,
+                    ),
+                    maxLines = 5,
+                )
+                if (shown.codeNote.isNotEmpty()) {
+                    VSpace(6.dp)
+                    PText(shown.codeNote, 11.sp, FontWeight.Normal, p.textSecondary, maxLines = 3, align = TextAlign.Center, lineHeight = 15.sp)
+                }
             }
             VSpace(18.dp)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -170,7 +193,7 @@ fun BannerHost(spec: BannerSpec?) {
                 // Over see-through glass, light text gets a soft shadow so it reads on bright content.
                 val lift = theme.liquid && p.isDark
                 PText(shown.title, 14.sp, FontWeight.SemiBold, p.textPrimary, shadow = lift)
-                PText(shown.message, 12.sp, FontWeight.Normal, p.textSecondary, maxLines = 2, lineHeight = 16.sp, shadow = lift)
+                PText(shown.message, 12.sp, FontWeight.Normal, p.textSecondary, maxLines = 4, lineHeight = 16.sp, shadow = lift)
             }
         }
     }
