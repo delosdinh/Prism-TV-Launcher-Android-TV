@@ -1,16 +1,19 @@
 captured 65-shizuku-steps
-own adb client: 11-22 12:22:29.734  8532  8532 I PrismAdb: result=Unreachable
+own adb client: 11-22 13:09:05.698  9239  9239 I PrismAdb: result=Unreachable
 captured 65b-shizuku-downloading
 captured 65c-shizuku-installer
-no "Install" on screen
+tapped "Install"
 captured 65d-shizuku-installed
-installed: 
-starter: 
-cp: bad '': No such file or directory
+installed: package:/data/app/~~BcxhkKlCm0vCNal-1han1g==/moe.shizuku.privileged.api-MxNBeflps0TDasp9VxjUZg==/base.apk
+info: killing old process...
+info: apk path is /data/app/~~BcxhkKlCm0vCNal-1han1g==/moe.shizuku.privileged.api-MxNBeflps0TDasp9VxjUZg==/base.apk
+info: starting server...
+info: shizuku_server pid is 9598
+info: shizuku_starter exit with 0
 captured 65e-shizuku-running
 captured 65f-shizuku-allow-prompt
-no "Allow all the time" on screen
+tapped "Allow all the time"
 captured 65g-shizuku-allowed
-before: pid=9105
-after: pid= stopped=false
-11-22 12:25:29.865  8532  8532 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
+before: pid=9727
+after: pid= stopped=true
+11-22 13:10:06.938  9239  9239 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
