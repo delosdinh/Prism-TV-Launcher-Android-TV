@@ -224,13 +224,15 @@ if [ -n "$TARGET" ]; then
   adb shell settings put secure enabled_accessibility_services "$PKG/$PKG.system.PrismAccessibilityService"
   adb shell settings put secure accessibility_enabled 1
   sleep 4
-  adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
-    adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||
+    timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
   sleep 8
   cap 63-close-test-app-open
   echo "before: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')" | tee -a "$OUT/close-test.txt"
   adb logcat -c || true
-  start "${B[@]}" "${DARK[@]}" --es screen switcher --es closeApp "$TARGET" --ei closeDelay 3000; sleep 3.2
+  # The switcher stalls the software-rendered API 34 emulator (see the end), so close from Home there.
+  CLOSE_FROM=switcher; [ "$QUICK" = 1 ] && CLOSE_FROM=home
+  start "${B[@]}" "${DARK[@]}" --es screen "$CLOSE_FROM" --es closeApp "$TARGET" --ei closeDelay 3000; sleep 3.2
   cap 63b-closing-still
   sleep 1.2; cap 63c-closing-still-later
   sleep 8; cap 63d-closed-back-in-switcher
