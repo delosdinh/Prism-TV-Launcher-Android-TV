@@ -1,241 +1,270 @@
 --------- beginning of system
-11-22 11:58:47.571   484  3022 W ActivityTaskManager: callingPackage for (uid=2000, pid=7490) has no WPC
+11-22 12:23:57.062   478  1163 W ActivityTaskManager: callingPackage for (uid=2000, pid=7576) has no WPC
 --------- beginning of main
-11-22 11:58:47.572   484  3022 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
-11-22 11:58:47.573   484  3022 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=2
-11-22 11:58:47.573   778   810 V WindowManagerShell: Transition requested: android.os.BinderProxy@6893738 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=725452 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@48fc311} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{ecb6c76 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
-11-22 11:58:47.574  7368  7368 W starboard: Do not start a MediaPlaybackService when the MediSsession is null or inactive.
-11-22 11:58:47.574  7368  7437 W libc    : Access denied finding property "vendor.display-size"
-11-22 11:58:47.574   484  1086 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
-11-22 11:58:47.575  7210  7220 V BinderSender: Uid 10122 starts
-11-22 11:58:47.576  7210  7220 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
-11-22 11:58:47.576  7210  7241 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
-11-22 11:58:47.577  6433  6446 D ShizukuProvider: sendBinder is called when already a living binder
-11-22 11:58:47.577  7210  7220 I Service : send binder to user app com.prismtv.launcher in user 0
-11-22 11:58:47.577  6433  6446 D ShizukuProvider: sendBinder is called when already a living binder
-11-22 11:58:47.577  7210  7241 I Service : send binder to user app com.prismtv.launcher in user 0
-11-22 11:58:47.578  6433  6433 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
-11-22 11:58:47.578  6433  6433 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
-11-22 11:58:47.589   384   384 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
-11-22 11:58:47.677   778   810 D WindowManagerShell: TvPipController: onTaskStackChanged()
-11-22 11:58:48.083   778   810 V WindowManagerShell: onTransitionReady android.os.BinderProxy@6893738: {id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@b79da02} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0xed5277 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@2da9f13} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0x3368ee4 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
-11-22 11:58:48.083   778   810 V WindowManagerShell: Playing animation for (#126)android.os.BinderProxy@6893738@0
-11-22 11:58:48.083   778   810 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@c030644
-11-22 11:58:48.083   484   501 W ziparchive: Unable to open '/data/app/~~u-93SFNWGU8pytskUbxeTA==/com.prismtv.launcher-kFXMiwWPi77qFVNGClY53w==/base.dm': No such file or directory
-11-22 11:58:48.084   778   810 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@5ca932d
-11-22 11:58:48.084   778   810 V WindowManagerShell:  try handler com.android.wm.shell.pip.tv.TvPipTransition@1e69062
-11-22 11:58:48.084   778   810 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@cf585f3
-11-22 11:58:48.084   778   810 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@b79da02} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0xed5277 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@2da9f13} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0x3368ee4 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
-11-22 11:58:48.084   778   810 V WindowManagerShell:  Delegate animation for #126 to null
-11-22 11:58:48.084   778   810 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@4c42b0
-11-22 11:58:48.084   778   810 V WindowManagerShell: start default transition animation, info = {id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@b79da02} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0xed5277 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@2da9f13} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0x3368ee4 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
-11-22 11:58:48.084   778   810 V WindowManagerShell: loadAnimation: anim=android.view.animation.AlphaAnimation@f3fb550 animAttr=0x9 type=OPEN isEntrance=false
-11-22 11:58:48.084   778   810 V WindowManagerShell: loadAnimation: anim=android.view.animation.AlphaAnimation@33ec349 animAttr=0x8 type=OPEN isEntrance=true
-11-22 11:58:48.085   778   810 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@4c42b0
-11-22 11:58:48.086   484   501 V WindowManager: Sent Transition #126 createdAt=11-22 11:58:47.572 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=725452 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{20b3d6d Task{ffaf36 #12 type=home A=10122:com.prismtv.launcher}}} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{ace8da2 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
-11-22 11:58:48.086   484   501 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
-11-22 11:58:48.086   484   501 V WindowManager:     info={id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{4679368 Task{805d2cf #1 type=home}}} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0x82f7af7 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{RemoteToken{7a98c0d Task{bf49a67 #16 type=standard A=10093:com.google.android.youtube.tv.main}}} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0xa7a82f8 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
-11-22 11:58:48.221   484  3022 I ImeTracker: com.prismtv.launcher:49e58a1: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
-11-22 11:58:48.221   484  3022 I ImeTracker: com.prismtv.launcher:49e58a1: onCancelled at PHASE_SERVER_SHOULD_HIDE
-11-22 11:58:48.223  1072  1072 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3264 
-11-22 11:58:48.224  1072  1072 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 0, locked = false
-11-22 11:58:48.224  1072  1072 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1899 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.prismtv.launcher fieldId=0 fieldName=null extras=null hintLocales=[]}, false)
-11-22 11:58:48.224  1072  1072 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4091 ShouldHideHeaderOnInitialState = false
-11-22 11:58:48.224  1072  1072 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 1, locked = false
-11-22 11:58:48.641   778   810 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#126)android.os.BinderProxy@6893738@0
-11-22 11:58:48.641   484   501 V WindowManager: Finish Transition #126: created at 11-22 11:58:47.572 collect-started=0.024ms request-sent=1.317ms started=1.742ms ready=4.758ms sent=510.807ms finished=1069.544ms
-11-22 11:58:48.642   778   810 V WindowManagerShell: Track 0 became idle
-11-22 11:58:48.642   778   810 V WindowManagerShell: All active transition animations finished
-11-22 11:58:48.796  6433  6433 I Choreographer: Skipped 31 frames!  The application may be doing too much work on its main thread.
-11-22 11:58:48.823  7368  7450 D EGL_emulation: app_time_stats: avg=420.92ms min=18.83ms max=6435.70ms count=17
-11-22 11:58:49.106   484   555 D CompatibilityChangeReporter: Compat change id reported: 265195908; UID 10093; state: ENABLED
-11-22 11:58:49.123  6433  6478 I OpenGLRenderer: Davey! duration=851ms; Flags=0, FrameTimelineVsyncId=51314, IntendedVsync=734199265847, Vsync=734715932493, InputEventId=0, HandleInputStart=734758599380, AnimationStart=734758603996, PerformTraversalsStart=734928231718, DrawStart=734932518237, FrameDeadline=734982599149, FrameInterval=734728286001, FrameStartTime=16666666, SyncQueued=734936086094, SyncStart=734936168106, IssueDrawCommandsStart=734937215541, SwapBuffers=734942960390, FrameCompleted=735050532553, DequeueBufferDuration=3465094, QueueBufferDuration=292294, GpuCompleted=735050532553, SwapBuffersCompleted=735048680018, DisplayPresentTime=0, CommandSubmissionCompleted=734942960390, 
-11-22 11:58:49.598   484  3022 I ActivityManager: Force stopping com.google.android.youtube.tv appid=10093 user=0: from pid 7497
-11-22 11:58:49.599   484   502 D DisplayManagerService: Drop pending events for gone uid 10093
-11-22 11:58:49.599  7210  7241 V BinderSender: Uid 10093 already starts
-11-22 11:58:49.599  7210  7241 V BinderSender: Uid 10093 dead
-11-22 11:58:49.600   484  3022 I ActivityManager: Killing 7368:com.google.android.youtube.tv/u0a93 (adj 700): stop com.google.android.youtube.tv due to from pid 7497
-11-22 11:58:49.601  6596  6596 I katniss_search_TvSearchApp: onTrimMemory level=40
-11-22 11:58:49.602  3607  3607 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.presencemanager.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
-11-22 11:58:49.602   484  3022 W ActivityTaskManager: Force removing ActivityRecord{4241e26 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity t16 f}}: app died, no saved state
-11-22 11:58:49.603  6736  6736 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.presencemanager.communal.service.auth.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
-11-22 11:58:49.603  6736  6736 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.mobstore.service.START pkg=com.google.android.gms }
-11-22 11:58:49.604   484  3022 W InputManager-JNI: Input channel object 'cb612 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity (client)' was disposed without first being removed with the input manager!
-11-22 11:58:49.604   484   510 W UsageStatsService: Unexpected activity event reported! (com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity event : 23 instanceId : 14372884)
-11-22 11:58:49.615   484   843 I MediaSessionStack: removeSession | record: com.google.android.youtube.tv/starboard_media (userId=0)
-11-22 11:58:49.615   484   843 D MediaSessionService: Media button session is changed to null
-11-22 11:58:49.615   484   713 D ConnectivityService: releasing NetworkRequest [ REQUEST id=99, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10093 RequestorUid: 10093 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ] (release request)
-11-22 11:58:49.615   484   713 D ConnectivityService: releasing NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10093 RequestorUid: 10093 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ] (release request)
-11-22 11:58:49.615   484   713 D ConnectivityService: releasing NetworkRequest [ REQUEST id=104, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10093 RequestorUid: 10093 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ] (release request)
-11-22 11:58:49.616  1359  1359 D NowPlayingListener: onActiveSessionsChanged() called with: controllers = [[]], lastActiveMediaController = null, lastUpdatedAppPackageName = null
-11-22 11:58:49.616  1359  1359 D NowPlayingManager: onClientChanged() called
-11-22 11:58:49.616   936   936 V MediaPlayerList: onActiveSessionsChanged: number of controllers: 0
-11-22 11:58:49.617  1359  1359 D NowPlayingManager: A notification for Now Playing Card has been canceled
-11-22 11:58:49.617   936   936 D AvrcpTargetJni: sendPlayerSettingsNative
-11-22 11:58:49.618   936   936 I bt_stack: [INFO:avrcp_service.cc(551)] virtual void bluetooth::avrcp::AvrcpService::SendPlayerSettingsChanged(std::vector<PlayerAttribute>, std::vector<uint8_t>)
-11-22 11:58:49.618   936   936 I bt_stack: [INFO:avrcp_service.cc(565)] attribute=PlayerAttribute::REPEAT : value=PlayerRepeatValue::OFF
-11-22 11:58:49.618   936   936 I bt_stack: attribute=PlayerAttribute::SHUFFLE : value=PlayerShuffleValue::OFF
-11-22 11:58:49.618   936   936 I bt_stack: 
-11-22 11:58:49.618   936   936 V MediaPlayerList: onActiveSessionsChanged: number of controllers: 0
-11-22 11:58:49.618   484   712 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=99, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10093 RequestorUid: 10093 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
-11-22 11:58:49.618   484   712 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10093 RequestorUid: 10093 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
-11-22 11:58:49.618   484   712 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=104, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10093 RequestorUid: 10093 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
-11-22 11:58:49.618   936   936 W AudioMediaPlayerWrapper: The session was destroyed com.google.android.youtube.tv
-11-22 11:58:49.618   936   936 D MediaPlayerList: sessionUpdatedCallback(): packageName: com.google.android.youtube.tv
-11-22 11:58:49.618   936   936 D MediaPlayerList: sendMediaUpdate state=null
-11-22 11:58:49.618   936   936 D AvrcpTargetJni: sendMediaUpdateNative
-11-22 11:58:49.618   936   936 I bt_stack: [INFO:avrcp_service.cc(515)] virtual void bluetooth::avrcp::AvrcpService::SendMediaUpdate(bool, bool, bool) track_changed=0 :  play_state=1 :  queue=0
-11-22 11:58:49.618   936   936 W AudioMediaPlayerWrapper: The session was destroyed com.google.android.youtube.tv
-11-22 11:58:49.618   936   936 D MediaPlayerList: sessionUpdatedCallback(): packageName: com.google.android.youtube.tv
-11-22 11:58:49.618   936   936 D MediaPlayerList: sendMediaUpdate state=null
-11-22 11:58:49.618   324   324 I Zygote  : Process 7368 exited due to signal 9 (Killed)
-11-22 11:58:49.647   484   504 W ActivityManager: setHasOverlayUi called on unknown pid: 7368
-11-22 11:58:49.647   484   848 V ActivityManager: Got obituary of 7368:com.google.android.youtube.tv
-11-22 11:58:49.649  6596  6596 I katniss_search_TvSearchApp: onTrimMemory level=40
-11-22 11:58:49.650  6596  6632 I katniss_search_GlobalEnvironmentProvider: Retrieved zero Google account from GMS.
-11-22 11:58:49.652  6596  6632 I katniss_search_GlobalEnvironmentProvider: Retrieved zero Google account from GMS.
-11-22 11:58:49.655  6433  6433 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
-11-22 11:58:51.100  7210  7220 V BinderSender: Uid 10064 starts
-11-22 11:58:52.545  6325  6361 I katniss_interactor_KatnissIpcConnection: Will disconnect service connection. .KatnissSearchProcessService
-11-22 11:58:52.546  6596  6596 I katniss_search_TvSearchApp: onTrimMemory level=40
-11-22 11:58:52.548  6596  6633 I katniss_search_GlobalEnvironmentProvider: Retrieved zero Google account from GMS.
-11-22 11:58:52.594  6596  6628 I katniss_search_KatnissIpcConnection: Will disconnect service connection. .KatnissInteractorProcessService
-11-22 11:58:52.606   484  1918 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
-11-22 11:58:56.149  7510  7510 I artd    : Starting artd
-11-22 11:58:56.149  7510  7510 I AidlLazyServiceRegistrar: Registering service artd
-11-22 11:58:56.188   484  3022 W ActivityTaskManager: callingPackage for (uid=2000, pid=7518) has no WPC
-11-22 11:58:56.189   484  3022 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
-11-22 11:58:56.189   778   810 V WindowManagerShell: Transition requested: android.os.BinderProxy@e74a75a TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=733518 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@c44dd8b} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{954de68 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
-11-22 11:58:56.190   484  3022 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
-11-22 11:58:56.191   778   810 V WindowManagerShell: onTransitionReady android.os.BinderProxy@e74a75a: {id=127 t=OPEN f=0x0 trk=0 r=[] c=[]}
-11-22 11:58:56.191   778   810 V WindowManagerShell: No transition roots in (#127)android.os.BinderProxy@e74a75a@0 so abort
-11-22 11:58:56.191   778   810 V WindowManagerShell: Transition animation finished (aborted=true), notifying core (#127)android.os.BinderProxy@e74a75a@0
-11-22 11:58:56.192   484   501 V WindowManager: Sent Transition #127 createdAt=11-22 11:58:56.188 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=733518 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{20b3d6d Task{ffaf36 #12 type=home A=10122:com.prismtv.launcher}}} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{ace8da2 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
-11-22 11:58:56.192   484   501 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
-11-22 11:58:56.192   484   501 V WindowManager:     info={id=127 t=OPEN f=0x0 trk=0 r=[] c=[]}
-11-22 11:58:56.192   484   501 V WindowManager: Finish Transition #127: created at 11-22 11:58:56.188 collect-started=0.023ms request-sent=0.672ms started=1.718ms ready=1.711ms sent=2.28ms finished=3.366ms
-11-22 11:58:56.192   778   810 V WindowManagerShell: Track 0 became idle
-11-22 11:58:56.192   778   810 V WindowManagerShell: All active transition animations finished
-11-22 11:58:56.319  6433  6449 D EGL_emulation: app_time_stats: avg=2059.68ms min=114.24ms max=7215.11ms count=4
-11-22 11:58:59.069  7210  7220 V BinderSender: Uid 10054 starts
-11-22 11:58:59.216   380   380 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
-11-22 11:58:59.216   380   380 D AF::TrackHandle: OpPlayAudio: track:95 usage:13 not muted
-11-22 11:58:59.217   380   380 D audioserver: FGS Logger Transaction failed
-11-22 11:58:59.217   380   380 D audioserver: -129
-11-22 11:58:59.219   380  4720 D audioserver: FGS Logger Transaction failed
-11-22 11:58:59.219   380  4720 D audioserver: -129
-11-22 11:58:59.286   380   470 D AudioFlinger: mixer(0xf47e4e20) throttle end: throttle time(35)
-11-22 11:58:59.506  7510  7510 I AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification artd has clients: 1
-11-22 11:58:59.536   380   470 D AudioFlinger: mixer(0xf47e4e20) throttle end: throttle time(5)
-11-22 11:58:59.696   484   561 D ActivityManager: freezing 6736 com.google.android.gms
-11-22 11:58:59.719  6433  6449 D EGL_emulation: app_time_stats: avg=679.51ms min=124.71ms max=2484.81ms count=5
-11-22 11:58:59.955   380   470 D AudioFlinger: mixer(0xf47e4e20) throttle end: throttle time(57)
-11-22 11:59:00.386   380   470 D audioserver: FGS Logger Transaction failed
-11-22 11:59:00.386   380   470 D audioserver: -129
-11-22 11:59:00.497  6885  6899 I IPCThreadState: oneway function results for code 2 on binder at 0xec9f4b70 will be dropped but finished with status UNKNOWN_TRANSACTION
-11-22 11:59:00.498  7210  7220 V BinderSender: Uid 10084 already starts
-11-22 11:59:01.776  7531  7531 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
-11-22 11:59:01.776  7531  7531 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
-11-22 11:59:01.785   132   132 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
-11-22 11:59:01.785  7531  7532 I Gralloc4: mapper 4.x is not supported
-11-22 11:59:02.123  7533  7533 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-22 11:59:02.125  7533  7533 I AndroidRuntime: Using default boot image
-11-22 11:59:02.125  7533  7533 I AndroidRuntime: Leaving lock profiling enabled
-11-22 11:59:02.127  7533  7533 I app_process: Using CollectorTypeCC GC.
-11-22 11:59:02.164  7533  7533 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
-11-22 11:59:02.170  7533  7533 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
-11-22 11:59:02.170  7533  7533 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
-11-22 11:59:02.173  7533  7533 W app_process: Unexpected CPU variant for x86: x86.
-11-22 11:59:02.173  7533  7533 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
-11-22 11:59:02.174  7533  7533 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]} | PCL[])
-11-22 11:59:02.174  7533  7533 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*4168958247]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]}#PCL[/system/framework/android.test.base.jar*836642756]} | PCL[/system/framework/android.test.runner.jar*4168958247])
-11-22 11:59:02.184  7533  7533 W libc    : Access denied finding property "ro.product.name_for_attestation"
-11-22 11:59:02.184  7533  7533 W libc    : Access denied finding property "ro.product.brand_for_attestation"
-11-22 11:59:02.184  7533  7533 W libc    : Access denied finding property "ro.product.model_for_attestation"
-11-22 11:59:02.185  7533  7533 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-22 11:59:02.186  7533  7533 D UiAutomationConnection: Created on user UserHandle{0}
-11-22 11:59:02.186  7533  7533 I UiAutomation: Initialized for user 0 on display 0
-11-22 11:59:02.186  7533  7533 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
-11-22 11:59:02.187   484  3476 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
-11-22 11:59:02.187   484  3476 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
-11-22 11:59:02.184  7533  7533 W main    : type=1400 audit(0.0:76): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
-11-22 11:59:02.184  7533  7533 W main    : type=1400 audit(0.0:77): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
-11-22 11:59:02.193   484   484 D BatterySaverPolicy: accessibility changed to true, updating policy.
-11-22 11:59:02.184  7533  7533 W main    : type=1400 audit(0.0:78): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
-11-22 11:59:02.555   484   561 D ActivityManager: freezing 6596 com.google.android.katniss:search
-11-22 11:59:03.254   329  2070 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 8833472
-11-22 11:59:03.285  7533  7533 W AccessibilityNodeInfoDumper: Fetch time: 77ms
-11-22 11:59:03.289   484  3476 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
-11-22 11:59:03.289   484   484 D BatterySaverPolicy: accessibility changed to false, updating policy.
-11-22 11:59:03.291  7533  7533 D AndroidRuntime: Shutting down VM
-11-22 11:59:03.359  6433  6449 D EGL_emulation: app_time_stats: avg=1818.29ms min=140.92ms max=3495.67ms count=2
-11-22 11:59:04.133   380  4720 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
-11-22 11:59:04.134   380  4720 D AF::TrackHandle: OpPlayAudio: track:96 usage:13 not muted
-11-22 11:59:04.135   380   380 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.135   380   380 D audioserver: -129
-11-22 11:59:04.137   380   393 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.137   380   393 D audioserver: -129
-11-22 11:59:04.181   380   470 D AudioFlinger: mixer(0xf47e4e20) throttle end: throttle time(33)
-11-22 11:59:04.407  6433  6449 D EGL_emulation: app_time_stats: avg=523.86ms min=137.82ms max=909.90ms count=2
-11-22 11:59:04.574   380   470 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.574   380   470 D audioserver: -129
-11-22 11:59:04.759  6433  7121 D TrafficStats: tagSocket(186) with statsTag=0xffffffff, statsUid=-1
-11-22 11:59:04.760   380   393 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
-11-22 11:59:04.760   380   393 D AF::TrackHandle: OpPlayAudio: track:97 usage:13 not muted
-11-22 11:59:04.761   380   393 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.761   380   393 D audioserver: -129
-11-22 11:59:04.761  1539  7565 I adbd    : host-16: write thread spawning
-11-22 11:59:04.762   380  4720 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.762   380  4720 D audioserver: -129
-11-22 11:59:04.762  1539  7564 I adbd    : host-16: read thread spawning
-11-22 11:59:04.762  1539  1539 I adbd    : host-16: already offline
-11-22 11:59:04.762  1539  1539 I adbd    : Calling send_auth_request...
-11-22 11:59:04.768  1539  1539 I adbd    : adbd_auth: loading keys from /data/misc/adb/adb_keys
-11-22 11:59:04.768  1539  1539 I adbd    : adb client authorized
-11-22 11:59:04.779   484  3476 I ConditionProviders:  Allowing condition provider com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
-11-22 11:59:04.779   484  3476 I NotificationListeners:  Allowing notification listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
-11-22 11:59:04.779   484  3476 V NotificationListeners: enabling notification listener for 0: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-22 11:59:04.779   484  3476 V NotificationListeners: binding: Intent { act=android.service.notification.NotificationListenerService cmp=com.prismtv.launcher/.system.PrismNotificationListener (has extras) }
-11-22 11:59:04.780   484  3476 V NotificationListeners: enabling notification listener for 0: ComponentInfo{com.google.android.tvrecommendations/com.google.android.tvrecommendations.NotificationsService}
-11-22 11:59:04.780   484  3476 V NotificationListeners: Not registering ComponentInfo{com.google.android.tvrecommendations/com.google.android.tvrecommendations.NotificationsService} is already bound
-11-22 11:59:04.783  1539  7564 I adbd    : host-16: read failed: Connection reset by peer
-11-22 11:59:04.783  1539  7564 I adbd    : host-16: connection terminated: read failed
-11-22 11:59:04.783  1539  1539 I adbd    : host-16: offline
-11-22 11:59:04.783  1539  1539 I adbd    : destroying transport host-16
-11-22 11:59:04.783  1539  1539 I adbd    : BlockingConnectionAdapter(host-16): stopping
-11-22 11:59:04.783  1539  1539 I adbd    : BlockingConnectionAdapter(host-16): stopped
-11-22 11:59:04.783  1539  1539 I adbd    : BlockingConnectionAdapter(host-16): destructing
-11-22 11:59:04.783  1539  1539 I adbd    : BlockingConnectionAdapter(host-16): already stopped
-11-22 11:59:04.789   380  4720 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
-11-22 11:59:04.789   380  4720 D AF::TrackHandle: OpPlayAudio: track:98 usage:13 not muted
-11-22 11:59:04.794   380  4720 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.794   380  4720 D audioserver: -129
-11-22 11:59:04.965   380   470 D audioserver: FGS Logger Transaction failed
-11-22 11:59:04.965   380   470 D audioserver: -129
-11-22 11:59:05.151   484   484 V NotificationListeners: 0 notification listener service connected: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-22 11:59:05.323   380   470 D AudioFlinger: mixer(0xf47e4e20) throttle end: throttle time(40)
-11-22 11:59:05.544   484   561 D ActivityManager: freezing 7224 moe.shizuku.privileged.api
-11-22 11:59:05.549  6433  6449 D EGL_emulation: app_time_stats: avg=283.73ms min=138.36ms max=449.93ms count=4
-11-22 11:59:05.755   380   470 D AudioFlinger: mixer(0xf47e4e20) throttle end: throttle time(53)
-11-22 11:59:05.905  6433  6445 I OpenGLRenderer: Davey! duration=765ms; Flags=0, FrameTimelineVsyncId=51746, IntendedVsync=750749265185, Vsync=751082598505, InputEventId=0, HandleInputStart=751097983115, AnimationStart=751097986670, PerformTraversalsStart=751180906298, DrawStart=751181085454, FrameDeadline=751532598487, FrameInterval=751097198780, FrameStartTime=16666666, SyncQueued=751193616558, SyncStart=751494480661, IssueDrawCommandsStart=751495121172, SwapBuffers=751670865930, FrameCompleted=751816073087, DequeueBufferDuration=5989, QueueBufferDuration=284873, GpuCompleted=751816073087, SwapBuffersCompleted=751814916059, DisplayPresentTime=0, CommandSubmissionCompleted=751670865930, 
-11-22 11:59:05.982   380   470 D audioserver: FGS Logger Transaction failed
-11-22 11:59:05.982   380   470 D audioserver: -129
-11-22 11:59:06.190  6433  6445 I OpenGLRenderer: Davey! duration=700ms; Flags=0, FrameTimelineVsyncId=51761, IntendedVsync=751099265171, Vsync=751515931821, InputEventId=0, HandleInputStart=751609022636, AnimationStart=751609026763, PerformTraversalsStart=751613955049, DrawStart=751617235990, FrameDeadline=751849265141, FrameInterval=751531048214, FrameStartTime=16666666, SyncQueued=751618471464, SyncStart=751815064379, IssueDrawCommandsStart=751815297385, SwapBuffers=751848787535, FrameCompleted=751996224222, DequeueBufferDuration=5067, QueueBufferDuration=179557, GpuCompleted=751996172986, SwapBuffersCompleted=751996224222, DisplayPresentTime=0, CommandSubmissionCompleted=751848787535, 
-11-22 11:59:06.601  6433  6449 D EGL_emulation: app_time_stats: avg=209.10ms min=131.37ms max=321.46ms count=5
-11-22 11:59:07.112  7210  7220 V BinderSender: Uid 10107 starts
-11-22 11:59:08.276  7210  7220 V BinderSender: Uid 10084 already starts
-11-22 11:59:08.663  6433  6449 D EGL_emulation: app_time_stats: avg=2061.77ms min=2061.77ms max=2061.77ms count=1
-11-22 11:59:08.850   329  2070 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 9057600
-11-22 11:59:11.097   484   496 W System  : A resource failed to call release. 
-11-22 11:59:11.097   484   496 W System  : A resource failed to call release. 
-11-22 11:59:14.491  7510  7510 I AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification artd has clients: 0
-11-22 11:59:14.491  7510  7510 I AidlLazyServiceRegistrar: Trying to shut down the service. No clients in use for any service in process.
-11-22 11:59:14.494  7510  7510 I AidlLazyServiceRegistrar: Unregistered all clients and exiting
-11-22 11:59:17.152  7597  7597 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
-11-22 11:59:17.152  7597  7597 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
-11-22 11:59:17.162   132   132 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
-11-22 11:59:17.162  7597  7598 I Gralloc4: mapper 4.x is not supported
-11-22 11:59:17.586   484   555 I ActivityManager: Killing 2343:com.google.android.syncadapters.calendar/u0a94 (adj 985): empty #17
-11-22 11:59:17.592   484   513 I libprocessgroup: Successfully killed process cgroup uid 10094 pid 2343 in 5ms
-11-22 11:59:17.596   324   324 I Zygote  : Process 2343 exited due to signal 9 (Killed)
-11-22 11:59:17.596   484   502 D DisplayManagerService: Drop pending events for gone uid 10094
+11-22 12:23:57.063   478  1163 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+11-22 12:23:57.066   785   815 V WindowManagerShell: Transition requested: android.os.BinderProxy@d79e9c TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=771681 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@6ca40a5} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{86dfc7a com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-22 12:23:57.066   478  1163 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=2
+11-22 12:23:57.067  7458  7458 W starboard: Do not start a MediaPlaybackService when the MediSsession is null or inactive.
+11-22 12:23:57.067  7458  7525 W libc    : Access denied finding property "vendor.display-size"
+11-22 12:23:57.068   478  3728 E Transition: Trying to add a ready-group twice: Display{#0 state=ON size=1920x1080 ROTATION_0}
+11-22 12:23:57.069  7302  7332 V BinderSender: Uid 10122 starts
+11-22 12:23:57.071  6694  6694 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+11-22 12:23:57.071  6694  6694 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+11-22 12:23:57.072  7302  7332 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-22 12:23:57.072  7302  7313 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-22 12:23:57.073  6694  7194 D ShizukuProvider: sendBinder is called when already a living binder
+11-22 12:23:57.073  7302  7313 I Service : send binder to user app com.prismtv.launcher in user 0
+11-22 12:23:57.074  6694  7194 D ShizukuProvider: sendBinder is called when already a living binder
+11-22 12:23:57.074  7302  7332 I Service : send binder to user app com.prismtv.launcher in user 0
+11-22 12:23:57.082   383   383 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+11-22 12:23:57.171   785   815 D WindowManagerShell: TvPipController: onTaskStackChanged()
+11-22 12:23:57.673   478   508 W ziparchive: Unable to open '/data/app/~~6MfXokWDlcVNVcl-j37tBQ==/com.prismtv.launcher-cuYnK7whd7FNxXHkZxHplA==/base.dm': No such file or directory
+11-22 12:23:57.673   478   508 V WindowManager: Sent Transition #126 createdAt=11-22 12:23:57.063 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=771681 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{ef745fd Task{1edb5be #12 type=home A=10122:com.prismtv.launcher}}} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{54a12f2 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-22 12:23:57.673   478   508 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-22 12:23:57.673   478   508 V WindowManager:     info={id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{fa1006b Task{3c8bdb2 #1 type=home}}} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0x9b8a845 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{RemoteToken{ed011b Task{f0c5528 #16 type=standard A=10094:com.google.android.youtube.tv.main}}} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0x747ef1e sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-22 12:23:57.675   785   815 V WindowManagerShell: onTransitionReady android.os.BinderProxy@d79e9c: {id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@ccf6646} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0xa1ddc2b sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@59c1007} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0xc0e0888 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-22 12:23:57.675   785   815 V WindowManagerShell: Playing animation for (#126)android.os.BinderProxy@d79e9c@0
+11-22 12:23:57.675   785   815 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@1522093
+11-22 12:23:57.675   785   815 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@a96d8d0
+11-22 12:23:57.675   785   815 V WindowManagerShell:  try handler com.android.wm.shell.pip.tv.TvPipTransition@929e0c9
+11-22 12:23:57.675   785   815 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@dc823ce
+11-22 12:23:57.675   785   815 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@ccf6646} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0xa1ddc2b sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@59c1007} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0xc0e0888 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-22 12:23:57.675   785   815 V WindowManagerShell:  Delegate animation for #126 to null
+11-22 12:23:57.675   785   815 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@87432ef
+11-22 12:23:57.675   785   815 V WindowManagerShell: start default transition animation, info = {id=126 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{android.window.IWindowContainerToken$Stub$Proxy@ccf6646} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=1)/@0xa1ddc2b sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0},{WCT{android.window.IWindowContainerToken$Stub$Proxy@59c1007} m=TO_BACK f=NONE leash=Surface(name=Task=16)/@0xc0e0888 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-22 12:23:57.675   785   815 V WindowManagerShell: loadAnimation: anim=android.view.animation.AlphaAnimation@cbf2534 animAttr=0x9 type=OPEN isEntrance=false
+11-22 12:23:57.675   785   815 V WindowManagerShell: loadAnimation: anim=android.view.animation.AlphaAnimation@4f0df5d animAttr=0x8 type=OPEN isEntrance=true
+11-22 12:23:57.677   785   815 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@87432ef
+11-22 12:23:57.706  6694  6694 I Choreographer: Skipped 31 frames!  The application may be doing too much work on its main thread.
+11-22 12:23:57.893   478   506 I ImeTracker: com.prismtv.launcher:42798f16: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+11-22 12:23:57.893   478   506 I ImeTracker: com.prismtv.launcher:42798f16: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-22 12:23:57.897  1050  1050 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3264 
+11-22 12:23:57.898  1050  1050 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 0, locked = false
+11-22 12:23:57.898  1050  1050 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1899 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.prismtv.launcher fieldId=0 fieldName=null extras=null hintLocales=[]}, false)
+11-22 12:23:57.898  1050  1050 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4091 ShouldHideHeaderOnInitialState = false
+11-22 12:23:57.898  1050  1050 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 1, locked = false
+11-22 12:23:58.082   785   815 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#126)android.os.BinderProxy@d79e9c@0
+11-22 12:23:58.083   478   508 V WindowManager: Finish Transition #126: created at 11-22 12:23:57.063 collect-started=0.044ms request-sent=2.761ms started=4.523ms ready=6.609ms sent=608.876ms finished=1019.914ms
+11-22 12:23:58.084   785   815 V WindowManagerShell: Track 0 became idle
+11-22 12:23:58.084   785   815 V WindowManagerShell: All active transition animations finished
+11-22 12:23:58.334  7458  7539 D EGL_emulation: app_time_stats: avg=5925.56ms min=5925.56ms max=5925.56ms count=1
+11-22 12:23:58.722   478   562 D CompatibilityChangeReporter: Compat change id reported: 265195908; UID 10094; state: ENABLED
+11-22 12:23:59.096   478   763 I ActivityManager: Force stopping com.google.android.youtube.tv appid=10094 user=0: from pid 7583
+11-22 12:23:59.098   478   509 D DisplayManagerService: Drop pending events for gone uid 10094
+11-22 12:23:59.098  7302  7312 V BinderSender: Uid 10094 already starts
+11-22 12:23:59.098  7302  7312 V BinderSender: Uid 10094 dead
+11-22 12:23:59.099   478   763 I ActivityManager: Killing 7458:com.google.android.youtube.tv/u0a94 (adj 700): stop com.google.android.youtube.tv due to from pid 7583
+11-22 12:23:59.101  3268  3268 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.presencemanager.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+11-22 12:23:59.101   478   763 W ActivityTaskManager: Force removing ActivityRecord{868f74b u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity t16 f}}: app died, no saved state
+11-22 12:23:59.101  3308  3308 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.mobstore.service.START pkg=com.google.android.gms }
+11-22 12:23:59.101   478   518 W UsageStatsService: Unexpected activity event reported! (com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity event : 23 instanceId : 253928001)
+11-22 12:23:59.101   478   763 W InputManager-JNI: Input channel object 'bfa5521 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity (client)' was disposed without first being removed with the input manager!
+11-22 12:23:59.102  3308  3308 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.presencemanager.communal.service.auth.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.GmsApiService }
+11-22 12:23:59.121   323   323 I Zygote  : Process 7458 exited due to signal 9 (Killed)
+11-22 12:23:59.121   478  3648 V ActivityManager: Got obituary of 7458:com.google.android.youtube.tv
+11-22 12:23:59.121   478   505 I MediaSessionStack: removeSession | record: com.google.android.youtube.tv/starboard_media (userId=0)
+11-22 12:23:59.121   478   505 D MediaSessionService: Media button session is changed to null
+11-22 12:23:59.122   478   720 D ConnectivityService: releasing NetworkRequest [ REQUEST id=99, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10094 RequestorUid: 10094 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ] (release request)
+11-22 12:23:59.122   936   936 W AudioMediaPlayerWrapper: The session was destroyed com.google.android.youtube.tv
+11-22 12:23:59.123   478   720 D ConnectivityService: releasing NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10094 RequestorUid: 10094 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ] (release request)
+11-22 12:23:59.123   936   936 D MediaPlayerList: sessionUpdatedCallback(): packageName: com.google.android.youtube.tv
+11-22 12:23:59.123   936   936 D MediaPlayerList: sendMediaUpdate state=null
+11-22 12:23:59.127  6694  6694 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
+11-22 12:23:59.127   478   511 W ActivityManager: setHasOverlayUi called on unknown pid: 7458
+11-22 12:23:59.127  1211  1211 D NowPlayingListener: onActiveSessionsChanged() called with: controllers = [[]], lastActiveMediaController = null, lastUpdatedAppPackageName = null
+11-22 12:23:59.127  1211  1211 D NowPlayingManager: onClientChanged() called
+11-22 12:23:59.127   478   720 D ConnectivityService: releasing NetworkRequest [ REQUEST id=104, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10094 RequestorUid: 10094 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ] (release request)
+11-22 12:23:59.127   478   719 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=99, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10094 RequestorUid: 10094 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+11-22 12:23:59.127   478   719 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10094 RequestorUid: 10094 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+11-22 12:23:59.127   478   719 D EthernetNetworkFactory: eth0: onNetworkUnneeded for request: NetworkRequest [ REQUEST id=104, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10094 RequestorUid: 10094 RequestorPkg: com.google.android.youtube.tv UnderlyingNetworks: Null] ]
+11-22 12:23:59.128  1211  1211 D NowPlayingManager: A notification for Now Playing Card has been canceled
+11-22 12:23:59.128   936   936 D AvrcpTargetJni: sendMediaUpdateNative
+11-22 12:23:59.128   936   936 I bt_stack: [INFO:avrcp_service.cc(515)] virtual void bluetooth::avrcp::AvrcpService::SendMediaUpdate(bool, bool, bool) track_changed=0 :  play_state=1 :  queue=0
+11-22 12:23:59.128   936   936 W AudioMediaPlayerWrapper: The session was destroyed com.google.android.youtube.tv
+11-22 12:23:59.128   936   936 D MediaPlayerList: sessionUpdatedCallback(): packageName: com.google.android.youtube.tv
+11-22 12:23:59.129   936   936 D MediaPlayerList: sendMediaUpdate state=null
+11-22 12:23:59.130   936   936 D MediaControlGattService: updatePlayerState: playbackState= INACTIVE
+11-22 12:23:59.130   936   936 D MediaControlGattService: updateMediaStateChar
+11-22 12:23:59.130   936   936 W MediaControlGattService: Feature MEDIA_STATE(BIT 17) support: true
+11-22 12:23:59.130   936   936 D MediaControlGattService: updateMediaStateChar setting to state= 0
+11-22 12:23:59.131   936   936 W MediaControlGattService: Feature PLAYER_NAME(BIT 1) support: true
+11-22 12:23:59.131   936   936 W MediaControlGattService: Feature PLAYER_ICON_URL(BIT 3) support: false
+11-22 12:23:59.131   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.131   936   936 W MediaControlGattService: Feature PLAYER_ICON_OBJ_ID(BIT 2) support: false
+11-22 12:23:59.131   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature CURRENT_TRACK_SEGMENT_OBJ_ID(BIT 10) support: false
+11-22 12:23:59.132   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature CURRENT_TRACK_OBJ_ID(BIT 11) support: false
+11-22 12:23:59.132   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature NEXT_TRACK_OBJ_ID(BIT 12) support: false
+11-22 12:23:59.132   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature CURRENT_GROUP_OBJ_ID(BIT 13) support: false
+11-22 12:23:59.132   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature PARENT_GROUP_OBJ_ID(BIT 14) support: false
+11-22 12:23:59.132   936   936 D MediaControlGattService: updateObjectID
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature SEARCH_RESULT_OBJ_ID(BIT 20) support: false
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature TRACK_TITLE(BIT 5) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature TRACK_DURATION(BIT 6) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature TRACK_POSITION(BIT 7) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature TRACK_POSITION_NOTIFY support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature MEDIA_STATE(BIT 17) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature MEDIA_STATE(BIT 17) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature PLAYBACK_SPEED(BIT 8) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature PLAYBACK_SPEED(BIT 8) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature PLAYBACK_SPEED(BIT 8) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature SEEKING_SPEED(BIT 9) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature SEEKING_SPEED(BIT 9) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature SEEKING_SPEED(BIT 9) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature PLAYING_ORDER_SUPPORTED(BIT 16) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature PLAYING_ORDER(BIT 15) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature MEDIA_CONTROL_POINT_OPCODES_SUPPORTED(BIT 19) support: true
+11-22 12:23:59.132   936   936 W MediaControlGattService: Feature MEDIA_STATE(BIT 17) support: true
+11-22 12:23:59.132   936   936 V MediaPlayerList: onActiveSessionsChanged: number of controllers: 0
+11-22 12:23:59.132   936   936 D AvrcpTargetJni: sendPlayerSettingsNative
+11-22 12:23:59.132   936   936 I bt_stack: [INFO:avrcp_service.cc(551)] virtual void bluetooth::avrcp::AvrcpService::SendPlayerSettingsChanged(std::vector<PlayerAttribute>, std::vector<uint8_t>)
+11-22 12:23:59.132   936   936 I bt_stack: [INFO:avrcp_service.cc(565)] attribute=PlayerAttribute::REPEAT : value=PlayerRepeatValue::OFF
+11-22 12:23:59.132   936   936 I bt_stack: attribute=PlayerAttribute::SHUFFLE : value=PlayerShuffleValue::OFF
+11-22 12:23:59.132   936   936 I bt_stack: 
+11-22 12:23:59.132   936   936 V MediaPlayerList: onActiveSessionsChanged: number of controllers: 0
+11-22 12:23:59.650  7302  7332 V BinderSender: Uid 10064 starts
+11-22 12:24:01.336  6426  6426 I katniss_search_TvSearchApp: onTrimMemory level=40
+11-22 12:24:01.344  6426  6463 I katniss_search_GlobalEnvironmentProvider: Retrieved zero Google account from GMS.
+11-22 12:24:01.523  6263  6341 I katniss_interactor_KatnissIpcConnection: Will disconnect service connection. .KatnissSearchProcessService
+11-22 12:24:01.524  6426  6459 I katniss_search_KatnissIpcConnection: Will disconnect service connection. .LatencyLoggerService
+11-22 12:24:01.525  6426  6426 I katniss_search_TvSearchApp: onTrimMemory level=40
+11-22 12:24:01.527  6426  6464 I katniss_search_GlobalEnvironmentProvider: Retrieved zero Google account from GMS.
+11-22 12:24:01.547  6426  6459 I katniss_search_KatnissIpcConnection: Will disconnect service connection. .KatnissInteractorProcessService
+11-22 12:24:02.105   478  2002 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+11-22 12:24:05.756  7596  7596 I artd    : Starting artd
+11-22 12:24:05.757  7596  7596 I AidlLazyServiceRegistrar: Registering service artd
+11-22 12:24:05.811   478  3789 W ActivityTaskManager: callingPackage for (uid=2000, pid=7603) has no WPC
+11-22 12:24:05.812   478  3789 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+11-22 12:24:05.814   478  3789 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+11-22 12:24:05.814   785   815 V WindowManagerShell: Transition requested: android.os.BinderProxy@25ef81e TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=779786 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@73cf8ff} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{d0de6cc com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-22 12:24:05.816   478   508 V WindowManager: Sent Transition #127 createdAt=11-22 12:24:05.812 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=12 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=779786 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{ef745fd Task{1edb5be #12 type=home A=10122:com.prismtv.launcher}}} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{54a12f2 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-22 12:24:05.816   478   508 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-22 12:24:05.817   478   508 V WindowManager:     info={id=127 t=OPEN f=0x0 trk=0 r=[] c=[]}
+11-22 12:24:05.817   785   815 V WindowManagerShell: onTransitionReady android.os.BinderProxy@25ef81e: {id=127 t=OPEN f=0x0 trk=0 r=[] c=[]}
+11-22 12:24:05.817   785   815 V WindowManagerShell: No transition roots in (#127)android.os.BinderProxy@25ef81e@0 so abort
+11-22 12:24:05.817   785   815 V WindowManagerShell: Transition animation finished (aborted=true), notifying core (#127)android.os.BinderProxy@25ef81e@0
+11-22 12:24:05.817   785   815 V WindowManagerShell: Track 0 became idle
+11-22 12:24:05.817   785   815 V WindowManagerShell: All active transition animations finished
+11-22 12:24:05.818   478   508 V WindowManager: Finish Transition #127: created at 11-22 12:24:05.812 collect-started=0.033ms request-sent=1.357ms started=2.444ms ready=2.424ms sent=3.857ms finished=5.065ms
+11-22 12:24:06.214  6694  6814 D EGL_emulation: app_time_stats: avg=2136.45ms min=144.91ms max=7407.14ms count=4
+11-22 12:24:07.122   478   568 D ActivityManager: freezing 1588 android.process.acore
+11-22 12:24:07.993  7596  7597 I AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification artd has clients: 1
+11-22 12:24:08.848   378  1247 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-22 12:24:08.849   378  1247 D AF::TrackHandle: OpPlayAudio: track:95 usage:13 not muted
+11-22 12:24:08.851   378  1247 D audioserver: FGS Logger Transaction failed
+11-22 12:24:08.851   378  1247 D audioserver: -129
+11-22 12:24:08.853   378  1247 D audioserver: FGS Logger Transaction failed
+11-22 12:24:08.853   378  1247 D audioserver: -129
+11-22 12:24:08.897   378   472 D AudioFlinger: mixer(0xf42f4e20) throttle end: throttle time(33)
+11-22 12:24:09.111   478   568 D ActivityManager: freezing 3308 com.google.android.gms
+11-22 12:24:09.447  6694  6814 D EGL_emulation: app_time_stats: avg=805.55ms min=135.13ms max=2530.96ms count=4
+11-22 12:24:09.673   378   472 D AudioFlinger: mixer(0xf42f4e20) throttle end: throttle time(56)
+11-22 12:24:10.013   378   472 D audioserver: FGS Logger Transaction failed
+11-22 12:24:10.013   378   472 D audioserver: -129
+11-22 12:24:11.430  7616  7616 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-22 12:24:11.431  7616  7616 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-22 12:24:11.442   133   133 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-22 12:24:11.442  7616  7617 I Gralloc4: mapper 4.x is not supported
+11-22 12:24:11.532   478   568 D ActivityManager: freezing 6426 com.google.android.katniss:search
+11-22 12:24:11.857  7618  7618 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-22 12:24:11.861  7618  7618 I AndroidRuntime: Using default boot image
+11-22 12:24:11.861  7618  7618 I AndroidRuntime: Leaving lock profiling enabled
+11-22 12:24:11.863  7618  7618 W app_process: Could not reserve sentinel fault page
+11-22 12:24:11.863  7618  7618 I app_process: Using CollectorTypeCC GC.
+11-22 12:24:11.921  7618  7618 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+11-22 12:24:11.931  7618  7618 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-22 12:24:11.931  7618  7618 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-22 12:24:11.936  7618  7618 W app_process: Unexpected CPU variant for x86: x86.
+11-22 12:24:11.936  7618  7618 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-22 12:24:11.937  7618  7618 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]} | PCL[])
+11-22 12:24:11.938  7618  7618 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*4168958247]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]}#PCL[/system/framework/android.test.base.jar*836642756]} | PCL[/system/framework/android.test.runner.jar*4168958247])
+11-22 12:24:11.951  7618  7618 W libc    : Access denied finding property "ro.product.name_for_attestation"
+11-22 12:24:11.951  7618  7618 W libc    : Access denied finding property "ro.product.brand_for_attestation"
+11-22 12:24:11.951  7618  7618 W libc    : Access denied finding property "ro.product.model_for_attestation"
+11-22 12:24:11.952  7618  7618 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-22 12:24:11.949  7618  7618 W main    : type=1400 audit(0.0:84): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
+11-22 12:24:11.949  7618  7618 W main    : type=1400 audit(0.0:85): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
+11-22 12:24:11.949  7618  7618 W main    : type=1400 audit(0.0:86): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
+11-22 12:24:11.961  7618  7618 D UiAutomationConnection: Created on user UserHandle{0}
+11-22 12:24:11.961  7618  7618 I UiAutomation: Initialized for user 0 on display 0
+11-22 12:24:11.961  7618  7618 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+11-22 12:24:11.962   478  3789 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+11-22 12:24:11.962   478  3789 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
+11-22 12:24:11.964   478   478 D BatterySaverPolicy: accessibility changed to true, updating policy.
+11-22 12:24:12.880   328  1908 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 8911808
+11-22 12:24:13.067  7618  7618 W AccessibilityNodeInfoDumper: Fetch time: 94ms
+11-22 12:24:13.069   478  3648 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
+11-22 12:24:13.070  7618  7618 D AndroidRuntime: Shutting down VM
+11-22 12:24:13.071   478   478 D BatterySaverPolicy: accessibility changed to false, updating policy.
+11-22 12:24:13.156  6694  6814 D EGL_emulation: app_time_stats: avg=1854.29ms min=189.97ms max=3518.62ms count=2
+11-22 12:24:13.938   378  1247 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-22 12:24:13.939   378  1247 D AF::TrackHandle: OpPlayAudio: track:96 usage:13 not muted
+11-22 12:24:13.940   378   398 D audioserver: FGS Logger Transaction failed
+11-22 12:24:13.940   378   398 D audioserver: -129
+11-22 12:24:13.942   378   398 D audioserver: FGS Logger Transaction failed
+11-22 12:24:13.942   378   398 D audioserver: -129
+11-22 12:24:14.009   378   472 D AudioFlinger: mixer(0xf42f4e20) throttle end: throttle time(37)
+11-22 12:24:14.281  6694  6814 D EGL_emulation: app_time_stats: avg=561.25ms min=169.66ms max=952.83ms count=2
+11-22 12:24:14.285   378   472 D audioserver: FGS Logger Transaction failed
+11-22 12:24:14.285   378   472 D audioserver: -129
+11-22 12:24:14.573  6694  6839 D TrafficStats: tagSocket(113) with statsTag=0xffffffff, statsUid=-1
+11-22 12:24:14.574   378  1247 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-22 12:24:14.574   378  1247 D AF::TrackHandle: OpPlayAudio: track:97 usage:13 not muted
+11-22 12:24:14.574  1453  7649 I adbd    : host-17: read thread spawning
+11-22 12:24:14.574  1453  7650 I adbd    : host-17: write thread spawning
+11-22 12:24:14.575   378   398 D audioserver: FGS Logger Transaction failed
+11-22 12:24:14.575   378   398 D audioserver: -129
+11-22 12:24:14.576   378   398 D audioserver: FGS Logger Transaction failed
+11-22 12:24:14.576   378   398 D audioserver: -129
+11-22 12:24:14.578  1453  1453 I adbd    : host-17: already offline
+11-22 12:24:14.578  1453  1453 I adbd    : Calling send_auth_request...
+11-22 12:24:14.587  1453  1453 I adbd    : adbd_auth: loading keys from /data/misc/adb/adb_keys
+11-22 12:24:14.587  1453  1453 I adbd    : adb client authorized
+11-22 12:24:14.611   478  3648 I ConditionProviders:  Allowing condition provider com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
+11-22 12:24:14.612   478  3648 I NotificationListeners:  Allowing notification listener com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener (userSet: true)
+11-22 12:24:14.612   478  3648 V NotificationListeners: enabling notification listener for 0: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-22 12:24:14.612   478  3648 V NotificationListeners: binding: Intent { act=android.service.notification.NotificationListenerService cmp=com.prismtv.launcher/.system.PrismNotificationListener (has extras) }
+11-22 12:24:14.613   478  3648 V NotificationListeners: enabling notification listener for 0: ComponentInfo{com.google.android.tvrecommendations/com.google.android.tvrecommendations.NotificationsService}
+11-22 12:24:14.613   478  3648 V NotificationListeners: Not registering ComponentInfo{com.google.android.tvrecommendations/com.google.android.tvrecommendations.NotificationsService} is already bound
+11-22 12:24:14.619  1453  7649 I adbd    : host-17: read failed: Success
+11-22 12:24:14.619  1453  7649 I adbd    : host-17: connection terminated: read failed
+11-22 12:24:14.619  1453  1453 I adbd    : host-17: offline
+11-22 12:24:14.619  1453  1453 I adbd    : destroying transport host-17
+11-22 12:24:14.619  1453  1453 I adbd    : BlockingConnectionAdapter(host-17): stopping
+11-22 12:24:14.619  1453  1453 I adbd    : BlockingConnectionAdapter(host-17): stopped
+11-22 12:24:14.619  1453  1453 I adbd    : BlockingConnectionAdapter(host-17): destructing
+11-22 12:24:14.619  1453  1453 I adbd    : BlockingConnectionAdapter(host-17): already stopped
+11-22 12:24:14.684   478   568 D ActivityManager: freezing 7316 moe.shizuku.privileged.api
+11-22 12:24:14.742   478   478 V NotificationListeners: 0 notification listener service connected: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-22 12:24:14.776   378  1247 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-22 12:24:14.776   378  1247 D AF::TrackHandle: OpPlayAudio: track:98 usage:13 not muted
+11-22 12:24:14.777   378  1247 D audioserver: FGS Logger Transaction failed
+11-22 12:24:14.777   378  1247 D audioserver: -129
+11-22 12:24:14.939   378   472 D audioserver: FGS Logger Transaction failed
+11-22 12:24:14.939   378   472 D audioserver: -129
+11-22 12:24:15.314  6694  6814 D EGL_emulation: app_time_stats: avg=516.72ms min=456.72ms max=576.71ms count=2
+11-22 12:24:15.323  6694  6694 I Choreographer: Skipped 31 frames!  The application may be doing too much work on its main thread.
+11-22 12:24:15.755   378   472 D audioserver: FGS Logger Transaction failed
+11-22 12:24:15.755   378   472 D audioserver: -129
+11-22 12:24:15.840  6694  6694 I Choreographer: Skipped 30 frames!  The application may be doing too much work on its main thread.
+11-22 12:24:15.975  7302  7332 V BinderSender: Uid 10116 starts
+11-22 12:24:16.289  6694  7194 I OpenGLRenderer: Davey! duration=866ms; Flags=0, FrameTimelineVsyncId=51676, IntendedVsync=797516567586, Vsync=798033234232, InputEventId=0, HandleInputStart=798042036771, AnimationStart=798042040217, PerformTraversalsStart=798059880929, DrawStart=798060050739, FrameDeadline=798599900876, FrameInterval=798041525562, FrameStartTime=16666666, SyncQueued=798063413634, SyncStart=798550563886, IssueDrawCommandsStart=798551234359, SwapBuffers=798693065133, FrameCompleted=798869817246, DequeueBufferDuration=13331, QueueBufferDuration=2640803, GpuCompleted=798869720029, SwapBuffersCompleted=798869817246, DisplayPresentTime=0, CommandSubmissionCompleted=798693065133, 
+11-22 12:24:16.462  6694  6814 D EGL_emulation: app_time_stats: avg=382.47ms min=310.53ms max=517.28ms count=3
+11-22 12:24:16.475  6694  7194 I OpenGLRenderer: Davey! duration=906ms; Flags=0, FrameTimelineVsyncId=51691, IntendedVsync=798049900898, Vsync=798549900878, InputEventId=0, HandleInputStart=798558666001, AnimationStart=798558670229, PerformTraversalsStart=798623697724, DrawStart=798623901683, FrameDeadline=798899900864, FrameInterval=798558324557, FrameStartTime=16666666, SyncQueued=798645661348, SyncStart=798873018606, IssueDrawCommandsStart=798873415004, SwapBuffers=799007083775, FrameCompleted=799183642682, DequeueBufferDuration=11897, QueueBufferDuration=650687, GpuCompleted=799183642682, SwapBuffersCompleted=799180524737, DisplayPresentTime=0, CommandSubmissionCompleted=799007083775, 
+11-22 12:24:16.712  7302  7332 V BinderSender: Uid 10084 already starts
+11-22 12:24:18.607  6694  6814 D EGL_emulation: app_time_stats: avg=1072.30ms min=143.59ms max=2001.00ms count=2
+11-22 12:24:18.622   328  1908 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 9133760
+11-22 12:24:27.008  7681  7681 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-22 12:24:27.008  7681  7681 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-22 12:24:27.021   133   133 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-22 12:24:27.021  7681  7682 I Gralloc4: mapper 4.x is not supported
+11-22 12:24:27.080   478   562 I ActivityManager: Killing 1588:android.process.acore/u0a54 (adj 985): empty #17
+11-22 12:24:27.081   478   521 I libprocessgroup: Successfully killed process cgroup uid 10054 pid 1588 in 0ms
+11-22 12:24:27.087   478   509 D DisplayManagerService: Drop pending events for gone uid 10054
+11-22 12:24:27.087  7302  7586 V BinderSender: Uid 10054 dead
+11-22 12:24:27.087   478  3752 D CountryDetector: No listener is left
+11-22 12:24:27.087   323   323 I Zygote  : Process 1588 exited due to signal 9 (Killed)
