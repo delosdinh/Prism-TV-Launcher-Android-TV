@@ -1,15 +1,19 @@
 captured 65-shizuku-steps
 captured 65a-adb-allow-prompt
-own adb client: 
+tapped at 959,521
+tapped at 600,681
+own adb client: 11-22 10:57:50.670  7737  7737 I PrismAdb: result=Ok(output=prism-adb-ok
 captured 65b-shizuku-downloading
 captured 65c-shizuku-installer
+tapped at 600,643
 captured 65d-shizuku-installed
-installed: 
-starter: 
-cp: bad '': No such file or directory
+installed: package:/data/app/~~SXurt62w7RPgZkDlF-F5iA==/moe.shizuku.privileged.api-njd8qTMY9Mb_NrlQYG8nfg==/base.apk
+captured 65d2-shizuku-starting
+started by Prism TV: 
 captured 65e-shizuku-running
 captured 65f-shizuku-allow-prompt
+no "Allow all the time" on screen
 captured 65g-shizuku-allowed
-before: pid=8532
+before: pid=8358
 after: pid= stopped=false
-11-22 10:22:19.053  7891  7891 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
+11-22 10:58:57.858  7737  7737 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
