@@ -49,6 +49,12 @@ if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
   # Emulator numbers: compare runs with each other, not with real TVs.
   PERF="$OUT/perf.txt"
   echo "apk bytes: $(stat -c %s "$RELEASE_APK")" | tee "$PERF"
+  # What the APK is made of (compressed bytes in the zip), and whether its audio is stored as SoundPool needs.
+  unzip -v "$RELEASE_APK" | awk '$1 ~ /^[0-9]+$/ && NF >= 8 {
+      n = $NF; e = n; sub(/^.*\./, "", e)
+      k = (n ~ /\.dex$/) ? "dex" : (e ~ /^(wav|flac|ogg)$/) ? "audio" : (e ~ /^(jpg|png|webp)$/) ? "images" : "other"
+      b[k] += $3; if (k == "audio" && $2 != "Stored") z++ }
+    END { printf "apk dex %d, images %d, audio %d (%d compressed), other %d\n", b["dex"], b["images"], b["audio"], z, b["other"] }' | tee -a "$PERF"
   adb shell cmd package compile -f -m speed-profile "$PKG" >/dev/null 2>&1
   median() { sort -n | awk '{a[NR]=$1} END {if (NR) print a[int((NR+1)/2)]; else print "n/a"}'; }
   cold=""; for _ in 1 2 3 4 5; do
@@ -295,6 +301,10 @@ for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_UP
 sleep 1.5
 adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread" \
   | sed "s/^ */settings: /" | tee -a "$OUT/frames.txt"
+# Main-thread cost of building each Settings page's rows, and of preparing one Top Shelf backdrop.
+adb logcat -c || true
+start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0 --es bench settings; sleep 22
+adb logcat -d -s PrismBench:I | sed -n "s/^.*PrismBench: //p" | tee "$OUT/bench.txt"
 # Spotlight: a real Up from the dock into the Top Shelf (the spring used to overshoot and crash Prism).
 start "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 1; sleep 4
 adb logcat -c || true

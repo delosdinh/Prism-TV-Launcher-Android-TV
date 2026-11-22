@@ -5116,8 +5116,53 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      * Deterministic state for previews and CI screenshots, e.g.
      * `adb shell am start -n com.prismtv.launcher/.MainActivity --ez demo true --es screen controlcentre`.
      */
+    /**
+     * Debug builds (CI): how long building each Settings page's rows takes on the main thread (a D-pad
+     * press in Settings builds them twice), and how long one Top Shelf backdrop takes to prepare.
+     */
+    private fun benchSettings() {
+        viewModelScope.launch {
+            delay(3000) // after the apps have loaded
+            val pages = listOf(
+                SettingsPage.Root, SettingsPage.Appearance, SettingsPage.Apps, SettingsPage.Access,
+                SettingsPage.Closing, SettingsPage.HomeApp, SettingsPage.Keyboard,
+            )
+            for (pg in pages) {
+                repeat(20) { settingsRows(pg) }
+                val n = 200
+                val t0 = SystemClock.elapsedRealtimeNanos()
+                repeat(n) { settingsRows(pg) }
+                val us = (SystemClock.elapsedRealtimeNanos() - t0) / 1000.0 / n
+                android.util.Log.i("PrismBench", "settingsRows ${pg.name}: ${"%.1f".format(java.util.Locale.ROOT, us)} us")
+            }
+            // A fresh cache, so each backdrop is decoded, cropped and blurred from scratch.
+            val repo = ArtRepository(ctx)
+            DemoContent.scenes.take(4).forEachIndexed { i, res ->
+                val t0 = SystemClock.elapsedRealtimeNanos()
+                repo.load(ResArt(res))
+                val ms = (SystemClock.elapsedRealtimeNanos() - t0) / 1_000_000.0
+                android.util.Log.i("PrismBench", "backdrop $i: ${"%.1f".format(java.util.Locale.ROOT, ms)} ms")
+            }
+            repo.trim(android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
+            // Navigation sounds: time on the main thread to start loading them, and until all are ready.
+            val s0 = SystemClock.elapsedRealtimeNanos()
+            val probe = UiSounds(ctx)
+            val mainMs = (SystemClock.elapsedRealtimeNanos() - s0) / 1_000_000.0
+            var waited = 0
+            while (probe.loaded < Cue.entries.size && waited < 8000) { delay(5); waited += 5 }
+            val allMs = (SystemClock.elapsedRealtimeNanos() - s0) / 1_000_000.0
+            android.util.Log.i(
+                "PrismBench",
+                "sounds: ${probe.loaded} of ${Cue.entries.size} loaded, main thread ${"%.1f".format(java.util.Locale.ROOT, mainMs)} ms, " +
+                    "all ready ${"%.0f".format(java.util.Locale.ROOT, allMs)} ms",
+            )
+            probe.release()
+        }
+    }
+
     fun applyDebug(b: Bundle) {
         debugDriven = true
+        if (b.getString("bench") == "settings") benchSettings()
         // Each shot starts clean: no picker or passcode left over from the last one.
         passcode = null
         passcodeEntry = ""

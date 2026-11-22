@@ -58,6 +58,9 @@ class UiSounds(context: Context) {
         ids = Cue.entries.associateWith { pool.load(context, it.res, 1) }
     }
 
+    /** How many cues have finished loading (CI checks they all do). */
+    val loaded: Int get() = ready.size
+
     var enabled = true
     private var lastFocusAt = 0L
 
