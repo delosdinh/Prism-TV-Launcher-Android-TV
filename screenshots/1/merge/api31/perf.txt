@@ -1,0 +1,22 @@
+apk bytes: 6452216
+cold start ms:  2189 2023 2267 1939 1583  (median 2023)
+back to home ms:  371 0 0 0 0  (median 0)
+walk: Total frames rendered: 76
+walk: Janky frames: 76 (100.00%)
+walk: Janky frames (legacy): 76 (100.00%)
+walk: 50th percentile: 200ms
+walk: 90th percentile: 300ms
+walk: 99th percentile: 650ms
+walk: Number Slow UI thread: 45
+rapid: Total frames rendered: 30
+rapid: Janky frames: 30 (100.00%)
+rapid: Janky frames (legacy): 30 (100.00%)
+rapid: 90th percentile: 150ms
+rapid: Number Slow UI thread: 14
+memory: Native Heap    51303    51284        0       31    52316    68272    52934     3692
+memory: Java Heap:     7816                          20564
+memory: Native Heap:    51284                          52316
+memory: Graphics:        0                              0
+memory: TOTAL PSS:    82534            TOTAL RSS:   177796       TOTAL SWAP PSS:      266
+idle on home, 60 s: 21 ticks
+behind another app, 60 s: 21 ticks
