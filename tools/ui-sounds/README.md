@@ -1,9 +1,22 @@
 # Prism TV Originals 1.6.2 — interface sounds
 
-The navigation sounds in `app/src/main/res/raw/ui_*.wav` come from the Prism TV Originals 1.6.2 sound
+The navigation sounds in `app/src/main/res/raw/ui_*.flac` come from the Prism TV Originals 1.6.2 sound
 pack (the companion Kodi skin's GUI sounds). They are procedurally synthesised by
 `generate_sounds.py` in this folder (NumPy; `python generate_sounds.py rebuilt`) and are licensed
 GPL-2.0-or-later (see `COPYING`). The pack's startup arrangement and its noise-based swish aren't used by the launcher. The launcher's own cues (`open`, `dismiss` and the gesture cues) reuse the Select and Back instruments exactly and add the motion of what's on screen: stereo travel, roll direction, a small pitch inflection and a breath of air (render with `python generate_sounds.py OUTPUT_DIR`).
+
+The script writes WAV (16-bit, 48 kHz, stereo). The app ships them as lossless FLAC, sample-for-sample the
+same audio at about a seventh of the size (the build keeps `.flac` uncompressed so SoundPool can open it):
+
+```sh
+for f in OUTPUT_DIR/*.wav; do
+  out="app/src/main/res/raw/ui_$(basename "$f" .wav | tr - _).flac"
+  [ -e "$out" ] || continue  # capture and swish aren't used by the launcher
+  ffmpeg -y -i "$f" -map_metadata -1 -fflags +bitexact -compression_level 12 -c:a flac "$out"
+done
+python3 tools/ui-sounds/strip_flac_metadata.py app/src/main/res/raw/ui_*.flac  # drops ffmpeg's 8 KB padding
+```
+
 
 | File in app | Pack file | Used for |
 | --- | --- | --- |

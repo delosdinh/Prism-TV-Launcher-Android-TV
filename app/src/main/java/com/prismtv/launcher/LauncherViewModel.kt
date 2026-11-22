@@ -346,6 +346,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Installed apps plus the TV's inputs; cached until either changes. */
     val allApps: List<LauncherApp> by derivedStateOf { (if (prefs.demoContent) DemoContent.allApps else realApps) + inputApps }
 
+    /** Every app A to Z, for Settings' app lists: sorted once when the apps change, not on every D-pad press. */
+    private val appsByName: List<LauncherApp> by derivedStateOf { allApps.sortedBy { it.label.lowercase() } }
+
     // ---------------------------------------------------------------- home focus
     var zone by mutableStateOf(Zone.Grid)
     var row by mutableIntStateOf(0)
@@ -3439,6 +3442,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         else -> appName(pkg)
     }
 
+    /**
+     * Settings' main list is rebuilt twice per D-pad press, and asking Android for the Home app takes two
+     * or three calls into its package manager. The answer is reused for up to a second, and asked again
+     * as soon as Prism comes back or changes the Home app (both bump [resumeTick]).
+     */
+    private var homeLabelCache: Triple<Int, Long, String>? = null
+
+    private fun shownHomeAppLabel(): String {
+        val t = resumeTick
+        val now = SystemClock.elapsedRealtime()
+        homeLabelCache?.takeIf { it.first == t && now - it.second < 1_000L }?.let { return it.third }
+        return homeAppLabel().also { homeLabelCache = Triple(t, now, it) }
+    }
+
     /** The TV's own launcher is turned off (pm disable-user), by Prism TV or anyone else. */
     private fun launcherHidden(stock: android.content.ComponentName?): Boolean {
         if (stock == null) return prefs.hiddenLauncher.isNotEmpty()
@@ -3978,7 +3995,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             // Only TVs have inputs; on a box there'd be nothing behind this row.
             if (inputApps.isEmpty()) null else SettingsRow("inputs", "Inputs", "APPS", inputApps.size.toString(), chevron = true),
             SettingsRow("closing", "Closing Apps", "APPS", closingLabel(), chevron = true),
-            SettingsRow("homeApp", "Home App", "REMOTE & POWER", homeAppLabel(), chevron = true),
+            SettingsRow("homeApp", "Home App", "REMOTE & POWER", shownHomeAppLabel(), chevron = true),
             SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", onOff(PrismAccessibilityService.isEnabled), chevron = true),
             SettingsRow("remote", "Remote Buttons", "REMOTE & POWER", remoteButtonsLabel(), chevron = true),
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE & POWER", onOff(prefs.homeOverride)),
@@ -4073,7 +4090,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
             )
         }
-        SettingsPage.Apps -> allApps.sortedBy { it.label.lowercase() }.map {
+        SettingsPage.Apps -> appsByName.map {
             SettingsRow("app:${it.id}", it.label, "SHOW ON HOME SCREEN", app = it, toggle = it.id !in prefs.hiddenApps)
         }.ifEmpty { listOf(SettingsRow("none", "No Apps Installed", "SHOW ON HOME SCREEN")) }
         SettingsPage.SoftwareUpdate -> listOf(
@@ -4177,7 +4194,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Startup -> listOf(
             SettingsRow("su:delay", "Wait Before Opening", "WHEN THE TV STARTS", startupDelayLabel()),
             SettingsRow("su:off", "Stay on the Home Screen", "WHEN THE TV STARTS", selectable = true, checked = prefs.startupApp.isEmpty()),
-        ) + allApps.filter { it.demo == null }.sortedBy { it.label.lowercase() }.map {
+        ) + appsByName.filter { it.demo == null }.map {
             SettingsRow("su:app:${it.id}", it.label, "OPEN AN APP", selectable = true, checked = prefs.startupApp == it.id, app = it)
         }
         SettingsPage.Inputs -> inputRows()
@@ -4779,7 +4796,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val section = "ALLOWED FOR ${nameOf(me).uppercase()}"
         // All Apps on top: on when nothing is blocked; select it to block or allow everything at once.
         return listOf(SettingsRow("rs:all", "All Apps", section, toggle = me.blocked.isEmpty())) +
-            allApps.sortedBy { it.label.lowercase() }.map {
+            appsByName.map {
                 SettingsRow("rs:${it.id}", it.label, section, app = it, toggle = it.id !in me.blocked)
             }
     }
@@ -5135,6 +5152,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val us = (SystemClock.elapsedRealtimeNanos() - t0) / 1000.0 / n
                 android.util.Log.i("PrismBench", "settingsRows ${pg.name}: ${"%.1f".format(java.util.Locale.ROOT, us)} us")
             }
+            run {
+                val n = 200
+                val t0 = SystemClock.elapsedRealtimeNanos()
+                repeat(n) { homeAppLabel() }
+                val us = (SystemClock.elapsedRealtimeNanos() - t0) / 1000.0 / n
+                android.util.Log.i("PrismBench", "home app label, asked of Android: ${"%.1f".format(java.util.Locale.ROOT, us)} us")
+            }
             // A fresh cache, so each backdrop is decoded, cropped and blurred from scratch.
             val repo = ArtRepository(ctx)
             DemoContent.scenes.take(4).forEachIndexed { i, res ->
@@ -5409,6 +5433,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private var stopDictationBus: (() -> Unit)? = null
 
+    // Shizuku keeps its listeners in a global list: these are removed again in onCleared, or the list
+    // would hold on to this ViewModel (and the artwork it caches) after its screen has gone.
+    private val shizukuConnected = rikka.shizuku.Shizuku.OnBinderReceivedListener {
+        android.util.Log.i("PrismShizuku", "Shizuku connected")
+        viewModelScope.launch { resumeTick++ }
+    }
+    private val shizukuGone = rikka.shizuku.Shizuku.OnBinderDeadListener { viewModelScope.launch { resumeTick++ } }
+
     // Last in the class on purpose: Kotlin runs initialisers top to bottom, and this block starts
     // coroutines that read state declared throughout the ViewModel.
     init {
@@ -5469,11 +5501,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (prefs.demoContent) widgetRowsAll = demoWidgetRows()
         // Shizuku hands over (or loses) its connection whenever it starts or stops: refresh Settings.
         runCatching {
-            rikka.shizuku.Shizuku.addBinderReceivedListenerSticky {
-                android.util.Log.i("PrismShizuku", "Shizuku connected")
-                viewModelScope.launch { resumeTick++ }
-            }
-            rikka.shizuku.Shizuku.addBinderDeadListener { viewModelScope.launch { resumeTick++ } }
+            rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(shizukuConnected)
+            rikka.shizuku.Shizuku.addBinderDeadListener(shizukuGone)
         }
         viewModelScope.launch {
             com.prismtv.launcher.system.ShizukuSetup.events.collect { e ->
@@ -5511,6 +5540,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         stopDictationBus?.invoke()
+        runCatching {
+            rikka.shizuku.Shizuku.removeBinderReceivedListener(shizukuConnected)
+            rikka.shizuku.Shizuku.removeBinderDeadListener(shizukuGone)
+        }
         dictation?.release()
         sounds.release()
     }

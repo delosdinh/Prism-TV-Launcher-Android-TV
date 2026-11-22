@@ -57,6 +57,11 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+    // Navigation sounds are lossless FLAC (a seventh the size of WAV). SoundPool opens them straight from
+    // the APK, which only works for files stored uncompressed (FLAC isn't on the build's own list).
+    androidResources {
+        noCompress += "flac"
+    }
 }
 
 dependencies {

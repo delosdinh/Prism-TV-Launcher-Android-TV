@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
@@ -355,10 +356,14 @@ class ArtRepository(private val context: Context) {
         } catch (_: Throwable) {
             null
         } ?: return@withContext null
+        // Focus moved on while this decoded (the Top Shelf asks for the newest item only): stop here
+        // rather than crop, blur and upload a backdrop nobody will see.
+        if (!isActive) { bmp.recycle(); return@withContext null }
         val frame = cropTo16x9(bmp).let { f ->
             if (f !== bmp) bmp.recycle()
             if (lite && f.width > 1280) Bitmap.createScaledBitmap(f, 1280, 720, true).also { if (it !== f) f.recycle() } else f
         }
+        if (!isActive) { frame.recycle(); return@withContext null }
         val heavy = Blur.blur(frame, 96, 4)
         // The lightly blurred copy is only the glass fallback where live blur isn't used.
         val light = if (Build.VERSION.SDK_INT < 31 || lite) Blur.blur(frame, 240, 3) else heavy
@@ -535,11 +540,16 @@ object Blur {
         val h = (w * src.height / src.width.toFloat()).roundToInt().coerceAtLeast(8)
         var cur = src
         while (cur.width / 2 >= w) {
-            cur = Bitmap.createScaledBitmap(cur, cur.width / 2, cur.height / 2, true)
+            val next = Bitmap.createScaledBitmap(cur, cur.width / 2, cur.height / 2, true)
+            // Each step's copy is only needed for the next (a 1080p frame's first one is 2 MB).
+            if (cur !== src && next !== cur) cur.recycle()
+            cur = next
         }
         val scaled = Bitmap.createScaledBitmap(cur, w, h, true)
         val a = IntArray(w * h)
         scaled.getPixels(a, 0, w, 0, 0, w, h)
+        if (scaled !== src) scaled.recycle()
+        if (cur !== src && cur !== scaled) cur.recycle()
         val b = IntArray(w * h)
         repeat(passes) {
             pass(a, b, w, h, radius, horizontal = true)
