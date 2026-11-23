@@ -4408,9 +4408,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val hasPage = SystemActions.canHandle(ctx, page)
                 shellDialog(
                     title = "Allow Recent Apps",
-                    intro = (if (hasPage) "Open Usage Access and turn on Prism TV. If it isn't listed there, " else
-                        "This TV has no Usage access page in its Settings. ") +
-                        "Select Do It for Me, or type this command yourself:",
+                    intro = if (hasPage) "Open Usage Access and turn on Prism TV. If it isn't listed there, select Do It for Me, or type this command yourself:"
+                        else "This TV has no Usage access page in its Settings. Select Do It for Me, or type this command yourself:",
                     command = "appops set ${ctx.packageName} GET_USAGE_STATS allow",
                     done = { recentsRepo.hasUsageAccess() },
                     doneMessage = "Done. The App Switcher now shows the apps you've used.",
@@ -4505,8 +4504,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val hasPage = SystemActions.canHandle(ctx, page)
                 shellDialog(
                     title = "Allow Notifications",
-                    intro = (if (hasPage) "Open Notification Access and turn on Prism TV. If it isn't listed there, " else "This TV has no Notification access page. ") +
-                        "Select Do It for Me, or type this command yourself:",
+                    intro = if (hasPage) "Open Notification Access and turn on Prism TV. If it isn't listed there, select Do It for Me, or type this command yourself:"
+                        else "This TV has no Notification access page. Select Do It for Me, or type this command yourself:",
                     command = "cmd notification allow_listener ${ctx.packageName}/com.prismtv.launcher.system.PrismNotificationListener",
                     done = { PrismNotificationListener.isEnabled(ctx) },
                     doneMessage = "Done. Notifications and Now Playing now show in Prism TV.",
