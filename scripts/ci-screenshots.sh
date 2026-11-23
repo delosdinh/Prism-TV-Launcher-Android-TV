@@ -421,6 +421,14 @@ if [ -n "$TARGET" ]; then
   adb shell "cmd notification post -t 'Delivery' prism_banner_test 'Your order is on its way'" >/dev/null 2>&1
   sleep 1.4; cap 73-banner-over-app
   sleep 7; cap 73b-banner-gone
+  # The same notification posted again (players re-post on every pause, seek or buffer) doesn't show
+  # again, and media / Now Playing notifications never do: the shot should have no banner.
+  for _ in 1 2; do
+    adb shell "cmd notification post -t 'Delivery' prism_banner_test 'Your order is on its way'" >/dev/null 2>&1; sleep 1
+  done
+  adb shell "cmd notification post -S media -t 'Guardians of the Galaxy' prism_banner_media 'Nuvio'" >/dev/null 2>&1
+  sleep 1.4; cap 73d-banner-not-again
+  adb logcat -d -s PrismBanner:I | sed -n 's/^.*PrismBanner: //p' | tee "$OUT/banner-test.txt"
   # The same banner in Light, Liquid Glass (banners follow Prism TV's Material and Material Colour).
   start "${B[@]}" --es appearance light --es glass liquid --ez bannersOver true --es screen home; sleep 3
   timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1 ||

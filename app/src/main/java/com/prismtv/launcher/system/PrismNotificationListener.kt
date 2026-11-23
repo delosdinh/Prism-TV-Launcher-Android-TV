@@ -53,27 +53,39 @@ class PrismNotificationListener : NotificationListenerService() {
         if (sbn != null) maybeBanner(sbn)
     }
 
-    /** Posted times of notifications already shown as a banner, so updates don't show again. */
-    private val bannered = LinkedHashMap<String, Long>()
+    /**
+     * What each notification said when it last showed as a banner, and when. Apps re-post the same
+     * notification over and over (a player on every pause, seek or buffer): only a change shows again.
+     */
+    private val bannered = LinkedHashMap<String, Pair<String, Long>>()
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
 
     /**
      * Banners Over Apps: a new notification slides in over the app you're watching (Prism TV shows
      * its own in the time pill). Only new, ordinary notifications that would make a sound or show on
-     * a phone: no quiet ones, media, progress or updates to one already shown.
+     * a phone: no quiet ones, media, Now Playing cards, progress, or a re-post that says the same thing.
      */
     private fun maybeBanner(sbn: StatusBarNotification) {
         if (Foreground.prismResumed || !PrismAccessibilityService.isEnabled) return
         val sp = getSharedPreferences("prism_prefs", Context.MODE_PRIVATE)
         if (!sp.getBoolean(BannerOverlay.PrefKey, false) || !useful(sbn)) return
-        if (System.currentTimeMillis() - sbn.postTime > 15_000L) return
-        if (bannered[sbn.key] == sbn.postTime) return
+        val now = System.currentTimeMillis()
+        if (now - sbn.postTime > 15_000L) return
+        val extras = sbn.notification?.extras
+        val says = "${extras?.getCharSequence(Notification.EXTRA_TITLE)}\n${extras?.getCharSequence(Notification.EXTRA_TEXT)}"
+        val last = bannered[sbn.key]
+        if (last != null && last.first == says && now - last.second < RepeatMs) {
+            android.util.Log.i(Tag, "not again: ${sbn.key}")
+            return
+        }
         val ranking = NotificationListenerService.Ranking()
         if (runCatching { currentRanking?.getRanking(sbn.key, ranking) }.getOrNull() == true &&
             ranking.importance in 0 until android.app.NotificationManager.IMPORTANCE_DEFAULT
         ) return
-        bannered[sbn.key] = sbn.postTime
+        bannered.remove(sbn.key)
+        bannered[sbn.key] = says to now
         if (bannered.size > 40) bannered.remove(bannered.keys.first())
+        android.util.Log.i(Tag, "banner: ${sbn.key}")
         val light = sp.getString("appearance", null) == "Light"
         worker.post {
             val e = entry(sbn) ?: return@post
@@ -121,9 +133,15 @@ class PrismNotificationListener : NotificationListenerService() {
         if (sbn.packageName == packageName || sbn.isOngoing) return false
         if (n.flags and Notification.FLAG_GROUP_SUMMARY != 0) return false
         if (n.flags and Notification.FLAG_FOREGROUND_SERVICE != 0) return false
+        // Now Playing cards and recommendations are for Android TV's own home screen, not alerts, and
+        // Prism TV shows what's playing itself (Android TV Core Services posts one per title played).
+        if (sbn.packageName == "com.google.android.tvrecommendations") return false
+        val extras = n.extras
+        if (extras?.containsKey(Notification.EXTRA_MEDIA_SESSION) == true) return false
+        if (extras?.getString(Notification.EXTRA_TEMPLATE)?.contains("MediaStyle") == true) return false
         val skip = setOf(
             Notification.CATEGORY_SERVICE, Notification.CATEGORY_TRANSPORT, Notification.CATEGORY_PROGRESS,
-            Notification.CATEGORY_SYSTEM, Notification.CATEGORY_STATUS,
+            Notification.CATEGORY_SYSTEM, Notification.CATEGORY_STATUS, Notification.CATEGORY_RECOMMENDATION,
         )
         return n.category !in skip
     }
@@ -152,6 +170,11 @@ class PrismNotificationListener : NotificationListenerService() {
     }
 
     companion object {
+        private const val Tag = "PrismBanner"
+
+        /** The same words from the same notification show as a banner again only after this long. */
+        private const val RepeatMs = 30 * 60_000L
+
         @Volatile
         private var instance: PrismNotificationListener? = null
 
