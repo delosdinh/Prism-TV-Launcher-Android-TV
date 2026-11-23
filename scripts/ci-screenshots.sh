@@ -686,6 +686,10 @@ memsnap() { # label
   granted() { adb shell dumpsys package "$PKG" | grep -m1 "$TVL: granted" | tr -d '\r' | sed 's/^ *//'; }
   TVL_BEFORE=$(granted); echo "before: $TVL_BEFORE"
   adb shell pm revoke "$PKG" "$TVL" 2>&1 | tail -1
+  # Revoking restarts Prism TV, which then asks Android's own question once (first launch): answer
+  # Don't allow (Allow is focused, Don't allow under it), as on a TV that stopped asking.
+  start "${B[@]}" "${DARK[@]}" --es screen home; sleep 5
+  if ui_dump | grep -qi "TV listings"; then key KEYCODE_DPAD_DOWN 0.6; key KEYCODE_DPAD_CENTER 1.5; echo "declined Android's question at launch: $(granted)"; fi
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 1; sleep 3
   key KEYCODE_DPAD_CENTER 2.5; cap 66f-allow-recommendations-dialog
   key KEYCODE_DPAD_DOWN 0.6
