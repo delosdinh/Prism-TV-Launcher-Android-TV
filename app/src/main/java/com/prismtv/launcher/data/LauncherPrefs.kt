@@ -105,6 +105,8 @@ data class LauncherPrefs(
     val skippedUpdate: Int = 0,
     /** Current weather in the time pill. */
     val weather: Boolean = true,
+    /** Wi-Fi signal (or Ethernet, or no connection) in the time pill. */
+    val wifiStatus: Boolean = true,
     val temperatureUnit: TemperatureUnit = TemperatureUnit.Auto,
     /** Prism TV Originals navigation sounds (focus, select, back…). */
     val sounds: Boolean = true,
@@ -257,6 +259,7 @@ class PrefsStore(context: Context) {
             updateCheck = sp.getBoolean("updateCheck", d.updateCheck),
             skippedUpdate = sp.getInt("skippedUpdate", d.skippedUpdate),
             weather = sp.getBoolean("weather", d.weather),
+            wifiStatus = sp.getBoolean("wifiStatus", d.wifiStatus),
             temperatureUnit = enumOr(sp.getString("temperatureUnit", null), d.temperatureUnit),
             sounds = sp.getBoolean("sounds", d.sounds),
             screensaverAfter = sp.getInt("screensaverAfter", d.screensaverAfter).takeIf { it in StartAfterChoices } ?: d.screensaverAfter,
@@ -306,6 +309,7 @@ class PrefsStore(context: Context) {
             .putBoolean("updateCheck", p.updateCheck)
             .putInt("skippedUpdate", p.skippedUpdate)
             .putBoolean("weather", p.weather)
+            .putBoolean("wifiStatus", p.wifiStatus)
             .putString("temperatureUnit", p.temperatureUnit.name)
             .putBoolean("sounds", p.sounds)
             .putString("glassColour", p.glassColour.name)

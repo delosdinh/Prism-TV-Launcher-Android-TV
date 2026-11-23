@@ -125,7 +125,7 @@ emu_key() { # linux code, hold seconds
   adb emu event send "1:$1:0" "0:0:0" >/dev/null 2>&1
 }
 
-B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false)
+B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false --es net wifi3)
 DARK=(--es appearance dark --es glass liquid)
 
 # Warm up (first launch decodes artwork).
@@ -205,6 +205,11 @@ shot 35c-keyboard-balanced-123     "${B[@]}" --es appearance balanced --es glass
 shot 36-settings-text-size         "${B[@]}" "${DARK[@]}" --es screen settings --es page TextSize --ei textSize 4
 shot 37-cc-notifications           "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 100
 shot 37b-time-pill-badge           "${B[@]}" "${DARK[@]}" --ei notify 2 --es screen top --ei button 0
+# The time pill's Wi-Fi: weak signal (dark), offline (light), Ethernet; and its switch in Settings.
+shot 37e-time-pill-wifi-weak      "${B[@]}" "${DARK[@]}" --es net wifi1 --es screen top --ei button 0
+shot 37f-time-pill-offline-light  "${B[@]}" --es appearance light --es glass liquid --es net offline --es screen home
+shot 37g-time-pill-ethernet       "${B[@]}" "${DARK[@]}" --es net ethernet --es screen home
+shot 37h-settings-wifi-row        "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 14
 shot 37c-cc-notification-clear     "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 200
 shot 37d-cc-clear-all              "${B[@]}" --es appearance light --es glass liquid --ei notify 4 --es screen controlcentre --ei focus 30
 shot 38-settings-wallpaper         "${B[@]}" "${DARK[@]}" --es screen settings --es page Wallpaper --ei focus 2
@@ -275,8 +280,8 @@ shot 69-search-recent              "${B[@]}" "${DARK[@]}" --es screen search
 shot 69b-search-typed              "${B[@]}" "${DARK[@]}" --es screen search --es text ci --ei keyRow 1 --ei keyCol 2
 shot 69c-search-results-focus      "${B[@]}" "${DARK[@]}" --es screen search --es text s --ei focus 1
 shot 69d-search-settings-light     "${B[@]}" --es appearance light --es glass liquid --es screen search --es text lite --ei focus 0
-shot 70-settings-banners-over      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 15
-shot 70b-settings-snapshots        "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 16
+shot 70-settings-banners-over      "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 16
+shot 70b-settings-snapshots        "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 17
 # Set-up dialogs: Power & Home Button (Turn On for Me), wallpaper with a Full Screen Top Shelf.
 start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 11; sleep 3
 key KEYCODE_DPAD_CENTER 2; cap 75-power-home-turn-on

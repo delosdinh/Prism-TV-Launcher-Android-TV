@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.ViewCarousel
+import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material.icons.rounded.Spellcheck
@@ -365,6 +366,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "st:passcode" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
     "bannersOver" to glyph(Icons.Rounded.NotificationsActive, 0xFFFF6961, 0xFFD63A31),
     "snapshots" to glyph(Icons.Rounded.ViewCarousel, 0xFF3D9BFF, 0xFF0A5FE0),
+    "wifi" to glyph(Icons.Rounded.Wifi, 0xFF3D9BFF, 0xFF0A5FE0),
 )
 
 private fun glyphFor(id: String): Any? = when {

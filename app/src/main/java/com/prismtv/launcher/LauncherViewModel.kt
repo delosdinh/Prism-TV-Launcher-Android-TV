@@ -1573,6 +1573,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         refreshRecommendations()
         maybeAutoCheckForUpdate()
         refreshWeather()
+        refreshNetwork()
         // Picks up Notification access granted while Prism was away.
         com.prismtv.launcher.system.MediaWatcher.start(ctx)
         maybeOpenAtStartup()
@@ -2259,6 +2260,27 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 freeingMemory = false
             }
         }
+    }
+
+    /** The TV's network, for the time pill and Control Centre (kept current by [networkWatch] and on resume). */
+    var network by mutableStateOf(SystemActions.network(app))
+        private set
+    private val networkMain = android.os.Handler(android.os.Looper.getMainLooper())
+    private val networkWatch = object : android.net.ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(n: android.net.Network) = refreshNetwork()
+        override fun onLost(n: android.net.Network) = refreshNetwork()
+        override fun onCapabilitiesChanged(n: android.net.Network, caps: android.net.NetworkCapabilities) = refreshNetwork()
+    }
+
+    /** Re-reads the network on the main thread (a callback burst becomes one read). */
+    fun refreshNetwork() {
+        networkMain.removeCallbacks(readNetwork)
+        networkMain.postDelayed(readNetwork, 150)
+    }
+    private var debugNetwork: com.prismtv.launcher.system.NetStatus? = null
+    private val readNetwork = Runnable {
+        val now = debugNetwork ?: SystemActions.network(ctx)
+        if (now != network) network = now
     }
 
     /**
@@ -2949,6 +2971,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingSearchResult("Banners Over Apps", "Home Screen", SettingsPage.HomeScreen, "bannersOver"),
             SettingSearchResult("App Snapshots", "Home Screen", SettingsPage.HomeScreen, "snapshots"),
             SettingSearchResult("Weather", "Home Screen", SettingsPage.HomeScreen, "weather"),
+            SettingSearchResult("Wi-Fi in the Time Pill", "Home Screen", SettingsPage.HomeScreen, "wifi"),
             SettingSearchResult("Aerials", "Wallpaper", SettingsPage.Wallpaper, "wp:aerial"),
             SettingSearchResult("Screen Time", "Profiles", SettingsPage.ScreenTime),
             SettingSearchResult("Restrictions", "Profiles", SettingsPage.Restrictions),
@@ -4190,6 +4213,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("widgets", "Widgets", "WIDGETS", widgetsLabel(), chevron = true),
             SettingsRow("weather", "Weather", "TIME PILL", onOff(prefs.weather)),
             SettingsRow("tempUnit", "Temperature", "TIME PILL", prefs.temperatureUnit.label),
+            SettingsRow("wifi", "Wi-Fi", "TIME PILL", onOff(prefs.wifiStatus)),
             SettingsRow("notif", "Notifications", "TIME PILL", if (status().notif) "Allowed" else "Not Allowed", chevron = !status().notif),
             SettingsRow("bannersOver", "Banners Over Apps", "TIME PILL", bannersOverLabel()),
             SettingsRow("snapshots", "App Snapshots", "APP SWITCHER", snapshotsLabel()),
@@ -4746,6 +4770,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "weather" -> {
                 updatePrefs(p.copy(weather = !p.weather))
                 if (prefs.weather) refreshWeather(force = true)
+            }
+            r.id == "wifi" -> {
+                updatePrefs(p.copy(wifiStatus = !p.wifiStatus))
+                refreshNetwork()
             }
             r.id == "tempUnit" -> updatePrefs(p.copy(temperatureUnit = TemperatureUnit.entries[(p.temperatureUnit.ordinal + 1) % TemperatureUnit.entries.size]))
             r.id == "ss:system" -> {
@@ -5370,6 +5398,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         isolateScene = b.getBoolean("isolateScene", true)
         com.prismtv.launcher.ui.components.OverlayDebug.directThresholds = b.getBoolean("directThresholds", false)
         if (b.getString("bench") == "settings") benchSettings()
+        // The time pill's network as given (wifi1–wifi3, ethernet, offline), whatever the emulator has.
+        debugNetwork = when (val n = b.getString("net")) {
+            null -> null
+            "ethernet" -> com.prismtv.launcher.system.NetStatus("Ethernet", "Connected", true, true)
+            "offline" -> com.prismtv.launcher.system.NetStatus("Wi-Fi", "Not Connected", connected = false, ethernet = false, bars = 0)
+            else -> com.prismtv.launcher.system.NetStatus("Wi-Fi", "Connected", true, false, n.removePrefix("wifi").toIntOrNull()?.coerceIn(1, 3) ?: 3)
+        }
+        network = debugNetwork ?: SystemActions.network(ctx)
         // Each shot starts clean: no picker or passcode left over from the last one.
         passcode = null
         passcodeEntry = ""
@@ -5682,6 +5718,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             } else false
         }
         if (prefs.demoContent) widgetRowsAll = demoWidgetRows()
+        // The time pill's Wi-Fi: Android says when the network or its signal changes.
+        runCatching {
+            (ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager)
+                .registerDefaultNetworkCallback(networkWatch)
+        }
         // Shizuku hands over (or loses) its connection whenever it starts or stops: refresh Settings.
         runCatching {
             rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(shizukuConnected)
@@ -5723,6 +5764,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         stopDictationBus?.invoke()
+        runCatching {
+            (ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager)
+                .unregisterNetworkCallback(networkWatch)
+        }
         runCatching {
             rikka.shizuku.Shizuku.removeBinderReceivedListener(shizukuConnected)
             rikka.shizuku.Shizuku.removeBinderDeadListener(shizukuGone)

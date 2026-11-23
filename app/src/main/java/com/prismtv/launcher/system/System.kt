@@ -322,7 +322,8 @@ class PrismAccessibilityService : AccessibilityService() {
     }
 }
 
-data class NetStatus(val title: String, val subtitle: String, val connected: Boolean, val ethernet: Boolean)
+/** [bars]: Wi-Fi signal as the time pill draws it, 1–3 arcs (3 for Ethernet and when Android doesn't say). */
+data class NetStatus(val title: String, val subtitle: String, val connected: Boolean, val ethernet: Boolean, val bars: Int = 3)
 
 object SystemActions {
 
@@ -437,11 +438,26 @@ object SystemActions {
         when {
             caps == null -> NetStatus("Wi-Fi", "Not Connected", connected = false, ethernet = false)
             caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetStatus("Ethernet", "Connected", true, true)
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetStatus("Wi-Fi", "Connected", true, false)
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetStatus("Wi-Fi", "Connected", true, false, wifiBars(ctx, caps))
             else -> NetStatus("Network", "Connected", true, false)
         }
     } catch (_: Throwable) {
         NetStatus("Wi-Fi", "Unavailable", connected = false, ethernet = false)
+    }
+
+    /** Wi-Fi signal in arcs: 3 from -62 dBm, 2 from -72 dBm, else 1 (connected, but weak). */
+    private fun wifiBars(ctx: Context, caps: NetworkCapabilities): Int {
+        var rssi = if (Build.VERSION.SDK_INT >= 29) caps.signalStrength else Int.MIN_VALUE
+        if (rssi == Int.MIN_VALUE || rssi >= 0) rssi = runCatching {
+            @Suppress("DEPRECATION")
+            (ctx.applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager).connectionInfo.rssi
+        }.getOrDefault(Int.MIN_VALUE)
+        return when {
+            rssi >= 0 || rssi <= -127 -> 3 // not known (WifiInfo.INVALID_RSSI): full rather than a false alarm
+            rssi >= -62 -> 3
+            rssi >= -72 -> 2
+            else -> 1
+        }
     }
 
     /** Where sound is going: a connected Bluetooth/USB device's name, or HDMI / TV Speakers. */

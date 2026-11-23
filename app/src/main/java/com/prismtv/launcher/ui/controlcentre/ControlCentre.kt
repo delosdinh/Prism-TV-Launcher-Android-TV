@@ -108,7 +108,7 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
     val theme = LocalPrism.current
     val p = theme.palette
     val ctx = LocalContext.current
-    val net = remember(vm.resumeTick, visible) { SystemActions.network(ctx) }
+    val net = vm.network
     val f = vm.ccFocus
     // Header and caption sit straight on the dimmed backdrop, not on glass, so they're always white
     // (whatever the Glass Colour) with a soft shadow, over a shade that darkens the corner behind them.

@@ -50,6 +50,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.SettingsEthernet
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.graphics.luminance
 import com.prismtv.launcher.ui.SpotlightLayout
@@ -204,6 +205,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
         TimePill(
             time = clock,
             weather = if (vm.prefs.weather) vm.weather else null,
+            network = if (vm.prefs.wifiStatus) vm.network else null,
             notifications = vm.notifications.size,
             unit = vm.prefs.temperatureUnit,
             focus = if (vm.zone == Zone.TopBar && vm.overlay == Overlay.None) vm.topIndex else -1,
@@ -859,8 +861,47 @@ private fun MoveHint(visible: Boolean, modifier: Modifier) {
 
 // ------------------------------------------------------------------------------------------ time pill
 
+/**
+ * Wi-Fi as iOS draws it: a wedge and two arcs, those above the signal faint. Offline: all faint and
+ * struck through.
+ */
 @Composable
-private fun TimePill(time: String, weather: Weather?, notifications: Int, unit: TemperatureUnit, focus: Int, modifier: Modifier) {
+private fun WifiGlyph(bars: Int, offline: Boolean, ink: Color, size: Dp) {
+    androidx.compose.foundation.Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val c = Offset(w / 2f, h * 0.80f)
+        val faint = ink.copy(alpha = ink.alpha * 0.32f)
+        fun arcSize(r: Float) = androidx.compose.ui.geometry.Size(r * 2f, r * 2f)
+        val wedge = w * 0.23f
+        drawArc(
+            if (bars >= 1) ink else faint, -135f, 90f, useCenter = true,
+            topLeft = Offset(c.x - wedge, c.y - wedge), size = arcSize(wedge),
+        )
+        val stroke = Stroke(w * 0.12f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        listOf(0.40f, 0.61f).forEachIndexed { i, k ->
+            val r = w * k
+            drawArc(
+                if (bars >= i + 2) ink else faint, -135f, 90f, useCenter = false,
+                topLeft = Offset(c.x - r, c.y - r), size = arcSize(r), style = stroke,
+            )
+        }
+        if (offline) {
+            drawLine(ink, Offset(w * 0.16f, h * 0.10f), Offset(w * 0.84f, h * 0.90f), w * 0.11f, androidx.compose.ui.graphics.StrokeCap.Round)
+        }
+    }
+}
+
+@Composable
+private fun TimePill(
+    time: String,
+    weather: Weather?,
+    network: com.prismtv.launcher.system.NetStatus?,
+    notifications: Int,
+    unit: TemperatureUnit,
+    focus: Int,
+    modifier: Modifier,
+) {
     val theme = LocalPrism.current
     val p = theme.palette
     val pillFocused = focus == 0
@@ -885,6 +926,11 @@ private fun TimePill(time: String, weather: Weather?, notifications: Int, unit: 
             WeatherGlyph(weather, 17.dp, monochrome = pillFocused, ink = ink)
             HSpace(4.dp)
             PText(weather.label(unit), 14.sp, FontWeight.SemiBold, ink)
+        }
+        if (network != null) {
+            HSpace(10.dp)
+            if (network.ethernet) PIcon(Icons.Rounded.SettingsEthernet, ink, 18.dp)
+            else WifiGlyph(if (network.connected) network.bars else 0, offline = !network.connected, ink = ink, size = 17.dp)
         }
         if (notifications > 0) {
             HSpace(10.dp)

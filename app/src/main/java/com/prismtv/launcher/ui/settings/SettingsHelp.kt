@@ -119,6 +119,7 @@ private val Exact: Map<String, String> = mapOf(
     "widgets" to "Rows of cards from apps, such as Continue Watching, above or below the dock.",
     "weather" to "Shows the temperature and conditions in the time pill.",
     "tempUnit" to "Celsius or Fahrenheit.",
+    "wifi" to "Shows the Wi-Fi signal in the time pill, or Ethernet when the TV is wired, and a crossed-out Wi-Fi when it's offline.",
     "notif" to "Lets Prism TV show notifications and Now Playing in Control Centre.",
     "columns" to "How many apps fit in each row.",
     "labels" to "When app names show under the apps.",
