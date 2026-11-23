@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "PrismTVLauncher"
 include(":app")
+// Records Prism TV's startup profile on a device (see baselineprofile/README.md).
+include(":baselineprofile")

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -64,7 +65,17 @@ android {
     }
 }
 
+// The startup profile recorded on a device by :baselineprofile (src/release/generated/baselineProfiles),
+// added to the hand-written rules in src/main/baseline-prof.txt. It's only re-recorded on request (a
+// commit with [profile] in its message runs .github/workflows/baseline-profile.yml), never in a build.
+baselineProfile {
+    automaticGenerationDuringBuild = false
+    // Startup code first in the APK's dex files, so a cold start reads less.
+    dexLayoutOptimization = true
+}
+
 dependencies {
+    "baselineProfile"(project(":baselineprofile"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     // Prism Keyboard (an input method) hosts Compose outside an activity.

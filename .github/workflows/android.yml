@@ -50,16 +50,16 @@ jobs:
       - name: Build debug APK
         run: |
           set -o pipefail
-          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt; then exit 0; fi
+          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleDebug 2>&1 | tee build-log.txt; then exit 0; fi
           # Fresh runners sometimes fail to download a dependency ("Could not find …"); try once more.
           grep -qE "Could not (find|resolve|GET|HEAD)" build-log.txt || exit 1
           echo "::warning::Dependency download failed; retrying the build once"
           sleep 20
-          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS assembleDebug 2>&1 | tee build-log.txt
+          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS :app:assembleDebug 2>&1 | tee build-log.txt
 
       - name: Build release APK
         continue-on-error: true
-        run: ./gradlew --no-daemon $GRADLE_VERSION_ARGS assembleRelease
+        run: ./gradlew --no-daemon $GRADLE_VERSION_ARGS :app:assembleRelease
 
       # Belt and braces: Software Update is only offered for APKs that really carry the permanent key.
       - name: Check APK signatures
