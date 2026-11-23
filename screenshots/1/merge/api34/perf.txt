@@ -1,24 +1,24 @@
 apk bytes: 4606061
-apk dex 1513602, images 2267074, audio 275054 (0 compressed), other 495906
-cold start ms:  1698 1440 1562 1426 1288  (median 1440)
+apk dex 1513891, images 2267074, audio 275054 (0 compressed), other 495911
+cold start ms:  1417 1578 1377 1280 1487  (median 1417)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  185 159 161 204 193  (median 185)
-walk: Total frames rendered: 76
-walk: Janky frames: 76 (100.00%)
-walk: Janky frames (legacy): 76 (100.00%)
+back to home ms:  182 168 151 192 166  (median 168)
+walk: Total frames rendered: 75
+walk: Janky frames: 75 (100.00%)
+walk: Janky frames (legacy): 75 (100.00%)
 walk: 50th percentile: 200ms
-walk: 90th percentile: 300ms
-walk: 99th percentile: 650ms
-walk: Number Slow UI thread: 47
-rapid: Total frames rendered: 62
-rapid: Janky frames: 62 (100.00%)
-rapid: Janky frames (legacy): 62 (100.00%)
+walk: 90th percentile: 250ms
+walk: 99th percentile: 700ms
+walk: Number Slow UI thread: 41
+rapid: Total frames rendered: 19
+rapid: Janky frames: 19 (100.00%)
+rapid: Janky frames (legacy): 19 (100.00%)
 rapid: 90th percentile: 150ms
-rapid: Number Slow UI thread: 32
-memory: Native Heap    40172    40136        8       27    41068    57392    43544     3139
-memory: Java Heap:     5528                          19476
-memory: Native Heap:    40136                          41068
+rapid: Number Slow UI thread: 9
+memory: Native Heap    48224    48184        4       30    49032    65504    51573     3129
+memory: Java Heap:     5676                          19652
+memory: Native Heap:    48184                          49032
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    77707            TOTAL RSS:   168412       TOTAL SWAP PSS:      308
-idle on home, 60 s: 17 ticks
-behind another app, 60 s: 1 ticks
+memory: TOTAL PSS:    88256            TOTAL RSS:   180244       TOTAL SWAP PSS:      305
+idle on home, 60 s: 8 ticks
+behind another app, 60 s: 0 ticks
