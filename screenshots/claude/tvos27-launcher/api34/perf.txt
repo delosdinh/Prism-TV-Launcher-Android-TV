@@ -1,24 +1,24 @@
-apk bytes: 4606061
-apk dex 1518079, images 2267074, audio 275054 (0 compressed), other 495898
-cold start ms:  1748 1507 1505 1377 1346  (median 1505)
+apk bytes: 4622449
+apk dex 1519410, images 2267074, audio 275054 (0 compressed), other 495903
+cold start ms:  1960 1686 1503 1359 1390  (median 1503)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  202 168 188 196 192  (median 192)
-walk: Total frames rendered: 79
-walk: Janky frames: 79 (100.00%)
-walk: Janky frames (legacy): 79 (100.00%)
-walk: 50th percentile: 200ms
+back to home ms:  222 221 192 201 221  (median 221)
+walk: Total frames rendered: 87
+walk: Janky frames: 87 (100.00%)
+walk: Janky frames (legacy): 87 (100.00%)
+walk: 50th percentile: 150ms
 walk: 90th percentile: 300ms
-walk: 99th percentile: 650ms
-walk: Number Slow UI thread: 52
-rapid: Total frames rendered: 0
-rapid: Janky frames: 0 (0.00%)
-rapid: Janky frames (legacy): 0 (0.00%)
-rapid: 90th percentile: 4950ms
-rapid: Number Slow UI thread: 0
-memory: Native Heap    31887    31868        0       26    32868    48916    35091     2955
-memory: Java Heap:     5480                          20712
-memory: Native Heap:    31868                          32868
+walk: 99th percentile: 700ms
+walk: Number Slow UI thread: 53
+rapid: Total frames rendered: 36
+rapid: Janky frames: 36 (100.00%)
+rapid: Janky frames (legacy): 36 (100.00%)
+rapid: 90th percentile: 300ms
+rapid: Number Slow UI thread: 27
+memory: Native Heap    38179    38164        0       29    39092    55448    40961     3847
+memory: Java Heap:     4660                          19636
+memory: Native Heap:    38164                          39092
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    71475            TOTAL RSS:   172016       TOTAL SWAP PSS:      273
-idle on home, 60 s: 18 ticks
-behind another app, 60 s: 1 ticks
+memory: TOTAL PSS:    71591            TOTAL RSS:   172020       TOTAL SWAP PSS:      281
+idle on home, 60 s: 1146 ticks
+behind another app, 60 s: 2 ticks
