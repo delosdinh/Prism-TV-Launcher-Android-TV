@@ -1,24 +1,24 @@
 apk bytes: 4606065
-apk dex 1513998, images 2267074, audio 275054 (0 compressed), other 495899
-cold start ms:  2675 2390 2730 2743 2243  (median 2675)
+apk dex 1514573, images 2267074, audio 275054 (0 compressed), other 495902
+cold start ms:  3334 3867 2830 2631 2506  (median 2830)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  228 204 233 245 237  (median 233)
-walk: Total frames rendered: 71
-walk: Janky frames: 71 (100.00%)
-walk: Janky frames (legacy): 71 (100.00%)
+back to home ms:  280 258 242 243 243  (median 243)
+walk: Total frames rendered: 66
+walk: Janky frames: 66 (100.00%)
+walk: Janky frames (legacy): 66 (100.00%)
 walk: 50th percentile: 250ms
-walk: 90th percentile: 400ms
-walk: 99th percentile: 1200ms
-walk: Number Slow UI thread: 33
-rapid: Total frames rendered: 60
-rapid: Janky frames: 60 (100.00%)
-rapid: Janky frames (legacy): 60 (100.00%)
-rapid: 90th percentile: 150ms
-rapid: Number Slow UI thread: 30
-memory: Native Heap    53398    53380        0       25    54412    69664    55014     3230
-memory: Java Heap:     7848                          20720
-memory: Native Heap:    53380                          54412
+walk: 90th percentile: 450ms
+walk: 99th percentile: 1350ms
+walk: Number Slow UI thread: 36
+rapid: Total frames rendered: 48
+rapid: Janky frames: 48 (100.00%)
+rapid: Janky frames (legacy): 48 (100.00%)
+rapid: 90th percentile: 200ms
+rapid: Number Slow UI thread: 24
+memory: Native Heap    53357    53336        0       30    54364    68996    54977     2924
+memory: Java Heap:     7728                          23848
+memory: Native Heap:    53336                          54364
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    84693            TOTAL RSS:   178804       TOTAL SWAP PSS:      256
-idle on home, 60 s: 16 ticks
-behind another app, 60 s: 1 ticks
+memory: TOTAL PSS:    84216            TOTAL RSS:   182168       TOTAL SWAP PSS:      179
+idle on home, 60 s: 18 ticks
+behind another app, 60 s: 2 ticks
