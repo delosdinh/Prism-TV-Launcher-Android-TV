@@ -53,9 +53,22 @@ object MediaWatcher {
     }.toString()
 
     private val callback = object : MediaController.Callback() {
-        override fun onPlaybackStateChanged(state: PlaybackState?) = refresh()
+        override fun onPlaybackStateChanged(state: PlaybackState?) = refreshState()
         override fun onMetadataChanged(metadata: MediaMetadata?) = refresh()
         override fun onSessionDestroyed() = refresh()
+    }
+
+    /**
+     * Play, pause, seek and buffering only change the playing flag. Reading the metadata again copied the
+     * title's artwork into Prism each time (players report their state often), only to be thrown away.
+     */
+    private fun refreshState() {
+        val shown = state.value
+        if (demo != null || shown == null) return refresh()
+        val c = current()
+        if (c == null || c.packageName != shown.pkg) return refresh()
+        val playing = runCatching { c.playbackState?.state == PlaybackState.STATE_PLAYING }.getOrDefault(false)
+        if (playing != shown.playing) state.value = shown.copy(playing = playing)
     }
 
     private val sessionsChanged = MediaSessionManager.OnActiveSessionsChangedListener { list ->
@@ -150,8 +163,8 @@ object MediaWatcher {
         fun stateOf(c: MediaController) = runCatching { c.playbackState?.state }.getOrNull()
         return controllers.firstOrNull { stateOf(it) == PlaybackState.STATE_PLAYING }
             ?: controllers.firstOrNull {
-                runCatching { it.metadata }.getOrNull() != null &&
-                    stateOf(it) in setOf(PlaybackState.STATE_PAUSED, PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING)
+                stateOf(it) in setOf(PlaybackState.STATE_PAUSED, PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING) &&
+                    runCatching { it.metadata }.getOrNull() != null
             }
     }
 

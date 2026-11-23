@@ -285,7 +285,9 @@ class MainActivity : ComponentActivity() {
     override fun dump(prefix: String, fd: java.io.FileDescriptor?, writer: java.io.PrintWriter, args: Array<out String>?) {
         super.dump(prefix, fd, writer, args)
         writer.println("${prefix}Prism memory:")
-        runCatching { vm.memoryReport() }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
+        // `… MainActivity gc`: also collect garbage first, to tell memory still held from memory waiting to be freed.
+        val collect = args?.any { it == "gc" } == true
+        runCatching { vm.memoryReport(collect) }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
     }
 
     override fun onTrimMemory(level: Int) {

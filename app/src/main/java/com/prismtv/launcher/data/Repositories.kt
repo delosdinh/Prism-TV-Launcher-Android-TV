@@ -399,9 +399,13 @@ class ArtRepository(private val context: Context) {
         thumbs.get(ref.key)?.let { return@withContext it }
         val bmp = try {
             decode(ref, maxSide = width * 2)
-        } catch (_: Throwable) {
+        } catch (t: Throwable) {
+            android.util.Log.i("PrismArt", "card artwork failed (${ref.key.take(120)}): ${t.javaClass.simpleName} ${t.message.orEmpty().take(120)}")
             null
-        } ?: return@withContext null
+        } ?: run {
+            android.util.Log.i("PrismArt", "card artwork unreadable (${ref.key.take(120)})")
+            return@withContext null
+        }
         val h = (width * bmp.height.toFloat() / bmp.width).roundToInt().coerceAtLeast(1)
         val out = if (bmp.width > width) Bitmap.createScaledBitmap(bmp, width, h, true).also { if (it !== bmp) bmp.recycle() } else bmp
         gpuOnly(out).asImageBitmap().also { thumbs.put(ref.key, it) }

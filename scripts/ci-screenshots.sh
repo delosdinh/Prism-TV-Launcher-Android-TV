@@ -607,7 +607,7 @@ memsnap() { # label
   start "${B[@]}" "${DARK[@]}" --es screen home; sleep 6
   memsnap home
   # Prism's own breakdown of the bitmaps it holds (Activity.dump).
-  adb shell dumpsys activity "$PKG/.MainActivity" | sed -n '/Prism memory:/,$p' | head -14
+  adb shell dumpsys activity "$PKG/.MainActivity" gc | sed -n '/Prism memory:/,$p' | head -16
   adb shell dumpsys meminfo "$PKG" | grep -A12 "App Summary" | sed 's/^/summary: /'
   for _ in 1 2 3 4 5; do adb shell input keyevent KEYCODE_MENU; sleep 1.5; adb shell input keyevent KEYCODE_BACK; sleep 1.5; done
   memsnap "after cc x5"

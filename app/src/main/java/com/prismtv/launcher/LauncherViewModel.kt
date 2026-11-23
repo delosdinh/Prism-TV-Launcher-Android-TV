@@ -530,21 +530,37 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val version = thumbVersions.getOrPut(ref.key) { mutableIntStateOf(0) }
         @Suppress("UNUSED_VARIABLE") val v = version.intValue
         artRepo.cachedThumb(ref)?.let { return it }
-        if (ref.key !in loadingThumbs && ref.key !in failedThumbs) {
+        val failed = failedThumbs[ref.key]
+        if (ref.key !in loadingThumbs && (failed == null || android.os.SystemClock.elapsedRealtime() >= failed.retryAt)) {
             loadingThumbs += ref.key
             viewModelScope.launch {
                 val t = artRepo.thumb(ref, width)
                 loadingThumbs -= ref.key
-                if (t == null) failedThumbs += ref.key
-                version.intValue++
+                if (t != null) {
+                    failedThumbs.remove(ref.key)
+                    version.intValue++
+                } else {
+                    // Try again later: 30 s, then doubling up to 15 minutes. Whatever shows it asks again
+                    // when its version changes; nothing does once it's off screen.
+                    val attempts = (failedThumbs[ref.key]?.attempts ?: 0) + 1
+                    val wait = minOf(30_000L shl minOf(attempts - 1, 5), 15 * 60_000L)
+                    failedThumbs[ref.key] = ThumbFailure(attempts, android.os.SystemClock.elapsedRealtime() + wait)
+                    version.intValue++
+                    delay(wait)
+                    version.intValue++
+                }
             }
         }
         return null
     }
     private val thumbVersions = HashMap<String, androidx.compose.runtime.MutableIntState>()
     private val loadingThumbs = HashSet<String>()
-    /** Artwork that couldn't be loaded (no logo for a title, a dead link): not retried this session. */
-    private val failedThumbs = HashSet<String>()
+    /**
+     * Artwork that couldn't be loaded, and when to try again. It used to be never (this session): a card
+     * whose picture failed while the network was still coming up after a restart stayed blank for good.
+     */
+    private class ThumbFailure(val attempts: Int, val retryAt: Long)
+    private val failedThumbs = HashMap<String, ThumbFailure>()
 
     // ---------------------------------------------------------------- wallpaper
     /** The Spotlight Top Shelf's background (and the Home Screen's when the Top Shelf is off). */
@@ -5206,8 +5222,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** What Prism holds in memory, by kind: printed by `dumpsys activity com.prismtv.launcher/.MainActivity`. */
-    fun memoryReport(): List<String> {
+    fun memoryReport(collect: Boolean = false): List<String> {
         val mb = { bytes: Long -> com.prismtv.launcher.system.BitmapTally.mb(bytes) }
+        val pss = runCatching {
+            val mi = android.os.Debug.MemoryInfo().also { android.os.Debug.getMemoryInfo(it) }
+            fun stat(k: String) = (mi.getMemoryStat(k)?.toLongOrNull() ?: 0L) * 1024
+            "PSS ${mb(mi.totalPss * 1024L)}: native heap ${mb(stat("summary.native-heap"))}, graphics ${mb(stat("summary.graphics"))}, " +
+                "Java heap ${mb(stat("summary.java-heap"))}, code ${mb(stat("summary.code"))}, private other ${mb(stat("summary.private-other"))}"
+        }.getOrElse { "PSS unavailable" }
+        val rt0 = Runtime.getRuntime()
+        val before = "Java heap in use ${mb(rt0.totalMemory() - rt0.freeMemory())}, native heap in use ${mb(android.os.Debug.getNativeHeapAllocatedSize())}"
+        if (collect) {
+            // Bitmaps nobody holds any more keep their pixels until the garbage collector frees them.
+            repeat(2) { Runtime.getRuntime().gc(); System.runFinalization(); Thread.sleep(300) }
+        }
         val banners = com.prismtv.launcher.system.BitmapTally("app banners (${realApps.size} apps)")
         val icons = com.prismtv.launcher.system.BitmapTally("app icons")
         realApps.forEach { banners.add(it.banner); icons.add(it.icon) }
@@ -5216,8 +5244,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val inputs = com.prismtv.launcher.system.BitmapTally("inputs (${inputApps.size})")
         inputApps.forEach { inputs.add(it.banner); inputs.add(it.icon) }
         val rt = Runtime.getRuntime()
-        return listOf(
-            "Java heap in use ${mb(rt.totalMemory() - rt.freeMemory())}, native heap in use ${mb(android.os.Debug.getNativeHeapAllocatedSize())}",
+        return listOfNotNull(
+            pss,
+            before,
+            if (collect) "after collecting garbage: Java heap in use ${mb(rt.totalMemory() - rt.freeMemory())}, native heap in use ${mb(android.os.Debug.getNativeHeapAllocatedSize())}" else null,
             banners.toString(), icons.toString(), shown.toString(), inputs.toString(),
         ) + artRepo.memoryLines() + listOf(
             com.prismtv.launcher.data.IconPacks.memoryLine(),
