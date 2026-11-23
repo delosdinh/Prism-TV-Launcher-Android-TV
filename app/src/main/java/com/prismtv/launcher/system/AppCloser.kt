@@ -118,13 +118,17 @@ object AppCloser {
             tried = running.map { it.first }.toSet()
             when (m) {
                 Method.Shizuku -> withContext(Dispatchers.IO) {
-                    running.forEach { (pkg, _) -> if (ShizukuShell.forceStop(pkg)) stopped += pkg }
                     // Gone from Android's own app switcher too (a force stop leaves its card there).
-                    SystemRecents.remove(targets.map { it.first }) { ShizukuShell.exec(it) }
+                    val recents = { SystemRecents.remove(targets.map { it.first }) { ShizukuShell.exec(it) } }
+                    if (SystemRecents.removeFirst) recents()
+                    running.forEach { (pkg, _) -> if (ShizukuShell.forceStop(pkg)) stopped += pkg }
+                    if (!SystemRecents.removeFirst) recents()
                 }
                 Method.Root -> withContext(Dispatchers.IO) {
+                    val recents = { SystemRecents.remove(targets.map { it.first }) { RootShell.exec(it) } }
+                    if (SystemRecents.removeFirst) recents()
                     running.forEach { (pkg, _) -> if (RootShell.forceStop(pkg)) stopped += pkg }
-                    SystemRecents.remove(targets.map { it.first }) { RootShell.exec(it) }
+                    if (!SystemRecents.removeFirst) recents()
                 }
                 Method.Accessibility -> if (running.isNotEmpty()) {
                     val still = try {
@@ -325,14 +329,29 @@ object SystemRecents {
     // releases print "TaskRecord{… #12 A=com.example.app …}" or "I=com.example.app/.Main".
     private val task = Regex("""Recent #\d+: Task(?:Record)?\{[0-9a-f]+ #(\d+)[^}]*?(?:A=(?:\d+:)?|I=)([A-Za-z0-9_.]+)""")
 
-    /** `am stack remove` takes a task id from Android 12 (earlier it took a stack id). */
-    val supported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 31
+    private val rootTask = Regex("""StackId=(\d+)""")
+
+    /**
+     * `am stack remove` takes a task id from Android 12. On Android 11 (the SHIELD) it takes the task's
+     * root task, printed as "StackId=" on the same line, and only while the task is still open: so there
+     * the cards go before the force stop (a stopped app's card is only a record, which this can't reach).
+     */
+    val removeSupported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 30
+    val removeFirst: Boolean get() = android.os.Build.VERSION.SDK_INT < 31
+
+    /** `am clear-recent-apps` (Closing Apps › Clear Android's Recent Apps). */
+    val clearAllSupported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 31
 
     /** Removes the cards of [pkgs]; how many went. */
     fun remove(pkgs: Collection<String>, exec: (String) -> Pair<Int?, String>?): Int {
-        if (!supported || pkgs.isEmpty()) return 0
+        if (!removeSupported || pkgs.isEmpty()) return 0
         val out = runCatching { exec("dumpsys activity recents")?.second }.getOrNull() ?: return 0
-        val ids = task.findAll(out).filter { it.groupValues[2] in pkgs }.map { it.groupValues[1] }.distinct().toList()
+        val ids = out.lineSequence().mapNotNull { line ->
+            val m = task.find(line) ?: return@mapNotNull null
+            if (m.groupValues[2] !in pkgs) return@mapNotNull null
+            if (android.os.Build.VERSION.SDK_INT >= 31) m.groupValues[1]
+            else rootTask.find(line)?.groupValues?.get(1)?.takeIf { it != "-1" && it != "0" } ?: m.groupValues[1]
+        }.distinct().toList()
         if (ids.isEmpty()) return 0
         runCatching { exec(ids.joinToString("; ") { "am stack remove $it" }) }
         return ids.size

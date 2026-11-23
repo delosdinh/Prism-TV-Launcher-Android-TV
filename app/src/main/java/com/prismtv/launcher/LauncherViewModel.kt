@@ -3344,7 +3344,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             } else {
                 null
             },
-            if (com.prismtv.launcher.system.SystemRecents.supported) {
+            if (com.prismtv.launcher.system.SystemRecents.clearAllSupported) {
                 SettingsRow("cl:recents", "Clear Android's Recent Apps", "ANDROID'S OWN APP SWITCHER")
             } else null,
         )

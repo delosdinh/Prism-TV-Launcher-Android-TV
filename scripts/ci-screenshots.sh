@@ -586,9 +586,13 @@ accept_adb_prompt() {
   if [ -n "$TARGET" ]; then
     timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1; sleep 8
     echo "before: pid=$(adb shell pidof "$TARGET" | tr -d '\r')"
+    # Its card in Android's own Recents (Android 11 prints StackId=, 12+ rootTaskId=).
+    echo "recents before: $(adb shell dumpsys activity recents | grep -E "Recent #.*$TARGET" | head -2 | tr -d '\r')"
     adb logcat -c || true
     start "${B[@]}" "${DARK[@]}" --es screen home --es closeApp "$TARGET" --ei closeDelay 2000; sleep 8
     echo "after: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')"
+    echo "recents after: $(adb shell dumpsys activity recents | grep -cE "Recent #.*$TARGET") card(s)"
+    echo "am clear-recent-apps listed: $(adb shell am help 2>&1 | grep -c clear-recent-apps)"
     adb logcat -d -s PrismClose:I | grep "method=" | tail -1
   fi
 } 2>&1 | tee "$OUT/shizuku-test.txt"
