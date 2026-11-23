@@ -90,7 +90,7 @@ data class LauncherPrefs(
     val heroEnabled: Boolean = true,
     val heroAutoRotate: Boolean = true,
     val heroSource: HeroSource = HeroSource.Recommendations,
-    val columns: Int = 6,
+    val columns: Int = 5,
     val demoContent: Boolean = false,
     val hiddenApps: Set<String> = emptySet(),
     /** With the accessibility service on, the remote's Home button opens Prism TV. */
@@ -126,7 +126,7 @@ data class LauncherPrefs(
     /** "scene:<name>" (a Prism wallpaper) or "photo:<content uri>" (one of the user's pictures). */
     val wallpaper: String = "scene:aurora",
     /** Widget rows (by row key) placed above or below the dock. */
-    val widgets: Map<String, WidgetPlace> = emptyMap(),
+    val widgets: Map<String, WidgetPlace> = mapOf("all:continue" to WidgetPlace.Below),
     val keyboardColour: KeyboardColour = KeyboardColour.Automatic,
     /** With the Power & Home Button service on: show Prism TV after the TV restarts (Google TV). */
     val openAtStartup: Boolean = true,
@@ -183,7 +183,7 @@ data class LauncherPrefs(
     /** App Switcher cards show what each app was showing (a snapshot taken as you press Home). */
     val appSnapshots: Boolean = true,
     /** New notifications slide in over the app you're watching (through Power & Home Button). */
-    val bannersOverApps: Boolean = false,
+    val bannersOverApps: Boolean = true,
     /** Settings › Remote Buttons (see RemoteButtons.encode), and what holding Home does. */
     val remoteButtons: String = "",
     val homeHold: String = "default",
@@ -236,7 +236,8 @@ class PrefsStore(context: Context) {
             textSize = sp.getInt("textSize", d.textSize).coerceIn(0, TextScales.size - 1),
             topShelfStyle = enumOr(sp.getString("topShelfStyle", null), d.topShelfStyle),
             wallpaper = sp.getString("wallpaper", null) ?: d.wallpaper,
-            widgets = parseWidgets(sp.getString("widgets", null)),
+            // Never saved → the default rows; saved empty → you turned every row off.
+            widgets = sp.getString("widgets", null)?.let { parseWidgets(it) } ?: d.widgets,
             keyboardColour = enumOr(sp.getString("keyboardColour", null), d.keyboardColour),
             openAtStartup = sp.getBoolean("openAtStartup", d.openAtStartup),
             focusEffect = enumOr(sp.getString("focusEffect", null), d.focusEffect),

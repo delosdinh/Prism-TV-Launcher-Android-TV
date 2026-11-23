@@ -125,7 +125,7 @@ emu_key() { # linux code, hold seconds
   adb emu event send "1:$1:0" "0:0:0" >/dev/null 2>&1
 }
 
-B=(--ez demo true --ez autorotate false --es clock "9:41")
+B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false)
 DARK=(--es appearance dark --es glass liquid)
 
 # Warm up (first launch decodes artwork).
