@@ -81,6 +81,12 @@ launcher counterpart to the Prism TV skin for Kodi.
   Frequently Used), a **suggestion bar** (the word as typed, the correction, completions) and
   **auto-correction** tuned for remotes (a neighbouring key is the most likely slip). Delete right
   after a correction puts back what you typed. Double space types a full stop.
+- **Next-word predictions** after a space ("I am" → not, a, sure), from common English phrases and
+  the phrases you type yourself (learnt on the TV only, included in Backup).
+- **Hold a key for its accents**, as on iOS: é è ê ë on e, ü ú on u, ñ, ç, ß… in a strip above it
+  (Left / Right, Select; Back closes). Holding . ? ! ' " - $ offers … ¿ ¡ curly quotes, dashes and
+  currencies. A letter without accents still types its capital. Accented words are never
+  auto-corrected.
 - **Dictation**: the mic key (or the remote's Search / mic button while the keyboard is up) listens
   through the remote's microphone once Dictation Microphone is allowed, or opens Android's voice
   input screen.
@@ -93,7 +99,9 @@ launcher counterpart to the Prism TV skin for Kodi.
   `ime enable com.prismtv.launcher/.ime.PrismKeyboardService` then
   `ime set com.prismtv.launcher/.ime.PrismKeyboardService` (`ime reset` goes back).
 - Suggestions come from 56,000 English words ([wordfreq](https://github.com/rspeer/wordfreq) data,
-  CC BY-SA 4.0; see [`tools/keyboard`](tools/keyboard)).
+  CC BY-SA 4.0), next-word predictions from the Google Books Ngram Corpus as published by
+  [orgtre/google-books-ngram-frequency](https://github.com/orgtre/google-books-ngram-frequency)
+  (CC BY 3.0); see [`tools/keyboard`](tools/keyboard).
 
 **Profile** (Settings › Profile, or the avatar in Control Centre)
 - Your name and picture: one of twelve Prism avatars or one of your own pictures.

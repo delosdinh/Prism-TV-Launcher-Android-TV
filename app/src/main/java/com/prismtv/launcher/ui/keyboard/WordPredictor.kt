@@ -8,6 +8,9 @@ import kotlin.math.ln
  * Suggestions and auto-correction for Prism Keyboard, from a bundled list of 56,000 English words in
  * frequency order (see tools/keyboard). On a TV the usual slip is landing on the key next to the one you
  * meant, so neighbouring-key mistakes are the cheapest corrections.
+ *
+ * Next-word predictions come from the most common two- and three-word phrases in Google Books (en_next,
+ * see tools/keyboard), with what you've typed after a word before ahead of them.
  */
 class WordPredictor private constructor(private val context: Context) {
     /**
@@ -19,6 +22,10 @@ class WordPredictor private constructor(private val context: Context) {
     /** By rank: known words that are never suggested. */
     private lateinit var quietByRank: BooleanArray
     private val userWords = HashSet<String>()
+    /** Context ("of", "i am") → likely next words, most likely first. */
+    private val nextByContext = HashMap<String, Array<String>>(4_000)
+    /** "previous\tnext" → times you typed it, most recently used last (capped). */
+    private val learnedNext = LinkedHashMap<String, Int>(256, 0.75f, true)
 
     /** Frequency rank of [w], or -1 if it isn't in the list. */
     private fun rankOf(w: String): Int {
@@ -45,7 +52,55 @@ class WordPredictor private constructor(private val context: Context) {
         sortedRank = IntArray(keep.size) { keep[it] }
         quietByRank = BooleanArray(words.size) { quietList[it] }
         userWords += sp.getStringSet("userWords", emptySet()).orEmpty()
+        context.resources.openRawResource(R.raw.en_next).bufferedReader().useLines { lines ->
+            lines.forEach { line ->
+                val tab = line.indexOf('\t')
+                if (tab > 0) nextByContext[line.substring(0, tab)] = line.substring(tab + 1).split(' ').toTypedArray()
+            }
+        }
+        sp.getString("learnedNext", null)?.lineSequence()?.forEach { line ->
+            val parts = line.split('\t')
+            if (parts.size == 3) parts[2].toIntOrNull()?.let { learnedNext[parts[0] + "\t" + parts[1]] = it }
+        }
     }
+
+    /**
+     * What usually follows [prev1] (with [prev2] before it, if any), best first: what you've typed after
+     * it before, then common three-word phrases, then two-word ones.
+     */
+    @Synchronized
+    fun nextWords(prev2: String?, prev1: String, n: Int): List<String> {
+        val p1 = prev1.lowercase()
+        val out = ArrayList<String>(n)
+        fun add(w: String) {
+            if (out.size < n && out.none { it.equals(w, ignoreCase = true) }) out += w
+        }
+        val phrase: List<String> = prev2?.let { nextByContext[it.lowercase() + " " + p1]?.asList() }.orEmpty()
+        val pair: List<String> = nextByContext[p1]?.asList().orEmpty()
+        // Learnt words are kept lowercase: written as the phrase lists write them where they can (York).
+        val spelt = (phrase + pair).associateBy { it.lowercase() }
+        learnedNext.entries.filter { it.key.startsWith(p1 + "\t") }.sortedByDescending { it.value }
+            .forEach { e -> e.key.substringAfter('\t').let { add(spelt[it] ?: shownNext(it)) } }
+        phrase.forEach(::add)
+        pair.forEach(::add)
+        return out
+    }
+
+    /** Remembers that you typed [word] after [prev], so it's offered there next time. */
+    @Synchronized
+    fun learnNext(prev: String, word: String) {
+        val a = prev.lowercase()
+        val b = word.lowercase()
+        if (a.isEmpty() || b.isEmpty() || a.length > 30 || b.length > 30) return
+        if (!(a.all { it.isLetter() || it == '\'' } && b.all { it.isLetter() || it == '\'' })) return
+        val key = a + "\t" + b
+        learnedNext[key] = (learnedNext[key] ?: 0) + 1
+        while (learnedNext.size > MaxLearnedNext) learnedNext.remove(learnedNext.keys.first())
+        sp.edit().putString("learnedNext", learnedNext.entries.joinToString("\n") { it.key + "\t" + it.value }).apply()
+    }
+
+    /** A learnt word as it's written ("I", "I'm"; otherwise lowercase, cased later to fit). */
+    private fun shownNext(w: String): String = if (w == "i" || w.startsWith("i'")) "I" + w.substring(1) else w
 
     fun isWord(word: String): Boolean {
         val w = word.lowercase()
@@ -136,6 +191,9 @@ class WordPredictor private constructor(private val context: Context) {
             }
 
         fun peek(): WordPredictor? = instance
+
+        /** Phrases learnt from your typing, at most (the least recently used go first). */
+        private const val MaxLearnedNext = 1_500
 
         /** Apostrophe-less contractions, as iOS fixes them. */
         private val Contractions = mapOf(

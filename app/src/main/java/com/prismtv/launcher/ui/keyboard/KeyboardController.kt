@@ -24,7 +24,7 @@ interface KeyboardEditor {
 enum class KbNav { Up, Down, Left, Right, Select, LongSelect, Delete }
 
 data class Suggestion(val text: String, val kind: Kind) {
-    enum class Kind { Typed, Correction, Completion }
+    enum class Kind { Typed, Correction, Completion, Prediction }
 }
 
 /**
@@ -370,9 +370,30 @@ class KeyboardController(
             if (!corrected) lastCorrection = null
             ed.commit(" ")
         }
+        learnLastPair(ed)
         sound(Cue.Key)
         updateAutoCap()
         refresh()
+    }
+
+    /** The two words before the cursor (the earlier may be null), if the text ends with a word and one space. */
+    private fun wordsBeforeSpace(ed: KeyboardEditor): Pair<String?, String>? {
+        val before = ed.textBefore(64)
+        if (before.length < 2 || before.last() != ' ' || before[before.length - 2].isWhitespace()) return null
+        val body = before.dropLast(1)
+        if (!(body.last().isLetter() || body.last() == '\'')) return null // after "." or "," start afresh
+        val words = body.split(' ').filter { it.isNotEmpty() }
+        val last = words.lastOrNull()?.trim('\'') ?: return null
+        if (last.isEmpty() || !last.all { it.isLetter() || it == '\'' }) return null
+        val prev = words.getOrNull(words.size - 2)?.takeIf { w -> w.isNotEmpty() && w.all { it.isLetter() || it == '\'' } }
+        return prev to last
+    }
+
+    /** What you typed after which word, for next-word predictions (not in password fields). */
+    private fun learnLastPair(ed: KeyboardEditor) {
+        if (!suggestionsOn) return
+        val (prev, last) = wordsBeforeSpace(ed) ?: return
+        if (prev != null) predictor?.learnNext(prev, last)
     }
 
     /** Replaces the word before the cursor with its auto-correction. Returns true if it changed. */
@@ -447,6 +468,7 @@ class KeyboardController(
                 ed.commit(s.text + " ")
             }
         }
+        learnLastPair(ed)
         lastCorrection = null
         keepWord = null
         sound(Cue.Key)
@@ -465,7 +487,27 @@ class KeyboardController(
         }
         val word = currentWord(ed)
         val out = ArrayList<Suggestion>()
-        if (word.isNotEmpty() && word.any { it.isLetter() }) {
+        if (word.isEmpty()) {
+            // After a word and a space: what usually comes next ("of" → the, a, his).
+            wordsBeforeSpace(ed)?.let { (prev, last) ->
+                val caps = ed.capsMode()
+                val loud = last.length > 1 && last.all { !it.isLetter() || it.isUpperCase() }
+                p.nextWords(prev, last, 3).forEach { w ->
+                    val shown = when {
+                        loud -> w.uppercase()
+                        caps -> w.replaceFirstChar { it.uppercase() }
+                        else -> w
+                    }
+                    out += Suggestion(shown, Suggestion.Kind.Prediction)
+                }
+            }
+            suggestions = out
+            if (row == -1) {
+                if (suggestions.isEmpty()) { row = 0; col = KeyboardLayout.nearest(layer, 0, slotX(col)) } else col = col.coerceAtMost(suggestions.size - 1)
+            }
+            return
+        }
+        if (word.any { it.isLetter() }) {
             out += Suggestion(word, Suggestion.Kind.Typed)
             val fix = if (autoCorrectOn && !word.equals(keepWord, true)) p.autoCorrection(word)?.let { matchCase(it, word) } else null
             if (fix != null && fix != word) out += Suggestion(fix, Suggestion.Kind.Correction)

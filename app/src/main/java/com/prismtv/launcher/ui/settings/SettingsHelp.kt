@@ -145,7 +145,7 @@ private val Exact: Map<String, String> = mapOf(
     "kbColour" to "The keyboard's colour. Automatic follows Colour Mode; Clear is clear Liquid Glass.",
     "kbField" to "The colour of the text box above Prism's own keyboard. Other apps draw their own.",
     "kb:autocorrect" to "Fixes common typos as you type.",
-    "kb:predictive" to "Suggests words above the keyboard.",
+    "kb:predictive" to "Suggests words above the keyboard as you type, and the likely next word after a space (learning the phrases you use, on this TV only).",
     "kb:mic" to "Lets the keyboard's microphone key use the remote's microphone for dictation.",
 
     // Privacy & Access
