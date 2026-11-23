@@ -235,10 +235,17 @@ private fun HomeBackdrop(
             .backdropSource(backdrop, GlassSource.Background)
     ) {
         Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(palette.bgAccent, palette.bgBase))))
-        // Apple TV Aerials: the video sits under the still, which fades once the aerial is playing
-        // (on Android 11 and older it comes back, blurred, behind the grid: there's no live blur there).
+        // Apple TV Aerials: the video sits under the still, which fades once the aerial is playing. Behind
+        // the grid the aerial blurs live (Android 11 and older: through OpenGL; if that can't start there,
+        // the still comes back, blurred, as before).
         var aerialShown by remember { mutableStateOf(false) }
-        if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(blur = { blur.value }, modifier = Modifier.fillMaxSize(), onShown = { aerialShown = it })
+        var aerialLiveBlur by remember { mutableStateOf(android.os.Build.VERSION.SDK_INT >= 31) }
+        if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(
+            blur = { blur.value },
+            modifier = Modifier.fillMaxSize(),
+            onShown = { aerialShown = it },
+            onLiveBlur = { aerialLiveBlur = it || android.os.Build.VERSION.SDK_INT >= 31 },
+        )
         LaunchedEffect(aerial) { if (!aerial) aerialShown = false }
         val stillAlpha by animateFloatAsState(if (aerial && aerialShown) 0f else 1f, tween(900), label = "aerialStill")
         // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).
@@ -247,7 +254,7 @@ private fun HomeBackdrop(
             animationSpec = tween(if (LocalPrism.current.lite) 350 else 900),
             label = "heroArt",
             modifier = Modifier.graphicsLayer {
-                alpha = if (android.os.Build.VERSION.SDK_INT >= 31) stillAlpha else maxOf(stillAlpha, blur.value)
+                alpha = if (aerialLiveBlur) stillAlpha else maxOf(stillAlpha, blur.value)
             },
         ) { a ->
             if (a != null) {

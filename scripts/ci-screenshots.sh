@@ -416,6 +416,9 @@ if [ "$QUICK" = 0 ]; then
   adb shell dumpsys meminfo -d "$PKG" | grep -E "^ +\.(Heap|LOS) |TOTAL PSS" | sed 's/^ */memory: /' | tee -a "$OUT/aerial-wallpaper.txt"
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen grid --ei row 1 --ei col 1; sleep 5
   cap 74b-grid-aerial-wallpaper
+  # Behind the grid the aerial keeps moving (Android 11: drawn through OpenGL): a later shot differs.
+  sleep 3; cap 74d-grid-aerial-wallpaper-later
+  adb logcat -d -s PrismAerial:V | grep -E "OpenGL|playing|ERROR" | tail -n 4 >> "$OUT/aerial-wallpaper.txt"
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --ez lite true --es screen home --ei col 0; sleep 4
   cap 74c-aerial-wallpaper-lite-still
 fi

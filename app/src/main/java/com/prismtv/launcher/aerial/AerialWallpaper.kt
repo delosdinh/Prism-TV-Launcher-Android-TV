@@ -1,5 +1,9 @@
 package com.prismtv.launcher.aerial
 
+import android.graphics.SurfaceTexture
+import android.os.Handler
+import android.os.Looper
+import android.view.Surface
 import android.view.TextureView
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -7,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,10 +34,19 @@ import com.prismtv.launcher.data.AerialRange
  * Settings › Wallpaper › Apple TV Aerials: the aerials play, silently, behind the Home Screen. 1080p
  * SDR (light on the TV's decoder), shown only while Home is on screen; the still underneath shows
  * until the first frame and in Lite Mode. Drawn through a TextureView so Liquid Glass can see it.
+ *
+ * Behind the app grid it blurs: with RenderEffect on Android 12 and later, through [AerialGlRenderer] on
+ * Android 11 and older ([onLiveBlur] says when that's running, so the blurred still can stay away).
  */
 @Composable
-fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (Boolean) -> Unit = {}) {
+fun AerialWallpaper(
+    blur: () -> Float,
+    modifier: Modifier = Modifier,
+    onShown: (Boolean) -> Unit = {},
+    onLiveBlur: (Boolean) -> Unit = {},
+) {
     val ctx = LocalContext.current
+    val liveBlur by rememberUpdatedState(onLiveBlur)
     var videos by remember { mutableStateOf(Resume.list) }
     LaunchedEffect(Unit) {
         if (videos == null) {
@@ -41,6 +57,7 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (
     val list = videos ?: return
     if (list.isEmpty()) return
     var shown by remember { mutableStateOf(false) }
+    val gl = remember { GlHolder() }
     val player = remember {
         ExoPlayer.Builder(ctx).setLoadControl(AerialBuffer.wallpaper()).build().apply {
             volume = 0f
@@ -83,25 +100,94 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (
             Resume.index = player.currentMediaItemIndex
             Resume.position = player.currentPosition
             player.removeListener(listener)
+            gl.playerReleased = true
             player.release()
             AerialBuffer.released()
             onShown(false)
         }
     }
+    // Android 11 and older: drawn through OpenGL so the blur behind the grid can move (no RenderEffect).
+    var useGl by remember { mutableStateOf(android.os.Build.VERSION.SDK_INT < 31 && !Resume.glFailed) }
+    LaunchedEffect(useGl) {
+        if (!useGl) liveBlur(false)
+        else snapshotFlow { blur() }.collect { b ->
+            gl.blur = b
+            gl.renderer?.setBlur(b)
+        }
+    }
     // Always drawn at full strength (a TextureView that's never drawn never gets its first frame):
     // the still above it fades away once the aerial is playing.
-    AndroidView(
-        factory = { c -> TextureView(c).also { player.setVideoTextureView(it) } },
-        modifier = modifier.graphicsLayer {
-            val b = blur()
-            if (android.os.Build.VERSION.SDK_INT >= 31 && b > 0.01f) {
-                // Lighter than a still's blur, so the aerial still reads as moving behind the app grid.
-                val r = (22f * b).dp.toPx()
-                renderEffect = android.graphics.RenderEffect.createBlurEffect(r, r, android.graphics.Shader.TileMode.CLAMP)
-                    .asComposeRenderEffect()
-            } else renderEffect = null
-        },
-    )
+    key(useGl) {
+        AndroidView(
+            factory = { c ->
+                TextureView(c).also { tv ->
+                    if (!useGl) {
+                        player.setVideoTextureView(tv)
+                    } else {
+                        tv.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                            override fun onSurfaceTextureAvailable(st: SurfaceTexture, width: Int, height: Int) {
+                                val main = Handler(Looper.getMainLooper())
+                                val r = AerialGlRenderer(
+                                    st, width, height,
+                                    onInput = { surface ->
+                                        main.post {
+                                            if (!gl.playerReleased && gl.renderer != null) {
+                                                gl.surface = surface
+                                                player.setVideoSurface(surface)
+                                            }
+                                        }
+                                    },
+                                    onFirstFrame = { main.post { if (gl.renderer != null) liveBlur(true) } },
+                                    onFailed = {
+                                        main.post {
+                                            Resume.glFailed = true
+                                            gl.renderer = null
+                                            useGl = false
+                                        }
+                                    },
+                                )
+                                r.setBlur(gl.blur)
+                                gl.renderer = r
+                            }
+
+                            override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, width: Int, height: Int) {
+                                gl.renderer?.resize(width, height)
+                            }
+
+                            override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
+                                val r = gl.renderer ?: return true
+                                gl.surface?.let { if (!gl.playerReleased) player.clearVideoSurface(it) }
+                                gl.surface = null
+                                gl.renderer = null
+                                liveBlur(false)
+                                r.release() // releases st once it has stopped drawing into it
+                                return false
+                            }
+
+                            override fun onSurfaceTextureUpdated(st: SurfaceTexture) = Unit
+                        }
+                    }
+                }
+            },
+            modifier = modifier.graphicsLayer {
+                val b = blur()
+                if (android.os.Build.VERSION.SDK_INT >= 31 && b > 0.01f) {
+                    // Lighter than a still's blur, so the aerial still reads as moving behind the app grid.
+                    val r = (22f * b).dp.toPx()
+                    renderEffect = android.graphics.RenderEffect.createBlurEffect(r, r, android.graphics.Shader.TileMode.CLAMP)
+                        .asComposeRenderEffect()
+                } else renderEffect = null
+            },
+        )
+    }
+}
+
+/** The OpenGL path's pieces, shared between the TextureView's listener and the player's disposal. */
+private class GlHolder {
+    var renderer: AerialGlRenderer? = null
+    var surface: Surface? = null
+    var blur = 0f
+    var playerReleased = false
 }
 
 /** Where the Home aerials were, so they pick up there. */
@@ -111,4 +197,6 @@ private object Resume {
     var position = 0L
     var errors = 0
     var http = false
+    /** OpenGL wouldn't start on this TV: the still stands in behind the grid, as before. */
+    var glFailed = false
 }
