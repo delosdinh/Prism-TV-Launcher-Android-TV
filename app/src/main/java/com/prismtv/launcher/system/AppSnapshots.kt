@@ -130,6 +130,7 @@ object AppSnapshots {
             tmp.renameTo(file(ctx, pkg))
             small.recycle()
             version++
+            com.prismtv.launcher.system.MemTrace.count("snapshots")
             Log.i(Tag, "$pkg: snapshot saved")
         } catch (t: Throwable) {
             Log.i(Tag, "$pkg: couldn't save snapshot: ${t.message}")

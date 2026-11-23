@@ -63,6 +63,7 @@ object MediaWatcher {
      * title's artwork into Prism each time (players report their state often), only to be thrown away.
      */
     private fun refreshState() {
+        com.prismtv.launcher.system.MemTrace.count("playback updates")
         val shown = state.value
         if (demo != null || shown == null) return refresh()
         val c = current()
@@ -169,6 +170,7 @@ object MediaWatcher {
     }
 
     private fun refresh() {
+        com.prismtv.launcher.system.MemTrace.count("now playing reads")
         demo?.let { state.value = it; return }
         val ctx = appContext
         val c = current()

@@ -375,6 +375,7 @@ class ArtRepository(private val context: Context) {
             luma = lowerLuma(heavy),
         )
         cache.put(ref.key, art)
+        com.prismtv.launcher.system.MemTrace.count("backdrops loaded")
         art
     }
 
@@ -400,14 +401,17 @@ class ArtRepository(private val context: Context) {
         val bmp = try {
             decode(ref, maxSide = width * 2)
         } catch (t: Throwable) {
+            com.prismtv.launcher.system.MemTrace.count("card failures")
             android.util.Log.i("PrismArt", "card artwork failed (${ref.key.take(120)}): ${t.javaClass.simpleName} ${t.message.orEmpty().take(120)}")
             null
         } ?: run {
+            com.prismtv.launcher.system.MemTrace.count("card failures")
             android.util.Log.i("PrismArt", "card artwork unreadable (${ref.key.take(120)})")
             return@withContext null
         }
         val h = (width * bmp.height.toFloat() / bmp.width).roundToInt().coerceAtLeast(1)
         val out = if (bmp.width > width) Bitmap.createScaledBitmap(bmp, width, h, true).also { if (it !== bmp) bmp.recycle() } else bmp
+        com.prismtv.launcher.system.MemTrace.count("cards loaded")
         gpuOnly(out).asImageBitmap().also { thumbs.put(ref.key, it) }
     }
 

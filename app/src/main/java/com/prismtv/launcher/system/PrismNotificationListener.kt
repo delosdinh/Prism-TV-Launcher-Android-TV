@@ -103,6 +103,7 @@ class PrismNotificationListener : NotificationListenerService() {
     private fun publish() {
         worker.removeCallbacksAndMessages(null)
         worker.post {
+            com.prismtv.launcher.system.MemTrace.count("notification updates")
             val active = runCatching { activeNotifications?.toList() }.getOrNull().orEmpty()
             state.value = active
                 .filter { useful(it) }

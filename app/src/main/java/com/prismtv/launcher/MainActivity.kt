@@ -262,6 +262,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onResume() {
+        com.prismtv.launcher.system.MemTrace.start()
+        com.prismtv.launcher.system.MemTrace.count("returns to Prism")
         super.onResume()
         com.prismtv.launcher.system.Foreground.prismResumed = true
         hideSystemBars()
@@ -417,6 +419,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     }
 
     val clock = rememberClock(vm.clockOverride)
+    LaunchedEffect(vm.overlay) { if (vm.overlay != Overlay.None) com.prismtv.launcher.system.MemTrace.opened(vm.overlay.name) }
     val scope = rememberCoroutineScope()
     val keys = remember { RemoteKeys(vm, scope) }
     val focusRequester = remember { FocusRequester() }

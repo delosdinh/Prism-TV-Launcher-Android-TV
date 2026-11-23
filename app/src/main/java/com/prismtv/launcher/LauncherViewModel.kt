@@ -926,6 +926,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Reloads the apps. [debounce]: Store updates arrive as bursts of package changes; refresh once after. */
     fun refreshApps(debounce: Boolean = false) {
+        com.prismtv.launcher.system.MemTrace.count("app list reloads")
         loadInputs()
         if (prefs.demoContent) return
         val wait = debounce && realApps.isNotEmpty()
@@ -950,6 +951,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Re-reads other apps' recommendation cards (they change as you watch things). */
     fun refreshRecommendations(force: Boolean = false) {
+        com.prismtv.launcher.system.MemTrace.count("recommendation reloads")
         if (prefs.demoContent) return
         val now = System.currentTimeMillis()
         if (!force && now - lastRecsLoad < 60_000) return
@@ -1807,6 +1809,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // ================================================================= launching
 
     fun startLaunch(app: LauncherApp, from: Rect) {
+        com.prismtv.launcher.system.MemTrace.count("app launches")
         if (app.demo == null && screenTimeBlocks(app)) return
         // Apps you just swiped away close first, so (say) their music doesn't play on under the next app.
         if (pendingClose.isNotEmpty() && !closeFlushing) {
