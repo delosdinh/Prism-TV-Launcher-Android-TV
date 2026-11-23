@@ -221,7 +221,8 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                 }
             }
             // Caption for icon-only controls, like the tvOS focus label.
-            val caption = captions[f]
+            // Free Up Memory says what it's doing, then what it freed, in its caption.
+            val caption = (if (f == CC.Memory) vm.memoryCaption else null) ?: captions[f]
             PText(
                 caption ?: "", 13.sp, FontWeight.SemiBold, ink,
                 Modifier

@@ -107,6 +107,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -2148,13 +2149,29 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun freeUpMemory() {
         if (freeingMemory) return
         freeingMemory = true
+        memoryCaptionJob?.cancel()
+        memoryCaption = "Freeing Memory…"
         viewModelScope.launch {
             val t0 = SystemClock.elapsedRealtime()
-            val availBefore = withContext(Dispatchers.IO) { com.prismtv.launcher.system.MemoryCleaner.available(ctx) }
-            // Closing apps one by one through Shizuku can take a moment: say so.
+            val cleaner = com.prismtv.launcher.system.MemoryCleaner
+            val availBefore = withContext(Dispatchers.IO) { cleaner.available(ctx) }
+            // Memory comes back as each process ends, and some of it is taken again as Android restarts the
+            // services it keeps running (Google Play services, the recommendations service…). The figure
+            // is the best reading while it works and just after: what Free Up Memory gave back.
+            val best = java.util.concurrent.atomic.AtomicLong(availBefore)
+            var samples = 0
+            val sampler = launch(Dispatchers.IO) {
+                while (isActive) {
+                    best.accumulateAndGet(cleaner.available(ctx)) { a, b -> maxOf(a, b) }
+                    samples++
+                    delay(150)
+                }
+            }
+            // Closing apps one by one through Shizuku can take a moment: say so (Control Centre's caption
+            // already does, under the button).
             val working = launch {
                 delay(700)
-                showBanner("Free Up Memory", "Freeing memory…", Icons.Rounded.Memory, null)
+                if (!memoryCaptionShown()) showBanner("Free Up Memory", "Freeing memory…", Icons.Rounded.Memory, null)
             }
             try {
                 // The App Switcher's apps are closed completely when Closing Apps can (and leave the switcher).
@@ -2179,7 +2196,6 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                         closedApps = r.closed.size
                     }
                 }
-                val cleaner = com.prismtv.launcher.system.MemoryCleaner
                 val playing = nowPlaying?.pkg
                 val keep = withContext(Dispatchers.IO) { cleaner.keep(ctx, playing) }
                 val asked = withContext(Dispatchers.IO) { cleaner.killBackground(ctx, keep) }
@@ -2196,40 +2212,73 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val held = artRepo.releaseUnused()
                 withContext(Dispatchers.IO) { repeat(2) { Runtime.getRuntime().gc(); System.runFinalization() } }
                 trims?.let { kotlinx.coroutines.withTimeoutOrNull(8_000) { it.join() } }
-                delay(600) // Android finishes tearing down what was stopped
+                delay(1_200) // Android finishes tearing down what was stopped
+                sampler.cancel()
                 val availAfter = withContext(Dispatchers.IO) { cleaner.available(ctx) }
-                val freed = availAfter - availBefore
+                val peak = maxOf(best.get(), availAfter)
+                val freed = (peak - availBefore).coerceAtLeast(0L)
                 android.util.Log.i(
                     "PrismFree",
                     "closed $closedApps, asked $asked packages, shell ${if (shell == null) "none" else "trims"}, " +
-                        "Prism artwork let go ${held / 1_048_576} MB, available ${availBefore / 1_048_576} → ${availAfter / 1_048_576} MB " +
-                        "in ${SystemClock.elapsedRealtime() - t0} ms",
+                        "Prism artwork let go ${held / 1_048_576} MB, available ${availBefore / 1_048_576} → best " +
+                        "${peak / 1_048_576} → ${availAfter / 1_048_576} MB after ($samples readings), freed " +
+                        "${freed / 1_048_576} MB in ${SystemClock.elapsedRealtime() - t0} ms",
                 )
                 com.prismtv.launcher.system.MemTrace.count("free up memory")
                 working.cancel()
-                val parts = listOfNotNull(
-                    when {
-                        closedApps == 1 -> "Closed 1 app"
-                        closedApps > 1 -> "Closed $closedApps apps"
-                        else -> null
-                    },
-                    when {
-                        freed >= 1_073_741_824L -> "Freed %.1f GB".format(freed / 1_073_741_824.0)
-                        freed >= 10L * 1_048_576 -> "Freed ${freed / 1_048_576} MB"
-                        else -> null
-                    },
-                )
-                showBanner(
-                    "Free Up Memory",
-                    (parts.ifEmpty { if (asked > 0 || shell != null) listOf("Closed background apps") else emptyList() } +
-                        "%.1f GB available".format(availAfter / 1_073_741_824.0)).joinToString(" · "),
-                    Icons.Rounded.Memory,
-                    Cue.Clear,
-                )
+                val freedText = when {
+                    freed >= 1_073_741_824L -> "Freed %.1f GB".format(freed / 1_073_741_824.0)
+                    freed >= 1_048_576L -> "Freed ${freed / 1_048_576} MB"
+                    else -> "Nothing more to free"
+                }
+                val availText = "%.1f GB available".format(availAfter / 1_073_741_824.0)
+                val closedText = when {
+                    closedApps == 1 -> "Closed 1 app"
+                    closedApps > 1 -> "Closed $closedApps apps"
+                    else -> null
+                }
+                if (memoryCaptionShown()) {
+                    // Control Centre is open on Free Up Memory: the result shows under the button, where
+                    // you're looking (a banner would sit over the tiles).
+                    sounds.play(Cue.Clear)
+                    val freedCaption = if (freed >= 1_048_576L) freedText else "Nothing to Free"
+                    showMemoryCaption("$freedCaption · " + "%.1f GB Available".format(availAfter / 1_073_741_824.0))
+                } else {
+                    memoryCaption = null
+                    showBanner(
+                        "Free Up Memory",
+                        listOfNotNull(closedText, freedText, availText).joinToString(" · "),
+                        Icons.Rounded.Memory,
+                        Cue.Clear,
+                    )
+                }
             } finally {
+                sampler.cancel()
                 working.cancel()
+                if (memoryCaption == "Freeing Memory…") memoryCaption = null
                 freeingMemory = false
             }
+        }
+    }
+
+    /**
+     * Control Centre's caption under Free Up Memory while it works ("Freeing Memory…") and for a few seconds
+     * after ("Freed 412 MB · 1.6 GB Available"); null shows the usual "Free Up Memory".
+     */
+    var memoryCaption by mutableStateOf<String?>(null)
+        private set
+    private var memoryCaptionJob: kotlinx.coroutines.Job? = null
+
+    private fun memoryCaptionShown() = overlay == Overlay.ControlCentre && ccFocus == CC.Memory
+
+    private fun showMemoryCaption(text: String) {
+        memoryCaption = text
+        memoryCaptionJob?.cancel()
+        memoryCaptionJob = viewModelScope.launch {
+            // Until focus leaves the button or Control Centre closes, for up to 8 seconds.
+            val until = SystemClock.elapsedRealtime() + 8_000
+            while (SystemClock.elapsedRealtime() < until && memoryCaptionShown()) delay(200)
+            if (memoryCaption == text) memoryCaption = null
         }
     }
     private var freeingMemory = false

@@ -636,6 +636,11 @@ memsnap() { # label
   sleep 6
   memsnap "after free up memory"
   adb logcat -d -s PrismClose:I | tail -3
+  # Closing Control Centre while it works: the result comes as a banner instead of the caption.
+  start "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei focus 13; sleep 4
+  adb shell input keyevent KEYCODE_DPAD_CENTER; sleep 0.3; adb shell input keyevent KEYCODE_BACK
+  sleep 3; cap 47o-free-up-memory-banner
+  adb logcat -d -s PrismFree:I | tail -1
 } 2>&1 | tee "$OUT/memory-test.txt"
 
 # Notification access through Do It for Me (Prism TV's own adb client, allowed above where it can reach adbd).
