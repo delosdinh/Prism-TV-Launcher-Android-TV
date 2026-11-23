@@ -103,7 +103,6 @@ import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SettingsRemote
-import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.TouchApp
@@ -287,8 +286,8 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "about" to glyph(Icons.Rounded.Info, 0xFF9C9CA3, 0xFF5E5E64),
     "restart" to glyph(Icons.Rounded.RestartAlt, 0xFF9C9CA3, 0xFF5E5E64),
     "reset" to glyph(Icons.Rounded.Restore, 0xFFFF6961, 0xFFD63A31),
-    "upd:check" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
-    "update" to glyph(Icons.Rounded.SystemUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
+    "upd:check" to glyph(com.prismtv.launcher.ui.components.PrismIcons.TvUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
+    "update" to glyph(com.prismtv.launcher.ui.components.PrismIcons.TvUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
     "ss:range" to glyph(Icons.Rounded.HdrOn, 0xFFFFC94D, 0xFFE08A00),
     "kbColour" to glyph(Icons.Rounded.Keyboard, 0xFF9C9CA3, 0xFF5E5E64),
     "textSize" to glyph(Icons.Rounded.FormatSize, 0xFF3D9BFF, 0xFF0A5FE0),
