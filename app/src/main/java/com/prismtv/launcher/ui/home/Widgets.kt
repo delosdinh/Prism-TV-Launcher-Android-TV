@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.home
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -55,8 +56,9 @@ fun WidgetRows(
     labelColor: Color,
 ) {
     if (above.isEmpty() && below.isEmpty()) return
-    val vis by animateFloatAsState(if (hidden) 0f else 1f, tween(350), label = "widgetsVis")
-    if (vis < 0.01f) return
+    val visState = animateFloatAsState(if (hidden) 0f else 1f, tween(350), label = "widgetsVis")
+    val vis by visState
+    if (!visState.atLeast(0.01f)) return
     val focusZone = vm.zone == Zone.Widget
     Box(Modifier.fillMaxSize().graphicsLayer { alpha = vis }) {
         above.forEachIndexed { i, row ->

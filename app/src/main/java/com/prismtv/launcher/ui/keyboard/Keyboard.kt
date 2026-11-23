@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.keyboard
 
 import androidx.compose.animation.core.RepeatMode
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -366,8 +367,9 @@ fun KeyboardOverlay(
     val holder = remember { arrayOfNulls<com.prismtv.launcher.KeyboardRequest>(1) }
     if (live != null) holder[0] = live
     val req = holder[0] ?: return
-    val t by animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "kb")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "kb")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val c = keyColoursFor(look, clear)
     val m = KeyboardMetrics.Overlay
     val kb = vm.keyboardController

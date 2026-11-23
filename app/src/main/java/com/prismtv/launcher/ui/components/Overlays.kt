@@ -65,8 +65,9 @@ fun DialogHost(spec: DialogSpec?, focus: Int) {
     val holder = remember { arrayOfNulls<DialogSpec>(1) }
     if (spec != null) holder[0] = spec
     val shown = holder[0] ?: return
-    val t by animateFloatAsState(if (spec != null) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 380f), label = "dialog")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (spec != null) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 380f), label = "dialog")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
 
@@ -161,8 +162,9 @@ fun BannerHost(spec: BannerSpec?) {
     val holder = remember { arrayOfNulls<BannerSpec>(1) }
     if (spec != null) holder[0] = spec
     val shown = holder[0] ?: return
-    val t by animateFloatAsState(if (spec != null) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 260f), label = "banner")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (spec != null) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 260f), label = "banner")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
     Box(Modifier.fillMaxSize()) {

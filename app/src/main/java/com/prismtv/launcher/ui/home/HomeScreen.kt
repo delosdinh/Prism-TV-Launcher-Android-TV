@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.home
 
 import androidx.compose.animation.AnimatedContent
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -306,8 +307,9 @@ private fun SpotlightCard(art: HeroArt?, expanded: Boolean, visible: Boolean) {
     // corner radius negative and crashed Prism ("Corner size in Px can't be negative") on the way up.
     val eRaw by animateFloatAsState(if (expanded) 1f else 0f, spring(dampingRatio = 1f, stiffness = 190f), label = "spotGrow")
     val e = eRaw.coerceIn(0f, 1f)
-    val vis by animateFloatAsState(if (visible) 1f else 0f, tween(450), label = "spotVis")
-    if (vis < 0.01f) return
+    val visState = animateFloatAsState(if (visible) 1f else 0f, tween(450), label = "spotVis")
+    val vis by visState
+    if (!visState.atLeast(0.01f)) return
     val left = lerpF(SpotlightLayout.Left, 0f, e)
     val top = lerpF(SpotlightLayout.Top, 0f, e)
     val w = lerpF(SpotlightLayout.W, HomeLayout.ScreenW, e)
@@ -829,8 +831,9 @@ fun WeatherGlyph(w: Weather, size: Dp, monochrome: Boolean = false, ink: Color =
 private fun MoveHint(visible: Boolean, modifier: Modifier) {
     val theme = LocalPrism.current
     val p = theme.palette
-    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 300f), label = "moveHint")
-    if (t < 0.01f) return
+    val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.8f, stiffness = 300f), label = "moveHint")
+    val t by tState
+    if (!tState.atLeast(0.01f)) return
     Row(
         modifier
             .padding(bottom = 22.dp)

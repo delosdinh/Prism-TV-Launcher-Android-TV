@@ -135,6 +135,8 @@ val LocalBackdrop = staticCompositionLocalOf<BackdropState> { error("No Backdrop
 
 /** Records this node's content into [source]'s layer (and its blurred twin) and draws it. */
 fun Modifier.backdropSource(state: BackdropState, source: GlassSource): Modifier = this.drawWithContent {
+    // Debug builds: CI counts how often each source is re-recorded (each one re-renders its copy and blur).
+    if (com.prismtv.launcher.BuildConfig.DEBUG) android.util.Log.d("PrismDraw", source.name)
     val layer = state.raw(source)
     val blurLayer = state.blurred(source)
     layer.record { this@drawWithContent.drawContent() }

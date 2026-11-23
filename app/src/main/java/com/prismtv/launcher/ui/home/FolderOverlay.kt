@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.home
 
 import androidx.compose.animation.core.animateFloatAsState
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,8 +50,9 @@ fun FolderOverlay(vm: LauncherViewModel) {
     vm.openFolder?.let { holder[0] = it }
     val folder = holder[0] ?: return
     val visible = vm.overlay == Overlay.Folder && vm.openFolder != null
-    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "folder")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "folder")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
     val n = folder.apps.size

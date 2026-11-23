@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.home
 
 import android.os.Build
+import com.prismtv.launcher.ui.components.atLeast
 import android.provider.Settings
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -65,8 +66,9 @@ private fun SidebarEntry.icon(): ImageVector = when (this) {
 @Composable
 fun Sidebar(vm: LauncherViewModel, clock: String) {
     val visible = vm.overlay == Overlay.Sidebar
-    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "sidebar")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "sidebar")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
     val ctx = LocalContext.current

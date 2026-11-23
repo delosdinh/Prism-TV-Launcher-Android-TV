@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.search
 
 import androidx.compose.animation.core.animateFloatAsState
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -51,8 +52,9 @@ private const val RowLeft = 60f
 @Composable
 fun SearchResults(vm: LauncherViewModel) {
     val open = vm.searchOpen
-    val t by animateFloatAsState(if (open) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "search")
-    if (t < 0.01f) return
+    val tState = animateFloatAsState(if (open) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "search")
+    val t by tState
+    if (!tState.atLeast(0.01f)) return
     val results = vm.searchResults
     val focus = vm.searchFocus
     // The row scrolls so the focused card stays on screen.

@@ -180,6 +180,13 @@ data class SettingSearchResult(override val label: String, val where: String, va
     override val key: String get() = "setting:${page.name}:${rowId.orEmpty()}:$label"
 }
 
+/**
+ * One row of a Settings list. Rows are rebuilt on every D-pad press, and a row holding an app counted as
+ * unstable (its artwork is an ImageBitmap), so Compose compared rows by instance and recomposed every row
+ * of the page on every press. Every field is a val (the artwork is never changed in place), so Compose may
+ * compare rows by value: only the rows that actually changed (the old and new focus) recompose.
+ */
+@androidx.compose.runtime.Immutable
 data class SettingsRow(
     val id: String,
     val title: String,
@@ -5187,11 +5194,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     /** Debug builds (CI): Liquid Glass's offscreen copies on or off, to time one against the other. */
     var sharpCopies by mutableStateOf(true)
         private set
+    /** Debug A/B only (`--ez isolateScene false`): the Home scene drawn in its parent's layer, as before 0.2.165. */
+    var isolateScene by mutableStateOf(true)
+        private set
 
     fun applyDebug(b: Bundle) {
         debugDriven = true
         sharpCopies = b.getBoolean("sharpCopies", true)
         com.prismtv.launcher.aerial.AerialBuffer.reclaim = b.getBoolean("reclaim", true)
+        isolateScene = b.getBoolean("isolateScene", true)
+        com.prismtv.launcher.ui.components.OverlayDebug.directThresholds = b.getBoolean("directThresholds", false)
         if (b.getString("bench") == "settings") benchSettings()
         // Each shot starts clean: no picker or passcode left over from the last one.
         passcode = null

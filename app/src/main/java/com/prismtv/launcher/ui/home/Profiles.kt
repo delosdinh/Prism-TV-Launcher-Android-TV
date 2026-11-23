@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.home
 
 import androidx.compose.animation.core.Animatable
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
@@ -54,8 +55,9 @@ import com.prismtv.launcher.ui.theme.LocalPrism
 @Composable
 fun ProfilePicker(vm: LauncherViewModel) {
     val visible = vm.profilePicker
-    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 240f), label = "picker")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 240f), label = "picker")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val list = vm.profileList
     val focus = vm.pickerFocus
     Box(
@@ -129,8 +131,9 @@ fun PasscodePad(vm: LauncherViewModel) {
     val holder = remember { arrayOfNulls<LauncherViewModel.PasscodeRequest>(1) }
     if (req != null) holder[0] = req
     val shown = holder[0] ?: return
-    val t by animateFloatAsState(if (req != null) 1f else 0f, spring(dampingRatio = 0.82f, stiffness = 360f), label = "passcode")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (req != null) 1f else 0f, spring(dampingRatio = 0.82f, stiffness = 360f), label = "passcode")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
     val shake = remember { Animatable(0f) }

@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.settings
 
 import androidx.compose.animation.AnimatedContent
+import com.prismtv.launcher.ui.components.atLeast
 import com.prismtv.launcher.ui.glass.glass
 import com.prismtv.launcher.ui.glass.GlassSource
 import androidx.compose.ui.graphics.RectangleShape
@@ -156,8 +157,10 @@ private const val ViewportH = 404f
 @Composable
 fun SettingsScreen(vm: LauncherViewModel) {
     val visible = vm.overlay == Overlay.Settings
-    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.9f, stiffness = 320f), label = "settings")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.9f, stiffness = 320f), label = "settings")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
+    if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "settings") }
     val theme = LocalPrism.current
     val p = theme.palette
     val page = vm.settingsStack.last()
@@ -638,6 +641,7 @@ private fun SectionHeader(title: String) {
 
 @Composable
 private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
+    if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "row") }
     val theme = LocalPrism.current
     val p = theme.palette
     val scale by animateFloatAsState(if (focused) 1.035f else 1f, spring(dampingRatio = 0.7f, stiffness = 420f), label = "row")

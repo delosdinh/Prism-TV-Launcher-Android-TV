@@ -40,6 +40,7 @@ import com.prismtv.launcher.ui.theme.uiBlurRadius
 import com.prismtv.launcher.ui.theme.uiSaturation
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
@@ -464,14 +465,21 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
                 .focusable()
                 .onPreviewKeyEvent { keys.handle(it) }
         ) {
+            // Each source host draws in a layer of its own. Otherwise its drawing belongs to the layer above
+            // it, and anything else that redraws there (an overlay opening, a banner) re-records the source:
+            // a new recording makes Liquid Glass's copy and the blurred twin render the whole Home Screen
+            // again in that frame, although nothing on it changed. A plain layer draws exactly the same.
+            val isolate = if (vm.isolateScene) Modifier.graphicsLayer() else Modifier
             Box(
                 Modifier
                     .fillMaxSize()
+                    .then(isolate)
                     .backdropSource(backdrop, GlassSource.Full)
             ) {
                 Box(
                     Modifier
                         .fillMaxSize()
+                        .then(isolate)
                         .backdropSource(backdrop, GlassSource.Scene)
                 ) {
                     HomeScreen(vm, clock)

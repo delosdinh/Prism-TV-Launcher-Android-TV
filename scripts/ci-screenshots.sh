@@ -307,26 +307,50 @@ frames lite --ez lite true
 # The same for Settings: down the main list (rebuilt rows and page art on every press), into Apps and down.
 start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0; sleep 4
 adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+adb logcat -c
 for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_DOWN; sleep 0.3; done
 for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_UP; sleep 0.3; done
 sleep 1.5
 adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread" \
   | sed "s/^ */settings: /" | tee -a "$OUT/frames.txt"
+# Debug-build counts (logcat): how many Settings rows recomposed over those 24 presses.
+LOG=$(adb logcat -d -s PrismComp:D)
+echo "settings: 24 presses, page composed $(grep -c 'PrismComp: settings' <<<"$LOG")x, rows composed $(grep -c 'PrismComp: row' <<<"$LOG")x" | tee -a "$OUT/frames.txt"
+# Opening and closing Settings and Control Centre: how often each overlay recomposes during its animation,
+# with the threshold read through derivedStateOf (new) and directly (old, --ez directThresholds true).
+overlayopen() { # label, extra args
+  local label="$1"; shift
+  start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 4
+  adb logcat -c
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  adb shell input keyevent KEYCODE_MENU; sleep 2.5
+  adb shell input keyevent KEYCODE_BACK; sleep 2.5
+  local log frames; log=$(adb logcat -d -s PrismComp:D PrismDraw:D)
+  frames=$(adb shell dumpsys gfxinfo "$PKG" | grep -m1 "Total frames rendered" | grep -oE "[0-9]+$")
+  echo "$label: Control Centre open+close: $frames frames, composed $(grep -c 'PrismComp: cc' <<<"$log")x, scene re-recorded $(grep -c 'PrismDraw: Scene' <<<"$log")x" | tee -a "$OUT/frames.txt"
+}
+overlayopen open-new
+overlayopen open-old --ez directThresholds true --ez isolateScene false
+overlayopen open-new-again
 # Control Centre in Liquid Glass: open it, move around, close it. Liquid Glass draws
 # through offscreen copies of the scene; timed with the copies on, off, and on again.
 ccwalk() { # label, extra args
   local label="$1"; shift
   start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 5
   adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  adb logcat -c
   adb shell input keyevent KEYCODE_MENU; sleep 1.2
   for k in RIGHT DOWN DOWN LEFT DOWN RIGHT DOWN DOWN UP UP LEFT UP; do adb shell input keyevent "KEYCODE_DPAD_$k"; sleep 0.35; done
   adb shell input keyevent KEYCODE_BACK; sleep 1.2
   adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread|Slow issue draw" \
     | sed "s/^ */$label: /" | tee -a "$OUT/frames.txt"
+  local log; log=$(adb logcat -d -s PrismComp:D PrismDraw:D)
+  echo "$label: Control Centre composed $(grep -c 'PrismComp: cc' <<<"$log")x, scene re-recorded $(grep -c 'PrismDraw: Scene' <<<"$log")x, full $(grep -c 'PrismDraw: Full' <<<"$log")x" | tee -a "$OUT/frames.txt"
 }
-ccwalk cc-copies
-ccwalk cc-direct --ez sharpCopies false
-ccwalk cc-copies-again
+# New (scene in its own layer, thresholds through derivedStateOf) against the old way, then new again.
+ccwalk cc-new
+ccwalk cc-old --ez isolateScene false --ez directThresholds true
+ccwalk cc-new-again
 # Main-thread cost of building each Settings page's rows, and of preparing one Top Shelf backdrop.
 adb logcat -c || true
 start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0 --es bench settings; sleep 22

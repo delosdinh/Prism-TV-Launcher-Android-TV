@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.controlcentre
 
 import androidx.compose.animation.core.animateFloatAsState
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -100,8 +101,10 @@ private val captions = mapOf(
 @Composable
 fun ControlCentre(vm: LauncherViewModel, clock: String) {
     val visible = vm.overlay == Overlay.ControlCentre
-    val t by animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.84f, stiffness = 280f), label = "cc")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.84f, stiffness = 280f), label = "cc")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
+    if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "cc") }
     val theme = LocalPrism.current
     val p = theme.palette
     val ctx = LocalContext.current

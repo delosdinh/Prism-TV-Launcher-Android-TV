@@ -1,6 +1,7 @@
 package com.prismtv.launcher.ui.home
 
 import androidx.compose.animation.core.animateFloatAsState
+import com.prismtv.launcher.ui.components.atLeast
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -59,8 +60,9 @@ fun ContextMenuHost(vm: LauncherViewModel) {
     val live = vm.contextMenu
     if (live != null) holder[0] = live
     val m = holder[0] ?: return
-    val t by animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 420f), label = "menu")
-    if (t < 0.002f) return
+    val tState = animateFloatAsState(if (live != null) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 420f), label = "menu")
+    val t by tState
+    if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
 
