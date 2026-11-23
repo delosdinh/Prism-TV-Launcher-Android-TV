@@ -176,6 +176,7 @@ private val Exact: Map<String, String> = mapOf(
     // Profiles
     "pr:add" to "Add someone with their own name, picture, passcode and restrictions.",
     "pr:wake" to "Shows Who's Watching? when the TV wakes up.",
+    "pr:start" to "Shows Who's Watching? when the TV starts up. An app set to open at start-up waits until someone's chosen.",
     "pr:edit" to "Change this profile's name and picture.",
     "pr:passcode" to "A 4-digit passcode needed to switch to this profile.",
     "pr:restrict" to "Choose which apps this profile can see.",

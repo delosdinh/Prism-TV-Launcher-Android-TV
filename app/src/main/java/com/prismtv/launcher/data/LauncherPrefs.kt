@@ -172,6 +172,8 @@ data class LauncherPrefs(
     val activeProfile: String = "",
     /** Show "Who's Watching?" when the TV wakes (with two or more profiles). */
     val profilePickerOnWake: Boolean = true,
+    /** Show "Who's Watching?" when the TV starts up (with two or more profiles). */
+    val profilePickerOnStart: Boolean = true,
     /** Prism's own keyboard text field; Automatic matches the keyboard. */
     val keyboardFieldColour: KeyboardColour = KeyboardColour.Clear,
     /** Apps swiped away in the App Switcher are force stopped (Shizuku, root or Power & Home Button), not just trimmed. */
@@ -274,6 +276,7 @@ class PrefsStore(context: Context) {
             profiles = Profiles.decode(sp.getString("profiles", null)),
             activeProfile = sp.getString("activeProfile", d.activeProfile).orEmpty(),
             profilePickerOnWake = sp.getBoolean("profilePickerOnWake", d.profilePickerOnWake),
+            profilePickerOnStart = sp.getBoolean("profilePickerOnStart", d.profilePickerOnStart),
             keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name == sp.getString("keyboardFieldColour", null) } ?: d.keyboardFieldColour,
             closeCompletely = sp.getBoolean("closeCompletely", d.closeCompletely),
             rootClose = sp.getBoolean("rootClose", d.rootClose),
@@ -325,6 +328,7 @@ class PrefsStore(context: Context) {
             .putString("profiles", Profiles.encode(p.profiles))
             .putString("activeProfile", p.activeProfile)
             .putBoolean("profilePickerOnWake", p.profilePickerOnWake)
+            .putBoolean("profilePickerOnStart", p.profilePickerOnStart)
             .putString("keyboardFieldColour", p.keyboardFieldColour.name)
             .putBoolean("closeCompletely", p.closeCompletely)
             .putBoolean("rootClose", p.rootClose)

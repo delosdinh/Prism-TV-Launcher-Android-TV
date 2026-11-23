@@ -129,8 +129,9 @@ launcher counterpart to the Prism TV skin for Kodi.
   Settings › Inputs), hide them, move them or put them in folders like apps. Streaming boxes have no
   inputs, so there's nothing to show there.
 - **Profiles** (Settings › Profiles): everyone gets a name, a picture and, if they like, a 4-digit
-  passcode. **Who's Watching?** (tvOS style) appears when the TV wakes and from Control Centre's
-  profile picture; switching to a profile with a passcode asks for it (the remote's number keys work).
+  passcode. **Who's Watching?** (tvOS style) appears when the TV starts up or wakes (each can be
+  turned off) and from Control Centre's profile picture; an app set to open at start-up waits until
+  someone's chosen. Switching to a profile with a passcode asks for it (the remote's number keys work).
   **Restrictions** (with All Apps on top to allow or block everything at once) hides apps from a profile (tvOS 27's per-profile app blocking): they leave the
   Home Screen, widgets, recent apps and startup, and a restricted profile needs a passcode to open
   Settings and doesn't get Android Settings in the sidebar. The Home Screen layout is shared.

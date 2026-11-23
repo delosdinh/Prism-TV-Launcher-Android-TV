@@ -286,7 +286,7 @@ shot 67d-settings-remote-action    "${B[@]}" --es appearance light --es glass li
 shot 68-settings-screen-time       "${B[@]}" "${DARK[@]}" --ez demoRemote false --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --es downtime 21:00-07:00 --ei usedMinutes 42 --es screen settings --es page ScreenTime --ei focus 0
 shot 68b-screen-time-up            "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --ei usedMinutes 60 --es screen timesup
 shot 68c-downtime-light            "${B[@]}" --es appearance light --es glass liquid --ez demoProfiles true --es activeProfile p-kids --es downtime 21:00-07:00 --es screen timesup --es block downtime
-shot 68d-settings-profiles-time    "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --es screen settings --es page Profiles --ei focus 8
+shot 68d-settings-profiles-time    "${B[@]}" "${DARK[@]}" --ez demoProfiles true --es activeProfile p-kids --ei screenLimit 60 --es screen settings --es page Profiles --ei focus 9
 shot 69-search-recent              "${B[@]}" "${DARK[@]}" --es screen search
 shot 69b-search-typed              "${B[@]}" "${DARK[@]}" --es screen search --es text ci --ei keyRow 1 --ei keyCol 2
 shot 69c-search-results-focus      "${B[@]}" "${DARK[@]}" --es screen search --es text s --ei focus 1

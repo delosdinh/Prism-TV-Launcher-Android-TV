@@ -1577,6 +1577,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         refreshNetwork()
         // Picks up Notification access granted while Prism was away.
         com.prismtv.launcher.system.MediaWatcher.start(ctx)
+        maybeAskWhoAtStartUp()
         maybeOpenAtStartup()
         if (pickerOnResume) {
             pickerOnResume = false
@@ -2346,6 +2347,21 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      * Settings › Open at Startup: the first time Prism appears after the TV starts, open the chosen app
      * (once per start, only in the first few minutes, and not if you've already moved on).
      */
+    /**
+     * Who's Watching? once after the TV starts (Settings › Profiles › Who's Watching at Start-Up): on
+     * Prism's first resume within five minutes of boot, once per boot (not after Prism restarts).
+     */
+    private fun maybeAskWhoAtStartUp() {
+        if (!prefs.profilePickerOnStart || profileList.size < 2 || debugDriven) return
+        val uptime = SystemClock.elapsedRealtime()
+        if (uptime > 5 * 60_000L) return
+        val bootedAt = System.currentTimeMillis() - uptime
+        val sp = ctx.getSharedPreferences("prism_prefs", android.content.Context.MODE_PRIVATE)
+        if (kotlin.math.abs(sp.getLong("pickerBootAt", 0L) - bootedAt) < 60_000L) return
+        sp.edit().putLong("pickerBootAt", bootedAt).apply()
+        pickerOnResume = true
+    }
+
     private fun maybeOpenAtStartup() {
         val id = prefs.startupApp
         if (id.isEmpty() || debugDriven) return
@@ -2359,6 +2375,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             // Apps load in the background just after startup; give them a moment.
             var waited = 0
             while (allApps.none { it.id == id } && waited < 15_000) { delay(250); waited += 250 }
+            // Who's Watching? first: the app opens once someone's chosen (and only if they may use it).
+            while (profilePicker || passcode != null) delay(250)
             val app = allApps.firstOrNull { it.id == id } ?: return@launch
             if (app.id in blockedApps) return@launch
             val pressesBefore = lastInteraction
@@ -4442,6 +4460,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id.startsWith("pr:switch:") -> profileList.firstOrNull { it.id == r.id.removePrefix("pr:switch:") }?.let { chooseProfile(it) }
             r.id == "pr:add" -> addProfile()
             r.id == "pr:wake" -> updatePrefs(p.copy(profilePickerOnWake = !p.profilePickerOnWake))
+            r.id == "pr:start" -> updatePrefs(p.copy(profilePickerOnStart = !p.profilePickerOnStart))
             r.id == "pr:edit" -> {
                 loadPhotos()
                 pushPage(SettingsPage.Profile)
@@ -4967,6 +4986,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         } + listOf(
             SettingsRow("pr:add", "Add Profile", "PROFILES", chevron = true),
             SettingsRow("pr:wake", "Who's Watching on Wake", "PROFILES", onOff(prefs.profilePickerOnWake)),
+            SettingsRow("pr:start", "Who's Watching at Start-Up", "PROFILES", onOff(prefs.profilePickerOnStart)),
             SettingsRow("pr:edit", "Name & Picture", mine, chevron = true),
             SettingsRow("pr:passcode", "Passcode", mine, onOff(me.locked)),
             SettingsRow("pr:restrict", "Restrictions", mine, if (me.blocked.isEmpty()) "None" else "${me.blocked.size} Blocked", chevron = true),
