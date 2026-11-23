@@ -109,9 +109,9 @@ data class LauncherPrefs(
     /** Prism TV Originals navigation sounds (focus, select, back…). */
     val sounds: Boolean = true,
     /** Material Colour; Automatic follows [appearance] (Colour Mode), Clear has no tint. */
-    val glassColour: GlassColour = GlassColour.Automatic,
+    val glassColour: GlassColour = GlassColour.Clear,
     /** Settings & Pop-ups Transparency. */
-    val uiTransparency: UiTransparency = UiTransparency.Medium,
+    val uiTransparency: UiTransparency = UiTransparency.High,
     /** Minutes without a button press on the Home Screen before the aerials start; 0 = Never. */
     val screensaverAfter: Int = 2,
     /** Don't start the screensaver while music or a video is playing. */
@@ -122,7 +122,7 @@ data class LauncherPrefs(
     val screensaverPictures: Set<String> = emptySet(),
     /** Index into [TextScales]. */
     val textSize: Int = DefaultTextSize,
-    val topShelfStyle: TopShelfStyle = TopShelfStyle.FullScreen,
+    val topShelfStyle: TopShelfStyle = TopShelfStyle.Spotlight,
     /** "scene:<name>" (a Prism wallpaper) or "photo:<content uri>" (one of the user's pictures). */
     val wallpaper: String = "scene:aurora",
     /** Widget rows (by row key) placed above or below the dock. */
@@ -140,7 +140,7 @@ data class LauncherPrefs(
     /** Rows gathered from every app ("all:…"): only these packages; empty = every app. */
     val widgetApps: Map<String, Set<String>> = emptyMap(),
     /** Seconds between wallpapers (0 = Off). */
-    val wallpaperShuffle: Int = 0,
+    val wallpaperShuffle: Int = 30,
     /** Wallpapers in the shuffle ("scene:…" / "photo:…"); empty = every Prism wallpaper. */
     val shuffleSet: Set<String> = emptySet(),
     /** The Top Shelf shows a title's logo artwork in place of its name when the app or Nuvio has one. */
@@ -171,7 +171,7 @@ data class LauncherPrefs(
     /** Show "Who's Watching?" when the TV wakes (with two or more profiles). */
     val profilePickerOnWake: Boolean = true,
     /** Prism's own keyboard text field; Automatic matches the keyboard. */
-    val keyboardFieldColour: KeyboardColour = KeyboardColour.Automatic,
+    val keyboardFieldColour: KeyboardColour = KeyboardColour.Clear,
     /** Apps swiped away in the App Switcher are force stopped (Shizuku, root or Power & Home Button), not just trimmed. */
     val closeCompletely: Boolean = true,
     /** Closing Apps may use `su` (asked for once, from Settings). */
