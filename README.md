@@ -22,8 +22,9 @@ launcher counterpart to the Prism TV skin for Kodi.
   the Prism wallpapers and your own pictures you tick.
 - **Apple TV Aerials as the wallpaper** (Settings › Home Screen › Wallpaper › Apple TV Aerials): the
   aerials play silently behind Home (with Card Spotlight, or with the Top Shelf off), in 1080p SDR so
-  they're light on the TV. They pause behind apps, blur with the grid, and Liquid Glass bends them
-  like any wallpaper. Lite Mode shows a still instead.
+  they're light on the TV. They pause behind apps, keep moving (blurred) behind the grid — on
+  Android 11 TVs like the SHIELD too, drawn through OpenGL — and Liquid Glass bends them like any
+  wallpaper. Lite Mode shows a still instead.
 - **Now Playing on the Top Shelf**: when an app is playing (music, a video in the background), its
   dock tile's Top Shelf leads with a Now Playing card — artwork, title, Play/Pause and Skip.
 - **Widgets** (Settings › Home Screen › Widgets): rows of cards from your apps — Continue Watching,
@@ -48,7 +49,9 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Sidebar capsule**: press **Left** on the first app, or **Back** on the Home Screen, for a glass
   capsule (sized to its entries) with Search, Home, Recent Apps, Prism Settings, Android Settings
   and **Play Store** (with its own icon; Amazon Appstore or Aptoide TV on boxes without Google Play).
-- **Time pill** (top-right) with the current weather, a **notification bell with a badge** (only
+- **Time pill** (top-right) with the current weather, **Wi-Fi** as on iOS (signal strength, Ethernet
+  when wired, crossed out when offline; Settings › Home Screen › Time Pill › Wi-Fi), a
+  **notification bell with a badge** (only
   when something's waiting) and the profile avatar — opens Control Centre, which lists the
   notifications (OK opens one; Left or Right slides it aside to show **Clear**, as on iOS; the small ✕ above the list opens into **Clear All**). Needs Notification access for Prism TV:
   Settings › Privacy & Access › **Notifications & Now Playing** opens Android's page, or **Do It
@@ -189,7 +192,8 @@ Any other button (app buttons, colour buttons, Guide…) can be changed in Setti
 
 - **Recommendations from Apps** (asked once on first launch, or Settings › Home Screen) — lets the
   Top Shelf show the cards apps publish to the Android TV home screen (Continue Watching, channels).
-  Without it, the hero uses app artwork. Can also be granted with
+  Without it, the hero uses app artwork. Where the TV doesn't ask (or stopped asking), **Do It for
+  Me** grants it through the TV's shell, or type
   `adb shell pm grant com.prismtv.launcher android.permission.READ_TV_LISTINGS`.
 - **Usage access** (Settings › Apps › Recent Apps Access) — lets the App Switcher list apps you
   opened outside the launcher.
@@ -238,7 +242,9 @@ installed app's background processes are stopped (not only those on the Home Scr
 lets go of the artwork it keeps for later (what's on screen stays). With Shizuku or root, every app
 still running is then asked to give back what it can — the request Android itself makes when memory
 runs short: hidden apps drop their caches and graphics memory, running ones trim theirs. Anything
-playing or on screen, the keyboard and the Assistant carry on. The banner says how much was freed.
+playing or on screen, the keyboard and the Assistant carry on. It says how much was freed — under
+the button while Control Centre is open, otherwise in a banner — counting what came back before
+Android restarted the services it keeps running.
 
 With none of these, swiped-away apps just have their memory freed and Prism TV says so once.
 A force-stopped app stays closed — no background refreshes, notifications or Top Shelf updates —
