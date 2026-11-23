@@ -1,24 +1,22 @@
 apk bytes: 4606065
-apk dex 1517033, images 2267074, audio 275054 (0 compressed), other 495903
-cold start ms:  1856 1761 1686 1657 1420  (median 1686)
+apk dex 1516954, images 2267074, audio 275054 (0 compressed), other 495901
+cold start ms:  1566 1451 1401 1339 1267  (median 1401)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  247 274 283 224 268  (median 268)
-walk: Total frames rendered: 77
-walk: Janky frames: 77 (100.00%)
-walk: Janky frames (legacy): 77 (100.00%)
-walk: 50th percentile: 250ms
-walk: 90th percentile: 400ms
-walk: 99th percentile: 800ms
-walk: Number Slow UI thread: 56
-rapid: Total frames rendered: 44
-rapid: Janky frames: 44 (100.00%)
-rapid: Janky frames (legacy): 44 (100.00%)
-rapid: 90th percentile: 200ms
-rapid: Number Slow UI thread: 23
-memory: Native Heap    46118    46100        0       29    46964    63604    49821     3201
-memory: Java Heap:     5896                          20628
-memory: Native Heap:    46100                          46964
+back to home ms:  198 181 186 153 188  (median 186)
+walk: Total frames rendered: 75
+walk: Janky frames: 75 (100.00%)
+walk: Janky frames (legacy): 75 (100.00%)
+walk: 50th percentile: 200ms
+walk: 90th percentile: 300ms
+walk: 99th percentile: 700ms
+walk: Number Slow UI thread: 41
+rapid: Total frames rendered: 0
+rapid: Janky frames: 0 (0.00%)
+rapid: Janky frames (legacy): 0 (0.00%)
+rapid: 90th percentile: 4950ms
+rapid: Number Slow UI thread: 0
+memory: Native Heap    33079    33048        0       28    33936    50476    36490     3229
+memory: Java Heap:     5264                          19652
+memory: Native Heap:    33048                          33936
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    81170            TOTAL RSS:   180476       TOTAL SWAP PSS:      289
-idle on home, 60 s: 16 ticks
-behind another app, 60 s: 2 ticks
+memory: TOTAL PSS:    72323            TOTAL RSS:   164316       TOTAL SWAP PSS:      294
