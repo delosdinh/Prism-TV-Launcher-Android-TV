@@ -1,0 +1,1092 @@
+--------- beginning of system
+11-23 01:22:22.963   495   705 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_5 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_6 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_11 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_2 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_3 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_4 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_8 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_9 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_7 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_10 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_5 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_6 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_11 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_2 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_3 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_4 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_8 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_9 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_7 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.966   495   523 W InputReader: Device virtio_input_multi_touch_10 is associated with display ADISPLAY_ID_NONE.
+11-23 01:22:22.970 12631 12642 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-23 01:22:22.970 12077 12090 D ShizukuProvider: sendBinder is called when already a living binder
+11-23 01:22:22.970 12631 12642 I Service : send binder to user app com.prismtv.launcher in user 0
+11-23 01:22:23.071   734   734 D TvPipController: onTaskStackChanged()
+11-23 01:22:23.082   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f0fd2000 0x3f17bb000]
+11-23 01:22:23.083   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f17bb000 0x3f1fa4000]
+11-23 01:22:23.089   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f1fa4000 0x3f278d000]
+11-23 01:22:23.216  6592  6592 D RetryBindingHandler: Handle WHAT_RETRY_GET_LOCAL_CLOUDCAST_SERVICE_INFO message
+11-23 01:22:23.217  2561  2561 E cr_LocalGrpcAuthService: Calling package not allowed.
+11-23 01:22:23.218  6592  6592 E LocalGrpcAuthClientImpl: invalid message
+11-23 01:22:23.218  6592  6592 D RetryBindingHandler: retry get auth info
+11-23 01:22:23.218  6592  6592 D RetryBindingHandler: send message in 1024000 ms
+11-23 01:22:23.218  6592  6592 E cr_AssistantManagerInternal$AssistantLocalGrpcAuthCallback: the port or token cannot be retrieved from local grpc client
+11-23 01:22:23.857  1102  1102 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3466 
+11-23 01:22:23.857  1102  1102 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():2045 
+11-23 01:22:23.857  1102  1102 I DeviceUnlockedTag: DeviceUnlockedTag.notifyDeviceLockStatusChanged():38 Notify device unlocked.
+11-23 01:22:24.135 11738 11738 I starboard: Prepare to suspend
+11-23 01:22:24.135 11738 11738 I starboard_media: Media focus: none
+11-23 01:22:24.370 11738 12769 D EGL_emulation: app_time_stats: avg=4398.10ms min=157.18ms max=8639.02ms count=2
+11-23 01:22:24.574 11896 11896 E YT.recommendations: onBrowseError: An error occurred
+11-23 01:22:24.574 11896 11896 E YT.recommendations: There was an error communicating with YouTube.
+11-23 01:22:24.585 12077 12111 I OpenGLRenderer: Davey! duration=731ms; Flags=0, FrameTimelineVsyncId=23422, IntendedVsync=1664071767787, Vsync=1664505101103, InputEventId=0, HandleInputStart=1664516633115, AnimationStart=1664516634567, PerformTraversalsStart=1664535418337, DrawStart=1664535522523, FrameDeadline=1664855101089, FrameInterval=1664516627757, FrameStartTime=16666666, SyncQueued=1664537713757, SyncStart=1664777357594, IssueDrawCommandsStart=1664790365961, SwapBuffers=1664888984635, FrameCompleted=1665042789491, DequeueBufferDuration=3715, QueueBufferDuration=399766, GpuCompleted=1665042738835, SwapBuffersCompleted=1665042789491, DisplayPresentTime=0, 
+11-23 01:22:25.004   495  2412 I ActivityManager: Force stopping com.google.android.youtube.tv appid=10065 user=0: from pid 12785
+11-23 01:22:25.005   495  2412 I ActivityManager: Killing 11896:com.google.android.youtube.tv.recommendations/u0a65 (adj 250): stop com.google.android.youtube.tv due to from pid 12785
+11-23 01:22:25.009 12631 12657 V BinderSender: Uid 10065 already starts
+11-23 01:22:25.009 12631 12657 V BinderSender: Uid 10065 dead
+11-23 01:22:25.009   495  2412 I ActivityManager: Killing 11738:com.google.android.youtube.tv/u0a65 (adj 700): stop com.google.android.youtube.tv due to from pid 12785
+11-23 01:22:25.010   495  3650 D ConnectivityService: ConnectivityService NetworkRequestInfo binderDied(uid/pid:10065/11896, android.os.BinderProxy@a4c49de)
+11-23 01:22:25.010   495  3644 D ConnectivityService: ConnectivityService NetworkRequestInfo binderDied(uid/pid:10065/11896, android.os.BinderProxy@b147bf)
+11-23 01:22:25.010   495   672 D ConnectivityService: releasing NetworkRequest [ REQUEST id=106, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10065 RequestorUid: 10065 RequestorPkg: com.google.android.youtube.tv] ] (release request)
+11-23 01:22:25.010   495  3307 D ConnectivityService: ConnectivityService NetworkRequestInfo binderDied(uid/pid:10065/11896, android.os.BinderProxy@9cd9519)
+11-23 01:22:25.010   307   307 I Zygote  : Process 11896 exited due to signal 9 (Killed)
+11-23 01:22:25.010   495   672 D ConnectivityService: releasing NetworkRequest [ REQUEST id=104, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10065 RequestorUid: 10065 RequestorPkg: com.google.android.youtube.tv] ] (release request)
+11-23 01:22:25.010   495  2412 W ActivityTaskManager: Force removing ActivityRecord{a9535c1 u0 com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity t37 f}}: app died, no saved state
+11-23 01:22:25.010   495  2412 W InputManager-JNI: Input channel object 'f8e871c com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity (client)' was disposed without first being removed with the input manager!
+11-23 01:22:25.011   495   535 W UsageStatsService: Unexpected activity event reported! (com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.MainActivity event : 23 instanceId : 136775336)
+11-23 01:22:25.011   495   529 W ActivityTaskManager: Can't find TaskDisplayArea to determine support for multi window. Task id=37 attached=false
+11-23 01:22:25.013   495  3697 V ActivityManager: Got obituary of 11896:com.google.android.youtube.tv.recommendations
+11-23 01:22:25.017   495  3547 V ActivityManager: Got obituary of 11738:com.google.android.youtube.tv
+11-23 01:22:25.017   495  3536 D ConnectivityService: ConnectivityService NetworkRequestInfo binderDied(uid/pid:10065/11738, android.os.BinderProxy@53ca0db)
+11-23 01:22:25.017   495  3431 D ConnectivityService: ConnectivityService NetworkRequestInfo binderDied(uid/pid:10065/11738, android.os.BinderProxy@8356778)
+11-23 01:22:25.017   495  3431 D MediaSessionService: Media button session is changed to null
+11-23 01:22:25.018   495   528 W ActivityManager: setHasOverlayUi called on unknown pid: 11738
+11-23 01:22:25.018   495  3536 D ConnectivityService: ConnectivityService NetworkRequestInfo binderDied(uid/pid:10065/11738, android.os.BinderProxy@313ce51)
+11-23 01:22:25.018   495   672 D ConnectivityService: releasing NetworkRequest [ REQUEST id=101, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10065 RequestorUid: 10065 RequestorPkg: com.google.android.youtube.tv] ] (release request)
+11-23 01:22:25.018   495   672 D ConnectivityService: releasing NetworkRequest [ REQUEST id=99, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10065 RequestorUid: 10065 RequestorPkg: com.google.android.youtube.tv] ] (release request)
+11-23 01:22:25.018   720   720 W AudioMediaPlayerWrapper: The session was destroyed com.google.android.youtube.tv
+11-23 01:22:25.018   720   720 D MediaPlayerList: sessionUpdatedCallback(): packageName: com.google.android.youtube.tv
+11-23 01:22:25.018  1259  1259 D NowPlayingListener: onActiveSessionsChanged() called with: controllers = [[]], lastActiveMediaController = null, lastUpdatedAppPackageName = null
+11-23 01:22:25.018  2561  2561 D WargMsAppMgr: A new media session detected: null
+11-23 01:22:25.018  1259  1259 D NowPlayingManager: onClientChanged() called
+11-23 01:22:25.018   720   720 D MediaPlayerList: sendMediaUpdate
+11-23 01:22:25.018   720   720 D MediaPlayerList: sendMediaUpdate state=null
+11-23 01:22:25.018   720   720 D AvrcpNativeInterface: sendMediaUpdate: metadata=false playStatus=true queue=false
+11-23 01:22:25.018   720   720 D AvrcpTargetJni: sendMediaUpdateNative
+11-23 01:22:25.019   720   720 I bt_stack: [INFO:avrcp_service.cc(402)] virtual void bluetooth::avrcp::AvrcpService::SendMediaUpdate(bool, bool, bool) track_changed=0 :  play_state=1 :  queue=0
+11-23 01:22:25.019   720   720 D MediaPlayerList: Removing media player com.google.android.youtube.tv
+11-23 01:22:25.019   720   720 D MediaPlayerList: com.google.android.youtube.tv doesn't have a browse service. Recycle player ID.
+11-23 01:22:25.019   720   720 V MediaPlayerList: onActiveSessionsChanged: number of controllers: 0
+11-23 01:22:25.019  1259  1259 D NowPlayingManager: A notification for Now Playing Card has been canceled
+11-23 01:22:25.019   307   307 I Zygote  : Process 11738 exited due to signal 9 (Killed)
+11-23 01:22:25.027 12631 12798 E TransferThread: java.io.IOException: Stream closed
+11-23 01:22:25.027 12631 12798 E TransferThread: 	at java.io.BufferedInputStream.getBufIfOpen(BufferedInputStream.java:172)
+11-23 01:22:25.027 12631 12798 E TransferThread: 	at java.io.BufferedInputStream.read(BufferedInputStream.java:338)
+11-23 01:22:25.027 12631 12798 E TransferThread: 	at java.io.FilterInputStream.read(FilterInputStream.java:107)
+11-23 01:22:25.027 12631 12798 E TransferThread: 	at rikka.shizuku.Jj.run(SourceFile:9)
+11-23 01:22:25.030 12077 12077 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
+11-23 01:22:25.050   495   538 I libprocessgroup: Successfully killed process cgroup uid 10065 pid 11896 in 45ms
+11-23 01:22:25.050   495   538 I libprocessgroup: Successfully killed process cgroup uid 10065 pid 11738 in 0ms
+11-23 01:22:28.028   495  2185 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+11-23 01:22:30.894   495   585 W ProcessStats: Tracking association SourceState{2efd540 com.google.android.katniss:interactor/10050 BTopFgs #9068} whose proc state 2 is better than process ProcessState{8d9800 com.google.android.gms.persistent/10058 pkg=com.google.android.gms} proc state 3 (86 skipped)
+11-23 01:22:31.533   331   363 D WVCdm   : [crypto_session.cpp(809):Open] Opening crypto session: requested_security_level = Default
+11-23 01:22:31.533   331   363 I WVCdm   : [cdm_engine.cpp(140):OpenSession] New session: session_id = sid29
+11-23 01:22:31.533   331   363 I WVCdm   : [cdm_engine.cpp(882):QueryOemCryptoSessionId] session_id = sid29
+11-23 01:22:31.543   331   363 I WVCdm   : [cdm_engine.cpp(185):CloseSession] session_id = sid29
+11-23 01:22:31.543  2561  2674 I cr_ClientAuthCredsWidevine: ensureProvisioned: already provisioned, nothing more to do.
+11-23 01:22:31.544   331   363 I WVCdm   : [cdm_engine.cpp(918):GetProvisioningRequest] cert_type = x509
+11-23 01:22:31.544   331   363 D WVCdm   : [crypto_session.cpp(809):Open] Opening crypto session: requested_security_level = Default
+11-23 01:22:31.571  2561  2674 D cr_ClientAuthCredsWidevine: [ClientAuthCredsWidevine.java:276] PostRequest:https://www.googleapis.com/certificateprovisioning/v1/devicecertificates/create?key=AIzaSyB-5OLKTx2iU5mko18DfdwK5611JIjbUhE&signedRequest=CugYEgTCKraPGhMIARIPY2FzdC5nb29nbGUuY29tKqgYCgx3aWRldmluZS5jb20SEFFDT-KkTHY7zCyCai1u-aca8BVr5-EBZOTifseDiCaGzVkPr2bd5qW745KX4SOefcY0lJ9AbqOOQJ0CRJ0Ui8fgUDRgEUkxSHwXv2h9b-nBHndgZyxU2o9IYui_UFUekSh3zFUnCq9bbl3QuEeugQW1qlbJUbdEWV-SI-sBb-jP54ByzonI0RYQKZI-OsNHlROFcnpVhpEyKSeFWsAYSozqDJFL0q1AWUyVLtEYg5Csn-Sh6aysg1i6_haZwKbrtLr3wqoQy4POSlsKhCVjdPfng1PBR_u85JjBLzrg1RAk8DakfGpDqDoqdkyrxz9N_ovxhULEUbt9pWryXlLZhpliWqPxAqflU7yFONjy98c9j48U6cGWi7Lle4G3hI3ByFt0B5iFbMr8fes350QUY8lIXoalEZ1eiZLq_oyCwAWPHU9gcS82C34EN9UkJsQaYN9Y-I7zeSf9ze_j3NsrbIr5PK5M3HJ-S_589Im_Q19F-8s2te3K-0UhchGrFu876XnemxGyDdz9sx19Z-YOhLIGziY_h1shmQz30ElnguysvHJrkYWVYd04-DiBk-wTrbcZzWELVPXPmZX9giH_xzpVyQemCdwkmx5J-ojfD5M4Ufci5vQEIRirSUvYx90LQOZW4YS5J0UGOgF-NnFybOvhnRD-kJw9HUcSQ9ETIY6raZeeXg-Qlz5jWzc_7lL_wRYNpF22xvQn6ivCsE8HLi97VJQR3NzsWrzAFhGYxRX94fFT9X2wG5ZMGwe_lIRtpF4FHQBq6KGh_qPPgmRS6pfx2gipHq8O6kiB2LshTieMkWwGsSayGFlmW4nvpBpSy07gZALrql_z7fbiTYhJ0Odoknz3m7ZaPpNPfrgOGytbdZsKi2jXvCGxvLynrMUFc2U1VX1xB7MeGAVG6aiYFKN2JIw--KXQAG9GlP0jnXaDdiZuLTJ1jARvSQoNPxMnzBD0lw5xfcqbIY_U_TNMcYRfojHsLmOiQsdID-lZp0EbI1exs30cOPf1PiwRGKE2Jgas0_BIbhTtYM35zvqSHVXijRlKm_YBCUg2e5QWbtlyCbTjeYGOIsCwX7Ms2N-4NqKwst46eLqZjlZPO_vTOCaEUW2c-fDuQQm5BVvpnYERJUVPUs-fOiOiOYbUEi5VFL0Lz8lRa1r6NgJV_WSTOoV0id9ul_jvW1bkTDqkpxTESqOMyxCLdB3nvZ_mbYiA0Ved2N_FA64BAv_dxxom281JCasfL9EEKvLkNG4eAvhlGQOcokVyAjpJVxdt9_-qAmS-9CCejaZN82e5mAXUN0C4q5Ce2cDHvSd2_FIgyj7oyWCMUZozpnp9fR_0pkGAGXbaryIJr6fMvtxI_k6BrFJNsweHvYAONfHNhVaKlCIpNObLtd0v9d0Pk7EZy4NH_yO5C3G-TP-WNkogF9M_s8hDVDndZ-J5-qLVP-w4YMNidvenmXtEobH96e8l0yqiDIPtofwJFErgindc_cGjRnYigu_kz2BqRD8XenXVXZYFmduY1AIEjfjJq9j7pvwikt4J7iuWUg_sRdjvcSYNYe2tvwOi2PKLswxxQmqV7ivEpYyA345EQei-NRn_I13PE7ptQp5u1W2XWs4wEowjcRDv_zMeoTCgQrXM2Ahf5RMIj5PNXhAOrmE1-K-rvHdjZV88q0zFFSrmkQa_tuRJJmhLZTsSHlH08mHip2YUSPMH4c2Ri0YrjnJ69PZaJlf1b8WHGufJ2xXHdtNRq4xcNDdl2Rxno1DJySgeRfEB2tx4OuSC22U6wzwsv_MKmMhTvDbH-ry08YkOjqxy_L2VNZGg297-f2VLfoVFWELwzdpb4hOBE8mS-g2eA8CLxFsVbyB60_D9_t7iIkvxD0rOv_y-G40LAuXEehLRvsQHAKT1Lu3WlFwOTlWzmn9LUs6clCnpWoSNgrl6wsCdZB1JBzn8doBW0srFfVj702JO8fnLlUC8p-FVEqTIsPi-BTfC-j81duu1yhHLL37O4DzgkkSVzbXtPnmtxV48_fzrNsFNxpEgTlxexYum5ad795HFEZOo7I0Uj4Rhij5XFAgpN48eTcH1sgM-9H04NHMVo1K9Hz7bvrMxMifZ2nrY0jLEnMUW1enWrzM9TxPlVWXR8MEUltMgi1idYp_o5_FwjqRuqMTSxPyhX2VSf5qv9Qf3xk5nXW-3SeOlV65MmyDvdLEyHAMQUDqct9_ayAkxZuqpzEfYiD0IjX5sU0kU78UHTpd_7vgeazlIuFA-FMCc0cXlRW0eO6_NgV4URf92FEwE0kLJj-fbQeTZBlknYfzMdNT7Pq7y_CHE5Q2mSj2R-SXBAy5ukYe3aGTEtBE2maJKy6otqBeO0KJt8S0jAbWQ0boJ9VkGR2bWFIW-5n2l0OPzAvJaWvwjCjwzAihGQuHBobTuNSt4TS48k1XS7pAw1UFcxDJA0bIVdWfRPP55_lZiRbGDMci61pvq9dFZ-uNUVC69sr-QGFk_CCD1EA69pFLPppUOueJF3PdfUIJNXUEH5OMMMBK8tFhPSah5-hTxUzoG6OWOm7wiZSnmPwy0IrLKTNIPTwyYIzc1hrBjU7089dnqKdIsLOYv3Vz5nzLaQy6Y7_LHlGqbuydBsc1uHa9O_6daVWwU6txGfE2Xwp5Xc1_TgUrlHU4o5yzuF4NFDEe19u9VHIeE3pt75zzM9JTBHGMZpBvI2XUKj60c8g6jIBfstto7O_dKIWImHsz4ODK57wdmCd8qEnIWGiUvAU_8gR3nfyScoHNnct2WbrKT2ns40H0A8_anBTB5wNGpe2-lDP4GvIYCQ6yy4FGGJjIsJTfUQs-Gtl-EaDELeLK_hbDd61xRW0ZrAq8mwWNWjYCiCWV3VzT0_GGKPeyX98liCpEkNBkaCQmKvc-Wk_4y3I2KkEz9h8kcSC6lBJQ8UzwhpsQ01_ggRpN794Mz-wOte_Rv4fEEhMwUDslFgXHuJfuVmXDuIwfA7iLchRBP8PvIfcsrXbYPbTJj_rj_MB4Vk9pP_HbG61C2djgaI1y30MMtdWMLmR4wN0BlySVbHVSGvh-st1oQ-hN4uU4pXrDpfWb0o_tTfGFtHbXhYpR88gBkML6qu7tjGGNe94In7F5chmD2-xRbyxR1slyRQoaV-QEHrXiYU1baJwoyXBQVxPdJHcGVMC-I9VIpUXU9EfoQbetyjo-8IG1OkRq9fehXD-V10t4ygMQ0sQ-c8fOexM6091p0Qx-TgkicBi0DNHYtJrPQpLB7fbEyWCMYYOjwIvaQvLudGL67YdtQdBwmCVBtHn7n_8FIy8IZHXIQMHzBKPa9BnmDfPKAE5JkZ18AOtFzawzitWDy-ZU6KpBHdJ0zENZqp7xzS0X6iebBEAGH49hk5fkYW_tBCHn3ImBw44vo5PXBhS76FxWIJCiK429-j_kWvFJBNlY8CkIqpu7adEb7h4HpfrQkxzmi4BNMQgKNKAdMKp1REUIfWv-mmoHiZ9FEXBrI633j3txdTu2DBK4_PJnAI9sQ1GbyWzd8Ls345jzmEGvEd-MsKEQMsmiTN634xwoO9SZff7hh_k1bq-LGXy-3Mg9xKKheQlMu-rXmeZuvLSIzX7Zm6-bD69U7T-5RWpzT39nxxS5yrebNfMgYlcBXaLP96mANaUEzJVKZXVSjB17bVJq71s6uIKkKwrypH_1aFFpBFYUn8SXhn_1OfCer-P0kSF6skpYos-vM73J5GMzMFGCd95E55hqF-6GPTQRs9vBb8EKVOQMDIhAW0wSJ3FkVs19NWrELeP5FKoACfX
+11-23 01:22:31.595   171   171 I servicemanager: Since 'apexservice' could not be found, trying to start it as a lazy AIDL service
+11-23 01:22:31.732   171   171 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:22:31.736   171   171 I servicemanager: Tried to unregister apexservice, but there is about to be a client.
+11-23 01:22:31.766   495  2412 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:22:31.784 12077 12083 I rismtv.launche: Compiler allocated 4205KB to compile void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
+11-23 01:22:31.847 12077 12083 I rismtv.launche: JIT allocated 59KB for compiled code of java.util.List com.prismtv.launcher.LauncherViewModel.settingsRows(com.prismtv.launcher.SettingsPage)
+11-23 01:22:32.130  2561  2674 E cr_ClientAuthCredsWidevine: Server returned HTTP error code 401
+11-23 01:22:32.130  2561  2674 E cr_ClientAuthCredsWidevine: attemptCredsProvisioning. Received null response.
+11-23 01:22:32.130  2561  2674 I cr_ClientAuthCredsProvisioning: ClientAuthCredsProvisioning. Next attempt(secs): 60
+11-23 01:22:32.211 12077 12092 D EGL_emulation: app_time_stats: avg=2171.85ms min=265.50ms max=7646.51ms count=4
+11-23 01:22:34.788   375  3909 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:22:34.788   375  3909 D AF::TrackHandle: OpPlayAudio: track:123 usage:13 not muted
+11-23 01:22:34.789 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 1296
+11-23 01:22:35.420 12077 12092 D EGL_emulation: app_time_stats: avg=800.23ms min=139.07ms max=2439.50ms count=4
+11-23 01:22:35.423 12077 12077 I Choreographer: Skipped 33 frames!  The application may be doing too much work on its main thread.
+11-23 01:22:35.565 12631 12642 V BinderSender: Uid 10078 starts
+11-23 01:22:35.917 12077 12111 I OpenGLRenderer: Davey! duration=752ms; Flags=0, FrameTimelineVsyncId=23500, IntendedVsync=1675338434003, Vsync=1675888433981, InputEventId=0, HandleInputStart=1675901092243, AnimationStart=1675901092824, PerformTraversalsStart=1675903949961, DrawStart=1675904047847, FrameDeadline=1676088433973, FrameInterval=1675901050351, FrameStartTime=16666666, SyncQueued=1675904958223, SyncStart=1676068847915, IssueDrawCommandsStart=1676069106621, SwapBuffers=1676073841769, FrameCompleted=1676255246107, DequeueBufferDuration=3779485, QueueBufferDuration=258485, GpuCompleted=1676255246107, SwapBuffersCompleted=1676244713147, DisplayPresentTime=0, 
+11-23 01:22:36.015   171   171 I servicemanager: Notifying apexservice they have clients: 1
+11-23 01:22:36.178 12631 12642 V BinderSender: Uid 10053 already starts
+11-23 01:22:37.338   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f278d000 0x3f2f76000]
+11-23 01:22:37.342   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-23 01:22:37.342 12832 12833 I Gralloc4: mapper 4.x is not supported
+11-23 01:22:37.347 12832 12833 D HostConnection: createUnique: call
+11-23 01:22:37.349 12832 12833 D HostConnection: HostConnection::get() New Host Connection established 0xea9416d0, tid 12833
+11-23 01:22:37.349 12832 12833 D goldfish-address-space: allocate: Ask for block of size 0x100
+11-23 01:22:37.349 12832 12833 D goldfish-address-space: allocate: ioctl allocate returned offset 0x3efffe000 size 0x2000
+11-23 01:22:37.360 12832 12833 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:22:37.933 12834 12834 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-23 01:22:37.935 12834 12834 I AndroidRuntime: Using default boot image
+11-23 01:22:37.935 12834 12834 I AndroidRuntime: Leaving lock profiling enabled
+11-23 01:22:37.935 12834 12834 W libc    : Access denied finding property "odsign.verification.success"
+11-23 01:22:37.936 12834 12834 W app_process: ART APEX data files are untrusted.
+11-23 01:22:37.932 12834 12834 W app_process: type=1400 audit(0.0:114): avc: denied { read } for name="u:object_r:odsign_prop:s0" dev="tmpfs" ino=205 scontext=u:r:shell:s0 tcontext=u:object_r:odsign_prop:s0 tclass=file permissive=0
+11-23 01:22:37.974 12834 12834 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-23 01:22:37.974 12834 12834 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt68l.dat
+11-23 01:22:37.978 12834 12834 W app_process: Unexpected CPU variant for X86 using defaults: x86
+11-23 01:22:37.988 12834 12834 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-23 01:22:37.991   495   495 D BatterySaverPolicy: accessibility changed to true, updating policy.
+11-23 01:22:37.992   495   523 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:37.992   495  3650 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:37.993   495   523 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:37.993   495  3536 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:37.993   495   523 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:37.993   495   523 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:38.574 12077 12092 D EGL_emulation: app_time_stats: avg=786.92ms min=148.13ms max=2656.75ms count=4
+11-23 01:22:39.105 12834 12834 W AccessibilityNodeInfoDumper: Fetch time: 11ms
+11-23 01:22:39.112 12834 12834 D AndroidRuntime: Shutting down VM
+11-23 01:22:39.114   495   523 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:39.114   495   705 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:39.114   495   523 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:39.115   495   495 D BatterySaverPolicy: accessibility changed to false, updating policy.
+11-23 01:22:39.115   495  2412 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:39.116   495   705 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:39.116   495   705 W WindowManager: Cannot find window which accessibility connection is added to
+11-23 01:22:39.948   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(11)
+11-23 01:22:39.949 12077 12827 D SoundPool::StreamManager: moveToRestartQueue: attempting to restart processing stream(9)
+11-23 01:22:40.588 12077 12092 D EGL_emulation: app_time_stats: avg=401.13ms min=172.67ms max=1139.93ms count=5
+11-23 01:22:40.591 12077 12077 I Choreographer: Skipped 33 frames!  The application may be doing too much work on its main thread.
+11-23 01:22:41.078 12077 12103 I OpenGLRenderer: Davey! duration=736ms; Flags=0, FrameTimelineVsyncId=23542, IntendedVsync=1680505100463, Vsync=1681055100441, InputEventId=0, HandleInputStart=1681069204493, AnimationStart=1681069205063, PerformTraversalsStart=1681070815923, DrawStart=1681071035550, FrameDeadline=1681271767099, FrameInterval=1681069162720, FrameStartTime=16666666, SyncQueued=1681072135168, SyncStart=1681235606252, IssueDrawCommandsStart=1681235894291, SwapBuffers=1681242248066, FrameCompleted=1681405551040, DequeueBufferDuration=3475, QueueBufferDuration=247599, GpuCompleted=1681405551040, SwapBuffersCompleted=1681398310679, DisplayPresentTime=0, 
+11-23 01:22:43.741 12077 12092 D EGL_emulation: app_time_stats: avg=788.23ms min=158.17ms max=2662.61ms count=4
+11-23 01:22:52.362   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f2f76000 0x3f375f000]
+11-23 01:22:52.368   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-23 01:22:52.368 12881 12882 I Gralloc4: mapper 4.x is not supported
+11-23 01:22:52.372 12881 12882 D HostConnection: createUnique: call
+11-23 01:22:52.373 12881 12882 D HostConnection: HostConnection::get() New Host Connection established 0xf6a40b70, tid 12882
+11-23 01:22:52.373 12881 12882 D goldfish-address-space: allocate: Ask for block of size 0x100
+11-23 01:22:52.373 12881 12882 D goldfish-address-space: allocate: ioctl allocate returned offset 0x3efffe000 size 0x2000
+11-23 01:22:52.383 12881 12882 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:22:52.904   495   705 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:22:53.051   495   585 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9071} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (13 skipped)
+11-23 01:22:53.196 12077 12092 D EGL_emulation: app_time_stats: avg=2363.78ms min=165.24ms max=8776.58ms count=4
+11-23 01:22:56.926   375  5892 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:22:56.926   375  5892 D AF::TrackHandle: OpPlayAudio: track:124 usage:13 not muted
+11-23 01:22:56.927 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 14880
+11-23 01:22:56.929   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(11)
+11-23 01:22:57.000   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(34)
+11-23 01:22:57.053 12077 12092 D EGL_emulation: app_time_stats: avg=769.15ms min=146.82ms max=2876.91ms count=5
+11-23 01:22:57.239   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f278d000 0x3f2f76000]
+11-23 01:22:57.291 12077 12131 D HostConnection: createUnique: call
+11-23 01:22:57.291 12077 12131 D HostConnection: HostConnection::get() New Host Connection established 0xe7f20760, tid 12131
+11-23 01:22:57.295 12077 12131 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:22:57.296 12077 12131 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+11-23 01:22:57.296 12077 12131 D EGL_emulation: eglCreateContext: 0xe7f2acc0: maj 3 min 0 rcv 3
+11-23 01:22:57.301 12077 12131 D EGL_emulation: eglMakeCurrent: 0xe7f2acc0: ver 3 0 (tinfo 0xe5e30040) (first time)
+11-23 01:22:57.307 12077 12801 D HostConnection: createUnique: call
+11-23 01:22:57.307 12077 12801 D HostConnection: HostConnection::get() New Host Connection established 0xe7f171c0, tid 12801
+11-23 01:22:57.310 12077 12801 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:22:58.161 12077 12092 D EGL_emulation: app_time_stats: avg=181.44ms min=110.94ms max=448.25ms count=6
+11-23 01:22:58.229   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(27)
+11-23 01:22:58.638   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f375f000 0x3f3f48000]
+11-23 01:22:59.332 12077 12092 D EGL_emulation: app_time_stats: avg=193.91ms min=165.57ms max=220.40ms count=6
+11-23 01:23:00.376 12077 12092 D EGL_emulation: app_time_stats: avg=171.66ms min=119.49ms max=202.86ms count=6
+11-23 01:23:00.943   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f47e9000 0x3f4fd2000]
+11-23 01:23:00.946   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-23 01:23:00.947 12908 12909 I Gralloc4: mapper 4.x is not supported
+11-23 01:23:00.951 12908 12909 D HostConnection: createUnique: call
+11-23 01:23:00.951 12908 12909 D HostConnection: HostConnection::get() New Host Connection established 0xe85807f0, tid 12909
+11-23 01:23:00.952 12908 12909 D goldfish-address-space: allocate: Ask for block of size 0x100
+11-23 01:23:00.952 12908 12909 D goldfish-address-space: allocate: ioctl allocate returned offset 0x3efffe000 size 0x2000
+11-23 01:23:00.963 12908 12909 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:01.954   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(22)
+11-23 01:23:02.100 12077 12092 D EGL_emulation: app_time_stats: avg=573.39ms min=154.39ms max=1402.79ms count=3
+11-23 01:23:02.382   495   705 D WifiNl80211Manager: Scan result ready event
+11-23 01:23:02.382   495   705 D WifiNative: Scan result ready event
+11-23 01:23:02.740   359   359 E android.hardware.power.stats@1.0-service-mock: Failed to getEnergyData
+11-23 01:23:03.174 12077 12092 D EGL_emulation: app_time_stats: avg=214.61ms min=106.01ms max=289.22ms count=5
+11-23 01:23:04.487   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f2f76000 0x3f375f000]
+11-23 01:23:04.497   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-23 01:23:04.497 12917 12918 I Gralloc4: mapper 4.x is not supported
+11-23 01:23:04.501 12917 12918 D HostConnection: createUnique: call
+11-23 01:23:04.501 12917 12918 D HostConnection: HostConnection::get() New Host Connection established 0xeea805c0, tid 12918
+11-23 01:23:04.501 12917 12918 D goldfish-address-space: allocate: Ask for block of size 0x100
+11-23 01:23:04.502 12917 12918 D goldfish-address-space: allocate: ioctl allocate returned offset 0x3efffe000 size 0x2000
+11-23 01:23:04.511 12917 12918 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:04.730   375  3909 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:04.731   375  3909 D AF::TrackHandle: OpPlayAudio: track:125 usage:13 not muted
+11-23 01:23:04.731 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 33721
+11-23 01:23:05.455 12077 12092 D EGL_emulation: app_time_stats: avg=1132.71ms min=106.38ms max=2159.04ms count=2
+11-23 01:23:05.457 12077 12077 I Choreographer: Skipped 36 frames!  The application may be doing too much work on its main thread.
+11-23 01:23:05.926 12077 12090 I OpenGLRenderer: Davey! duration=775ms; Flags=0, FrameTimelineVsyncId=23686, IntendedVsync=1705321766137, Vsync=1705921766113, InputEventId=0, HandleInputStart=1705934879040, AnimationStart=1705934879942, PerformTraversalsStart=1705941875242, DrawStart=1705942009863, FrameDeadline=1706105099439, FrameInterval=1705934800023, FrameStartTime=16666666, SyncQueued=1705945896541, SyncStart=1706087702788, IssueDrawCommandsStart=1706088176203, SwapBuffers=1706109253461, FrameCompleted=1706239053133, DequeueBufferDuration=3916, QueueBufferDuration=593674, GpuCompleted=1706239053133, SwapBuffersCompleted=1706230677186, DisplayPresentTime=0, 
+11-23 01:23:07.280   347   364 D goldfish-address-space: claimShared: Ask to claim region [0x3f47e9000 0x3f4fd2000]
+11-23 01:23:07.288   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-23 01:23:07.288 12928 12929 I Gralloc4: mapper 4.x is not supported
+11-23 01:23:07.293 12928 12929 D HostConnection: createUnique: call
+11-23 01:23:07.293 12928 12929 D HostConnection: HostConnection::get() New Host Connection established 0xf6780470, tid 12929
+11-23 01:23:07.293 12928 12929 D goldfish-address-space: allocate: Ask for block of size 0x100
+11-23 01:23:07.294 12928 12929 D goldfish-address-space: allocate: ioctl allocate returned offset 0x3efffe000 size 0x2000
+11-23 01:23:07.303 12928 12929 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:07.625 12077 12077 D PrismClose: Prism got Back (overlay ControlCentre)
+11-23 01:23:07.626   375  3909 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:07.626   375  3909 D AF::TrackHandle: OpPlayAudio: track:126 usage:13 not muted
+11-23 01:23:07.627 12077 12077 D AudioTrack: createTrack_l(84): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 26911
+11-23 01:23:07.807 12077 12092 D EGL_emulation: app_time_stats: avg=582.77ms min=143.02ms max=1880.06ms count=4
+11-23 01:23:08.163   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(55)
+11-23 01:23:09.149   495   705 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:23:09.186   495   528 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9073} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (7 skipped)
+11-23 01:23:09.290 12077 12092 D EGL_emulation: app_time_stats: avg=368.79ms min=136.92ms max=1041.52ms count=4
+11-23 01:23:10.487 12077 12092 D EGL_emulation: app_time_stats: avg=197.06ms min=168.67ms max=255.44ms count=6
+11-23 01:23:13.198  1174  1402 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:23:13.201   383   597 E HWComposer: getSupportedContentTypes: getSupportedContentTypes failed for display 4619827622076541440: Unsupported (8)
+11-23 01:23:13.202 12943 12943 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-23 01:23:13.203 12943 12948 I OMXClient: IOmx service obtained
+11-23 01:23:13.203   437   751 I OMXStore: makeComponentInstance(OMX.google.h264.encoder) in android.hardwar process
+11-23 01:23:13.216 12943 12943 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 1
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-bpp,0)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+11-23 01:23:13.216 12943 12943 D CodecProperties: setFeatureValue(intra-refresh,0)
+11-23 01:23:13.216 12943 12943 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 0
+11-23 01:23:13.216 12943 12943 D VQApply : minquality: not an eligible device class
+11-23 01:23:13.216 12943 12943 D MediaCodec: shapeMediaFormat: deltas(0): AMessage(what = 0x00000000) = {
+11-23 01:23:13.216 12943 12943 D MediaCodec:   }
+11-23 01:23:13.217 12943 12948 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:23:13.217 12943 12948 I ACodec  : setupAVCEncoderParameters with [profile: Baseline] [level: Level41]
+11-23 01:23:13.217 12943 12948 I ACodec  : [OMX.google.h264.encoder] cannot encode color aspects. Ignoring.
+11-23 01:23:13.217 12943 12948 I ACodec  : [OMX.google.h264.encoder] cannot encode HDR static metadata. Ignoring.
+11-23 01:23:13.217 12943 12948 I ACodec  : setupVideoEncoder succeeded
+11-23 01:23:13.217 12943 12948 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:23:13.217   437   452 E OMXNodeInstance: getConfig(0xebc41270:google.h264.encoder, ConfigLatency(0x6f800005)) ERROR: Undefined(0x80001001)
+11-23 01:23:13.217   437   452 E OMXNodeInstance: getConfig(0xebc41270:google.h264.encoder, ConfigAndroidVendorExtension(0x6f100004)) ERROR: Undefined(0x80001001)
+11-23 01:23:13.224   437   452 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+11-23 01:23:13.224   437   452 D GraphicBufferSource: requesting color aspects (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M))
+11-23 01:23:13.226  1041  1041 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE cmp=com.google.android.gms/.chimera.PersistentApiService }
+11-23 01:23:13.226  1041  1041 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE cmp=com.google.android.gms/.chimera.PersistentApiService }
+11-23 01:23:13.228   437 12950 D SoftAVCEnc: Params width 1920 height 1080 level 41 colorFormat 0
+11-23 01:23:13.228   429  2432 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+11-23 01:23:13.228   383   597 D PermissionCache: checking android.permission.ACCESS_SURFACE_FLINGER for uid=2000 => granted (318 us)
+11-23 01:23:13.229  1041  9327 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1713 [CONTEXT service_id=218 ]
+11-23 01:23:13.231  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 20 uptime_millis: 20 exec_start_elapsed_seconds: 1713 [CONTEXT service_id=218 ]
+11-23 01:23:13.261   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-23 01:23:13.261   437   452 I Gralloc4: mapper 4.x is not supported
+11-23 01:23:13.262  1174  1403 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+11-23 01:23:13.264  1174  1526 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:23:13.265   437   452 D HostConnection: createUnique: call
+11-23 01:23:13.265   437   452 D HostConnection: HostConnection::get() New Host Connection established 0xebc40c50, tid 452
+11-23 01:23:13.266   437   452 D goldfish-address-space: allocate: Ask for block of size 0x100
+11-23 01:23:13.266   437   452 D goldfish-address-space: allocate: ioctl allocate returned offset 0x3efffe000 size 0x2000
+11-23 01:23:13.266 12943 12943 D MPEG4Writer: PreAllocation enabled
+11-23 01:23:13.270   172   172 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.allocator@4.0::IAllocator/default in either framework or device VINTF manifest.
+11-23 01:23:13.270   437   452 W Gralloc4: allocator 4.x is not supported
+11-23 01:23:13.273   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f2f76000 0x3f375f000]
+11-23 01:23:13.278   437   452 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:13.285   437   751 D GraphicBufferSource: got buffer with new dataSpace #104
+11-23 01:23:13.288 12943 12948 D ACodec  : dataspace changed to 0x10c10000 (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M)) (R:2(Limited), S:1(BT709), T:3(SMPTE_170M))
+11-23 01:23:13.289 12943 12943 D MPEG4Writer: fpathconf _PC_FILESIZEBITS:64
+11-23 01:23:13.289 12943 12943 D MPEG4Writer: File size limit set to 4503599627370495 bytes implicitly
+11-23 01:23:13.289 12943 12943 D MPEG4Writer: MP4WtrCtrlHlpLooper Started
+11-23 01:23:13.289 12943 12943 I MPEG4Writer: limits: 4503599627370495/0 bytes/us, bit rate: -1 bps and the estimated moov size 3192 bytes
+11-23 01:23:13.307  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1713 [CONTEXT service_id=218 ]
+11-23 01:23:13.312  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 9 uptime_millis: 9 exec_start_elapsed_seconds: 1713 [CONTEXT service_id=218 ]
+11-23 01:23:13.339 12943 12955 I MPEG4Writer: setStartTimestampUs: 1713763219
+11-23 01:23:13.339 12943 12955 I MPEG4Writer: Earliest track starting time: 1713763219
+11-23 01:23:14.384   375  3909 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:14.385   375  3909 D AF::TrackHandle: OpPlayAudio: track:127 usage:13 not muted
+11-23 01:23:14.385 12077 12077 D AudioTrack: createTrack_l(85): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 14880
+11-23 01:23:14.455   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(39)
+11-23 01:23:14.524 12077 12092 D EGL_emulation: app_time_stats: avg=803.59ms min=165.76ms max=3316.85ms count=5
+11-23 01:23:14.667   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f47e9000 0x3f4fd2000]
+11-23 01:23:14.901  2561  2561 I chromium: [2561:2561:INFO:service_base.h(78)] Size of the map for type AuthTokenResponse is 0
+11-23 01:23:14.902  2561  2561 I chromium: [2561:2561:INFO:service_base.h(246)] Container sizes for type CloudSetting are (session_info_map: 0), (topic_info_map: 21), (pending_events: 0).
+11-23 01:23:14.903  2561  2561 I chromium: [2561:2561:INFO:service_base.h(78)] Size of the map for type LocalDeviceInfo is 0
+11-23 01:23:14.903  2561  2561 I chromium: [2561:2561:INFO:service_base.h(78)] Size of the map for type NetworkInfo is 0
+11-23 01:23:14.903  2561  2561 I chromium: [2561:2561:INFO:metrics_stat_logger.cc(55)] Metrics stat for the past 60 secs : total=1
+11-23 01:23:14.903  2561  2561 I chromium: [metrics_stat_logger] Usonia.DirectoryService.SendHeartbeat=2
+11-23 01:23:15.564 12077 12092 D EGL_emulation: app_time_stats: avg=169.24ms min=105.28ms max=225.80ms count=6
+11-23 01:23:16.693 12077 12092 D EGL_emulation: app_time_stats: avg=178.93ms min=125.62ms max=239.48ms count=6
+11-23 01:23:17.890 12077 12092 D EGL_emulation: app_time_stats: avg=196.47ms min=142.95ms max=215.99ms count=6
+11-23 01:23:17.900   375  3909 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:17.900   375  3909 D AF::TrackHandle: OpPlayAudio: track:128 usage:13 not muted
+11-23 01:23:17.902 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 13920
+11-23 01:23:17.930   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(44)
+11-23 01:23:19.000 12077 12092 D EGL_emulation: app_time_stats: avg=177.44ms min=78.37ms max=382.01ms count=6
+11-23 01:23:19.116   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f4fd2000 0x3f57bb000]
+11-23 01:23:19.911   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:19.912   375   464 D AF::TrackHandle: OpPlayAudio: track:129 usage:13 not muted
+11-23 01:23:19.912 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 14880
+11-23 01:23:20.041 12077 12092 D EGL_emulation: app_time_stats: avg=254.25ms min=71.37ms max=746.59ms count=4
+11-23 01:23:21.121 12077 12092 D EGL_emulation: app_time_stats: avg=171.46ms min=113.55ms max=261.62ms count=6
+11-23 01:23:22.174 12077 12092 D EGL_emulation: app_time_stats: avg=203.56ms min=111.97ms max=266.89ms count=5
+11-23 01:23:22.879   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(25)
+11-23 01:23:23.383 12077 12092 D EGL_emulation: app_time_stats: avg=189.28ms min=102.70ms max=445.75ms count=6
+11-23 01:23:23.833 12077 12111 I OpenGLRenderer: Davey! duration=704ms; Flags=0, FrameTimelineVsyncId=23900, IntendedVsync=1723438432079, Vsync=1723855098729, InputEventId=0, HandleInputStart=1723863001765, AnimationStart=1723863002597, PerformTraversalsStart=1723937872213, DrawStart=1723937973795, FrameDeadline=1724021765389, FrameInterval=1723862999342, FrameStartTime=16666666, SyncQueued=1723940215164, SyncStart=1724002753111, IssueDrawCommandsStart=1724002881853, SwapBuffers=1724161379313, FrameCompleted=1724205015875, DequeueBufferDuration=3305, QueueBufferDuration=380326, GpuCompleted=1724204960532, SwapBuffersCompleted=1724205015875, DisplayPresentTime=0, 
+11-23 01:23:23.928   375  3510 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:23.929   375  3510 D AF::TrackHandle: OpPlayAudio: track:130 usage:13 not muted
+11-23 01:23:24.030 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 50208
+11-23 01:23:24.606 12077 12092 D EGL_emulation: app_time_stats: avg=239.04ms min=113.60ms max=539.28ms count=5
+11-23 01:23:25.855 12077 12077 D PrismClose: Prism got Back (overlay Folder)
+11-23 01:23:25.856   375  3510 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:25.856   375  3510 D AF::TrackHandle: OpPlayAudio: track:131 usage:13 not muted
+11-23 01:23:25.856 12077 12077 D AudioTrack: createTrack_l(89): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 51264
+11-23 01:23:26.502 12077 12092 D EGL_emulation: app_time_stats: avg=931.51ms min=245.04ms max=1617.97ms count=2
+11-23 01:23:26.504 12077 12077 I Choreographer: Skipped 34 frames!  The application may be doing too much work on its main thread.
+11-23 01:23:26.694   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(55)
+11-23 01:23:26.895 12077 12089 I OpenGLRenderer: Davey! duration=756ms; Flags=0, FrameTimelineVsyncId=23921, IntendedVsync=1726405098627, Vsync=1726971765271, InputEventId=0, HandleInputStart=1726982045635, AnimationStart=1726982046466, PerformTraversalsStart=1726988063805, DrawStart=1726988152237, FrameDeadline=1727205098595, FrameInterval=1726981993367, FrameStartTime=16666666, SyncQueued=1727017211288, SyncStart=1727205417338, IssueDrawCommandsStart=1727205761862, SwapBuffers=1727227921550, FrameCompleted=1727349964608, DequeueBufferDuration=3996, QueueBufferDuration=970296, GpuCompleted=1727349912350, SwapBuffersCompleted=1727349964608, DisplayPresentTime=0, 
+11-23 01:23:27.075   375  3510 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:27.076   375  3510 D AF::TrackHandle: OpPlayAudio: track:132 usage:13 not muted
+11-23 01:23:27.076 12077 12077 D AudioTrack: createTrack_l(90): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 14880
+11-23 01:23:27.341   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f57bb000 0x3f5fa4000]
+11-23 01:23:27.385 12077 12131 D HostConnection: createUnique: call
+11-23 01:23:27.386 12077 12131 D HostConnection: HostConnection::get() New Host Connection established 0xe7f1eb60, tid 12131
+11-23 01:23:27.388 12077 12131 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:27.388 12077 12131 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+11-23 01:23:27.389 12077 12131 D EGL_emulation: eglCreateContext: 0xe7f2faa0: maj 3 min 0 rcv 3
+11-23 01:23:27.389 12077 12131 D EGL_emulation: eglMakeCurrent: 0xe7f2faa0: ver 3 0 (tinfo 0xe5e30040) (first time)
+11-23 01:23:27.390 12077 12800 D HostConnection: createUnique: call
+11-23 01:23:27.390 12077 12800 D HostConnection: HostConnection::get() New Host Connection established 0xe7f1e3f0, tid 12800
+11-23 01:23:27.461 12077 12084 I rismtv.launche: NativeAlloc concurrent copying GC freed 200148(7174KB) AllocSpace objects, 18(420KB) LOS objects, 49% free, 7211KB/14MB, paused 60us,11us total 184.689ms
+11-23 01:23:27.501 12943 12956 I MPEG4Writer: setStartTimestampUs: 1713763219
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: reset()
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Video track stopping. Stop source
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Video track source stopping
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Video track source stopped
+11-23 01:23:27.507 12943 12955 V MediaWriter: Track event err/info msg:101, trackId:1, type:1000,val:-1011
+11-23 01:23:27.507 12943 12955 I MPEG4Writer: Received total/0-length (57/0) buffers and encoded 57 frames. - Video
+11-23 01:23:27.507 12943 12956 V MediaWriter: Track event err/info msg:101, trackId:2, type:1000,val:-1011
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Video track stopped. Status:0. Stop source
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Metadata track stopping. Stop source
+11-23 01:23:27.507 12943 12956 W MPEG4Writer: 0-duration samples found: 1
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Metadata track source stopping
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Metadata track source stopped
+11-23 01:23:27.507 12943 12956 I MPEG4Writer: Received total/0-length (1/0) buffers and encoded 1 frames. - Metadata
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Metadata track stopped. Status:0. Stop source
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: Duration from tracks range is [0, 14284043] us
+11-23 01:23:27.507 12943 12953 D MPEG4Writer: 0 chunks are written in the last batch
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: WriterThread stopped. Status:0
+11-23 01:23:27.507 12943 12943 I MPEG4Writer: Adjust the moov start time from 1713763219 us -> 1713763219 us
+11-23 01:23:27.507 12943 12943 I MPEG4Writer: MOOV atom was written to the file
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: release()
+11-23 01:23:27.507 12943 12943 D MPEG4Writer: ftruncate mPreAllocateFileEndOffset:1796587 mOffset:2094 mMdatEndOffset:1793487 diff:3100
+11-23 01:23:27.524 12077 12092 D EGL_emulation: app_time_stats: avg=247.83ms min=154.19ms max=335.15ms count=4
+11-23 01:23:27.532 12077 12800 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:27.560 12943 12943 D MPEG4Writer: final fsync() takes 52 ms, file size 1793487
+11-23 01:23:27.564 12943 12943 D MPEG4Writer: MP4WtrCtrlHlpLooper stopped
+11-23 01:23:27.564 12943 12943 D MPEG4Writer: Top 5 write durations(microseconds): #1:164 #2:173 #3:178 #4:189 #5:7389
+11-23 01:23:27.616 12077 12086 W System  : A resource failed to call close. 
+11-23 01:23:27.634   495   536 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9088} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (55 skipped)
+11-23 01:23:27.637  1174  2191 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-home.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:23:27.638 12943 12943 D ScreenRecord: success
+11-23 01:23:27.641 12943 12943 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:23:27.642 12943 12943 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:23:27.643 12943 12943 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-23 01:23:27.713  1174  2191 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-home.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:23:27.738  1041  9327 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1728 [CONTEXT service_id=218 ]
+11-23 01:23:27.741  1041  9327 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 10 uptime_millis: 10 exec_start_elapsed_seconds: 1728 [CONTEXT service_id=218 ]
+11-23 01:23:28.591 12077 12092 D EGL_emulation: app_time_stats: avg=177.06ms min=122.76ms max=228.26ms count=6
+11-23 01:23:29.550   495  3536 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:23:29.694 12077 12092 D EGL_emulation: app_time_stats: avg=179.90ms min=158.80ms max=197.65ms count=6
+11-23 01:23:30.719 12077 12092 D EGL_emulation: app_time_stats: avg=142.38ms min=114.30ms max=191.87ms count=7
+11-23 01:23:30.918 12631 12642 V BinderSender: Uid 10081 already starts
+11-23 01:23:32.130   331   363 D WVCdm   : [crypto_session.cpp(809):Open] Opening crypto session: requested_security_level = Default
+11-23 01:23:32.131   331   363 I WVCdm   : [cdm_engine.cpp(140):OpenSession] New session: session_id = sid30
+11-23 01:23:32.131   331   363 I WVCdm   : [cdm_engine.cpp(882):QueryOemCryptoSessionId] session_id = sid30
+11-23 01:23:32.131   331   363 I WVCdm   : [cdm_engine.cpp(185):CloseSession] session_id = sid30
+11-23 01:23:32.132  2561  2674 I cr_ClientAuthCredsWidevine: ensureProvisioned: already provisioned, nothing more to do.
+11-23 01:23:32.132   331   363 I WVCdm   : [cdm_engine.cpp(918):GetProvisioningRequest] cert_type = x509
+11-23 01:23:32.132   331   363 D WVCdm   : [crypto_session.cpp(809):Open] Opening crypto session: requested_security_level = Default
+11-23 01:23:32.159  2561  2674 D cr_ClientAuthCredsWidevine: [ClientAuthCredsWidevine.java:276] PostRequest:https://www.googleapis.com/certificateprovisioning/v1/devicecertificates/create?key=AIzaSyB-5OLKTx2iU5mko18DfdwK5611JIjbUhE&signedRequest=CugYEgSdjal9GhMIARIPY2FzdC5nb29nbGUuY29tKqgYCgx3aWRldmluZS5jb20SEFFDT-KkTHY7zCyCai1u-aca8BXPku-uL31FBdvJ0XbR2Yf_zFl-xx31aCpkzVMnfvy0uzH8tjlwPsCaHSmNy8RHwCOI5BLVMqLp3S_gL1gzokwu3cL0dw8N1z_KMup4fTqadddAyBk4rF7sc3T984p_8dup_TOBt_tbd95C6MCXZtgr4yd0MVAzbhH7eyYFLVKBL6v2w0rtqa7fsfXKincrrmf338Uzz--Do9cwwmbPlrghpavxsYffUG2FI8RswR0xS4S1z5Co3MUhmuCBiCDLd7lLTUOcvDiGu03cjLRpqvUIkl9pU56RrWDxkrJnTGWVbLofWqImVCz4VeFnuAxJUHaHVsYbz0lbZWaMi3tX2r8o78ynJo79MQrV8_xTlzydkgds3AhsoshKcYrHm2iK6ItiEYNKeLoBzbj47VQPRqULUPkX4N93AjDrtLDcsUTgnRCHywKbIQ9PTejY1mLrQZRykZv5ohO1tgSg2LjIfuu0SMTcZHN7OMQpofgkNd1nDkV9p4YOVspl-kpD3bx5XtAetYh7UGkHdjWpSZRS9Y7h1l9xVJAZms9aFXNGZxZ4ZqYxlQ7dUvr5WcxPf0NM9blFS_4wNNpe5CR4_DhHYzy7dLmNKdkRc1K5mtjobTE7EvEWmksKriPrhXH4tLPpH3Q5yKNeMAXTGvDsTiDUWMHKztvfaC-OrZdGNcN0cgwBe_HMHTPYPnnUDpn8IjdsTw7Is5SMPf6qlywxpMlsECbvmgwkJa2VNcx15vn4JbOtyXTHwxcgYDzwZg7RDBBS_LqfceeQ4DwnWzwoE9hYLTfoDxJ3CNKXMiAC-PkQ2GdhiQyWU-KYGVeoEE9ue45Kzs4T0Md_sHhuz6DD_E7gkWqlC2JHplubpl9eJzXHF0w4CmotS9BysNekKZGdOv40yFEjjVyY30a4v8Nve1Z4Td_YrYeOkaiQHAhrCia3oKigGU9VFYM8l35gF-TwguIjA7Qlb2PPQspwA6kXdsV0TpKx_Ud8knSoMmtKkD7kto6rwKWqQyIBnMX4UKoOD2HLQT4JcB2ygLtD3Z0U3wFDv1AU0kz0hgLE7H43layz942XuW4CgUATTCr3h4qvt709-ZvTaKrZw-cAEKdG8Qc2pRaPF-2WFHD0s6f_UJP2thvaqRIUFyqodY8r-lZVp5RqM14U7x9TJHsfX8TGQql0D6RacMSZBX9XS1XRf4emQJ_9u5evc_G0HkovX9tBv6rCkVVsIeKDFg7xUhX3e0jsYrmOiCIOs04ncC68vzl1MSpYPcOE9XyPkQU7_v4gmsZCV6pMkC2njTqiOzLwUCNA12yjNMFxe2TuyK2kD4GAOBrqKD-MLcPvHfwc5M0mnjwSnEq3pQJIyJahgu_3-uMi77cQpzcP191ksQwa9oJFovlUfXvBqJ8PNI5ZS-cMYIVa2tmHsP6DPHOShGaAld2vPV7tMwNUUiH_ZJoV6BBvZjpbKtr6eZJi5LKtV8PgVDhCVpudcFMwf0kx3VnH8U-qgdJ2iZnB74ebdxDyoUHM0nsJ_XQhQfz0wTCUPOmNkgWEN9dJPkiiAUyqo78exnFZLnf1A4jrb71CArlQMaxyMIsD5j30zPGncE-V0td9mgvEMJHBzKvD5JaNcEL-s4GIwRCNUChQnJOlUr84i5FVWSpDvDlW3ihlAErmo4RPtNDGaWWn5qfs1EPLlsDhgJdbwaB1-HYEfkfL7-j0sRLFwQq67So9RJyVFAIkjLyiVHgI7yIeAvchFvBbZ_l-bW4hssJWBpGQ8ybRPAwIlWfq0F4vNTbE740UtFJWpcwTIv6w98IRg_uwhE0Jrkc9mXRY-J3zSTe7JlCRFdjdvmAyq1TLbiZG1nAygGMuNvgU0OWMbHpmWG4D3WvYVherNcuPS9ddz0mSs5YjBtOx9eQFBNjUp-X_eL30MVwDVkYJ1DCBwReZbs2z0kqmucGVs21ee2pSlg_5Pz74nUMBX9qubBqjo6yci9gxp6U6hMHz6dd7L-BXbbNorkVHC6v-w57r6TqybXGV6UB61OHehBz_6p8KwSaG16zmt6fAgpyw0Jq62xUA0lY_NzZUBbaMEq4Zn4qirVZxnyzaQUwIjQzq_SghhpF1IcvK1CCSfMRJW4T8HVM7s5d2ZatJ5f7eC8RNpkAwCjztfncMbsZN0reXNVxwpILctbo5zA3XUaaRZ2Fu4aiIbXMn9UEuPPpJKKoyPf-8T1v69xp6V7diG02DoDBa3vHOh6E23ha-X-lovHeO3OJDN_7JUB2A2-rclNVh5e-ICR7OzZikKO394G-idvPozGkkloZFTWdCkt0le76BoNg2XRGMTi5HPS54_VQI1xVEa_AAyNj41B0rpEXNdgWnGvtUGLP1FObuCjnlyrHuEtGn-p7n8HLvcPZfhI3MUq4KlhIBaoBkqTr8jfn7U8YRsQztJbPFDYVDbB1vuZwfggNXEA9R2SWQLc_V0fcMLHUHebG7AHhzDIrJ_t4QwsWdcXoWzRDQpux9Gm61YLBQaDWpldATHtaEbgCfOmXKcJbVoJi8WiM0HhFcjJTOjGlprUNZYEnL4_AORLwTTueYdJIZeqFrcBqZghnKcMnE6dsAfCoLKhpgUbMcQzJf_ZUKsL7brX_LcvFdoOc_8eJ3LJX4tsMfN6IrVARFyFp2td44yAI0oOiEaF8hJNTshxNSJia-XlUv6g-0PX5R3ddPbyQX6_nwBEDvxL5D20qstkymWWsdwxvnp2cUbIpUWdCgWnr-Nb9eQsgIR_jxn5f10Q6XgpdsNwUC0C580o9mSmXxiIG60PMnpQv7Nz8Yf1KsLAAYgT64slTFizfj9v_SCwmncgP94XIJL-i2VgL4l086Pxdub1mS3bxRCwxg082EIaOANTLS3FHF93dkN-Vc9ElmGZp7EHxHSVh3CKnLk7h2xDrSTjQ28fvyj6NkhN1bROHZ9S_ufbYwejzc5B2qJTRP0qmqMSmfFwCyp3YU45iKtoF7koMT1D-5wxxjwF5WR57kwmwX5WJ445kl4Pd2saCwZgDHwK0V_GZ_oKVioy98u3BtjmbSdBGqTo4P6GzmOktppvSHzgaVyEeg-YWwya1bG0pnPm4fg4lx3ih_d_MA_x64wvFtG-xS4W4wMEMKPGv9JxqoPkFXszijgY82JRz1z8SMSlG9VmZzJ3S0RXBQW-b9f-nfHX31Hkr4iLSXXQIVQE_W2D7KQf181pTjyJfOCkHa2cva4s5kfTp-pZrHiHXSoR7ud-sbthqkX75WagCoq9hHtwhjLeFeOZlPVJnr_rS7rFPOK04v6Xfiu7NRisSr0AdMbP8ivqR2rGiy0kg30lO5VclvoWL534E_kmrGlHgRFD2_kPU1mQZyFON76EJCDNGj0fiynKqurU81eaaw0zAo1uiKSQQu_c_0j5Dp5gTLUxescfX2F2qKv2CH2DKvOzZuNOq9iOzTt__hJZJEB-N1WBwXgXO7j0waqlGF661zclxKmwOh94IRWPXM6Qq4oXeeMpMd1SJFENStVwwJIM-3RldC_OBb_rfOHvYeOdN2Ot_0mjwn2MtKN_j42FWxchv8lhtdQbk0lKlOfyM6-HY_G5s-NSfyk1eWKCcP-xWWrCsbIpSeRpSE6XXjZU-ZsF7eUfPWS6DEL8xdFBLgZ3trF-vXakEzwrIu8asuo33q2rsTzutHDkFgLWPo6vcKJJsv64FCcSo4UV8hRtxVKtQUkxSjKAeBX3uIbBFlLASnXBsSGO-iLJYc7KykIhAEc-4gJQZIF9BiBD8OxQ8yKoACAW
+11-23 01:23:32.707  2561  2674 E cr_ClientAuthCredsWidevine: Server returned HTTP error code 401
+11-23 01:23:32.707  2561  2674 E cr_ClientAuthCredsWidevine: attemptCredsProvisioning. Received null response.
+11-23 01:23:32.707  2561  2674 I cr_ClientAuthCredsProvisioning: ClientAuthCredsProvisioning. Next attempt(secs): 60
+11-23 01:23:33.598  1174  1526 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:23:33.602   383   399 E HWComposer: getSupportedContentTypes: getSupportedContentTypes failed for display 4619827622076541440: Unsupported (8)
+11-23 01:23:33.603 13082 13082 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-23 01:23:33.604 13082 13087 I OMXClient: IOmx service obtained
+11-23 01:23:33.605   437   751 I OMXStore: makeComponentInstance(OMX.google.h264.encoder) in android.hardwar process
+11-23 01:23:33.607 13082 13082 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 1
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-bpp,0)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+11-23 01:23:33.607 13082 13082 D CodecProperties: setFeatureValue(intra-refresh,0)
+11-23 01:23:33.607 13082 13082 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 0
+11-23 01:23:33.607 13082 13082 D VQApply : minquality: not an eligible device class
+11-23 01:23:33.607 13082 13082 D MediaCodec: shapeMediaFormat: deltas(0): AMessage(what = 0x00000000) = {
+11-23 01:23:33.607 13082 13082 D MediaCodec:   }
+11-23 01:23:33.607 13082 13087 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:23:33.607 13082 13087 I ACodec  : setupAVCEncoderParameters with [profile: Baseline] [level: Level41]
+11-23 01:23:33.608 13082 13087 I ACodec  : [OMX.google.h264.encoder] cannot encode color aspects. Ignoring.
+11-23 01:23:33.608 13082 13087 I ACodec  : [OMX.google.h264.encoder] cannot encode HDR static metadata. Ignoring.
+11-23 01:23:33.608 13082 13087 I ACodec  : setupVideoEncoder succeeded
+11-23 01:23:33.608 13082 13087 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:23:33.608   437   751 E OMXNodeInstance: getConfig(0xebc40780:google.h264.encoder, ConfigLatency(0x6f800005)) ERROR: Undefined(0x80001001)
+11-23 01:23:33.608   437   751 E OMXNodeInstance: getConfig(0xebc40780:google.h264.encoder, ConfigAndroidVendorExtension(0x6f100004)) ERROR: Undefined(0x80001001)
+11-23 01:23:33.608   437   751 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+11-23 01:23:33.608   437   751 D GraphicBufferSource: requesting color aspects (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M))
+11-23 01:23:33.611   429  2413 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+11-23 01:23:33.612   437 13089 D SoftAVCEnc: Params width 1920 height 1080 level 41 colorFormat 0
+11-23 01:23:33.615  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1734 [CONTEXT service_id=218 ]
+11-23 01:23:33.617  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 7 uptime_millis: 7 exec_start_elapsed_seconds: 1734 [CONTEXT service_id=218 ]
+11-23 01:23:33.632   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f5fa4000 0x3f678d000]
+11-23 01:23:33.641   437   452 D GraphicBufferSource: got buffer with new dataSpace #104
+11-23 01:23:33.646 13082 13087 D ACodec  : dataspace changed to 0x10c10000 (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M)) (R:2(Limited), S:1(BT709), T:3(SMPTE_170M))
+11-23 01:23:33.651  1174  1403 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+11-23 01:23:33.652  1174  1403 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:23:33.654 13082 13082 D MPEG4Writer: PreAllocation enabled
+11-23 01:23:33.654 13082 13082 D MPEG4Writer: fpathconf _PC_FILESIZEBITS:64
+11-23 01:23:33.654 13082 13082 D MPEG4Writer: File size limit set to 4503599627370495 bytes implicitly
+11-23 01:23:33.655 13082 13082 D MPEG4Writer: MP4WtrCtrlHlpLooper Started
+11-23 01:23:33.655 13082 13082 I MPEG4Writer: limits: 4503599627370495/0 bytes/us, bit rate: -1 bps and the estimated moov size 3192 bytes
+11-23 01:23:33.677  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1734 [CONTEXT service_id=218 ]
+11-23 01:23:33.682  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 15 uptime_millis: 15 exec_start_elapsed_seconds: 1734 [CONTEXT service_id=218 ]
+11-23 01:23:33.713 13082 13094 I MPEG4Writer: setStartTimestampUs: 1734119440
+11-23 01:23:33.713 13082 13094 I MPEG4Writer: Earliest track starting time: 1734119440
+11-23 01:23:34.787   495  3536 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:23:34.796   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:34.796   375   464 D AF::TrackHandle: OpPlayAudio: track:133 usage:13 not muted
+11-23 01:23:34.797 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 37162
+11-23 01:23:34.864   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(34)
+11-23 01:23:34.908   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f2f76000 0x3f3171000]
+11-23 01:23:35.072   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f3171000 0x3f336c000]
+11-23 01:23:35.073   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f336c000 0x3f3567000]
+11-23 01:23:35.073 12077 12131 D HostConnection: createUnique: call
+11-23 01:23:35.074 12077 12131 D HostConnection: HostConnection::get() New Host Connection established 0xe7f1ec40, tid 12131
+11-23 01:23:35.076 12077 12131 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:35.077 12077 12131 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+11-23 01:23:35.077 12077 12131 D EGL_emulation: eglCreateContext: 0xe7f30130: maj 3 min 0 rcv 3
+11-23 01:23:35.078 12077 12131 D EGL_emulation: eglMakeCurrent: 0xe7f30130: ver 3 0 (tinfo 0xe5e30040) (first time)
+11-23 01:23:35.078 12077 13107 D HostConnection: createUnique: call
+11-23 01:23:35.079 12077 13107 D HostConnection: HostConnection::get() New Host Connection established 0xe7f30ec0, tid 13107
+11-23 01:23:35.081 12077 13107 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:35.103   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f678d000 0x3f6988000]
+11-23 01:23:35.130 12077 13106 D HostConnection: createUnique: call
+11-23 01:23:35.130 12077 13106 D HostConnection: HostConnection::get() New Host Connection established 0xe7f2e680, tid 13106
+11-23 01:23:35.133 12077 13106 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_color_transform ANDROID_EMU_hwc_display_power_mode GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0 
+11-23 01:23:35.159 12077 12084 I rismtv.launche: NativeAlloc concurrent copying GC freed 24615(933KB) AllocSpace objects, 1(16KB) LOS objects, 49% free, 7333KB/14MB, paused 60us,15us total 258.088ms
+11-23 01:23:35.509 12077 12092 D EGL_emulation: app_time_stats: avg=956.89ms min=167.96ms max=4076.94ms count=5
+11-23 01:23:35.513 12077 12077 I Choreographer: Skipped 35 frames!  The application may be doing too much work on its main thread.
+11-23 01:23:36.603 12077 12092 D EGL_emulation: app_time_stats: avg=546.73ms min=492.05ms max=601.40ms count=2
+11-23 01:23:36.949   375   577 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:36.949   375   577 D AF::TrackHandle: OpPlayAudio: track:134 usage:13 not muted
+11-23 01:23:36.949 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 16080
+11-23 01:23:36.963 12077 12103 I OpenGLRenderer: Davey! duration=1292ms; Flags=0, FrameTimelineVsyncId=24028, IntendedVsync=1735405098267, Vsync=1735988431577, InputEventId=0, HandleInputStart=1735991393662, AnimationStart=1735991394373, PerformTraversalsStart=1736081027312, DrawStart=1736081106420, FrameDeadline=1736521764889, FrameInterval=1735991275746, FrameStartTime=16666666, SyncQueued=1736087957736, SyncStart=1736479652309, IssueDrawCommandsStart=1736479943273, SwapBuffers=1736992373127, FrameCompleted=1737089054710, DequeueBufferDuration=4386, QueueBufferDuration=396771, GpuCompleted=1737089054710, SwapBuffersCompleted=1737081233545, DisplayPresentTime=0, 
+11-23 01:23:36.973   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f6988000 0x3f7171000]
+11-23 01:23:36.984 12077 12089 I OpenGLRenderer: Davey! duration=956ms; Flags=0, FrameTimelineVsyncId=24031, IntendedVsync=1736005098243, Vsync=1736471764891, InputEventId=0, HandleInputStart=1736485179654, AnimationStart=1736485180375, PerformTraversalsStart=1736584141584, DrawStart=1736584221473, FrameDeadline=1737121764865, FrameInterval=1736485176850, FrameStartTime=16666666, SyncQueued=1736584338066, SyncStart=1737081280675, IssueDrawCommandsStart=1737082679589, SwapBuffers=1737089572006, FrameCompleted=1737458262122, DequeueBufferDuration=22381699, QueueBufferDuration=310472, GpuCompleted=1737440622496, SwapBuffersCompleted=1737458262122, DisplayPresentTime=0, 
+11-23 01:23:37.785 12077 12092 D EGL_emulation: app_time_stats: avg=386.54ms min=312.27ms max=502.78ms count=3
+11-23 01:23:38.354   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(56)
+11-23 01:23:38.379 12077 12089 I OpenGLRenderer: Davey! duration=798ms; Flags=0, FrameTimelineVsyncId=24041, IntendedVsync=1737471764851, Vsync=1737938431499, InputEventId=0, HandleInputStart=1737952543491, AnimationStart=1737952544182, PerformTraversalsStart=1737962192605, DrawStart=1737962263510, FrameDeadline=1738305098151, FrameInterval=1737952541398, FrameStartTime=16666666, SyncQueued=1737965189038, SyncStart=1738267282231, IssueDrawCommandsStart=1738267570060, SwapBuffers=1738336674738, FrameCompleted=1738572312759, DequeueBufferDuration=3475, QueueBufferDuration=340537, GpuCompleted=1738572251438, SwapBuffersCompleted=1738572312759, DisplayPresentTime=0, 
+11-23 01:23:38.846 12077 12092 D EGL_emulation: app_time_stats: avg=341.59ms min=252.48ms max=467.22ms count=3
+11-23 01:23:39.144 12077 12089 I OpenGLRenderer: Davey! duration=762ms; Flags=0, FrameTimelineVsyncId=24047, IntendedVsync=1738305098151, Vsync=1738571764807, InputEventId=-823642589, HandleInputStart=1738575661868, AnimationStart=1738575662599, PerformTraversalsStart=1738584554505, DrawStart=1738584639521, FrameDeadline=1738855098129, FrameInterval=1738575659284, FrameStartTime=16666666, SyncQueued=1738588219194, SyncStart=1738859603412, IssueDrawCommandsStart=1738859808427, SwapBuffers=1739073296592, FrameCompleted=1739338578004, DequeueBufferDuration=3876, QueueBufferDuration=396761, GpuCompleted=1739338578004, SwapBuffersCompleted=1739324452763, DisplayPresentTime=0, 
+11-23 01:23:39.666 12077 12103 I OpenGLRenderer: Davey! duration=771ms; Flags=0, FrameTimelineVsyncId=24053, IntendedVsync=1738921764793, Vsync=1739321764777, InputEventId=0, HandleInputStart=1739329673219, AnimationStart=1739329673690, PerformTraversalsStart=1739437435914, DrawStart=1739437542213, FrameDeadline=1739638431431, FrameInterval=1739329670996, FrameStartTime=16666666, SyncQueued=1739440354832, SyncStart=1739622606643, IssueDrawCommandsStart=1739622975843, SwapBuffers=1739677460644, FrameCompleted=1739875505936, DequeueBufferDuration=3656, QueueBufferDuration=1367377, GpuCompleted=1739875448270, SwapBuffersCompleted=1739875505936, DisplayPresentTime=0, 
+11-23 01:23:39.694   375   577 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:39.696   375   577 D AF::TrackHandle: OpPlayAudio: track:135 usage:13 not muted
+11-23 01:23:39.702 12077 12077 D AudioTrack: createTrack_l(1148271912): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 21946
+11-23 01:23:39.888 12077 12092 D EGL_emulation: app_time_stats: avg=239.41ms min=204.56ms max=275.59ms count=4
+11-23 01:23:40.031   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(40)
+11-23 01:23:41.112 12077 12092 D EGL_emulation: app_time_stats: avg=305.87ms min=241.63ms max=385.18ms count=4
+11-23 01:23:41.601   375   577 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:41.602   375   577 D AF::TrackHandle: OpPlayAudio: track:136 usage:13 not muted
+11-23 01:23:41.602 12077 12077 D AudioTrack: createTrack_l(94): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 16080
+11-23 01:23:42.289 12077 12092 D EGL_emulation: app_time_stats: avg=284.04ms min=201.00ms max=432.47ms count=4
+11-23 01:23:42.510   495   592 W libprocessgroup: Failed to open /sys/fs/cgroup/./frozen/cgroup.procs: No such file or directory
+11-23 01:23:42.510   495   592 W libprocessgroup: Failed to apply Frozen process profile: No such file or directory
+11-23 01:23:42.510   495   592 D ActivityManager: froze 2687 com.google.android.configupdater
+11-23 01:23:43.174 12077 12090 I OpenGLRenderer: Davey! duration=807ms; Flags=0, FrameTimelineVsyncId=24092, IntendedVsync=1742355097989, Vsync=1742755097973, InputEventId=0, HandleInputStart=1742767948541, AnimationStart=1742767949152, PerformTraversalsStart=1742863407859, DrawStart=1742863485775, FrameDeadline=1743021764629, FrameInterval=1742767946348, FrameStartTime=16666666, SyncQueued=1742868297403, SyncStart=1743032297470, IssueDrawCommandsStart=1743064067736, SwapBuffers=1743078796555, FrameCompleted=1743326730267, DequeueBufferDuration=3705, QueueBufferDuration=398774, GpuCompleted=1743326661204, SwapBuffersCompleted=1743326730267, DisplayPresentTime=0, 
+11-23 01:23:43.259   495  3536 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9113} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (87 skipped)
+11-23 01:23:43.278  3567 13159 I GmscoreIpa: Starting mediastore instant index [CONTEXT service_id=255 ]
+11-23 01:23:43.500 12077 12092 D EGL_emulation: app_time_stats: avg=283.98ms min=226.76ms max=325.39ms count=4
+11-23 01:23:44.212   375   577 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:44.212   375   577 D AF::TrackHandle: OpPlayAudio: track:137 usage:13 not muted
+11-23 01:23:44.213 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 29923
+11-23 01:23:44.767 12077 12092 D EGL_emulation: app_time_stats: avg=1267.42ms min=1267.42ms max=1267.42ms count=1
+11-23 01:23:44.901 13082 13095 I MPEG4Writer: setStartTimestampUs: 1734119440
+11-23 01:23:44.966 13082 13082 D MPEG4Writer: reset()
+11-23 01:23:44.966 13082 13082 D MPEG4Writer: Video track stopping. Stop source
+11-23 01:23:44.966 13082 13082 D MPEG4Writer: Video track source stopping
+11-23 01:23:44.966 13082 13082 D MPEG4Writer: Video track source stopped
+11-23 01:23:44.967 13082 13094 V MediaWriter: Track event err/info msg:101, trackId:1, type:1000,val:-1011
+11-23 01:23:44.967 13082 13094 I MPEG4Writer: Received total/0-length (26/0) buffers and encoded 26 frames. - Video
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: Video track stopped. Status:0. Stop source
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: Metadata track stopping. Stop source
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: Metadata track source stopping
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: Metadata track source stopped
+11-23 01:23:44.973 13082 13095 V MediaWriter: Track event err/info msg:101, trackId:2, type:1000,val:-1011
+11-23 01:23:44.973 13082 13095 W MPEG4Writer: 0-duration samples found: 1
+11-23 01:23:44.973 13082 13095 I MPEG4Writer: Received total/0-length (1/0) buffers and encoded 1 frames. - Metadata
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: Metadata track stopped. Status:0. Stop source
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: Duration from tracks range is [0, 10238478] us
+11-23 01:23:44.973 13082 13092 D MPEG4Writer: 0 chunks are written in the last batch
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: WriterThread stopped. Status:0
+11-23 01:23:44.973 13082 13082 I MPEG4Writer: Adjust the moov start time from 1734119440 us -> 1734119440 us
+11-23 01:23:44.973 13082 13082 I MPEG4Writer: MOOV atom was written to the file
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: release()
+11-23 01:23:44.973 13082 13082 D MPEG4Writer: ftruncate mPreAllocateFileEndOffset:916324 mOffset:1618 mMdatEndOffset:913700 diff:2624
+11-23 01:23:44.991   437   437 E BufferQueueProducer: [GraphicBufferSource](id:1b500000001,api:1,p:383,c:437) queueBuffer: BufferQueue has been abandoned
+11-23 01:23:44.991   383   383 E Surface : queueBuffer: error queuing buffer, -19
+11-23 01:23:44.991   383   383 E CompositionEngine: Error when queueing buffer for display [ScreenRecorder]: -19
+11-23 01:23:44.991   437   437 E BufferQueueProducer: [GraphicBufferSource](id:1b500000001,api:1,p:383,c:437) cancelBuffer: BufferQueue has been abandoned
+11-23 01:23:44.995 13082 13082 D MPEG4Writer: final fsync() takes 21 ms, file size 913700
+11-23 01:23:44.998 13082 13082 D MPEG4Writer: MP4WtrCtrlHlpLooper stopped
+11-23 01:23:44.998 13082 13082 D MPEG4Writer: Top 5 write durations(microseconds): #1:131 #2:149 #3:164 #4:193 #5:351
+11-23 01:23:45.016  1174  2191 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-switcher.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:23:45.019 13082 13082 D ScreenRecord: success
+11-23 01:23:45.019 13082 13082 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:23:45.019 13082 13082 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:23:45.020 13082 13082 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-23 01:23:45.042  1174  2191 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-switcher.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:23:45.057  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1745 [CONTEXT service_id=218 ]
+11-23 01:23:45.066  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 16 uptime_millis: 16 exec_start_elapsed_seconds: 1745 [CONTEXT service_id=218 ]
+11-23 01:23:47.248   495  2412 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:23:47.459   495   592 W libprocessgroup: Failed to open /sys/fs/cgroup/./frozen/cgroup.procs: No such file or directory
+11-23 01:23:47.459   495   592 W libprocessgroup: Failed to apply Frozen process profile: No such file or directory
+11-23 01:23:47.459   495   592 D ActivityManager: froze 2032 com.google.android.gms.unstable
+11-23 01:23:48.391  2561  2647 I chromium: [2561:2647:INFO:grpc_auth_manager_with_grpc_ipc.cc(63)] Connecting IPC for Auth.AuthReadyStreaming.
+11-23 01:23:48.391  2561  2647 D BindingManager: with
+11-23 01:23:48.391  2561  2647 I chromium: [2561:2647:INFO:distributed_service_discovery_with_grpc_ipc.cc(152)] Connecting IPC for DistributedServiceDiscovery.AddService.
+11-23 01:23:48.391  2561  2647 I chromium: [2561:2647:INFO:distributed_service_discovery_with_grpc_ipc.cc(66)] Connecting IPC for DistributedServiceDiscovery.UpdateObservers.
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:metrics_recorder_with_grpc_ipc.cc(156)] Connecting IPC for MetricsRecorder.RecordMetrics: num_attempts=16
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:synchronous_sound_player_with_grpc_ipc.cc(176)] Connecting IPC for SynchronousSoundPlayer.UpdateSound.
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:directory_service_with_grpc_ipc.cc(66)] Connecting IPC for DirectoryService.LocalDeviceInfo.
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:directory_service_with_grpc_ipc.cc(123)] Connecting IPC for DirectoryService.ObserveCommonTime.
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:directory_service_with_grpc_ipc.cc(279)] Connecting IPC for DirectoryService.UpdateStateObservers.
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:directory_service_with_grpc_ipc.cc(381)] Connecting IPC for DirectoryService.UpdateMessageObservers.
+11-23 01:23:48.392  2561  2647 I chromium: [2561:2647:INFO:state_manager_with_grpc_ipc.cc(78)] Connecting IPC for StateManager.ReceiveStateUpdates.
+11-23 01:23:48.392  2561  2561 D cr_GrpcIpcUidPolicy: [AndroidIpcUidPolicy.java:147] Valid access from com.google.android.apps.mediashell
+11-23 01:23:48.392  2561  2561 E cr_GrpcIpcSocketService: Native code not initialized yet.
+11-23 01:23:48.392  2561  2561 E GrpcIpcSocketClientImpl: invalid message
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_ipc_socket_client.cc(76)] Error for usonia-ipc-socket
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:android_grpc_builder.cc(86)] Could not get a socket for binder:com.google.android.apps.mediashell:usonia-ipc-socket
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(618)] GRPC[uri=]: Grpc cannot connect to host {UNDEFINED}
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 W chromium: [2561:2647:WARNING:grpc_auth_manager_with_grpc_ipc.cc(59)] IPC for Auth.AuthReadyStreaming closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 W chromium: [2561:2647:WARNING:distributed_service_discovery_with_grpc_ipc.cc(147)] IPC for DistributedServiceDiscovery.AddService closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 W chromium: [2561:2647:WARNING:distributed_service_discovery_with_grpc_ipc.cc(60)] IPC for DistributedServiceDiscovery.UpdateObservers closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 W chromium: [2561:2647:WARNING:metrics_recorder_with_grpc_ipc.cc(142)] IPC for MetricsRecorder.RecordMetrics closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 W chromium: [2561:2647:WARNING:synchronous_sound_player_with_grpc_ipc.cc(171)] IPC for SynchronousSoundPlayer.UpdateSound closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:ipc_common.h(444)] Error in fetching local device info: [error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 W chromium: [2561:2647:WARNING:directory_service_with_grpc_ipc.cc(118)] IPC for DirectoryService.ObserveCommonTime closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:directory_service_with_grpc_ipc.cc(274)] IPC for DirectoryService.UpdateStateObservers closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.392  2561  2647 E chromium: [2561:2647:ERROR:directory_service_with_grpc_ipc.cc(376)] IPC for DirectoryService.UpdateMessageObservers closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.393  2561  2647 E chromium: [2561:2647:ERROR:grpc_manager_impl.cc(767)] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:48.393  2561  2647 W chromium: [2561:2647:WARNING:state_manager_with_grpc_ipc.cc(73)] IPC for StateManager.ReceiveStateUpdates closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:51.296  1174  1526 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:23:51.297   383   399 E HWComposer: getSupportedContentTypes: getSupportedContentTypes failed for display 4619827622076541440: Unsupported (8)
+11-23 01:23:51.298 13183 13183 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-23 01:23:51.299 13183 13188 I OMXClient: IOmx service obtained
+11-23 01:23:51.300   437 13169 I OMXStore: makeComponentInstance(OMX.google.h264.encoder) in android.hardwar process
+11-23 01:23:51.302 13183 13183 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 1
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-bpp,0)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+11-23 01:23:51.302 13183 13183 D CodecProperties: setFeatureValue(intra-refresh,0)
+11-23 01:23:51.302 13183 13183 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 0
+11-23 01:23:51.302 13183 13183 D VQApply : minquality: not an eligible device class
+11-23 01:23:51.302 13183 13183 D MediaCodec: shapeMediaFormat: deltas(0): AMessage(what = 0x00000000) = {
+11-23 01:23:51.302 13183 13183 D MediaCodec:   }
+11-23 01:23:51.302 13183 13188 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:23:51.302 13183 13188 I ACodec  : setupAVCEncoderParameters with [profile: Baseline] [level: Level41]
+11-23 01:23:51.303 13183 13188 I ACodec  : [OMX.google.h264.encoder] cannot encode color aspects. Ignoring.
+11-23 01:23:51.303 13183 13188 I ACodec  : [OMX.google.h264.encoder] cannot encode HDR static metadata. Ignoring.
+11-23 01:23:51.303 13183 13188 I ACodec  : setupVideoEncoder succeeded
+11-23 01:23:51.303 13183 13188 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:23:51.303   437   452 E OMXNodeInstance: getConfig(0xebc40ef0:google.h264.encoder, ConfigLatency(0x6f800005)) ERROR: Undefined(0x80001001)
+11-23 01:23:51.303   437   452 E OMXNodeInstance: getConfig(0xebc40ef0:google.h264.encoder, ConfigAndroidVendorExtension(0x6f100004)) ERROR: Undefined(0x80001001)
+11-23 01:23:51.303   437   452 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+11-23 01:23:51.303   437   452 D GraphicBufferSource: requesting color aspects (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M))
+11-23 01:23:51.306   429   465 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+11-23 01:23:51.306   437 13190 D SoftAVCEnc: Params width 1920 height 1080 level 41 colorFormat 0
+11-23 01:23:51.312  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1751 [CONTEXT service_id=218 ]
+11-23 01:23:51.318  1174  1403 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+11-23 01:23:51.319   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f6988000 0x3f7171000]
+11-23 01:23:51.321  1174  1402 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:23:51.323  1041  9327 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 15 uptime_millis: 15 exec_start_elapsed_seconds: 1751 [CONTEXT service_id=218 ]
+11-23 01:23:51.328   437   437 D GraphicBufferSource: got buffer with new dataSpace #104
+11-23 01:23:51.331 13183 13188 D ACodec  : dataspace changed to 0x10c10000 (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M)) (R:2(Limited), S:1(BT709), T:3(SMPTE_170M))
+11-23 01:23:51.333 13183 13183 D MPEG4Writer: PreAllocation enabled
+11-23 01:23:51.333 13183 13183 D MPEG4Writer: fpathconf _PC_FILESIZEBITS:64
+11-23 01:23:51.333 13183 13183 D MPEG4Writer: File size limit set to 4503599627370495 bytes implicitly
+11-23 01:23:51.333 13183 13183 D MPEG4Writer: MP4WtrCtrlHlpLooper Started
+11-23 01:23:51.333 13183 13183 I MPEG4Writer: limits: 4503599627370495/0 bytes/us, bit rate: -1 bps and the estimated moov size 3192 bytes
+11-23 01:23:51.374 13183 13194 I MPEG4Writer: setStartTimestampUs: 1751806409
+11-23 01:23:51.374 13183 13194 I MPEG4Writer: Earliest track starting time: 1751806409
+11-23 01:23:52.484   375  3909 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:52.484   375  3909 D AF::TrackHandle: OpPlayAudio: track:138 usage:13 not muted
+11-23 01:23:52.484 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 50208
+11-23 01:23:52.552   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(34)
+11-23 01:23:52.558  6592  6717 D BindingManager: with
+11-23 01:23:52.559  2561  2561 D cr_GrpcIpcUidPolicy: [AndroidIpcUidPolicy.java:147] Valid access from com.google.android.katniss
+11-23 01:23:52.559  2561  2561 E cr_GrpcIpcSocketService: Native code not initialized yet.
+11-23 01:23:52.559  6592  6592 E GrpcIpcSocketClientImpl: invalid message
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559709    6717 grpc_ipc_socket_client.cc:77] Error for usonia-ipc-socket
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559753    6717 android_grpc_builder.cc:149] Could not get a socket for binder:com.google.android.apps.mediashell:usonia-ipc-socket
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559770    6717 grpc_manager_impl.cc:634] GRPC[uri=]: Grpc cannot connect to host {UNDEFINED}
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559784    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559797    6717 grpc_auth_manager_with_grpc_ipc.cc:65] IPC for Auth.AuthReadyStreaming closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559814    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559825    6717 distributed_service_discovery_with_grpc_ipc.cc:150] IPC for DistributedServiceDiscovery.AddService closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559837    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559846    6717 distributed_service_discovery_with_grpc_ipc.cc:64] IPC for DistributedServiceDiscovery.UpdateObservers closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559858    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559868    6717 distributed_service_discovery_with_grpc_ipc.cc:251] IPC for DistributedServiceDiscovery.GetIamMode closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559880    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559890    6717 metrics_recorder_with_grpc_ipc.cc:164] IPC for MetricsRecorder.RecordMetrics closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559902    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559912    6717 synchronous_sound_player_with_grpc_ipc.cc:173] IPC for SynchronousSoundPlayer.UpdateSound closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559924    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559934    6717 ipc_common.h:486] Error in fetching local device info: [error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 E native  : E0000 00:00:1795397032.559947    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.559  6592  6717 W native  : W0000 00:00:1795397032.559956    6717 directory_service_with_grpc_ipc.cc:123] IPC for DirectoryService.ObserveCommonTime closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.560  6592  6717 E native  : E0000 00:00:1795397032.560070    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.560  6592  6717 E native  : E0000 00:00:1795397032.560086    6717 directory_service_with_grpc_ipc.cc:277] IPC for DirectoryService.UpdateStateObservers closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.560  6592  6717 E native  : E0000 00:00:1795397032.560100    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.560  6592  6717 E native  : E0000 00:00:1795397032.560110    6717 directory_service_with_grpc_ipc.cc:378] IPC for DirectoryService.UpdateMessageObservers closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.560  6592  6717 E native  : E0000 00:00:1795397032.560122    6717 grpc_manager_impl.cc:782] GRPC[uri=]: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.560  6592  6717 W native  : W0000 00:00:1795397032.560133    6717 state_manager_with_grpc_ipc.cc:74] IPC for StateManager.ReceiveStateUpdates closed: status=[error_code=RESOURCE_EXHAUSTED, error_message=Cannot create a channel. Call to binder:com.google.android.apps.mediashell:usonia-ipc-socket ignored.]
+11-23 01:23:52.747 12077 12092 D EGL_emulation: app_time_stats: avg=2659.75ms min=169.66ms max=7291.06ms count=3
+11-23 01:23:52.894   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f5fa4000 0x3f678d000]
+11-23 01:23:52.951   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(8)
+11-23 01:23:53.179   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(33)
+11-23 01:23:53.929 12077 12092 D EGL_emulation: app_time_stats: avg=230.14ms min=118.10ms max=441.24ms count=5
+11-23 01:23:54.464   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:23:54.466   375   464 D AF::TrackHandle: OpPlayAudio: track:139 usage:13 not muted
+11-23 01:23:54.467 12077 12077 D AudioTrack: createTrack_l(1919252079): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 1296
+11-23 01:23:54.469 12077 12077 I Choreographer: Skipped 31 frames!  The application may be doing too much work on its main thread.
+11-23 01:23:54.828 12077 12111 I OpenGLRenderer: Davey! duration=894ms; Flags=0, FrameTimelineVsyncId=24145, IntendedVsync=1753655097537, Vsync=1753955097525, InputEventId=0, HandleInputStart=1753969351828, AnimationStart=1753969352509, PerformTraversalsStart=1753982463595, DrawStart=1753982543684, FrameDeadline=1754455097505, FrameInterval=1753969349304, FrameStartTime=16666666, SyncQueued=1754001690945, SyncStart=1754407551201, IssueDrawCommandsStart=1754407719241, SwapBuffers=1754876646293, FrameCompleted=1754955400406, DequeueBufferDuration=3535, QueueBufferDuration=245226, GpuCompleted=1754955400406, SwapBuffersCompleted=1754939012735, DisplayPresentTime=0, 
+11-23 01:23:54.833 12077 12111 I OpenGLRenderer: Davey! duration=790ms; Flags=0, FrameTimelineVsyncId=24148, IntendedVsync=1753988430857, Vsync=1754405097507, InputEventId=0, HandleInputStart=1754408410962, AnimationStart=1754408411463, PerformTraversalsStart=1754410001672, DrawStart=1754410075782, FrameDeadline=1754988430817, FrameInterval=1754408408709, FrameStartTime=16666666, SyncQueued=1754412635986, SyncStart=1754940094236, IssueDrawCommandsStart=1754940261876, SwapBuffers=1755091808060, FrameCompleted=1755306349985, DequeueBufferDuration=40110839, QueueBufferDuration=302290, GpuCompleted=1755284979687, SwapBuffersCompleted=1755306349985, DisplayPresentTime=0, 
+11-23 01:23:54.952 12077 12092 D EGL_emulation: app_time_stats: avg=327.58ms min=123.70ms max=531.82ms count=3
+11-23 01:23:56.417 12077 12092 D EGL_emulation: app_time_stats: avg=285.08ms min=151.68ms max=470.87ms count=5
+11-23 01:23:56.518 12077 12077 I Choreographer: Skipped 33 frames!  The application may be doing too much work on its main thread.
+11-23 01:23:57.321 12077 12111 I OpenGLRenderer: Davey! duration=971ms; Flags=0, FrameTimelineVsyncId=24175, IntendedVsync=1756438441853, Vsync=1756988441831, InputEventId=0, HandleInputStart=1757002574898, AnimationStart=1757002575679, PerformTraversalsStart=1757004575227, DrawStart=1757004644921, FrameDeadline=1757405108488, FrameInterval=1756995487400, FrameStartTime=16666666, SyncQueued=1757007643087, SyncStart=1757377198554, IssueDrawCommandsStart=1757377409728, SwapBuffers=1757637687727, FrameCompleted=1757779348822, DequeueBufferDuration=10157871, QueueBufferDuration=239788, GpuCompleted=1757778154889, SwapBuffersCompleted=1757779348822, DisplayPresentTime=0, 
+11-23 01:23:57.718 12077 12092 D EGL_emulation: app_time_stats: avg=429.75ms min=391.77ms max=480.25ms count=3
+11-23 01:23:57.748 12077 12111 I OpenGLRenderer: Davey! duration=826ms; Flags=0, FrameTimelineVsyncId=24178, IntendedVsync=1757005097403, Vsync=1757405097387, InputEventId=0, HandleInputStart=1757411205831, AnimationStart=1757411206422, PerformTraversalsStart=1757412431888, DrawStart=1757412497305, FrameDeadline=1757805108465, FrameInterval=1757411203568, FrameStartTime=16666666, SyncQueued=1757414317647, SyncStart=1757779394079, IssueDrawCommandsStart=1757780129956, SwapBuffers=1758089480900, FrameCompleted=1758196253886, DequeueBufferDuration=4127, QueueBufferDuration=1388008, GpuCompleted=1758196122710, SwapBuffersCompleted=1758196253886, DisplayPresentTime=0, 
+11-23 01:23:58.402 13183 13195 I MPEG4Writer: setStartTimestampUs: 1751806409
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: reset()
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Video track stopping. Stop source
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Video track source stopping
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Video track source stopped
+11-23 01:23:58.520 13183 13194 V MediaWriter: Track event err/info msg:101, trackId:1, type:1000,val:-1011
+11-23 01:23:58.520 13183 13194 I MPEG4Writer: Received total/0-length (19/0) buffers and encoded 19 frames. - Video
+11-23 01:23:58.520 13183 13195 V MediaWriter: Track event err/info msg:101, trackId:2, type:1000,val:-1011
+11-23 01:23:58.520 13183 13195 W MPEG4Writer: 0-duration samples found: 1
+11-23 01:23:58.520 13183 13195 I MPEG4Writer: Received total/0-length (1/0) buffers and encoded 1 frames. - Metadata
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Video track stopped. Status:0. Stop source
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Metadata track stopping. Stop source
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Metadata track source stopping
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Metadata track source stopped
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Metadata track stopped. Status:0. Stop source
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: Duration from tracks range is [0, 7634877] us
+11-23 01:23:58.520 13183 13192 D MPEG4Writer: 1 chunks are written in the last batch
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: WriterThread stopped. Status:0
+11-23 01:23:58.520 13183 13183 I MPEG4Writer: Adjust the moov start time from 1751806409 us -> 1751806409 us
+11-23 01:23:58.520   437   437 W GraphicBufferSource: released unpopulated slots: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+11-23 01:23:58.520 13183 13183 I MPEG4Writer: MOOV atom was written to the file
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: release()
+11-23 01:23:58.520 13183 13183 D MPEG4Writer: ftruncate mPreAllocateFileEndOffset:657650 mOffset:1474 mMdatEndOffset:655158 diff:2492
+11-23 01:23:58.706 13183 13183 D MPEG4Writer: final fsync() takes 180 ms, file size 655158
+11-23 01:23:58.706 13183 13183 D MPEG4Writer: MP4WtrCtrlHlpLooper stopped
+11-23 01:23:58.706 13183 13183 D MPEG4Writer: Top 5 write durations(microseconds): #1:123 #2:123 #3:162 #4:206 #5:270
+11-23 01:23:58.724   495   536 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9137} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (67 skipped)
+11-23 01:23:58.726  1174  2191 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-launch.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:23:58.726 13183 13183 D ScreenRecord: success
+11-23 01:23:58.726 13183 13183 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:23:58.726 13183 13183 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:23:58.727 13183 13183 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-23 01:23:58.742  1174  2191 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-launch.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:23:58.751  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1759 [CONTEXT service_id=218 ]
+11-23 01:23:58.754  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 5 uptime_millis: 5 exec_start_elapsed_seconds: 1759 [CONTEXT service_id=218 ]
+11-23 01:23:59.757   495  3536 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:23:59.929 12077 12092 D EGL_emulation: app_time_stats: avg=440.39ms min=131.97ms max=1229.26ms count=5
+11-23 01:24:01.054 12077 12092 D EGL_emulation: app_time_stats: avg=158.10ms min=110.79ms max=190.06ms count=7
+11-23 01:24:03.803  1174  1403 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:24:03.807   383   597 E HWComposer: getSupportedContentTypes: getSupportedContentTypes failed for display 4619827622076541440: Unsupported (8)
+11-23 01:24:03.807 13237 13237 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-23 01:24:03.809 13237 13242 I OMXClient: IOmx service obtained
+11-23 01:24:03.809   437 11168 I OMXStore: makeComponentInstance(OMX.google.h264.encoder) in android.hardwar process
+11-23 01:24:03.810 13237 13237 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 1
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-bpp,0)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+11-23 01:24:03.810 13237 13237 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+11-23 01:24:03.811 13237 13237 D CodecProperties: setFeatureValue(intra-refresh,0)
+11-23 01:24:03.811 13237 13237 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 0
+11-23 01:24:03.811 13237 13237 D VQApply : minquality: not an eligible device class
+11-23 01:24:03.811 13237 13237 D MediaCodec: shapeMediaFormat: deltas(0): AMessage(what = 0x00000000) = {
+11-23 01:24:03.811 13237 13237 D MediaCodec:   }
+11-23 01:24:03.811 13237 13242 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:24:03.812 13237 13242 I ACodec  : setupAVCEncoderParameters with [profile: Baseline] [level: Level41]
+11-23 01:24:03.812 13237 13242 I ACodec  : [OMX.google.h264.encoder] cannot encode color aspects. Ignoring.
+11-23 01:24:03.812 13237 13242 I ACodec  : [OMX.google.h264.encoder] cannot encode HDR static metadata. Ignoring.
+11-23 01:24:03.812 13237 13242 I ACodec  : setupVideoEncoder succeeded
+11-23 01:24:03.812 13237 13242 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:24:03.812   437 11168 E OMXNodeInstance: getConfig(0xebc40f60:google.h264.encoder, ConfigLatency(0x6f800005)) ERROR: Undefined(0x80001001)
+11-23 01:24:03.812   437 11168 E OMXNodeInstance: getConfig(0xebc40f60:google.h264.encoder, ConfigAndroidVendorExtension(0x6f100004)) ERROR: Undefined(0x80001001)
+11-23 01:24:03.812   437 11168 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+11-23 01:24:03.813   437 11168 D GraphicBufferSource: requesting color aspects (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M))
+11-23 01:24:03.817  1041 13228 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1764 [CONTEXT service_id=218 ]
+11-23 01:24:03.818   429  2432 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+11-23 01:24:03.820  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 7 uptime_millis: 7 exec_start_elapsed_seconds: 1764 [CONTEXT service_id=218 ]
+11-23 01:24:03.821   437 13244 D SoftAVCEnc: Params width 1920 height 1080 level 41 colorFormat 0
+11-23 01:24:03.837   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f6988000 0x3f7171000]
+11-23 01:24:03.838  1174  1402 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+11-23 01:24:03.844  1174  1403 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:24:03.845 13237 13237 D MPEG4Writer: PreAllocation enabled
+11-23 01:24:03.845   437 13169 D GraphicBufferSource: got buffer with new dataSpace #104
+11-23 01:24:03.847 13237 13242 D ACodec  : dataspace changed to 0x10c10000 (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M)) (R:2(Limited), S:1(BT709), T:3(SMPTE_170M))
+11-23 01:24:03.847 13237 13237 D MPEG4Writer: fpathconf _PC_FILESIZEBITS:64
+11-23 01:24:03.847 13237 13237 D MPEG4Writer: File size limit set to 4503599627370495 bytes implicitly
+11-23 01:24:03.848 13237 13237 D MPEG4Writer: MP4WtrCtrlHlpLooper Started
+11-23 01:24:03.848 13237 13237 I MPEG4Writer: limits: 4503599627370495/0 bytes/us, bit rate: -1 bps and the estimated moov size 3192 bytes
+11-23 01:24:03.872 13237 13249 I MPEG4Writer: setStartTimestampUs: 1764323050
+11-23 01:24:03.872 13237 13249 I MPEG4Writer: Earliest track starting time: 1764323050
+11-23 01:24:03.880  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1764 [CONTEXT service_id=218 ]
+11-23 01:24:03.882  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 6 uptime_millis: 6 exec_start_elapsed_seconds: 1764 [CONTEXT service_id=218 ]
+11-23 01:24:05.394   375   577 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:05.394   375   577 D AF::TrackHandle: OpPlayAudio: track:140 usage:13 not muted
+11-23 01:24:05.395 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 36305
+11-23 01:24:05.396   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(11)
+11-23 01:24:05.463   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(34)
+11-23 01:24:05.673 12077 12092 D EGL_emulation: app_time_stats: avg=2305.13ms min=92.63ms max=4517.63ms count=2
+11-23 01:24:05.839   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f5fa4000 0x3f678d000]
+11-23 01:24:05.850   428  7737 D AudioAnalytics: gc(1700, 2000): log size:1700 item map size:73, item map items:1700
+11-23 01:24:05.900   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(65)
+11-23 01:24:07.042   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:07.042   375   464 D AF::TrackHandle: OpPlayAudio: track:141 usage:13 not muted
+11-23 01:24:07.042 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 50208
+11-23 01:24:07.485 12077 12092 D EGL_emulation: app_time_stats: avg=888.23ms min=131.41ms max=1645.04ms count=2
+11-23 01:24:08.012   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(82)
+11-23 01:24:08.479   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f7171000 0x3f795a000]
+11-23 01:24:08.515 12077 12092 D EGL_emulation: app_time_stats: avg=164.69ms min=108.13ms max=286.14ms count=6
+11-23 01:24:08.534   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:08.534   375   464 D AF::TrackHandle: OpPlayAudio: track:142 usage:13 not muted
+11-23 01:24:08.535 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 14880
+11-23 01:24:09.584 12077 12092 D EGL_emulation: app_time_stats: avg=123.86ms min=100.98ms max=155.40ms count=8
+11-23 01:24:10.673 12077 12092 D EGL_emulation: app_time_stats: avg=127.80ms min=101.12ms max=145.29ms count=8
+11-23 01:24:11.109   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(68)
+11-23 01:24:11.678 12077 12092 D EGL_emulation: app_time_stats: avg=134.71ms min=106.71ms max=164.08ms count=7
+11-23 01:24:12.781 12077 12092 D EGL_emulation: app_time_stats: avg=123.48ms min=96.84ms max=154.91ms count=8
+11-23 01:24:12.880   375  3510 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:12.880   375  3510 D AF::TrackHandle: OpPlayAudio: track:143 usage:13 not muted
+11-23 01:24:12.883 12077 12077 D AudioTrack: createTrack_l(1886482802): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 50208
+11-23 01:24:13.157   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(69)
+11-23 01:24:14.902  2561  2561 I chromium: [2561:2561:INFO:service_base.h(78)] Size of the map for type AuthTokenResponse is 0
+11-23 01:24:14.902  2561  2561 I chromium: [2561:2561:INFO:service_base.h(246)] Container sizes for type CloudSetting are (session_info_map: 0), (topic_info_map: 21), (pending_events: 0).
+11-23 01:24:14.903  2561  2561 I chromium: [2561:2561:INFO:service_base.h(78)] Size of the map for type LocalDeviceInfo is 0
+11-23 01:24:14.903  2561  2561 I chromium: [2561:2561:INFO:service_base.h(78)] Size of the map for type NetworkInfo is 0
+11-23 01:24:14.903  2561  2561 I chromium: [2561:2561:INFO:metrics_stat_logger.cc(55)] Metrics stat for the past 60 secs : total=1
+11-23 01:24:14.903  2561  2561 I chromium: [metrics_stat_logger] Usonia.DirectoryService.SendHeartbeat=2
+11-23 01:24:15.071   495  3307 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9160} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (79 skipped)
+11-23 01:24:15.074  3567 13333 I GmscoreIpa: Starting mediastore instant index [CONTEXT service_id=255 ]
+11-23 01:24:16.066 13237 13250 I MPEG4Writer: setStartTimestampUs: 1764323050
+11-23 01:24:16.068 13237 13237 D MPEG4Writer: reset()
+11-23 01:24:16.068 13237 13237 D MPEG4Writer: Video track stopping. Stop source
+11-23 01:24:16.068 13237 13237 D MPEG4Writer: Video track source stopping
+11-23 01:24:16.068 13237 13237 D MPEG4Writer: Video track source stopped
+11-23 01:24:16.068 13237 13249 V MediaWriter: Track event err/info msg:101, trackId:1, type:1000,val:-1011
+11-23 01:24:16.068 13237 13250 V MediaWriter: Track event err/info msg:101, trackId:2, type:1000,val:-1011
+11-23 01:24:16.068 13237 13250 W MPEG4Writer: 0-duration samples found: 1
+11-23 01:24:16.068 13237 13249 I MPEG4Writer: Received total/0-length (46/0) buffers and encoded 46 frames. - Video
+11-23 01:24:16.068 13237 13250 I MPEG4Writer: Received total/0-length (1/0) buffers and encoded 1 frames. - Metadata
+11-23 01:24:16.068 13237 13237 D MPEG4Writer: Video track stopped. Status:0. Stop source
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: Metadata track stopping. Stop source
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: Metadata track source stopping
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: Metadata track source stopped
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: Metadata track stopped. Status:0. Stop source
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: Duration from tracks range is [0, 9719559] us
+11-23 01:24:16.069 13237 13247 D MPEG4Writer: 0 chunks are written in the last batch
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: WriterThread stopped. Status:0
+11-23 01:24:16.069 13237 13237 I MPEG4Writer: Adjust the moov start time from 1764323050 us -> 1764323050 us
+11-23 01:24:16.069 13237 13237 I MPEG4Writer: MOOV atom was written to the file
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: release()
+11-23 01:24:16.069 13237 13237 D MPEG4Writer: ftruncate mPreAllocateFileEndOffset:1107031 mOffset:1870 mMdatEndOffset:1104155 diff:2876
+11-23 01:24:16.072 13237 13237 D MPEG4Writer: final fsync() takes 2 ms, file size 1104155
+11-23 01:24:16.072 13237 13237 D MPEG4Writer: MP4WtrCtrlHlpLooper stopped
+11-23 01:24:16.072 13237 13237 D MPEG4Writer: Top 5 write durations(microseconds): #1:78 #2:85 #3:120 #4:179 #5:11596
+11-23 01:24:16.089  1174  2191 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-move.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:24:16.091 13237 13237 D ScreenRecord: success
+11-23 01:24:16.091 13237 13237 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:24:16.092 13237 13237 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:24:16.092 13237 13237 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-23 01:24:16.109  1174  2191 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-move.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:24:16.120  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1776 [CONTEXT service_id=218 ]
+11-23 01:24:16.123  1041 13228 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 8 uptime_millis: 8 exec_start_elapsed_seconds: 1776 [CONTEXT service_id=218 ]
+11-23 01:24:17.125   495  3307 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:24:17.250 12077 12092 D EGL_emulation: app_time_stats: avg=732.48ms min=99.13ms max=3728.18ms count=6
+11-23 01:24:20.490  7033  7071 I Finsky  : [63] AIM: AppInfoManager-Perf > Destroying AppInfoManager ...
+11-23 01:24:21.178  1174  1402 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:24:21.179   383   597 E HWComposer: getSupportedContentTypes: getSupportedContentTypes failed for display 4619827622076541440: Unsupported (8)
+11-23 01:24:21.180 13348 13348 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-23 01:24:21.181 13348 13353 I OMXClient: IOmx service obtained
+11-23 01:24:21.181   437 11168 I OMXStore: makeComponentInstance(OMX.google.h264.encoder) in android.hardwar process
+11-23 01:24:21.183 13348 13348 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 1
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-bpp,0)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+11-23 01:24:21.183 13348 13348 D CodecProperties: setFeatureValue(intra-refresh,0)
+11-23 01:24:21.183 13348 13348 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 0
+11-23 01:24:21.183 13348 13348 D VQApply : minquality: not an eligible device class
+11-23 01:24:21.183 13348 13348 D MediaCodec: shapeMediaFormat: deltas(0): AMessage(what = 0x00000000) = {
+11-23 01:24:21.183 13348 13348 D MediaCodec:   }
+11-23 01:24:21.184 13348 13353 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:24:21.184 13348 13353 I ACodec  : setupAVCEncoderParameters with [profile: Baseline] [level: Level41]
+11-23 01:24:21.184 13348 13353 I ACodec  : [OMX.google.h264.encoder] cannot encode color aspects. Ignoring.
+11-23 01:24:21.184 13348 13353 I ACodec  : [OMX.google.h264.encoder] cannot encode HDR static metadata. Ignoring.
+11-23 01:24:21.184 13348 13353 I ACodec  : setupVideoEncoder succeeded
+11-23 01:24:21.184 13348 13353 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:24:21.184   437   437 E OMXNodeInstance: getConfig(0xebc40780:google.h264.encoder, ConfigLatency(0x6f800005)) ERROR: Undefined(0x80001001)
+11-23 01:24:21.184   437   437 E OMXNodeInstance: getConfig(0xebc40780:google.h264.encoder, ConfigAndroidVendorExtension(0x6f100004)) ERROR: Undefined(0x80001001)
+11-23 01:24:21.184   437   437 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+11-23 01:24:21.184   437   437 D GraphicBufferSource: requesting color aspects (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M))
+11-23 01:24:21.187   429   916 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+11-23 01:24:21.188   437 13355 D SoftAVCEnc: Params width 1920 height 1080 level 41 colorFormat 0
+11-23 01:24:21.193  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1781 [CONTEXT service_id=218 ]
+11-23 01:24:21.195  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 5 uptime_millis: 5 exec_start_elapsed_seconds: 1781 [CONTEXT service_id=218 ]
+11-23 01:24:21.199  1174  1403 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+11-23 01:24:21.200   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f6988000 0x3f7171000]
+11-23 01:24:21.200  1174 13246 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:24:21.208   437   437 D GraphicBufferSource: got buffer with new dataSpace #104
+11-23 01:24:21.213 13348 13353 D ACodec  : dataspace changed to 0x10c10000 (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M)) (R:2(Limited), S:1(BT709), T:3(SMPTE_170M))
+11-23 01:24:21.216 13348 13348 D MPEG4Writer: PreAllocation enabled
+11-23 01:24:21.217 13348 13348 D MPEG4Writer: fpathconf _PC_FILESIZEBITS:64
+11-23 01:24:21.217 13348 13348 D MPEG4Writer: File size limit set to 4503599627370495 bytes implicitly
+11-23 01:24:21.217 13348 13348 D MPEG4Writer: MP4WtrCtrlHlpLooper Started
+11-23 01:24:21.217 13348 13348 I MPEG4Writer: limits: 4503599627370495/0 bytes/us, bit rate: -1 bps and the estimated moov size 3192 bytes
+11-23 01:24:21.243 13348 13359 I MPEG4Writer: setStartTimestampUs: 1781686363
+11-23 01:24:21.243 13348 13359 I MPEG4Writer: Earliest track starting time: 1781686363
+11-23 01:24:22.369   375  3510 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:22.369   375  3510 D AF::TrackHandle: OpPlayAudio: track:144 usage:13 not muted
+11-23 01:24:22.370 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 33721
+11-23 01:24:22.419   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(33)
+11-23 01:24:22.471 12077 12092 D EGL_emulation: app_time_stats: avg=1041.98ms min=98.21ms max=4780.06ms count=5
+11-23 01:24:23.517 12077 12092 D EGL_emulation: app_time_stats: avg=348.70ms min=312.34ms max=395.70ms count=3
+11-23 01:24:23.532   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f5fa4000 0x3f678d000]
+11-23 01:24:23.669 12077 12089 I OpenGLRenderer: Davey! duration=740ms; Flags=0, FrameTimelineVsyncId=24410, IntendedVsync=1782971763031, Vsync=1783338429683, InputEventId=0, HandleInputStart=1783345985885, AnimationStart=1783345986556, PerformTraversalsStart=1783357549120, DrawStart=1783357615999, FrameDeadline=1783688429669, FrameInterval=1783345983652, FrameStartTime=16666666, SyncQueued=1783363753091, SyncStart=1783656869972, IssueDrawCommandsStart=1783657063070, SwapBuffers=1783876395972, FrameCompleted=1784005185068, DequeueBufferDuration=3438902, QueueBufferDuration=262381, GpuCompleted=1784005185068, SwapBuffersCompleted=1783998406961, DisplayPresentTime=0, 
+11-23 01:24:23.790   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:23.791   375   464 D AF::TrackHandle: OpPlayAudio: track:145 usage:13 not muted
+11-23 01:24:23.791 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 13920
+11-23 01:24:24.174   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(81)
+11-23 01:24:24.371   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f7171000 0x3f795a000]
+11-23 01:24:24.730 12077 12092 D EGL_emulation: app_time_stats: avg=198.02ms min=131.04ms max=372.36ms count=6
+11-23 01:24:24.948   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(75)
+11-23 01:24:25.869 12077 12092 D EGL_emulation: app_time_stats: avg=179.26ms min=113.59ms max=370.79ms count=6
+11-23 01:24:26.455   375  3510 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:26.456   375  3510 D AF::TrackHandle: OpPlayAudio: track:146 usage:13 not muted
+11-23 01:24:26.456 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 26911
+11-23 01:24:26.958   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(57)
+11-23 01:24:27.166 12077 12092 D EGL_emulation: app_time_stats: avg=430.16ms min=138.81ms max=733.33ms count=3
+11-23 01:24:28.420 13348 13360 I MPEG4Writer: setStartTimestampUs: 1781686363
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: reset()
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Video track stopping. Stop source
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Video track source stopping
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Video track source stopped
+11-23 01:24:28.422 13348 13359 V MediaWriter: Track event err/info msg:101, trackId:1, type:1000,val:-1011
+11-23 01:24:28.422 13348 13359 I MPEG4Writer: Received total/0-length (22/0) buffers and encoded 22 frames. - Video
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Video track stopped. Status:0. Stop source
+11-23 01:24:28.422 13348 13360 V MediaWriter: Track event err/info msg:101, trackId:2, type:1000,val:-1011
+11-23 01:24:28.422 13348 13360 W MPEG4Writer: 0-duration samples found: 1
+11-23 01:24:28.422 13348 13360 I MPEG4Writer: Received total/0-length (1/0) buffers and encoded 1 frames. - Metadata
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Metadata track stopping. Stop source
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Metadata track source stopping
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Metadata track source stopped
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Metadata track stopped. Status:0. Stop source
+11-23 01:24:28.422 13348 13348 D MPEG4Writer: Duration from tracks range is [0, 6579157] us
+11-23 01:24:28.423 13348 13357 D MPEG4Writer: 0 chunks are written in the last batch
+11-23 01:24:28.423 13348 13348 D MPEG4Writer: WriterThread stopped. Status:0
+11-23 01:24:28.423 13348 13348 I MPEG4Writer: Adjust the moov start time from 1781686363 us -> 1781686363 us
+11-23 01:24:28.423 13348 13348 I MPEG4Writer: MOOV atom was written to the file
+11-23 01:24:28.423 13348 13348 D MPEG4Writer: release()
+11-23 01:24:28.423 13348 13348 D MPEG4Writer: ftruncate mPreAllocateFileEndOffset:680471 mOffset:1542 mMdatEndOffset:677923 diff:2548
+11-23 01:24:28.425 13348 13348 D MPEG4Writer: final fsync() takes 2 ms, file size 677923
+11-23 01:24:28.425 13348 13348 D MPEG4Writer: MP4WtrCtrlHlpLooper stopped
+11-23 01:24:28.425 13348 13348 D MPEG4Writer: Top 5 write durations(microseconds): #1:50 #2:81 #3:87 #4:134 #5:255
+11-23 01:24:28.441   495   536 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9187} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (75 skipped)
+11-23 01:24:28.442  1174  2191 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-sidebar.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:24:28.443 13348 13348 D ScreenRecord: success
+11-23 01:24:28.443 13348 13348 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:24:28.443 13348 13348 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:24:28.444 13348 13348 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-23 01:24:28.461  1174  2191 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-sidebar.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:24:28.471  1041  5984 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1788 [CONTEXT service_id=218 ]
+11-23 01:24:28.473  1041 13228 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 5 uptime_millis: 5 exec_start_elapsed_seconds: 1788 [CONTEXT service_id=218 ]
+11-23 01:24:29.476   495  3307 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-23 01:24:29.605 12077 12092 D EGL_emulation: app_time_stats: avg=808.80ms min=148.47ms max=1995.98ms count=3
+11-23 01:24:32.708   331   363 D WVCdm   : [crypto_session.cpp(809):Open] Opening crypto session: requested_security_level = Default
+11-23 01:24:32.708   331   363 I WVCdm   : [cdm_engine.cpp(140):OpenSession] New session: session_id = sid31
+11-23 01:24:32.708   331   363 I WVCdm   : [cdm_engine.cpp(882):QueryOemCryptoSessionId] session_id = sid31
+11-23 01:24:32.708   331   363 I WVCdm   : [cdm_engine.cpp(185):CloseSession] session_id = sid31
+11-23 01:24:32.709  2561  2674 I cr_ClientAuthCredsWidevine: ensureProvisioned: already provisioned, nothing more to do.
+11-23 01:24:32.709   331   363 I WVCdm   : [cdm_engine.cpp(918):GetProvisioningRequest] cert_type = x509
+11-23 01:24:32.709   331   363 D WVCdm   : [crypto_session.cpp(809):Open] Opening crypto session: requested_security_level = Default
+11-23 01:24:32.736  2561  2674 D cr_ClientAuthCredsWidevine: [ClientAuthCredsWidevine.java:276] PostRequest:https://www.googleapis.com/certificateprovisioning/v1/devicecertificates/create?key=AIzaSyB-5OLKTx2iU5mko18DfdwK5611JIjbUhE&signedRequest=CugYEgR2W1sCGhMIARIPY2FzdC5nb29nbGUuY29tKqgYCgx3aWRldmluZS5jb20SEFFDT-KkTHY7zCyCai1u-aca8BUJ6XQcQcaUYFttRgon6xGQ-zNczGadUf2tkFXArpoe1JaQaEalEqjxA5Oj_ofxtd0Q9mcTu6czOYdaegGJeveZWNIE6H6MbGfDZE-RyWZMcMy9sTU_1g64QmxP_0BabwBf86nOkcSQrFOnht0Lf4SERyPUreqQbi4pfAx1XOjrIWcbG7VqPyhjK6XEmNN8oAm-XcT73pqTvM1VgKMZzxWP3kzzXoJde7lCbKQwlSU0t7TH7K8lC3bfgEUr3BSZCrqbRd8W9LyHII7rWSAG6uYa2PvJzwwDCNBIIjVuGA6Kun3G1ntghQAlR-SV9CR3ocZjDhTmtMvCp_NnH2C9I3u13fkLVMLgsXWp-pZTwPACQG9y7xg_KQhlitdVuyiCrA1eN4dyeW5EHXYnk8LiCqUQMkVy-0_5RyybQoWRr_HXlszGElbEXdPSD-JUz-HPzPFqByIt2IBFjw602pPqQaRbVKXnZmnBBoIqXlgCvHsZVlMqARYzIfZcJgPMOI3S1jt30Ym3RiHNOfGhH1IgtYCrm3nSfZq4Cjm6tt8QSdWa4MmmqEUD1AqiW9MmghMrMyq1-w6_83s3KN3wcrcHkIfZrJlprTUVHv8UTQv7gCUXFPNFLhUttu1ek-tH4Z1KnEPaEcgRn4GLogBA6iHqX5J6hvxIg1EgzEI910Hdgmyo_ACRRiHLS9TqDaEwsEvQ7YME8U5M6X7BB9oZfv33x6fT9lGmBHJZMuqAM-AWINV5lkwtJKm1TjHrCGY0dBAA0P_r8AtvBmMT4gLkeFosxmyRiMSgyqQFtYr-A-1wf7AkCxibZB10BqqwxYYLZMCoXTCM-XWio78NbOiCzGNb2qg5ez2-TfyxOdMMVBCrmlS_xwO7GxhDU3xlF8rVz98ifMj_pMHmm-9hlRvSoI7f2aFGSCdVSvrDZEPV2eWyR0C9TMtDL9SoaZ-5m53KANQqGnyIFAz6I0i2_m4-Vrnqn_85HpmARFHdxm7Tg-GMxwLgt25st2uArxaYC6pxBHhlRyPRKLSyvJUlK3JyMnHBuXlPY1O2WNbSlIUfnVahLQ4ngECPrLSKYeYMHNRKkv0bQpPF599qCnKS6HeYp2ft7cbloHCreusB_y6IDQX15z6Ha4MJSLsTKej5V8OJdcn_Xl2ARyP6xSwMTqPJjUNz4S_aZ0Kc7ZT29k0Dn8PyUNerbkCtodqXbT6eK1D1U3Wj8-__z2OU-LYCVOndug3hPSnx7bXMx5JYsZPyHiin-VQu0L2gSsA7DWvMcdlfktZByWFh7truV2wukuVEhI8-q-oZAlEiJQ_vTGWLAgBoKGAODoDy_xMa2guzQBxwx0lU59kyyllyN5iDCVbdnUecDlnBKvN_ISyN_V1QFwn2fRmJgCLqWBdfXGCbeTVgauUzpC9QgJ7XYm5ltKzbLkbxZ97wAvOmJofBv5a024Cbg3w5z-xAQzCtg9cOqUEeT-iMShuCBOZ1HnHFEwer5ht3rDtuk7C0TsS_qS3qkt3NgQsy8GRxbXEqUYG6IltRB3EA_p3GRMdIVVZcy49IqvDwYFHDR_tlL2hISr0wdc7m6Hh5RRcGraXf80RqOYFFORnnS8ZacDElFmzY2NhiviaGD9fHq173VADL4nMIE6m72qHLYlz8gI5AZTHAzcmCPO7hw9-oeDiAUGJHU2Cr36pZepvuvadTkxAhhRluqIhLl2bGprW3QHRdFIUJqkAzM3eQoUOPjqdnOzTg_Q5fJ1LcL-lltmN1h0QhTPy8M2taHJiq5mJGYrKLG0K0vnU1qRJhG8qVp9x_BVUGueVFQUG98Q3Jtln1ljhiIhr6DEfasWVnWWv7eXnGazgqOI-gTZOoCkbC6ynj6SrjcZDurj93tUH3RUpiPY1ajlLVoZ-Vz0xClR0fmHFZCpgQXvYibMjAs3-8J90NXmVJEpcDNheUQraqa3PYGAcr754gy4xhXnuseyKaeVRSUdK0qma0lbaIo2sGfo9tXOsLt7SA3YEOJN69BFOQhA1mIDIJg1fTapeQOCbD6lKy3uTccORlIPNleljY5vG_dnqjR7X0y77Y4GmLSXUYk7Z2xfrCpjJjG3lW4VKb9Nb2rTtBygfc1IQphhe3hvUho3FySu9PWRQQDmHRqRxIiM67Aaf0ncyn9MqNSRcZN1uIvwgjmGZceA70mVUiN8pIgcdokv9O_veEG8KrxNRBN9rrKGV8_PmWJ9p2vLTKlVsDWdGtzuJzC_L-M4yOvb-sZjpcfpOULft8mAiOE6_-itAXCcMnmF5a_pOsnCQj3XYtelTQedSBY0Sp6_ghbqnMiE_8CZOj0XlDP8IRxf4AMs8l9HtRWjazW0lk2tJzHK35SP_CjVC0czDbYrFMY5ugUhmgfWXc2nG3wxZ28TNoEI5avhCRLxj3_rEM3TYuIWRaZs0-o8VYcNlsMqr-GrE4zTcrEJqIrozOtN_mjHEOL1HCTVJXxmhMpuQg9n392slxd5a_C9gkDRerXZr4cC8U3tAi2bKpvdb4w5bm-Flb_QXttv5S9G0zPmm_hjYRVWEWrHBwI1FIjYinmCJUeS-fozuJ5DwPebY2ZzMQLXfGu6KSekLlNjZ97v-rDozBosb1BjUGQxJsW2ethVHjKrg6k7D6WSFeH43ZpzHgn-pnSpvIIS1V-BwxyCbMUd_-R4VIU2s9gwdoNZyPdncC52y0Y6eGqJOH8BY4prK_TmPuMThMGWJW7_nLyilNkXRBcbz9KNFmxVsyD1u0m5LSTfn8WngpEfV4N_q_cLfaQ1pwyUFQuJD3_WBoF5NFas2bT4WBXSfmi6cNoL0K-TxNoB8yA3TJz27ooel4SdVx-ot72ISQxRXdVG9NerOXBau_jbLvG9tBQ8WdsntjGQndeKtNs3nNlxIDoFMK0KqrWf0yD3F5PG8H5afoE1B2OsRz6qiFCgciZgcaVOBEwqdD7ZKeJn8NS2x4d_X8BD4hQX7WWvgf3AxOPygLrC58tLPu7usBzprSuRnLy1WM8ZiJDuUesxEEpXdjb26drOpjuwswuutJl_V1MNQRrlfdkvkP9hP8erVuXb7L07BfrTeRK7F3p9b0mRkraKt0a6XQVrRTR0n6QR58WWuZlR8o14U9Ep5l6W5iz7r1m-nQjlV-l_ODSPFhm67x1OedtVYXWeLrj-j_QkbejtKgWhkCOoiUM3BUv9b1ZzAF7iouokhK7F1NuUVlENZgwSMIuJxTCVsXS85Dep2S_1I6LThim8TPUWEktsQbRvpFx-s1cLCOjj-v0R4cGuenTpK1ZiZrcJ_PbdMPrezREa3DHW9w2m_1FlUWRU58bOC5cXi9hw-iM3MVos3eibhy5a6PaZ7VPYqpU63jZbhIhdQy_gJknM78dChLhNy234R0GybRcl06-CY8Zx6eySNcvFzfKQBWFN4Sf5jkTOIUjLN7txc3QVFSQTs_Ugjf7krtczZh8ILB8ZwkOLT1YMs-Uub0NjkLR2Gmx997pBMBPYca8LwJaRzoVCaQbUgr4B9uPsTd1krlDXt3fNYE-UqbR5GlTROHgpJB0XOTIhG-JS_-PZUyvVYQEq_o9uxtKtvFwo6d7oD7XXZE8-yDA0eDN6qxGaDwZURmlN6vZPJQZQQpw6YwOeCEmcU6LExUbxUj06O-VBCZZS7Xd37h-GrUXt50JMqbv00S0dw1OFyIlG5_5xuqrVCyM6Yamc8nDwwE4q1-eD5FQmFtjDeGzBEDlaG98OW-IhBGHNbx12nQgGzcRCODGCiZKoACZx
+11-23 01:24:33.277  2561  2674 E cr_ClientAuthCredsWidevine: Server returned HTTP error code 401
+11-23 01:24:33.277  2561  2674 E cr_ClientAuthCredsWidevine: attemptCredsProvisioning. Received null response.
+11-23 01:24:33.278  2561  2674 I cr_ClientAuthCredsProvisioning: ClientAuthCredsProvisioning. Next attempt(secs): 60
+11-23 01:24:33.530  1174  1526 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:24:33.531   383   399 E HWComposer: getSupportedContentTypes: getSupportedContentTypes failed for display 4619827622076541440: Unsupported (8)
+11-23 01:24:33.532 13435 13435 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-23 01:24:33.533 13435 13439 I OMXClient: IOmx service obtained
+11-23 01:24:33.533   437   437 I OMXStore: makeComponentInstance(OMX.google.h264.encoder) in android.hardwar process
+11-23 01:24:33.535 13435 13435 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 1
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-bpp,0)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+11-23 01:24:33.535 13435 13435 D CodecProperties: setFeatureValue(intra-refresh,0)
+11-23 01:24:33.535 13435 13435 D CodecSeeding: Seed: codec OMX.google.h264.encoder, mediatype video/avc, overrideable 0
+11-23 01:24:33.535 13435 13435 D VQApply : minquality: not an eligible device class
+11-23 01:24:33.535 13435 13435 D MediaCodec: shapeMediaFormat: deltas(0): AMessage(what = 0x00000000) = {
+11-23 01:24:33.535 13435 13435 D MediaCodec:   }
+11-23 01:24:33.535 13435 13439 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:24:33.536 13435 13439 I ACodec  : setupAVCEncoderParameters with [profile: Baseline] [level: Level41]
+11-23 01:24:33.536 13435 13439 I ACodec  : [OMX.google.h264.encoder] cannot encode color aspects. Ignoring.
+11-23 01:24:33.536 13435 13439 I ACodec  : [OMX.google.h264.encoder] cannot encode HDR static metadata. Ignoring.
+11-23 01:24:33.536 13435 13439 I ACodec  : setupVideoEncoder succeeded
+11-23 01:24:33.536 13435 13439 W OMXUtils: do not know color format 0x7f000789 = 2130708361
+11-23 01:24:33.536   437   437 E OMXNodeInstance: getConfig(0xebc40630:google.h264.encoder, ConfigLatency(0x6f800005)) ERROR: Undefined(0x80001001)
+11-23 01:24:33.536   437   437 E OMXNodeInstance: getConfig(0xebc40630:google.h264.encoder, ConfigAndroidVendorExtension(0x6f100004)) ERROR: Undefined(0x80001001)
+11-23 01:24:33.536   437   437 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+11-23 01:24:33.536   437   437 D GraphicBufferSource: requesting color aspects (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M))
+11-23 01:24:33.539   429  2628 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+11-23 01:24:33.540   437 13442 D SoftAVCEnc: Params width 1920 height 1080 level 41 colorFormat 0
+11-23 01:24:33.544  1041 13423 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1794 [CONTEXT service_id=218 ]
+11-23 01:24:33.550   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f6988000 0x3f7171000]
+11-23 01:24:33.556  1174  1403 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+11-23 01:24:33.557  1174  1402 W MediaProvider: isAppCloneUserPair for user 0: false
+11-23 01:24:33.564   437   452 D GraphicBufferSource: got buffer with new dataSpace #104
+11-23 01:24:33.564 13435 13435 D MPEG4Writer: PreAllocation enabled
+11-23 01:24:33.564 13435 13439 D ACodec  : dataspace changed to 0x10c10000 (R:2(Limited), P:1(BT709_5), M:1(BT709_5), T:3(SMPTE170M)) (R:2(Limited), S:1(BT709), T:3(SMPTE_170M))
+11-23 01:24:33.565 13435 13435 D MPEG4Writer: fpathconf _PC_FILESIZEBITS:64
+11-23 01:24:33.565 13435 13435 D MPEG4Writer: File size limit set to 4503599627370495 bytes implicitly
+11-23 01:24:33.565 13435 13435 D MPEG4Writer: MP4WtrCtrlHlpLooper Started
+11-23 01:24:33.565 13435 13435 I MPEG4Writer: limits: 4503599627370495/0 bytes/us, bit rate: -1 bps and the estimated moov size 3192 bytes
+11-23 01:24:33.567  1041  6801 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 23 uptime_millis: 23 exec_start_elapsed_seconds: 1794 [CONTEXT service_id=218 ]
+11-23 01:24:33.600 13435 13446 I MPEG4Writer: setStartTimestampUs: 1794041956
+11-23 01:24:33.600 13435 13446 I MPEG4Writer: Earliest track starting time: 1794041956
+11-23 01:24:34.717   375   577 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:34.718   375   577 D AF::TrackHandle: OpPlayAudio: track:147 usage:13 not muted
+11-23 01:24:34.718 12077 12077 D AudioTrack: createTrack_l(105): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 33721
+11-23 01:24:34.786   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(34)
+11-23 01:24:35.131 12077 12092 D EGL_emulation: app_time_stats: avg=916.95ms min=97.02ms max=4986.94ms count=6
+11-23 01:24:35.302   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f5fa4000 0x3f678d000]
+11-23 01:24:36.338   375  5892 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:36.339   375  5892 D AF::TrackHandle: OpPlayAudio: track:148 usage:13 not muted
+11-23 01:24:36.339 12077 12077 D AudioTrack: createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 13920
+11-23 01:24:36.482 12077 12092 D EGL_emulation: app_time_stats: avg=336.41ms min=156.73ms max=841.35ms count=4
+11-23 01:24:37.553 12077 12092 D EGL_emulation: app_time_stats: avg=163.99ms min=139.01ms max=183.22ms count=6
+11-23 01:24:38.129   347   347 D goldfish-address-space: claimShared: Ask to claim region [0x3f7171000 0x3f795a000]
+11-23 01:24:38.219   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(75)
+11-23 01:24:38.544   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(57)
+11-23 01:24:38.697 12077 12092 D EGL_emulation: app_time_stats: avg=181.55ms min=158.25ms max=218.30ms count=6
+11-23 01:24:39.536   495   543 W BatteryExternalStatsWorker: error reading modem stats:ERROR_PHONE_NOT_AVAILABLE
+11-23 01:24:39.568   495   543 W KernelCpuProcStringReader: File not found. It's normal if not implemented: /proc/uid_concurrent_policy_time
+11-23 01:24:39.579   495   543 D KernelCpuUidUserSysTimeReader: Removing uids 1037-1037
+11-23 01:24:39.801 12077 12092 D EGL_emulation: app_time_stats: avg=178.17ms min=160.05ms max=210.51ms count=6
+11-23 01:24:40.145 12077 12077 D PrismClose: Prism got Back (overlay ControlCentre)
+11-23 01:24:40.146   375   464 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-23 01:24:40.147   375   464 D AF::TrackHandle: OpPlayAudio: track:149 usage:13 not muted
+11-23 01:24:40.147 12077 12077 D AudioTrack: createTrack_l(107): AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 0 -> 26911
+11-23 01:24:40.162   375   466 D AudioFlinger: mixer(0xed53aee0) throttle end: throttle time(60)
+11-23 01:24:40.811 12077 12092 D EGL_emulation: app_time_stats: avg=195.06ms min=140.47ms max=364.33ms count=5
+11-23 01:24:41.645 13435 13447 I MPEG4Writer: setStartTimestampUs: 1794041956
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: reset()
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Video track stopping. Stop source
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Video track source stopping
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Video track source stopped
+11-23 01:24:41.648 13435 13446 V MediaWriter: Track event err/info msg:101, trackId:1, type:1000,val:-1011
+11-23 01:24:41.648 13435 13447 V MediaWriter: Track event err/info msg:101, trackId:2, type:1000,val:-1011
+11-23 01:24:41.648 13435 13447 W MPEG4Writer: 0-duration samples found: 1
+11-23 01:24:41.648 13435 13446 I MPEG4Writer: Received total/0-length (29/0) buffers and encoded 29 frames. - Video
+11-23 01:24:41.648 13435 13447 I MPEG4Writer: Received total/0-length (1/0) buffers and encoded 1 frames. - Metadata
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Video track stopped. Status:0. Stop source
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Metadata track stopping. Stop source
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Metadata track source stopping
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Metadata track source stopped
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Metadata track stopped. Status:0. Stop source
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: Duration from tracks range is [0, 7326718] us
+11-23 01:24:41.648 13435 13444 D MPEG4Writer: 0 chunks are written in the last batch
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: WriterThread stopped. Status:0
+11-23 01:24:41.648 13435 13435 I MPEG4Writer: Adjust the moov start time from 1794041956 us -> 1794041956 us
+11-23 01:24:41.648 13435 13435 I MPEG4Writer: MOOV atom was written to the file
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: release()
+11-23 01:24:41.648 13435 13435 D MPEG4Writer: ftruncate mPreAllocateFileEndOffset:790698 mOffset:1638 mMdatEndOffset:788054 diff:2644
+11-23 01:24:41.651 13435 13435 D MPEG4Writer: final fsync() takes 2 ms, file size 788054
+11-23 01:24:41.651 13435 13435 D MPEG4Writer: MP4WtrCtrlHlpLooper stopped
+11-23 01:24:41.651 13435 13435 D MPEG4Writer: Top 5 write durations(microseconds): #1:111 #2:136 #3:156 #4:158 #5:177
+11-23 01:24:41.660   495   536 W ProcessStats: Tracking association SourceState{1856923 com.google.android.katniss:interactor/10050 BTopFgs #9206} whose proc state 2 is better than process ProcessState{3b4f198 com.google.android.tv.remote.service/10054 pkg=com.google.android.tv.remote.service} proc state 3 (63 skipped)
+11-23 01:24:41.671  1174  2191 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-control-centre.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:24:41.672 13435 13435 D ScreenRecord: success
+11-23 01:24:41.672 13435 13435 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:24:41.672 13435 13435 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+11-23 01:24:41.673 13435 13435 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-23 01:24:41.697  1174  2191 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///sdcard/motion-control-centre.mp4 flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+11-23 01:24:41.708  1041 13228 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 1802 [CONTEXT service_id=218 ]
+11-23 01:24:41.711  1041 13423 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 7 uptime_millis: 7 exec_start_elapsed_seconds: 1802 [CONTEXT service_id=218 ]
+11-23 01:24:42.648   495   592 W libprocessgroup: Failed to open /sys/fs/cgroup/./frozen/cgroup.procs: No such file or directory
+11-23 01:24:42.648   495   592 W libprocessgroup: Failed to apply Frozen process profile: No such file or directory
+11-23 01:24:42.648   495   592 D ActivityManager: froze 3704 com.android.keychain
