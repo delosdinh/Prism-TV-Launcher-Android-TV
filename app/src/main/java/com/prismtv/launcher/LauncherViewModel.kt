@@ -1291,7 +1291,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             NavKey.Select -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Select)
             NavKey.LongSelect -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.LongSelect)
             NavKey.PlayPause -> kb.nav(com.prismtv.launcher.ui.keyboard.KbNav.Delete)
-            NavKey.Menu -> closeKeyboard()
+            // Back closes the accent strip first, then the keyboard.
+            NavKey.Menu -> if (!kb.closeAccents()) closeKeyboard()
         }
         return true
     }
@@ -5614,7 +5615,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val kc = b.getInt("keyCol", 4)
                 viewModelScope.launch {
                     withContext(Dispatchers.IO) { com.prismtv.launcher.ui.keyboard.WordPredictor.get(ctx) }
-                    keyboardController.debugState(layer, kr, kc)
+                    keyboardController.debugState(layer, kr, kc, b.getInt("accent", -1))
                 }
             }
             "aerial" -> startScreensaver()

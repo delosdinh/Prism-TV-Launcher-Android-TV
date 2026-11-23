@@ -64,6 +64,12 @@ class KeyboardController(
     var suggestions by mutableStateOf<List<Suggestion>>(emptyList())
         private set
 
+    /** Held on a key with accents: its variants, shown in a strip above it (null when closed). */
+    var accents by mutableStateOf<List<String>?>(null)
+        private set
+    var accentIndex by mutableIntStateOf(0)
+        private set
+
     // Emoji.
     var emojiCategory by mutableIntStateOf(1)
         private set
@@ -97,19 +103,49 @@ class KeyboardController(
         listening = false
         partial = ""
         notice = null
+        accents = null
         lastCorrection = null
         keepWord = null
         updateAutoCap()
         refresh()
     }
 
+    /** Back, or a press that leaves the strip: closes the accents without typing. True if it was open. */
+    fun closeAccents(): Boolean {
+        if (accents == null) return false
+        accents = null
+        sound(Cue.FocusSmall)
+        return true
+    }
+
+    private fun accentNav(n: KbNav): Boolean {
+        val list = accents ?: return false
+        when (n) {
+            KbNav.Left -> if (accentIndex > 0) { accentIndex--; sound(Cue.FocusKey) } else { sound(Cue.FocusSmall); return false }
+            KbNav.Right -> if (accentIndex < list.size - 1) { accentIndex++; sound(Cue.FocusKey) } else { sound(Cue.FocusSmall); return false }
+            KbNav.Select -> {
+                accents = null
+                editor?.let { typeChar(list[accentIndex], it) } // already in the right case
+            }
+            else -> closeAccents()
+        }
+        return true
+    }
+
     /** CI screenshots: a given layer and key. Row -1 is the suggestion bar. */
-    fun debugState(layer: Int, row: Int, col: Int) {
+    fun debugState(layer: Int, row: Int, col: Int, accent: Int = -1) {
         this.layer = layer.coerceIn(0, KeyboardLayout.Emoji)
+        accents = null
         this.row = if (this.layer == KeyboardLayout.Emoji) row.coerceIn(0, 3) else row.coerceIn(-1, 3)
         this.col = col
         if (this.layer == KeyboardLayout.Emoji) { emojiCategory = 1; emojiIndex = if (this.row < 3) row * 10 + col else 0 }
         refresh()
+        // The accent strip open on that key, with variant [accent] focused.
+        if (accent >= 0 && this.row >= 0 && this.layer != KeyboardLayout.Emoji) {
+            KeyboardLayout.of(this.layer).getOrNull(this.row)?.getOrNull(this.col)?.let { k ->
+                Accents.of(k.label, shift || capsLock)?.let { accents = it; accentIndex = accent.coerceIn(0, it.size - 1) }
+            }
+        }
     }
 
     fun emojiList(): List<String> =
@@ -120,6 +156,7 @@ class KeyboardController(
     /** Handles a remote key. Returns false when it went nowhere (an edge), for the bump sound. */
     fun nav(n: KbNav): Boolean {
         clearOldNotice()
+        if (accents != null) return accentNav(n)
         if (n == KbNav.Delete) { delete(); return true }
         if (layer == KeyboardLayout.Emoji) return emojiNav(n)
         val rows = KeyboardLayout.of(layer)
@@ -261,8 +298,16 @@ class KeyboardController(
         when (k.kind) {
             KeyKind.Delete -> deleteWord()
             KeyKind.Shift -> { capsLock = !capsLock; shift = capsLock; sound(Cue.Toggle) }
-            // Hold a letter for its capital (iOS shows accents here; a TV remote has no slide-to-pick).
-            KeyKind.Char -> editor?.let { typeChar(k.label.uppercase(), it) }
+            // Hold a letter for its accents (é, ü…) in a strip above it, as on iOS: Left/Right to choose,
+            // Select to type, Back to close. A key without any still types its capital.
+            KeyKind.Char -> {
+                val variants = Accents.of(k.label, upper = shift || capsLock)
+                if (variants != null) {
+                    accents = variants
+                    accentIndex = 0
+                    sound(Cue.Toggle)
+                } else editor?.let { typeChar(k.label.uppercase(), it) }
+            }
             KeyKind.Space -> editor?.let { it.commit("."); sound(Cue.Key); refresh() }
             else -> press(k)
         }

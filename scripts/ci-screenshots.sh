@@ -225,6 +225,14 @@ shot 42d-home-clear-frosted        "${B[@]}" --es appearance dark --es glass fro
 shot 43-settings-keyboard          "${B[@]}" "${DARK[@]}" --es screen settings --es page Keyboard --ei focus 0
 shot 44-keyboard-suggestions       "${B[@]}" "${DARK[@]}" --es screen keyboard --es text teh --ei keyRow -1 --ei keyCol 1
 shot 44b-keyboard-emoji            "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --ei layer 3 --ei keyRow 1 --ei keyCol 3
+# Hold a letter for its accents: e (dark, é focused), a at the left edge (light), " on 123 (clear keys).
+shot 44c-keyboard-accents-e        "${B[@]}" "${DARK[@]}" --es screen keyboard --es text caf --ei keyRow 0 --ei keyCol 2 --ei accent 1
+shot 44d-keyboard-accents-a-light  "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --es text Pok --ei keyRow 1 --ei keyCol 0 --ei accent 0
+shot 44e-keyboard-accents-quote-clear "${B[@]}" "${DARK[@]}" --es keyboardColour clear --es screen keyboard --ei layer 1 --ei keyRow 1 --ei keyCol 9 --ei accent 0
+# Driven: hold e, Right to é, Select — "café", and no auto-correction back to "cafe".
+start "${B[@]}" "${DARK[@]}" --es screen keyboard --es text caf --ei keyRow 0 --ei keyCol 2; sleep 3
+adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 1.2
+key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_CENTER 1; cap 44f-keyboard-accent-typed
 shot 45-settings-profile           "${B[@]}" "${DARK[@]}" --es avatar preset:3 --es screen settings --es page Profile --ei focus 5
 shot 45b-cc-four-circles           "${B[@]}" "${DARK[@]}" --es avatar preset:3 --es screen controlcentre --ei focus 15
 shot 46-settings-widget-apps       "${B[@]}" "${DARK[@]}" --es widgets both --es screen settings --es page WidgetApps --es widgetKey all:continue --ei focus 2

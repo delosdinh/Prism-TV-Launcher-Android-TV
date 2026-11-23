@@ -315,7 +315,9 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 longFired = false
             }
             keyCode == KeyEvent.KEYCODE_BACK -> {
-                if (kb.listening) {
+                if (kb.closeAccents()) {
+                    // Back closes the accent strip first.
+                } else if (kb.listening) {
                     dictation.cancel()
                 } else {
                     requestHideSelf(0)

@@ -83,6 +83,30 @@ object KeyboardLayout {
     }
 }
 
+/**
+ * What holding a key offers, as on iOS's English keyboard: accented letters (é, ü, ñ…) and punctuation
+ * relatives (… for ., ¿ for ?, “ ” for ", currencies for $).
+ */
+object Accents {
+    private val letters = mapOf(
+        'a' to "à á â ä æ ã å ā", 'c' to "ç ć č", 'e' to "è é ê ë ē ė ę", 'i' to "î ï í ī į ì",
+        'l' to "ł", 'n' to "ñ ń", 'o' to "ô ö ò ó œ ø ō õ", 's' to "ß ś š", 'u' to "û ü ù ú ū",
+        'y' to "ÿ", 'z' to "ž ź ż",
+    ).mapValues { it.value.split(' ') }
+    private val marks = mapOf(
+        "." to "…", "?" to "¿", "!" to "¡", "'" to "‘ ’ `", "\"" to "“ ” „ « »", "-" to "– — •",
+        "$" to "€ £ ¥ ₩ ₽ ¢", "&" to "§", "0" to "°", "%" to "‰", "/" to "\\",
+    ).mapValues { it.value.split(' ') }
+
+    /** The variants for [label] (in capitals when [upper], except ß), or null when it has none. */
+    fun of(label: String, upper: Boolean): List<String>? {
+        marks[label]?.let { return it }
+        val c = label.singleOrNull()?.lowercaseChar() ?: return null
+        val v = letters[c] ?: return null
+        return if (upper) v.map { if (it == "ß") it else it.uppercase() } else v
+    }
+}
+
 /** Emoji in the categories iOS uses (Unicode 11 and earlier, so they draw on every Android TV). */
 object EmojiData {
     class Category(val name: String, val icon: ImageVector, val emoji: List<String>)

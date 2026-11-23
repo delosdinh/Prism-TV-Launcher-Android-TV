@@ -119,6 +119,8 @@ class WordPredictor private constructor(private val context: Context) {
         val w = typed.lowercase()
         if (w == "i") return "I"
         if (w.length < 2 || isWord(w) || w.any { !it.isLetter() && it != '\'' }) return null
+        // An accent was chosen on purpose (café, naïve): never "corrected" away.
+        if (w.any { it.code > 127 }) return null
         Contractions[w]?.let { return it }
         val c = corrections(w, 1).firstOrNull() ?: return null
         return c.takeIf { rankOf(it).let { r -> r in 0 until 30_000 } }

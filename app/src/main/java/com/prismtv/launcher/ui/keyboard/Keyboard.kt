@@ -118,7 +118,11 @@ fun KeyboardKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, acti
                 .offset(0.dp, (m.barH + m.gap).dp)
                 .graphicsLayer { alpha = if (kb.listening) 0.45f else 1f }
         ) {
-            if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m, active) else LetterKeys(kb, c, m, active)
+            if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m, active)
+            else {
+                LetterKeys(kb, c, m, active)
+                AccentStrip(kb, c, m, active)
+            }
         }
     }
 }
@@ -145,6 +149,62 @@ private fun LetterKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics
                     .size(w.dp, m.keyH.dp),
             )
             x += w + m.gap
+        }
+    }
+}
+
+/** Held on a key with accents: its variants in a strip rising from it, as on iOS. */
+@Composable
+private fun AccentStrip(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean) {
+    val list = kb.accents ?: return
+    if (!active) return
+    val layer = kb.layer
+    val row = kb.row.coerceAtLeast(0)
+    val keys = KeyboardLayout.of(layer).getOrNull(row) ?: return
+    val col = kb.col.coerceIn(0, keys.size - 1)
+    val cell = m.unit + m.gap
+    val keyCx = KeyboardLayout.centre(layer, row, col) * cell - m.gap / 2f
+    val pad = 6f
+    val inner = 4f
+    val stripW = list.size * m.unit + (list.size - 1) * inner + pad * 2
+    val stripH = m.keyH + pad * 2
+    val x = (keyCx - stripW / 2f).coerceIn(0f, (m.width - m.pad * 2 - stripW).coerceAtLeast(0f))
+    val y = row * (m.keyH + m.gap) - stripH + 2f
+    val shape = RoundedCornerShape(14.dp)
+    val appear = remember(list) { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(list) { appear.animateTo(1f, spring(dampingRatio = 0.75f, stiffness = 520f)) }
+    Box(
+        Modifier
+            .offset(x.dp, y.dp)
+            .size(stripW.dp, stripH.dp)
+            .graphicsLayer {
+                val a = appear.value
+                alpha = a.coerceIn(0f, 1f)
+                scaleX = 0.88f + 0.12f * a
+                scaleY = 0.88f + 0.12f * a
+                // Grows out of the held key.
+                transformOrigin = androidx.compose.ui.graphics.TransformOrigin(((keyCx - x) / stripW).coerceIn(0f, 1f), 1f)
+                shadowElevation = 18.dp.toPx()
+                this.shape = shape
+                clip = true
+            }
+            // Solid enough to read over the keys, whatever the keyboard's colour.
+            .background(if (c.clear) Color(0xFF26262B).copy(alpha = 0.94f) else c.key, shape)
+            .border(0.5.dp, Color.White.copy(alpha = 0.12f), shape),
+    ) {
+        list.forEachIndexed { i, v ->
+            val focused = i == kb.accentIndex
+            val sc by animateFloatAsState(if (focused) 1.12f else 1f, spring(dampingRatio = 0.7f, stiffness = 520f), label = "accent")
+            Box(
+                Modifier
+                    .offset((pad + i * (m.unit + inner)).dp, pad.dp)
+                    .size(m.unit.dp, m.keyH.dp)
+                    .graphicsLayer { scaleX = sc; scaleY = sc }
+                    .then(if (focused) Modifier.background(c.focus, RoundedCornerShape(10.dp)) else Modifier),
+                contentAlignment = Alignment.Center,
+            ) {
+                PText(v, 21.sp, FontWeight.Normal, if (focused) c.focusInk else if (c.clear) Color.White else c.ink, align = TextAlign.Center)
+            }
         }
     }
 }
