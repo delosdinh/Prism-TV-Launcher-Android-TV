@@ -50,7 +50,6 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.SettingsEthernet
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.graphics.luminance
 import com.prismtv.launcher.ui.SpotlightLayout
@@ -927,10 +926,10 @@ private fun TimePill(
             HSpace(4.dp)
             PText(weather.label(unit), 14.sp, FontWeight.SemiBold, ink)
         }
-        if (network != null) {
+        // Wi-Fi only: a wired TV shows nothing here (Control Centre still says Ethernet).
+        if (network != null && !network.ethernet) {
             HSpace(10.dp)
-            if (network.ethernet) PIcon(Icons.Rounded.SettingsEthernet, ink, 18.dp)
-            else WifiGlyph(if (network.connected) network.bars else 0, offline = !network.connected, ink = ink, size = 17.dp)
+            WifiGlyph(if (network.connected) network.bars else 0, offline = !network.connected, ink = ink, size = 17.dp)
         }
         if (notifications > 0) {
             HSpace(10.dp)

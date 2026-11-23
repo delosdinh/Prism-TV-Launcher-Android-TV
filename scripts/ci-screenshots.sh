@@ -205,10 +205,10 @@ shot 35c-keyboard-balanced-123     "${B[@]}" --es appearance balanced --es glass
 shot 36-settings-text-size         "${B[@]}" "${DARK[@]}" --es screen settings --es page TextSize --ei textSize 4
 shot 37-cc-notifications           "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 100
 shot 37b-time-pill-badge           "${B[@]}" "${DARK[@]}" --ei notify 2 --es screen top --ei button 0
-# The time pill's Wi-Fi: weak signal (dark), offline (light), Ethernet; and its switch in Settings.
+# The time pill's Wi-Fi: weak signal (dark), offline (light), nothing on Ethernet; and its switch in Settings.
 shot 37e-time-pill-wifi-weak      "${B[@]}" "${DARK[@]}" --es net wifi1 --es screen top --ei button 0
 shot 37f-time-pill-offline-light  "${B[@]}" --es appearance light --es glass liquid --es net offline --es screen home
-shot 37g-time-pill-ethernet       "${B[@]}" "${DARK[@]}" --es net ethernet --es screen home
+shot 37g-time-pill-ethernet-none  "${B[@]}" "${DARK[@]}" --es net ethernet --es screen home
 shot 37h-settings-wifi-row        "${B[@]}" "${DARK[@]}" --es screen settings --es page HomeScreen --ei focus 14
 shot 37c-cc-notification-clear     "${B[@]}" "${DARK[@]}" --ei notify 4 --es screen controlcentre --ei focus 200
 shot 37d-cc-clear-all              "${B[@]}" --es appearance light --es glass liquid --ei notify 4 --es screen controlcentre --ei focus 30

@@ -49,8 +49,8 @@ launcher counterpart to the Prism TV skin for Kodi.
 - **Sidebar capsule**: press **Left** on the first app, or **Back** on the Home Screen, for a glass
   capsule (sized to its entries) with Search, Home, Recent Apps, Prism Settings, Android Settings
   and **Play Store** (with its own icon; Amazon Appstore or Aptoide TV on boxes without Google Play).
-- **Time pill** (top-right) with the current weather, **Wi-Fi** as on iOS (signal strength, Ethernet
-  when wired, crossed out when offline; Settings › Home Screen › Time Pill › Wi-Fi), a
+- **Time pill** (top-right) with the current weather, **Wi-Fi** as on iOS (signal strength, crossed
+  out when offline, nothing when wired; Settings › Home Screen › Time Pill › Wi-Fi), a
   **notification bell with a badge** (only
   when something's waiting) and the profile avatar — opens Control Centre, which lists the
   notifications (OK opens one; Left or Right slides it aside to show **Clear**, as on iOS; the small ✕ above the list opens into **Clear All**). Needs Notification access for Prism TV:
