@@ -679,6 +679,23 @@ memsnap() { # label
   case "$USAGE_BEFORE" in *allow*) adb shell appops set "$PKG" GET_USAGE_STATS allow ;; *) adb shell appops set "$PKG" GET_USAGE_STATS default ;; esac
 } 2>&1 | tee "$OUT/usage-test.txt"
 
+# Recommendations from Apps (TV listings) through Do It for Me: Ask Android comes first, then Do It for Me.
+# The permission is put back as it was afterwards.
+{
+  TVL=android.permission.READ_TV_LISTINGS
+  granted() { adb shell dumpsys package "$PKG" | grep -m1 "$TVL: granted" | tr -d '\r' | sed 's/^ *//'; }
+  TVL_BEFORE=$(granted); echo "before: $TVL_BEFORE"
+  adb shell pm revoke "$PKG" "$TVL" 2>&1 | tail -1
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 1; sleep 3
+  key KEYCODE_DPAD_CENTER 2.5; cap 66f-allow-recommendations-dialog
+  key KEYCODE_DPAD_DOWN 0.6
+  key KEYCODE_DPAD_CENTER 1
+  accept_adb_prompt 6 66g-adb-prompt
+  sleep 5; cap 66h-allow-recommendations-done
+  echo "after: $(granted)"
+  case "$TVL_BEFORE" in *granted=true*) adb shell pm grant "$PKG" "$TVL" ;; esac
+} 2>&1 | tee "$OUT/tvlistings-test.txt"
+
 if [ "$QUICK" = 1 ]; then
   timeout 60 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
   # The switcher last: on the software-rendered API 34 emulator it has stalled the device.

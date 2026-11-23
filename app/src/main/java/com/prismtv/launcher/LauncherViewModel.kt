@@ -4043,6 +4043,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         dialogFocus = 0
     }
 
+    /**
+     * Recommendations from Apps (Android's TV listings permission): Android's own question where the TV
+     * shows it, or granted through the shell in one press (some TVs never ask, or stop asking after a No).
+     */
+    private fun allowRecommendations() {
+        shellDialog(
+            title = "Allow Recommendations",
+            intro = "Prism TV shows the cards your apps publish (Continue Watching, Recommended for You) once Android allows it. " +
+                "Select Ask Android, or Do It for Me, or type this command yourself:",
+            command = "pm grant ${ctx.packageName} $TV_LISTINGS",
+            done = { hasRecommendationAccess().also { if (it) refreshRecommendations(force = true) } },
+            doneMessage = "Done. Cards from your apps now show on the Top Shelf and in widgets.",
+            open = "Ask Android" to { permissionRequestTick++; Unit },
+        )
+    }
+
     private fun runShellForYou(title: String, command: String, done: () -> Boolean, doneMessage: String) {
         if (!com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)) {
             dialog = DialogSpec(
@@ -4628,7 +4644,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     shuffleKey = null
                 }
             }
-            r.id == "w:none" -> if (!hasRecommendationAccess()) permissionRequestTick++
+            r.id == "w:none" -> if (!hasRecommendationAccess()) allowRecommendations()
             r.id.startsWith("w:all:") -> {
                 widgetDetailKey = r.id.removePrefix("w:")
                 pushPage(SettingsPage.WidgetApps)
@@ -4661,7 +4677,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "recs" -> if (hasRecommendationAccess()) {
                 showBanner("Recommendations", "Prism TV can already show cards from your apps.", Icons.Rounded.Info)
             } else {
-                permissionRequestTick++
+                allowRecommendations()
             }
             r.id == "autorotate" -> updatePrefs(p.copy(heroAutoRotate = !p.heroAutoRotate))
             r.id == "source" -> updatePrefs(p.copy(heroSource = HeroSource.entries[(p.heroSource.ordinal + 1) % HeroSource.entries.size]))
