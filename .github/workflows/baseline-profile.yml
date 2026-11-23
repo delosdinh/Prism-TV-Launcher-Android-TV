@@ -1,14 +1,15 @@
 name: Startup profile
 
 # Records Prism TV's startup (baseline) profile on the Android TV emulator. It only runs for a push
-# whose commit message contains [profile]; the result is uploaded as the "startup-profile" artifact, to
-# be committed under app/src/release/generated/baselineProfiles/.
+# whose commit message contains [profile]; the result goes to the ci-results branch under
+# profile/<branch>/ (and the "startup-profile" artifact), to be committed under
+# app/src/release/generated/baselineProfiles/.
 on:
   push:
     branches-ignore: [ci-results]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: profile-${{ github.ref }}
@@ -52,6 +53,15 @@ jobs:
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
           script: ./gradlew --no-daemon --stacktrace :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.suppressErrors=EMULATOR
+
+      - name: Publish the profile
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p out
+          cp app/src/release/generated/baselineProfiles/*.txt out/ 2>/dev/null || echo "no profile was written"
+          bash scripts/publish-ci-results.sh out "profile/${GITHUB_REF_NAME}"
 
       - name: Upload the profile
         if: always()

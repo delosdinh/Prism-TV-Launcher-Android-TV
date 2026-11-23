@@ -11,7 +11,8 @@ first launches and first visits to each screen after an update run at full speed
 
 To re-record (after big changes), push a commit with `[profile]` in its message:
 `.github/workflows/baseline-profile.yml` runs it on the Android TV emulator (API 34, no root needed) and
-uploads the result as the `startup-profile` artifact; commit its `app/src/release/generated/…` files.
+publishes the two files to the `ci-results` branch under `profile/<branch>/` (and as the
+`startup-profile` artifact); commit them to `app/src/release/generated/baselineProfiles/`.
 
 Locally, with a device or emulator on API 33+ connected:
 
