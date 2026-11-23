@@ -115,6 +115,9 @@ import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
+import androidx.compose.runtime.structuralEqualityPolicy
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -592,11 +595,15 @@ private fun LogoTile(modifier: Modifier, p: PrismPalette) {
 private fun SettingsList(rows: List<SettingsRow>, focus: Int, modifier: Modifier) {
     // Pre-compute row positions (section headers take extra space).
     val ys = FloatArray(rows.size)
+    val headed = BooleanArray(rows.size)
     var y = 0f
     var last: String? = "\u0000"
     rows.forEachIndexed { i, r ->
         if (r.section != last) {
-            if (r.section != null) y += HeaderH
+            if (r.section != null) {
+                y += HeaderH
+                headed[i] = true
+            }
             last = r.section
         }
         ys[i] = y
@@ -604,34 +611,58 @@ private fun SettingsList(rows: List<SettingsRow>, focus: Int, modifier: Modifier
     }
     val total = y
     val target = if (focus < 0 || rows.isEmpty()) 0f else (ys[focus] - 150f).coerceIn(0f, (total - ViewportH + 12f).coerceAtLeast(0f))
-    val scroll by animateDpAsState(target.dp, spring(dampingRatio = 0.9f, stiffness = 300f), label = "settingsScroll")
+    val scroll = animateFloatAsState(target, spring(dampingRatio = 0.9f, stiffness = 300f, visibilityThreshold = 0.1f), label = "settingsScroll")
+    // Only the rows on screen, and a few either side of it, are composed: long pages (Apps, Restrictions)
+    // open without building every row. The range follows the scroll, but changes only when a row comes
+    // within (or goes beyond) that margin, so scrolling doesn't recompose the list on every frame.
+    val window by remember(rows) {
+        derivedStateOf(structuralEqualityPolicy()) {
+            if (ys.isEmpty()) IntRange.EMPTY
+            else {
+                val top = scroll.value - ListMargin
+                val bottom = scroll.value + ViewportH + ListMargin
+                var first = 0
+                while (first < ys.size - 1 && ys[first] + RowH < top) first++
+                var end = first
+                while (end < ys.size - 1 && ys[end + 1] - (if (headed[end + 1]) HeaderH else 0f) < bottom) end++
+                first..end
+            }
+        }
+    }
 
     Box(modifier.clipToBounds()) {
-        Column(
+        Box(
             Modifier
-                // Lay out the whole list (not just what fits the viewport) so long pages scroll fully.
+                // The whole list's height (not just what fits the viewport) so long pages scroll fully.
                 .wrapContentHeight(align = Alignment.Top, unbounded = true)
                 .padding(horizontal = 12.dp)
-                .offset { IntOffset(0, -scroll.roundToPx() + 6.dp.roundToPx()) }
+                .offset { IntOffset(0, -scroll.value.dp.roundToPx() + 6.dp.roundToPx()) }
+                .fillMaxWidth()
+                .height(total.dp)
         ) {
-            var section: String? = "\u0000"
-            rows.forEachIndexed { i, r ->
-                if (r.section != section) {
-                    section = r.section
+            for (i in window) {
+                val r = rows[i]
+                key(r.id) {
                     val s = r.section
-                    if (s != null) SectionHeader(s)
+                    if (headed[i] && s != null) {
+                        val headerY = ys[i] - HeaderH
+                        SectionHeader(s, Modifier.offset { IntOffset(0, headerY.dp.roundToPx()) })
+                    }
+                    val rowY = ys[i]
+                    SettingsRowView(r, i == focus, Modifier.offset { IntOffset(0, rowY.dp.roundToPx()) })
                 }
-                SettingsRowView(r, i == focus)
-                VSpace(RowGap.dp)
             }
         }
     }
 }
 
+/** How far beyond the viewport rows stay composed (in dp): about three rows each side. */
+private const val ListMargin = 3 * (RowH + RowGap)
+
 @Composable
-private fun SectionHeader(title: String) {
+private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     val p = LocalPrism.current.palette
-    Box(Modifier.fillMaxWidth().height(HeaderH.dp), contentAlignment = Alignment.BottomStart) {
+    Box(modifier.fillMaxWidth().height(HeaderH.dp), contentAlignment = Alignment.BottomStart) {
         PText(
             title, 11.sp, FontWeight.SemiBold, p.textSecondary,
             Modifier.padding(start = 14.dp, bottom = 7.dp),
@@ -641,7 +672,7 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
+private fun SettingsRowView(r: SettingsRow, focused: Boolean, modifier: Modifier = Modifier) {
     if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "row") }
     val theme = LocalPrism.current
     val p = theme.palette
@@ -657,7 +688,7 @@ private fun SettingsRowView(r: SettingsRow, focused: Boolean) {
             .border(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.14f), Color.White.copy(alpha = 0.04f))), RowShape)
     }
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .height(RowH.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
