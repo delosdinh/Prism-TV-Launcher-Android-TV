@@ -3982,7 +3982,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             )
             "cl:a11y" -> setUpPowerAndHome()
             "cl:recents" -> runShellSteps("Clear Android's Recent Apps", com.prismtv.launcher.system.SystemRecents.ClearAll) { ok ->
-                if (ok) showBanner("Closing Apps", "Android's own app switcher is clear. Apps you close in Prism TV leave it too, with Shizuku or root.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                if (ok) showBanner(
+                    "Closing Apps",
+                    if (Build.VERSION.SDK_INT >= 31) "Android's own app switcher is clear. Apps you close in Prism TV leave it too, with Shizuku or root."
+                    else "Open apps are gone from Android's own app switcher. Android 11 keeps cards of apps that had already stopped: dismiss those there once.",
+                    Icons.Rounded.CheckCircle, Cue.Confirm,
+                )
             }
             "cl:shizuku" -> {
                 pushPage(SettingsPage.Shizuku)

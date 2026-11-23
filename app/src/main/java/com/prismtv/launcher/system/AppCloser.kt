@@ -119,13 +119,13 @@ object AppCloser {
             when (m) {
                 Method.Shizuku -> withContext(Dispatchers.IO) {
                     // Gone from Android's own app switcher too (a force stop leaves its card there).
-                    val recents = { SystemRecents.remove(targets.map { it.first }) { ShizukuShell.exec(it) } }
+                    val recents = { SystemRecents.remove(ctx, targets.map { it.first }) { ShizukuShell.exec(it) } }
                     if (SystemRecents.removeFirst) recents()
                     running.forEach { (pkg, _) -> if (ShizukuShell.forceStop(pkg)) stopped += pkg }
                     if (!SystemRecents.removeFirst) recents()
                 }
                 Method.Root -> withContext(Dispatchers.IO) {
-                    val recents = { SystemRecents.remove(targets.map { it.first }) { RootShell.exec(it) } }
+                    val recents = { SystemRecents.remove(ctx, targets.map { it.first }) { RootShell.exec(it) } }
                     if (SystemRecents.removeFirst) recents()
                     running.forEach { (pkg, _) -> if (RootShell.forceStop(pkg)) stopped += pkg }
                     if (!SystemRecents.removeFirst) recents()
@@ -325,38 +325,72 @@ object RootShell {
  * root Prism TV removes the cards of the apps it closes, or all of them.
  */
 object SystemRecents {
-    // "Recent #0: Task{3f9b6e1 #1234 type=standard A=10123:com.example.app}" (Android 11+); older
-    // releases print "TaskRecord{… #12 A=com.example.app …}" or "I=com.example.app/.Main".
-    private val task = Regex("""Recent #\d+: Task(?:Record)?\{[0-9a-f]+ #(\d+)[^}]*?(?:A=(?:\d+:)?|I=)([A-Za-z0-9_.]+)""")
-
+    // A card's first line: "Recent #0: Task{3f9b6e1 #1234 type=standard A=10123:com.example.app.main U=0
+    // StackId=1234 sz=1}" (Android 11; 12+ has no StackId). The A= name is the task's affinity, which
+    // isn't always the package (YouTube's is "com.google.android.youtube.tv.main"), so a card is matched
+    // by its activity (realActivity=, mActivityComponent= or cmp= further down) or by the app's user id.
+    private val header = Regex("""Recent #\d+: Task(?:Record)?\{[0-9a-f]+ #(\d+)(.*)""")
     private val rootTask = Regex("""StackId=(\d+)""")
+    private val appUid = Regex("""A=(\d+):""")
+    private val component = Regex("""(?:realActivity|mActivityComponent|cmp)=\{?([A-Za-z0-9_.]+)/""")
+    private val affinity = Regex("""(?:A=(?:\d+:)?|I=)([A-Za-z0-9_.]+)""")
 
     /**
      * `am stack remove` takes a task id from Android 12. On Android 11 (the SHIELD) it takes the task's
-     * root task, printed as "StackId=" on the same line, and only while the task is still open: so there
-     * the cards go before the force stop (a stopped app's card is only a record, which this can't reach).
+     * root task ("StackId="), and only while the task is still open, so there the cards go before the
+     * force stop (a stopped app's card is then only a record).
      */
     val removeSupported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 30
     val removeFirst: Boolean get() = android.os.Build.VERSION.SDK_INT < 31
 
-    /** `am clear-recent-apps` (Closing Apps › Clear Android's Recent Apps). */
-    val clearAllSupported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 31
+    /** Closing Apps › Clear Android's Recent Apps. */
+    val clearAllSupported: Boolean get() = android.os.Build.VERSION.SDK_INT >= 30
+
+    private class Card(val id: String, val names: Set<String>, val uid: Int?)
+
+    private fun cards(dump: String): List<Card> {
+        val out = ArrayList<Card>()
+        var id: String? = null
+        var names = HashSet<String>()
+        var uid: Int? = null
+        fun flush() { id?.let { out += Card(it, names, uid) } }
+        for (line in dump.lineSequence()) {
+            val h = header.find(line)
+            if (h != null) {
+                flush()
+                val rest = h.groupValues[2]
+                id = if (android.os.Build.VERSION.SDK_INT >= 31) h.groupValues[1]
+                    else rootTask.find(rest)?.groupValues?.get(1)?.takeIf { it != "-1" && it != "0" } ?: h.groupValues[1]
+                names = HashSet<String>().apply { affinity.find(rest)?.let { add(it.groupValues[1]) } }
+                uid = appUid.find(rest)?.groupValues?.get(1)?.toIntOrNull()
+            } else if (id != null) {
+                component.findAll(line).forEach { names += it.groupValues[1] }
+            }
+        }
+        flush()
+        return out
+    }
 
     /** Removes the cards of [pkgs]; how many went. */
-    fun remove(pkgs: Collection<String>, exec: (String) -> Pair<Int?, String>?): Int {
+    fun remove(ctx: android.content.Context, pkgs: Collection<String>, exec: (String) -> Pair<Int?, String>?): Int {
         if (!removeSupported || pkgs.isEmpty()) return 0
         val out = runCatching { exec("dumpsys activity recents")?.second }.getOrNull() ?: return 0
-        val ids = out.lineSequence().mapNotNull { line ->
-            val m = task.find(line) ?: return@mapNotNull null
-            if (m.groupValues[2] !in pkgs) return@mapNotNull null
-            if (android.os.Build.VERSION.SDK_INT >= 31) m.groupValues[1]
-            else rootTask.find(line)?.groupValues?.get(1)?.takeIf { it != "-1" && it != "0" } ?: m.groupValues[1]
-        }.distinct().toList()
+        // App user ids (10000 and up: shared system ids would match other apps' cards).
+        val uids = pkgs.mapNotNull { p -> runCatching { ctx.packageManager.getApplicationInfo(p, 0).uid }.getOrNull()?.takeIf { it >= 10_000 } }.toSet()
+        val ids = cards(out).filter { c -> c.names.any { it in pkgs } || (c.uid != null && c.uid in uids) }.map { it.id }.distinct()
         if (ids.isEmpty()) return 0
         runCatching { exec(ids.joinToString("; ") { "am stack remove $it" }) }
         return ids.size
     }
 
-    /** Every card goes (Android's own "Clear all"). */
-    const val ClearAll = "am clear-recent-apps"
+    /**
+     * Every app's card goes (Android's own "Clear all"), except Prism TV's. One line you could type too.
+     * Android 11 removes only the apps still open; their stopped apps' cards are records it can't reach.
+     */
+    val ClearAll: String get() {
+        val id = if (android.os.Build.VERSION.SDK_INT >= 31) "sed -E 's/.*Task\\{[0-9a-f]+ #([0-9]+).*/\\1/'"
+            else "grep -oE 'StackId=[0-9]+' | cut -d= -f2"
+        return "dumpsys activity recents | grep 'Recent #' | grep 'type=standard' | grep -v com.prismtv.launcher | $id | " +
+            "while read t; do am stack remove \$t; done; true"
+    }
 }

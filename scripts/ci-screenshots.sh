@@ -592,7 +592,14 @@ accept_adb_prompt() {
     start "${B[@]}" "${DARK[@]}" --es screen home --es closeApp "$TARGET" --ei closeDelay 2000; sleep 8
     echo "after: pid=$(adb shell pidof "$TARGET" | tr -d '\r') $(adb shell dumpsys package "$TARGET" | grep -m1 -oE 'stopped=(true|false)')"
     echo "recents after: $(adb shell dumpsys activity recents | grep -cE "Recent #.*$TARGET") card(s)"
-    echo "am clear-recent-apps listed: $(adb shell am help 2>&1 | grep -c clear-recent-apps)"
+    # Clear Android's Recent Apps: the same line Prism runs (SystemRecents.ClearAll).
+    adb shell monkey -p com.android.vending -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1; sleep 4
+    start "${B[@]}" "${DARK[@]}" --es screen home; sleep 2
+    echo "all cards before clear: $(adb shell dumpsys activity recents | grep 'Recent #' | grep -c 'type=standard')"
+    if [ "$SDK" -ge 31 ]; then ID="sed -E 's/.*Task\\{[0-9a-f]+ #([0-9]+).*/\\1/'"; else ID="grep -oE 'StackId=[0-9]+' | cut -d= -f2"; fi
+    adb shell "dumpsys activity recents | grep 'Recent #' | grep 'type=standard' | grep -v com.prismtv.launcher | $ID | while read t; do am stack remove \$t; done; true"
+    sleep 2
+    echo "all cards after clear: $(adb shell dumpsys activity recents | grep 'Recent #' | grep -c 'type=standard') ($(adb shell dumpsys activity recents | grep 'Recent #' | grep 'type=standard' | grep -oE 'A=[0-9]*:?[A-Za-z0-9_.]+' | tr '\n' ' '))"
     adb logcat -d -s PrismClose:I | grep "method=" | tail -1
   fi
 } 2>&1 | tee "$OUT/shizuku-test.txt"
