@@ -1,2 +1,24 @@
 captured 65-shizuku-steps
-own adb client: 11-23 09:08:53.931 15097 15097 I PrismAdb: result=Unreachable
+own adb client: 11-23 09:50:04.359 15409 15409 I PrismAdb: result=Unreachable
+captured 65b-shizuku-downloading
+captured 65c-shizuku-installer
+tapped "Install"
+captured 65d-shizuku-installed
+installed: package:/data/app/~~50CnnbJx6hHqOXa-xqx8GA==/moe.shizuku.privileged.api-aHSCLmRVjmnoul36cUJD1g==/base.apk
+info: killing old process...
+info: apk path is /data/app/~~50CnnbJx6hHqOXa-xqx8GA==/moe.shizuku.privileged.api-aHSCLmRVjmnoul36cUJD1g==/base.apk
+info: starting server...
+info: shizuku_server pid is 15776
+info: shizuku_starter exit with 0
+captured 65e-shizuku-running
+captured 65f-shizuku-allow-prompt
+tapped "Allow all the time"
+captured 65g-shizuku-allowed
+before: pid=14942
+recents before:   * Recent #0: Task{1adbe77 #37 visible=false type=standard mode=fullscreen translucent=true A=10059:com.google.android.youtube.tv.main U=0 StackId=37 sz=1}
+  * Recent #1: Task{3ca132f #42 visible=false type=standard mode=fullscreen translucent=true A=10059:com.google.android.youtube.tv U=0 StackId=42 sz=0}
+logcat: failed to clear the 'main' log.
+after: pid= stopped=true
+recents after: 2 card(s)
+am clear-recent-apps listed: 0
+11-23 09:51:08.127 15409 15409 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
