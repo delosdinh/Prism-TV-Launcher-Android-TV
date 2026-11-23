@@ -84,6 +84,7 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (
             Resume.position = player.currentPosition
             player.removeListener(listener)
             player.release()
+            AerialBuffer.released()
             onShown(false)
         }
     }

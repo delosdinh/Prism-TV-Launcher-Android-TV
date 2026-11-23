@@ -373,7 +373,16 @@ adb shell input keyevent KEYCODE_BACK; sleep 2
 if [ "$QUICK" = 0 ]; then
   start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple
   sleep 10; cap 32-aerial-apple-later
-  adb shell input keyevent KEYCODE_BACK; sleep 2
+  # Prism's memory while the screensaver plays and 6 s after it ends, without forcing a GC (as the SHIELD
+  # reads it), then the same with the release-time collection switched off (--ez reclaim false).
+  memline() { adb shell dumpsys meminfo -d "$PKG" | grep -E "^ +\.(Heap|LOS) |TOTAL PSS" | sed "s/^ */$1: /"; }
+  {
+    memline "playing"
+    adb shell input keyevent KEYCODE_BACK; sleep 6; memline "6 s after"
+    start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial --ez reclaim false; sleep 25
+    memline "playing (reclaim off)"
+    adb shell input keyevent KEYCODE_BACK; sleep 6; memline "6 s after (reclaim off)"
+  } | tee "$OUT/screensaver-memory.txt"
   # Apple TV Aerials as the Home wallpaper (Spotlight shows the wallpaper around its card).
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen home --ei col 0; sleep 16
   cap 74-home-aerial-wallpaper

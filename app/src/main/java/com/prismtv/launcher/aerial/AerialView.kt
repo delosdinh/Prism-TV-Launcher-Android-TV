@@ -140,6 +140,7 @@ class AerialView(context: Context) : FrameLayout(context) {
     }
 
     fun stop() {
+        val was = started
         started = false
         scope.cancel()
         handler.removeCallbacksAndMessages(null)
@@ -147,6 +148,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         player = null
         sceneA.animate().cancel()
         sceneB.animate().cancel()
+        if (was) AerialBuffer.released()
     }
 
     // ------------------------------------------------------------------------------------ videos

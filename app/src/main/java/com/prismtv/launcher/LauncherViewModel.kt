@@ -5191,6 +5191,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun applyDebug(b: Bundle) {
         debugDriven = true
         sharpCopies = b.getBoolean("sharpCopies", true)
+        com.prismtv.launcher.aerial.AerialBuffer.reclaim = b.getBoolean("reclaim", true)
         if (b.getString("bench") == "settings") benchSettings()
         // Each shot starts clean: no picker or passcode left over from the last one.
         passcode = null
