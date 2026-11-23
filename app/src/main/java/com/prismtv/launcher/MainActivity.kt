@@ -289,6 +289,7 @@ class MainActivity : ComponentActivity() {
         writer.println("${prefix}Prism memory:")
         // `… MainActivity gc`: also collect garbage first, to tell memory still held from memory waiting to be freed.
         val collect = args?.any { it == "gc" } == true
+        if (args?.any { it == "hwtest" } == true) writer.println("$prefix  ${com.prismtv.launcher.system.HardwareProbe.run()}")
         runCatching { vm.memoryReport(collect) }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
         writer.println("${prefix}Prism memory history (a line a minute when anything happened):")
         com.prismtv.launcher.system.MemTrace.history().forEach { writer.println("$prefix  $it") }
