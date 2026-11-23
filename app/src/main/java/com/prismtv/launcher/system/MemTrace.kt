@@ -22,6 +22,20 @@ object MemTrace {
     @Volatile private var last = -1L
     @Volatile private var started = false
 
+    /** The last lines, also printed by `dumpsys activity com.prismtv.launcher/.MainActivity` (logcat rolls over). */
+    private val history = ArrayDeque<String>()
+
+    fun history(): List<String> = synchronized(history) { history.toList() }
+
+    private fun log(line: String) {
+        Log.i(Tag, line)
+        val stamp = java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(java.util.Date())
+        synchronized(history) {
+            history.addLast("$stamp $line")
+            while (history.size > 240) history.removeFirst()
+        }
+    }
+
     fun count(event: String) {
         counts.getOrPut(event) { AtomicInteger() }.incrementAndGet()
     }
@@ -31,7 +45,7 @@ object MemTrace {
         started = true
         handler.post {
             last = native()
-            Log.i(Tag, "start: native ${mb(last)}, Java ${mb(java())}")
+            log("start: native ${mb(last)}, Java ${mb(java())}")
         }
         handler.postDelayed(tick, MinuteMs)
     }
@@ -39,7 +53,7 @@ object MemTrace {
     /** A screen (Control Centre, Settings, the App Switcher…) opened: its first frames' cost. */
     fun opened(name: String) {
         val before = native()
-        handler.postDelayed({ Log.i(Tag, "$name opened: native ${mb(before)} → ${mb(native())}") }, 2_500)
+        handler.postDelayed({ log("$name opened: native ${mb(before)} → ${mb(native())}") }, 2_500)
     }
 
     private val tick = object : Runnable {
@@ -49,7 +63,7 @@ object MemTrace {
             val delta = now - last
             if (events.isNotEmpty() || kotlin.math.abs(delta) >= 512 * 1024) {
                 val sign = if (delta >= 0) "+" else "−"
-                Log.i(Tag, "native ${mb(now)} ($sign${mb(kotlin.math.abs(delta))}), Java ${mb(java())}" +
+                log("native ${mb(now)} ($sign${mb(kotlin.math.abs(delta))}), Java ${mb(java())}" +
                     if (events.isEmpty()) "" else " | " + events.sorted().joinToString(", "))
             }
             last = now

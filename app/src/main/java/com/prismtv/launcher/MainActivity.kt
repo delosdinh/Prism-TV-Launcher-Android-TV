@@ -290,6 +290,8 @@ class MainActivity : ComponentActivity() {
         // `… MainActivity gc`: also collect garbage first, to tell memory still held from memory waiting to be freed.
         val collect = args?.any { it == "gc" } == true
         runCatching { vm.memoryReport(collect) }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
+        writer.println("${prefix}Prism memory history (a line a minute when anything happened):")
+        com.prismtv.launcher.system.MemTrace.history().forEach { writer.println("$prefix  $it") }
     }
 
     override fun onTrimMemory(level: Int) {

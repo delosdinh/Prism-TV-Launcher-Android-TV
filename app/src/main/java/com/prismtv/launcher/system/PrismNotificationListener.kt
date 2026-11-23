@@ -49,9 +49,15 @@ class PrismNotificationListener : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
-        publish()
-        if (sbn != null) maybeBanner(sbn)
+        if (sbn == null) return publish()
+        com.prismtv.launcher.system.MemTrace.count("posted by ${sbn.packageName}")
+        // Players re-post their Now Playing notification every second or two, and Prism TV never lists
+        // those: rebuilding the list fetched every notification on the TV (pictures included) each time.
+        if (useful(sbn) || listed(sbn.key)) publish()
+        maybeBanner(sbn)
     }
+
+    private fun listed(key: String): Boolean = state.value.any { it.key == key }
 
     /**
      * What each notification said when it last showed as a banner, and when. Apps re-post the same
@@ -94,23 +100,29 @@ class PrismNotificationListener : NotificationListenerService() {
         }
     }
 
-    override fun onNotificationRemoved(sbn: StatusBarNotification?) = publish()
+    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+        if (sbn == null || listed(sbn.key)) publish()
+    }
 
     /**
      * Rebuilds the list off the main thread (these callbacks arrive on it, sometimes in bursts), with
      * each app's name and icon read once and kept.
      */
     private fun publish() {
-        worker.removeCallbacksAndMessages(null)
-        worker.post {
-            com.prismtv.launcher.system.MemTrace.count("notification updates")
-            val active = runCatching { activeNotifications?.toList() }.getOrNull().orEmpty()
-            state.value = active
-                .filter { useful(it) }
-                .sortedByDescending { it.postTime }
-                .take(20)
-                .mapNotNull { entry(it) }
-        }
+        // A short wait gathers a burst (an app posting several at once) into one rebuild. Only this job is
+        // replaced: a banner waiting on the same thread still shows.
+        worker.removeCallbacks(rebuild)
+        worker.postDelayed(rebuild, 300)
+    }
+
+    private val rebuild = Runnable {
+        com.prismtv.launcher.system.MemTrace.count("notification updates")
+        val active = runCatching { activeNotifications?.toList() }.getOrNull().orEmpty()
+        state.value = active
+            .filter { useful(it) }
+            .sortedByDescending { it.postTime }
+            .take(20)
+            .mapNotNull { entry(it) }
     }
 
     private class AppLook(val label: String, val icon: ImageBitmap?)
