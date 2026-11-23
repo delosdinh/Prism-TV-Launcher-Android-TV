@@ -1,22 +1,24 @@
-apk bytes: 4606065
-apk dex 1516954, images 2267074, audio 275054 (0 compressed), other 495901
-cold start ms:  3421 3638 3802 3441 3600  (median 3600)
+apk bytes: 4606061
+apk dex 1518079, images 2267074, audio 275054 (0 compressed), other 495898
+cold start ms:  4094 4358 3935 3648 3999  (median 3999)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  255 279 263 275 245  (median 263)
-walk: Total frames rendered: 67
-walk: Janky frames: 67 (100.00%)
-walk: Janky frames (legacy): 67 (100.00%)
-walk: 50th percentile: 250ms
-walk: 90th percentile: 400ms
-walk: 99th percentile: 1350ms
-walk: Number Slow UI thread: 40
-rapid: Total frames rendered: 20
-rapid: Janky frames: 20 (100.00%)
-rapid: Janky frames (legacy): 20 (100.00%)
+back to home ms:  243 246 247 275 293  (median 247)
+walk: Total frames rendered: 63
+walk: Janky frames: 63 (100.00%)
+walk: Janky frames (legacy): 63 (100.00%)
+walk: 50th percentile: 350ms
+walk: 90th percentile: 500ms
+walk: 99th percentile: 1200ms
+walk: Number Slow UI thread: 37
+rapid: Total frames rendered: 33
+rapid: Janky frames: 33 (100.00%)
+rapid: Janky frames (legacy): 33 (100.00%)
 rapid: 90th percentile: 200ms
-rapid: Number Slow UI thread: 8
-memory: Native Heap    44970    44952        0       27    45996    61296    46703     3105
-memory: Java Heap:     7432                          20276
-memory: Native Heap:    44952                          45996
+rapid: Number Slow UI thread: 16
+memory: Native Heap    30812    30792        0       29    31820    47936    32531     3859
+memory: Java Heap:     5040                          17896
+memory: Native Heap:    30792                          31820
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    75937            TOTAL RSS:   169492       TOTAL SWAP PSS:      254
+memory: TOTAL PSS:    64815            TOTAL RSS:   159008       TOTAL SWAP PSS:      264
+idle on home, 60 s: 17 ticks
+behind another app, 60 s: 2 ticks
