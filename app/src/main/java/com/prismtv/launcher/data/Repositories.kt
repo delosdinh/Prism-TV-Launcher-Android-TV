@@ -299,6 +299,13 @@ class ArtRepository(private val context: Context) {
     }
 
     /**
+     * Artwork let go by [releaseUnused], held weakly. Whatever is still on screen is still held by what
+     * draws it, so it comes back from here at once (no reload, no blank card); the rest is freed by the
+     * next garbage collection.
+     */
+    private val parked = HashMap<String, java.lang.ref.WeakReference<Any>>()
+
+    /**
      * Lite Mode: backdrops at 1280 × 720 in 16-bit colour (a fifth of the memory of 1080p) and smaller
      * caches. Artwork already loaded is dropped so it reloads at the new size.
      */
@@ -307,6 +314,7 @@ class ArtRepository(private val context: Context) {
             if (field == value) return
             field = value
             cache.evictAll()
+            synchronized(parked) { parked.clear() }
             cache.resize(if (value || lowRam) 18 * MB else 44 * MB)
             thumbs.resize(if (value || lowRam) 20 * MB else 40 * MB)
         }
@@ -316,7 +324,7 @@ class ArtRepository(private val context: Context) {
     /** Android asked for memory back: let go of artwork that isn't on screen. */
     fun trim(level: Int) {
         when {
-            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> { cache.evictAll(); thumbs.evictAll() }
+            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> releaseUnused()
             level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE ||
                 level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
                 level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
@@ -344,13 +352,39 @@ class ArtRepository(private val context: Context) {
         val old = brands[appId]
         brands[appId] = Brand(banner, icon, tint)
         // A new banner (icon pack, your picture, an app update): its Top Shelf backdrop is made again.
-        if (old != null && old.banner !== banner) cache.remove(BannerArt(appId).key)
+        if (old != null && old.banner !== banner) {
+            cache.remove(BannerArt(appId).key)
+            synchronized(parked) { parked.remove("b:${BannerArt(appId).key}") }
+        }
     }
 
-    fun cached(ref: ArtRef): HeroArt? = cache.get(ref.key)
+    private inline fun <reified T : Any> unpark(key: String, restore: (T) -> Unit): T? {
+        val v = synchronized(parked) { parked.remove(key)?.get() } as? T ?: return null
+        restore(v)
+        return v
+    }
+
+    /**
+     * Free Up Memory (and Android's "complete" trim): empties both caches. Backdrops and cards on screen
+     * stay as they are; the ones kept for later (the next Top Shelf items, rows scrolled past) are freed.
+     * Returns how much the caches held.
+     */
+    fun releaseUnused(): Long {
+        val held = cache.size().toLong() + thumbs.size()
+        synchronized(parked) {
+            parked.values.removeAll { it.get() == null }
+            cache.snapshot().forEach { (k, v) -> parked["b:$k"] = java.lang.ref.WeakReference<Any>(v) }
+            thumbs.snapshot().forEach { (k, v) -> parked["t:$k"] = java.lang.ref.WeakReference<Any>(v) }
+        }
+        cache.evictAll()
+        thumbs.evictAll()
+        return held
+    }
+
+    fun cached(ref: ArtRef): HeroArt? = cache.get(ref.key) ?: unpark<HeroArt>("b:${ref.key}") { cache.put(ref.key, it) }
 
     suspend fun load(ref: ArtRef): HeroArt? = withContext(Dispatchers.IO) {
-        cache.get(ref.key)?.let { return@withContext it }
+        cached(ref)?.let { return@withContext it }
         val bmp = try {
             decode(ref)
         } catch (_: Throwable) {
@@ -384,7 +418,7 @@ class ArtRepository(private val context: Context) {
         override fun sizeOf(key: String, value: ImageBitmap): Int = bytes(value)
     }
 
-    fun cachedThumb(ref: ArtRef): ImageBitmap? = thumbs.get(ref.key)
+    fun cachedThumb(ref: ArtRef): ImageBitmap? = thumbs.get(ref.key) ?: unpark<ImageBitmap>("t:${ref.key}") { thumbs.put(ref.key, it) }
 
     /** For the memory report: backdrops (with their blurred copies) and cards held in the caches. */
     fun memoryLines(): List<String> {
@@ -392,12 +426,13 @@ class ArtRepository(private val context: Context) {
         cache.snapshot().values.forEach { backdrops.add(it.full); backdrops.add(it.light); backdrops.add(it.heavy) }
         val cards = com.prismtv.launcher.system.BitmapTally("cards (${com.prismtv.launcher.system.BitmapTally.mb(thumbs.size().toLong())} of ${com.prismtv.launcher.system.BitmapTally.mb(thumbs.maxSize().toLong())} cache)")
         thumbs.snapshot().values.forEach { cards.add(it) }
-        return listOf(backdrops.toString(), cards.toString())
+        val kept = synchronized(parked) { parked.values.count { it.get() != null } }
+        return listOf(backdrops.toString(), cards.toString(), "artwork let go by Free Up Memory and still held on screen: $kept")
     }
 
     /** A small copy (about [width] px wide) for cards and previews. */
     suspend fun thumb(ref: ArtRef, width: Int = 400): ImageBitmap? = withContext(Dispatchers.IO) {
-        thumbs.get(ref.key)?.let { return@withContext it }
+        cachedThumb(ref)?.let { return@withContext it }
         val bmp = try {
             decode(ref, maxSide = width * 2)
         } catch (t: Throwable) {

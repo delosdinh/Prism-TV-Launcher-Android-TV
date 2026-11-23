@@ -24,7 +24,6 @@ import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.OpenWith
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
-import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.derivedStateOf
@@ -2140,55 +2139,100 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Closes background apps (everything that isn't the foreground or a system service). */
+    /**
+     * Control Centre › Free Up Memory: closes the App Switcher's apps (completely, where Closing Apps
+     * can), stops every installed app's background processes, has what's still running trim its memory
+     * (with Shizuku or root) and lets go of the artwork Prism TV keeps for later. What's on screen, what's
+     * playing, the keyboard and the Assistant stay as they are.
+     */
     private fun freeUpMemory() {
+        if (freeingMemory) return
+        freeingMemory = true
         viewModelScope.launch {
-            // The App Switcher's apps are closed completely when Closing Apps can (and leave the switcher).
-            var closedApps = 0
-            if (closeMethod() != com.prismtv.launcher.system.AppCloser.Method.MemoryOnly && !closeFlushing) {
-                val open = withContext(Dispatchers.IO) { recentsRepo.recentPackages().take(8) }
-                    .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
-                    .filter { it.id !in blockedApps && !com.prismtv.launcher.data.TvInputs.isInput(it) }
-                    .distinctBy { it.packageName }
-                if (open.isNotEmpty()) {
-                    closeFlushing = true
-                    val r = try {
-                        withContext(kotlinx.coroutines.NonCancellable) {
-                            com.prismtv.launcher.system.AppCloser.close(ctx, open.map { it.packageName to it.label }, true, prefs.rootClose)
+            val t0 = SystemClock.elapsedRealtime()
+            val availBefore = withContext(Dispatchers.IO) { com.prismtv.launcher.system.MemoryCleaner.available(ctx) }
+            // Closing apps one by one through Shizuku can take a moment: say so.
+            val working = launch {
+                delay(700)
+                showBanner("Free Up Memory", "Freeing memory…", Icons.Rounded.Memory, null)
+            }
+            try {
+                // The App Switcher's apps are closed completely when Closing Apps can (and leave the switcher).
+                var closedApps = 0
+                if (closeMethod() != com.prismtv.launcher.system.AppCloser.Method.MemoryOnly && !closeFlushing) {
+                    val open = withContext(Dispatchers.IO) { recentsRepo.recentPackages().take(8) }
+                        .mapNotNull { pkg -> realApps.firstOrNull { it.packageName == pkg } }
+                        .filter { it.id !in blockedApps && !com.prismtv.launcher.data.TvInputs.isInput(it) }
+                        .distinctBy { it.packageName }
+                    if (open.isNotEmpty()) {
+                        closeFlushing = true
+                        val r = try {
+                            withContext(kotlinx.coroutines.NonCancellable) {
+                                com.prismtv.launcher.system.AppCloser.close(ctx, open.map { it.packageName to it.label }, true, prefs.rootClose)
+                            }
+                        } finally {
+                            closeFlushing = false
                         }
-                    } finally {
-                        closeFlushing = false
+                        lastCloseResult = r
+                        r.stopped.forEach(recentsRepo::remove)
+                        recentPackagesCache = recentPackagesCache?.filterNot { it in r.stopped }
+                        closedApps = r.closed.size
                     }
-                    lastCloseResult = r
-                    r.stopped.forEach(recentsRepo::remove)
-                    recentPackagesCache = recentPackagesCache?.filterNot { it in r.stopped }
-                    closedApps = r.closed.size
                 }
-            }
-            val closed = withContext(Dispatchers.IO) {
-                val pm = ctx.packageManager
-                val launchable = allApps.filter { it.demo == null }.map { it.packageName }.distinct()
-                launchable.count { pkg ->
-                    pkg != ctx.packageName && runCatching { pm.getApplicationInfo(pkg, 0) }.isSuccess &&
-                        run { SystemActions.killBackground(ctx, pkg); true }
+                val cleaner = com.prismtv.launcher.system.MemoryCleaner
+                val playing = nowPlaying?.pkg
+                val keep = withContext(Dispatchers.IO) { cleaner.keep(ctx, playing) }
+                val asked = withContext(Dispatchers.IO) { cleaner.killBackground(ctx, keep) }
+                val shell: ((String) -> Pair<Int?, String>?)? = when {
+                    com.prismtv.launcher.system.ShizukuShell.ready() -> com.prismtv.launcher.system.ShizukuShell::exec
+                    prefs.rootClose && com.prismtv.launcher.system.RootShell.present() -> com.prismtv.launcher.system.RootShell::exec
+                    else -> null
                 }
+                val trims = shell?.let { sh ->
+                    viewModelScope.launch(Dispatchers.IO) { sh(cleaner.shellScript(ctx.packageName)) }
+                }
+                // Prism TV's own: artwork kept for later goes (what's on screen stays), then the garbage
+                // collector frees it and whatever else nothing holds any more.
+                val held = artRepo.releaseUnused()
+                withContext(Dispatchers.IO) { repeat(2) { Runtime.getRuntime().gc(); System.runFinalization() } }
+                trims?.let { kotlinx.coroutines.withTimeoutOrNull(8_000) { it.join() } }
+                delay(600) // Android finishes tearing down what was stopped
+                val availAfter = withContext(Dispatchers.IO) { cleaner.available(ctx) }
+                val freed = availAfter - availBefore
+                android.util.Log.i(
+                    "PrismFree",
+                    "closed $closedApps, asked $asked packages, shell ${if (shell == null) "none" else "trims"}, " +
+                        "Prism artwork let go ${held / 1_048_576} MB, available ${availBefore / 1_048_576} → ${availAfter / 1_048_576} MB " +
+                        "in ${SystemClock.elapsedRealtime() - t0} ms",
+                )
+                com.prismtv.launcher.system.MemTrace.count("free up memory")
+                working.cancel()
+                val parts = listOfNotNull(
+                    when {
+                        closedApps == 1 -> "Closed 1 app"
+                        closedApps > 1 -> "Closed $closedApps apps"
+                        else -> null
+                    },
+                    when {
+                        freed >= 1_073_741_824L -> "Freed %.1f GB".format(freed / 1_073_741_824.0)
+                        freed >= 10L * 1_048_576 -> "Freed ${freed / 1_048_576} MB"
+                        else -> null
+                    },
+                )
+                showBanner(
+                    "Free Up Memory",
+                    (parts.ifEmpty { if (asked > 0 || shell != null) listOf("Closed background apps") else emptyList() } +
+                        "%.1f GB available".format(availAfter / 1_073_741_824.0)).joinToString(" · "),
+                    Icons.Rounded.Memory,
+                    Cue.Clear,
+                )
+            } finally {
+                working.cancel()
+                freeingMemory = false
             }
-            val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-            val info = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
-            val freeGb = info.availMem / 1_073_741_824.0
-            showBanner(
-                "Free Up Memory",
-                when {
-                    closedApps == 1 -> "Closed 1 app · %.1f GB available".format(freeGb)
-                    closedApps > 1 -> "Closed $closedApps apps · %.1f GB available".format(freeGb)
-                    closed > 0 -> "Closed background apps · %.1f GB available".format(freeGb)
-                    else -> "%.1f GB available".format(freeGb)
-                },
-                Icons.Rounded.Memory,
-                Cue.Clear,
-            )
         }
     }
+    private var freeingMemory = false
 
     /**
      * Shows the aerials. [auto] = started by Start After on an idle Home Screen: whatever was open
@@ -5611,7 +5655,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 when (e) {
                     InstallEvent.Installing -> {
                         updateStatus = "Installing…"
-                        showBanner("Installing Update", "Prism TV will restart in a moment.", Icons.Rounded.SystemUpdate)
+                        showBanner("Installing Update", "Prism TV will restart in a moment.", com.prismtv.launcher.ui.components.PrismIcons.TvUpdate)
                     }
                     is InstallEvent.NeedsConfirmation -> {
                         updateStatus = "Waiting to Install"

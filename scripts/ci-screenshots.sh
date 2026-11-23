@@ -623,8 +623,17 @@ memsnap() { # label
   for _ in 1 2 3 4 5; do adb shell input keyevent KEYCODE_MENU; sleep 1.5; adb shell input keyevent KEYCODE_BACK; sleep 1.5; done
   memsnap "after cc x5"
   adb logcat -c || true
+  avail() { adb shell grep MemAvailable /proc/meminfo | tr -s ' ' | cut -d' ' -f2; }
+  procs() { adb shell ps -A -o USER | grep -c '^u[0-9]*_a'; }
+  echo "before free up memory: MemAvailable $(avail) kB, app processes $(procs)"
   start "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei focus 13; sleep 4
-  adb shell input keyevent KEYCODE_DPAD_CENTER; sleep 12
+  adb shell input keyevent KEYCODE_DPAD_CENTER; sleep 1.2; cap 47m-free-up-memory-working
+  sleep 4; cap 47n-free-up-memory-done
+  echo "after free up memory: MemAvailable $(avail) kB, app processes $(procs)"
+  adb logcat -d -s PrismFree:I | tail -2
+  # Artwork on screen is kept (and counted here); the rest of Prism's caches are empty.
+  adb shell dumpsys activity "$PKG/.MainActivity" | sed -n '/Prism memory:/,/Prism memory history/p' | grep -E "PSS|backdrops|cards|let go"
+  sleep 6
   memsnap "after free up memory"
   adb logcat -d -s PrismClose:I | tail -3
 } 2>&1 | tee "$OUT/memory-test.txt"

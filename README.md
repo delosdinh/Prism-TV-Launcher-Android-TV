@@ -229,8 +229,16 @@ stops** it, the same as Settings › Apps › the app › Force Stop, using the 
    you swipe away in a row are closed together once you stop swiping. The remote is held for that
    second or two (Home still works).
 
-With Shizuku or root (Android 12+), closed apps also leave **Android's own app switcher** (Recent
-apps), and Closing Apps › **Clear Android's Recent Apps** clears every card there at once.
+With Shizuku or root (Android 11+; on Android 11 only apps still running when they're closed),
+closed apps also leave **Android's own app switcher** (Recent apps), and Closing Apps › **Clear
+Android's Recent Apps** clears every card there at once.
+
+**Free Up Memory** (Control Centre) goes further than closing the App Switcher's apps: every
+installed app's background processes are stopped (not only those on the Home Screen), and Prism TV
+lets go of the artwork it keeps for later (what's on screen stays). With Shizuku or root, every app
+still running is then asked to give back what it can — the request Android itself makes when memory
+runs short: hidden apps drop their caches and graphics memory, running ones trim theirs. Anything
+playing or on screen, the keyboard and the Assistant carry on. The banner says how much was freed.
 
 With none of these, swiped-away apps just have their memory freed and Prism TV says so once.
 A force-stopped app stays closed — no background refreshes, notifications or Top Shelf updates —
