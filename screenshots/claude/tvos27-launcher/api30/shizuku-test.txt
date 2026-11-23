@@ -1,24 +1,20 @@
 captured 65-shizuku-steps
-own adb client: 11-23 15:33:24.833 15834 15834 I PrismAdb: result=Unreachable
+own adb client: 11-23 23:20:33.289 15976 15976 I PrismAdb: result=Unreachable
 captured 65b-shizuku-downloading
 captured 65c-shizuku-installer
-tapped "Install"
+no "Install" on screen
 captured 65d-shizuku-installed
-installed: package:/data/app/~~zs8SxmlUa9dXZl74dOxJNg==/moe.shizuku.privileged.api-0BNUoFxStLCTHjb3Wi0Krw==/base.apk
-info: killing old process...
-info: apk path is /data/app/~~zs8SxmlUa9dXZl74dOxJNg==/moe.shizuku.privileged.api-0BNUoFxStLCTHjb3Wi0Krw==/base.apk
-info: starting server...
-info: shizuku_server pid is 16177
-info: shizuku_starter exit with 0
+installed: 
+starter: 
+cp: bad '': No such file or directory
 captured 65e-shizuku-running
 captured 65f-shizuku-allow-prompt
-tapped "Allow all the time"
+no "Allow all the time" on screen
 captured 65g-shizuku-allowed
-before: pid=15360
-recents before:   * Recent #0: Task{9af9992 #37 visible=false type=standard mode=fullscreen translucent=true A=10059:com.google.android.youtube.tv.main U=0 StackId=37 sz=1}
-  * Recent #1: Task{a321374 #42 visible=false type=standard mode=fullscreen translucent=true A=10059:com.google.android.youtube.tv U=0 StackId=42 sz=0}
-after: pid= stopped=true
+before: pid=15499
+recents before:   * Recent #0: Task{5c65e93 #37 visible=false type=standard mode=fullscreen translucent=true A=10059:com.google.android.youtube.tv.main U=0 StackId=37 sz=1}
+after: pid= stopped=false
 recents after: 1 card(s)
-all cards before clear: 5
-all cards after clear: 4 (A=10059:com.google.android.youtube.tv A=10036:com.google.android.packageinstaller A=10076:com.prismtv.launcher A=1000:com.android.tv.settings )
-11-23 15:34:25.698 15834 15834 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
+all cards before clear: 4
+all cards after clear: 2 (A=10076:com.prismtv.launcher A=1000:com.android.tv.settings )
+11-23 23:23:33.454 15976 15976 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
