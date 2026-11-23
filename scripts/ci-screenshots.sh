@@ -560,6 +560,28 @@ accept_adb_prompt() {
   fi
 } 2>&1 | tee "$OUT/shizuku-test.txt"
 
+# Prism's memory at each step of what the user did on the SHIELD (Control Centre five times, then Free Up
+# Memory, closing apps through Shizuku where it runs): the Java heap split into .Heap (small objects)
+# and .LOS (big arrays), each after a garbage collection (a heap dump forces one), so only live memory counts.
+memsnap() { # label
+  adb shell am dumpheap -g "$PKG" /data/local/tmp/prism.hprof >/dev/null 2>&1 \
+    || adb shell am dumpheap "$PKG" /data/local/tmp/prism.hprof >/dev/null 2>&1
+  sleep 6; adb shell rm -f /data/local/tmp/prism.hprof
+  adb shell dumpsys meminfo -d "$PKG" | grep -E "^ +\.(Heap|LOS) |Native Heap:|Graphics:|TOTAL PSS|Activities:" | sed "s/^ */$1: /"
+}
+{
+  if [ -n "$TARGET" ]; then timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1; sleep 8; fi
+  start "${B[@]}" "${DARK[@]}" --es screen home; sleep 6
+  memsnap home
+  for _ in 1 2 3 4 5; do adb shell input keyevent KEYCODE_MENU; sleep 1.5; adb shell input keyevent KEYCODE_BACK; sleep 1.5; done
+  memsnap "after cc x5"
+  adb logcat -c || true
+  start "${B[@]}" "${DARK[@]}" --es screen controlcentre --ei focus 13; sleep 4
+  adb shell input keyevent KEYCODE_DPAD_CENTER; sleep 12
+  memsnap "after free up memory"
+  adb logcat -d -s PrismClose:I | tail -3
+} 2>&1 | tee "$OUT/memory-test.txt"
+
 # Notification access through Do It for Me (Prism TV's own adb client, allowed above where it can reach adbd).
 {
   start "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 0; sleep 3
