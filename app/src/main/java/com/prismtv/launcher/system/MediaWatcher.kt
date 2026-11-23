@@ -48,6 +48,10 @@ object MediaWatcher {
     private val icons = HashMap<String, ImageBitmap?>()
     private val labels = HashMap<String, String>()
 
+    fun memoryLine(): String = com.prismtv.launcher.system.BitmapTally("Now Playing artwork and icons").also { t ->
+        t.add(artCache); icons.values.forEach { t.add(it) }
+    }.toString()
+
     private val callback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) = refresh()
         override fun onMetadataChanged(metadata: MediaMetadata?) = refresh()

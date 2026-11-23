@@ -281,6 +281,13 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Android is short of memory: give back cached artwork rather than be killed (and "reset"). */
+    /** `dumpsys activity com.prismtv.launcher/.MainActivity` adds what Prism's memory holds, by kind. */
+    override fun dump(prefix: String, fd: java.io.FileDescriptor?, writer: java.io.PrintWriter, args: Array<out String>?) {
+        super.dump(prefix, fd, writer, args)
+        writer.println("${prefix}Prism memory:")
+        runCatching { vm.memoryReport() }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
+    }
+
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         vm.trimMemory(level)

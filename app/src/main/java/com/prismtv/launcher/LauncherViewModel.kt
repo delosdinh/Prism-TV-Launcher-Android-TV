@@ -4401,7 +4401,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "usage" -> if (status().usage) {
                 showBanner("Recent Apps", "Prism TV can already see the apps you've used. To turn this off, open Android's Settings › Apps › Special app access › Usage access.", Icons.Rounded.Info)
-            } else SystemActions.open(ctx, Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            } else {
+                // Some boxes (the Ugoos AM9's Android TV firmware) have no Usage access page: opening it landed
+                // on Settings' main menu. Offer the page where there is one, Do It for Me and the command.
+                val page = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                val hasPage = SystemActions.canHandle(ctx, page)
+                shellDialog(
+                    title = "Allow Recent Apps",
+                    intro = (if (hasPage) "Open Usage Access and turn on Prism TV. If it isn't listed there, " else
+                        "This TV has no Usage access page in its Settings. ") +
+                        "Select Do It for Me, or type this command yourself:",
+                    command = "appops set ${ctx.packageName} GET_USAGE_STATS allow",
+                    done = { recentsRepo.hasUsageAccess() },
+                    doneMessage = "Done. The App Switcher now shows the apps you've used.",
+                    open = if (hasPage) "Open Usage Access" to { SystemActions.start(ctx, page); Unit } else null,
+                )
+            }
             r.id == "a11y" -> setUpPowerAndHome()
             r.id == "homeOverride" -> updatePrefs(p.copy(homeOverride = !p.homeOverride))
             r.id == "startup" -> {
@@ -5189,6 +5204,26 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             )
             probe.release()
         }
+    }
+
+    /** What Prism holds in memory, by kind: printed by `dumpsys activity com.prismtv.launcher/.MainActivity`. */
+    fun memoryReport(): List<String> {
+        val mb = { bytes: Long -> com.prismtv.launcher.system.BitmapTally.mb(bytes) }
+        val banners = com.prismtv.launcher.system.BitmapTally("app banners (${realApps.size} apps)")
+        val icons = com.prismtv.launcher.system.BitmapTally("app icons")
+        realApps.forEach { banners.add(it.banner); icons.add(it.icon) }
+        val shown = com.prismtv.launcher.system.BitmapTally("artwork on the Home Screen (icon packs, your pictures)")
+        allApps.forEach { shown.add(it.banner); shown.add(it.icon) }
+        val inputs = com.prismtv.launcher.system.BitmapTally("inputs (${inputApps.size})")
+        inputApps.forEach { inputs.add(it.banner); inputs.add(it.icon) }
+        val rt = Runtime.getRuntime()
+        return listOf(
+            "Java heap in use ${mb(rt.totalMemory() - rt.freeMemory())}, native heap in use ${mb(android.os.Debug.getNativeHeapAllocatedSize())}",
+            banners.toString(), icons.toString(), shown.toString(), inputs.toString(),
+        ) + artRepo.memoryLines() + listOf(
+            com.prismtv.launcher.data.IconPacks.memoryLine(),
+            com.prismtv.launcher.system.MediaWatcher.memoryLine(),
+        )
     }
 
     /** Debug builds (CI): Liquid Glass's offscreen copies on or off, to time one against the other. */

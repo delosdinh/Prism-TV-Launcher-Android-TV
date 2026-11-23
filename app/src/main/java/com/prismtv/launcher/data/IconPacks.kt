@@ -31,6 +31,10 @@ object IconPacks {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
     }
 
+    fun memoryLine(): String = com.prismtv.launcher.system.BitmapTally("banners from your pictures").also { t ->
+        photoBanners.snapshot().values.forEach { t.add(it) }
+    }.toString()
+
     private val themeActions = listOf(
         "org.adw.launcher.THEMES",
         "com.novalauncher.THEME",

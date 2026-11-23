@@ -385,6 +385,15 @@ class ArtRepository(private val context: Context) {
 
     fun cachedThumb(ref: ArtRef): ImageBitmap? = thumbs.get(ref.key)
 
+    /** For the memory report: backdrops (with their blurred copies) and cards held in the caches. */
+    fun memoryLines(): List<String> {
+        val backdrops = com.prismtv.launcher.system.BitmapTally("backdrops (${cache.size().toLong().let { com.prismtv.launcher.system.BitmapTally.mb(it) }} of ${com.prismtv.launcher.system.BitmapTally.mb(cache.maxSize().toLong())} cache)")
+        cache.snapshot().values.forEach { backdrops.add(it.full); backdrops.add(it.light); backdrops.add(it.heavy) }
+        val cards = com.prismtv.launcher.system.BitmapTally("cards (${com.prismtv.launcher.system.BitmapTally.mb(thumbs.size().toLong())} of ${com.prismtv.launcher.system.BitmapTally.mb(thumbs.maxSize().toLong())} cache)")
+        thumbs.snapshot().values.forEach { cards.add(it) }
+        return listOf(backdrops.toString(), cards.toString())
+    }
+
     /** A small copy (about [width] px wide) for cards and previews. */
     suspend fun thumb(ref: ArtRef, width: Int = 400): ImageBitmap? = withContext(Dispatchers.IO) {
         thumbs.get(ref.key)?.let { return@withContext it }

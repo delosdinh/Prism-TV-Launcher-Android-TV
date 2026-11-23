@@ -606,6 +606,9 @@ memsnap() { # label
   if [ -n "$TARGET" ]; then timeout 60 adb shell monkey -p "$TARGET" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1; sleep 8; fi
   start "${B[@]}" "${DARK[@]}" --es screen home; sleep 6
   memsnap home
+  # Prism's own breakdown of the bitmaps it holds (Activity.dump).
+  adb shell dumpsys activity "$PKG/.MainActivity" | sed -n '/Prism memory:/,$p' | head -14
+  adb shell dumpsys meminfo "$PKG" | grep -A12 "App Summary" | sed 's/^/summary: /'
   for _ in 1 2 3 4 5; do adb shell input keyevent KEYCODE_MENU; sleep 1.5; adb shell input keyevent KEYCODE_BACK; sleep 1.5; done
   memsnap "after cc x5"
   adb logcat -c || true
@@ -626,6 +629,22 @@ memsnap() { # label
   sleep 5; cap 66b-allow-notifications-done
   echo "listeners: $(adb shell settings get secure enabled_notification_listeners | tr -d '\r')"
 } 2>&1 | tee "$OUT/notif-test.txt"
+
+# Recent Apps (usage access) through Do It for Me: the dialog offers Usage Access where the TV has the page.
+# Usage access is put back as it was afterwards, so the later shots don't change.
+{
+  USAGE_BEFORE=$(adb shell appops get "$PKG" GET_USAGE_STATS | tr -d '\r')
+  echo "before: $USAGE_BEFORE"
+  adb shell appops set "$PKG" GET_USAGE_STATS default
+  start "${B[@]}" "${DARK[@]}" --es screen settings --es page Access --ei focus 2; sleep 3
+  key KEYCODE_DPAD_CENTER 2.5; cap 66c-allow-recent-apps-dialog
+  ui_dump | grep -q 'text="Open Usage Access"' && { echo "has Usage Access page"; key KEYCODE_DPAD_DOWN 0.6; }
+  key KEYCODE_DPAD_CENTER 1
+  accept_adb_prompt 6 66d-adb-prompt
+  sleep 5; cap 66e-allow-recent-apps-done
+  echo "after: $(adb shell appops get "$PKG" GET_USAGE_STATS | tr -d '\r')"
+  case "$USAGE_BEFORE" in *allow*) adb shell appops set "$PKG" GET_USAGE_STATS allow ;; *) adb shell appops set "$PKG" GET_USAGE_STATS default ;; esac
+} 2>&1 | tee "$OUT/usage-test.txt"
 
 if [ "$QUICK" = 1 ]; then
   timeout 60 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
