@@ -1,24 +1,24 @@
 apk bytes: 4606065
-apk dex 1513998, images 2267074, audio 275054 (0 compressed), other 495899
-cold start ms:  1593 1474 1280 1204 1162  (median 1280)
+apk dex 1514573, images 2267074, audio 275054 (0 compressed), other 495902
+cold start ms:  1564 1647 1451 1334 1303  (median 1451)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  162 193 161 176 186  (median 176)
-walk: Total frames rendered: 76
-walk: Janky frames: 76 (100.00%)
-walk: Janky frames (legacy): 76 (100.00%)
+back to home ms:  178 207 196 188 181  (median 188)
+walk: Total frames rendered: 77
+walk: Janky frames: 77 (100.00%)
+walk: Janky frames (legacy): 77 (100.00%)
 walk: 50th percentile: 200ms
 walk: 90th percentile: 300ms
-walk: 99th percentile: 550ms
-walk: Number Slow UI thread: 47
-rapid: Total frames rendered: 3
-rapid: Janky frames: 3 (100.00%)
-rapid: Janky frames (legacy): 3 (100.00%)
-rapid: 90th percentile: 109ms
-rapid: Number Slow UI thread: 1
-memory: Native Heap    32990    32964        0       30    33828    50176    36104     3263
-memory: Java Heap:     5356                          19504
-memory: Native Heap:    32964                          33828
+walk: 99th percentile: 750ms
+walk: Number Slow UI thread: 51
+rapid: Total frames rendered: 0
+rapid: Janky frames: 0 (0.00%)
+rapid: Janky frames (legacy): 0 (0.00%)
+rapid: 90th percentile: 4950ms
+rapid: Number Slow UI thread: 0
+memory: Native Heap    53561    53544        0       26    54476    71320    57616     3234
+memory: Java Heap:     6220                          21728
+memory: Native Heap:    53544                          54476
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    71766            TOTAL RSS:   163636       TOTAL SWAP PSS:      301
-idle on home, 60 s: 17 ticks
-behind another app, 60 s: 1 ticks
+memory: TOTAL PSS:    88725            TOTAL RSS:   187900       TOTAL SWAP PSS:      265
+idle on home, 60 s: 16 ticks
+behind another app, 60 s: 0 ticks
