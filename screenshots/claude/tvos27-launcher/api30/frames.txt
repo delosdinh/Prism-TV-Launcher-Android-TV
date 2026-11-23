@@ -1,22 +1,43 @@
 full: Total frames rendered: 109
 full: Janky frames: 109 (100.00%)
-full: 50th percentile: 200ms
-full: 90th percentile: 300ms
-full: 99th percentile: 1000ms
-full: Number Slow UI thread: 59
-full: Number Slow bitmap uploads: 7
+full: 50th percentile: 250ms
+full: 90th percentile: 350ms
+full: 99th percentile: 1050ms
+full: Number Slow UI thread: 66
+full: Number Slow bitmap uploads: 18
 full: Number Slow issue draw commands: 109
-lite: Total frames rendered: 108
-lite: Janky frames: 108 (100.00%)
+lite: Total frames rendered: 98
+lite: Janky frames: 98 (100.00%)
 lite: 50th percentile: 150ms
 lite: 90th percentile: 200ms
-lite: 99th percentile: 250ms
-lite: Number Slow UI thread: 56
-lite: Number Slow bitmap uploads: 5
-lite: Number Slow issue draw commands: 108
-settings: Total frames rendered: 151
-settings: Janky frames: 151 (100.00%)
-settings: 50th percentile: 250ms
-settings: 90th percentile: 350ms
-settings: 99th percentile: 400ms
-settings: Number Slow UI thread: 67
+lite: 99th percentile: 350ms
+lite: Number Slow UI thread: 52
+lite: Number Slow bitmap uploads: 23
+lite: Number Slow issue draw commands: 98
+settings: Total frames rendered: 140
+settings: Janky frames: 140 (100.00%)
+settings: 50th percentile: 300ms
+settings: 90th percentile: 400ms
+settings: 99th percentile: 450ms
+settings: Number Slow UI thread: 70
+cc-copies: Total frames rendered: 54
+cc-copies: Janky frames: 54 (100.00%)
+cc-copies: 50th percentile: 250ms
+cc-copies: 90th percentile: 300ms
+cc-copies: 99th percentile: 650ms
+cc-copies: Number Slow UI thread: 23
+cc-copies: Number Slow issue draw commands: 54
+cc-direct: Total frames rendered: 53
+cc-direct: Janky frames: 53 (100.00%)
+cc-direct: 50th percentile: 250ms
+cc-direct: 90th percentile: 300ms
+cc-direct: 99th percentile: 550ms
+cc-direct: Number Slow UI thread: 20
+cc-direct: Number Slow issue draw commands: 53
+cc-copies-again: Total frames rendered: 54
+cc-copies-again: Janky frames: 54 (100.00%)
+cc-copies-again: 50th percentile: 250ms
+cc-copies-again: 90th percentile: 400ms
+cc-copies-again: 99th percentile: 600ms
+cc-copies-again: Number Slow UI thread: 19
+cc-copies-again: Number Slow issue draw commands: 54
