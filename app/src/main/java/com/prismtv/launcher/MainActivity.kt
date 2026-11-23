@@ -365,7 +365,10 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     val full = rememberGraphicsLayer()
     val fullBlur = rememberGraphicsLayer()
     val sceneUiBlur = rememberGraphicsLayer()
-    val backdrop = remember { BackdropState(bg, bgBlur, scene, sceneBlur, full, fullBlur, sceneUiBlur) }
+    val sceneSharp = rememberGraphicsLayer()
+    val fullSharp = rememberGraphicsLayer()
+    val backdrop = remember { BackdropState(bg, bgBlur, scene, sceneBlur, full, fullBlur, sceneUiBlur, sceneSharp, fullSharp) }
+    SideEffect { backdrop.sharpCopies = vm.sharpCopies }
     val blurPx = with(density) { blurRadiusFor(theme.liquid).toPx() }
     // Settings and pop-ups: always frosted, as transparent as Settings & Pop-ups Transparency says.
     val uiBlurPx = with(density) { uiBlurRadius(vm.prefs.uiTransparency).toPx() }

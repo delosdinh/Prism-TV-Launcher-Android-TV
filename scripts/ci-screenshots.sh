@@ -312,6 +312,21 @@ for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_UP
 sleep 1.5
 adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread" \
   | sed "s/^ */settings: /" | tee -a "$OUT/frames.txt"
+# Control Centre in Liquid Glass: open it, move around, close it. Before Android 13 Liquid Glass draws
+# through offscreen copies of the scene; timed with the copies on, off, and on again (API 33+: control).
+ccwalk() { # label, extra args
+  local label="$1"; shift
+  start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 5
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  adb shell input keyevent KEYCODE_MENU; sleep 1.2
+  for k in RIGHT DOWN DOWN LEFT DOWN RIGHT DOWN DOWN UP UP LEFT UP; do adb shell input keyevent "KEYCODE_DPAD_$k"; sleep 0.35; done
+  adb shell input keyevent KEYCODE_BACK; sleep 1.2
+  adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread|Slow issue draw" \
+    | sed "s/^ */$label: /" | tee -a "$OUT/frames.txt"
+}
+ccwalk cc-copies
+ccwalk cc-direct --ez sharpCopies false
+ccwalk cc-copies-again
 # Main-thread cost of building each Settings page's rows, and of preparing one Top Shelf backdrop.
 adb logcat -c || true
 start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0 --es bench settings; sleep 22

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
@@ -75,7 +76,23 @@ class BackdropState(
     val fullBlur: GraphicsLayer,
     /** The scene blurred for Settings (its own radius, from Settings & Pop-ups Transparency). */
     val sceneUiBlur: GraphicsLayer,
+    /**
+     * Offscreen copies of the scene and the full canvas, for Liquid Glass before Android 13. Its lens
+     * draws the backdrop twice per surface, and drawing a source replays everything in it (every tile,
+     * image and line of text on the Home Screen): Control Centre's tiles replayed the whole Home Screen
+     * about twenty times a frame. A copy rendered once per frame makes each of those one texture draw.
+     */
+    val sceneSharp: GraphicsLayer,
+    val fullSharp: GraphicsLayer,
 ) {
+    init {
+        sceneSharp.compositingStrategy = CompositingStrategy.Offscreen
+        fullSharp.compositingStrategy = CompositingStrategy.Offscreen
+    }
+
+    /** Debug builds: CI turns the copies off to time them against drawing the sources directly. */
+    var sharpCopies by mutableStateOf(true)
+
     var fallbackLight by mutableStateOf<ImageBitmap?>(null)
     var fallbackHeavy by mutableStateOf<ImageBitmap?>(null)
     var fallbackDim by mutableStateOf(Color.Transparent)
@@ -94,6 +111,16 @@ class BackdropState(
         GlassSource.Full -> fullBlur
         GlassSource.SceneUi -> sceneUiBlur
     }
+
+    /** The source's offscreen copy, or its own layer (the background is a single image: cheap to replay). */
+    fun copyOf(source: GlassSource): GraphicsLayer? = when (source) {
+        GlassSource.Background -> null
+        GlassSource.Scene, GlassSource.SceneUi -> sceneSharp
+        GlassSource.Full -> fullSharp
+    }
+
+    /** What the Liquid Glass approximation draws through: the copy when there is one. */
+    fun sharp(source: GlassSource): GraphicsLayer = copyOf(source)?.takeIf { sharpCopies } ?: raw(source)
 
     fun raw(source: GlassSource): GraphicsLayer = when (source) {
         GlassSource.Background -> bg
@@ -115,6 +142,9 @@ fun Modifier.backdropSource(state: BackdropState, source: GlassSource): Modifier
     // Settings blurs the same scene with its own radius. Recording is a single draw op; the blur
     // itself only runs in frames where Settings actually draws it.
     if (source == GlassSource.Scene) state.sceneUiBlur.record { drawLayer(layer) }
+    // The same for the copy Liquid Glass draws through before Android 13: rendered only in frames
+    // where a glass surface draws it (Frosted never does).
+    if (!SupportsLensShader) state.copyOf(source)?.record { drawLayer(layer) }
 }
 
 /** Liquid Glass picks up more colour from what's behind it. */
@@ -248,7 +278,7 @@ fun Modifier.glass(
                         scale(sx, sy, pivot = center)
                         translate(-origin.x, -origin.y)
                     }) {
-                        drawLayer(backdrop.raw(source))
+                        drawLayer(backdrop.sharp(source))
                     }
                 }
 

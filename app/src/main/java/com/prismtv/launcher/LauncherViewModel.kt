@@ -5184,8 +5184,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Debug builds (CI): Liquid Glass's offscreen copies on or off, to time one against the other. */
+    var sharpCopies by mutableStateOf(true)
+        private set
+
     fun applyDebug(b: Bundle) {
         debugDriven = true
+        sharpCopies = b.getBoolean("sharpCopies", true)
         if (b.getString("bench") == "settings") benchSettings()
         // Each shot starts clean: no picker or passcode left over from the last one.
         passcode = null
