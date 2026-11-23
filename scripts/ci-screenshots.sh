@@ -312,8 +312,8 @@ for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input keyevent KEYCODE_DPAD_UP
 sleep 1.5
 adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread" \
   | sed "s/^ */settings: /" | tee -a "$OUT/frames.txt"
-# Control Centre in Liquid Glass: open it, move around, close it. Before Android 13 Liquid Glass draws
-# through offscreen copies of the scene; timed with the copies on, off, and on again (API 33+: control).
+# Control Centre in Liquid Glass: open it, move around, close it. Liquid Glass draws
+# through offscreen copies of the scene; timed with the copies on, off, and on again.
 ccwalk() { # label, extra args
   local label="$1"; shift
   start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 5
@@ -378,6 +378,9 @@ if [ "$QUICK" = 0 ]; then
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen home --ei col 0; sleep 16
   cap 74-home-aerial-wallpaper
   adb logcat -d -s PrismAerial:V | tail -n 12 > "$OUT/aerial-wallpaper.txt"
+  # How much of Prism's memory the playing wallpaper's read-ahead holds (ExoPlayer's buffers live in .LOS).
+  sleep 20
+  adb shell dumpsys meminfo -d "$PKG" | grep -E "^ +\.(Heap|LOS) |TOTAL PSS" | sed 's/^ */memory: /' | tee -a "$OUT/aerial-wallpaper.txt"
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --es screen grid --ei row 1 --ei col 1; sleep 5
   cap 74b-grid-aerial-wallpaper
   start "${B[@]}" "${DARK[@]}" --es wallpaper aerial --es topShelf spotlight --ez lite true --es screen home --ei col 0; sleep 4

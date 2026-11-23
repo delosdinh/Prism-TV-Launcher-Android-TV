@@ -77,10 +77,11 @@ class BackdropState(
     /** The scene blurred for Settings (its own radius, from Settings & Pop-ups Transparency). */
     val sceneUiBlur: GraphicsLayer,
     /**
-     * Offscreen copies of the scene and the full canvas, for Liquid Glass before Android 13. Its lens
-     * draws the backdrop twice per surface, and drawing a source replays everything in it (every tile,
-     * image and line of text on the Home Screen): Control Centre's tiles replayed the whole Home Screen
-     * about twenty times a frame. A copy rendered once per frame makes each of those one texture draw.
+     * Offscreen copies of the scene and the full canvas, for Liquid Glass. Drawing a source replays
+     * everything in it (every tile, image and line of text on the Home Screen), and each lens draws its
+     * backdrop once (Android 13+, into its shader) or twice (the approximation before 13): Control
+     * Centre's tiles replayed the whole Home Screen ten to twenty times a frame. A copy rendered once
+     * per frame makes each of those one texture draw.
      */
     val sceneSharp: GraphicsLayer,
     val fullSharp: GraphicsLayer,
@@ -142,9 +143,9 @@ fun Modifier.backdropSource(state: BackdropState, source: GlassSource): Modifier
     // Settings blurs the same scene with its own radius. Recording is a single draw op; the blur
     // itself only runs in frames where Settings actually draws it.
     if (source == GlassSource.Scene) state.sceneUiBlur.record { drawLayer(layer) }
-    // The same for the copy Liquid Glass draws through before Android 13: rendered only in frames
-    // where a glass surface draws it (Frosted never does).
-    if (!SupportsLensShader) state.copyOf(source)?.record { drawLayer(layer) }
+    // The same for the copy Liquid Glass draws through: rendered only in frames where a glass surface
+    // draws it (Frosted never does).
+    state.copyOf(source)?.record { drawLayer(layer) }
 }
 
 /** Liquid Glass picks up more colour from what's behind it. */
@@ -329,7 +330,7 @@ fun Modifier.glass(
                         lensLayer.renderEffect = lensEffect
                         lensLayer.record(size = layerSize) {
                             translate(-origin.x + margin, -origin.y + margin) {
-                                drawLayer(if (blurredLens) backdrop.blurred(source) else backdrop.raw(source))
+                                drawLayer(if (blurredLens) backdrop.blurred(source) else backdrop.sharp(source))
                             }
                         }
                         clipPath(clip) {

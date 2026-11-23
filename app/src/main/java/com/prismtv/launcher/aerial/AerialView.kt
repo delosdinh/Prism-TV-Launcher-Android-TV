@@ -155,7 +155,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         videos = list
         sceneA.visibility = GONE
         sceneB.visibility = GONE
-        val p = ExoPlayer.Builder(context).build()
+        val p = ExoPlayer.Builder(context).setLoadControl(AerialBuffer.screensaver()).build()
         player = p
         p.setVideoSurfaceView(surface)
         p.volume = 0f

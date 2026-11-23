@@ -42,7 +42,7 @@ fun AerialWallpaper(blur: () -> Float, modifier: Modifier = Modifier, onShown: (
     if (list.isEmpty()) return
     var shown by remember { mutableStateOf(false) }
     val player = remember {
-        ExoPlayer.Builder(ctx).build().apply {
+        ExoPlayer.Builder(ctx).setLoadControl(AerialBuffer.wallpaper()).build().apply {
             volume = 0f
             repeatMode = Player.REPEAT_MODE_ALL
             trackSelectionParameters = trackSelectionParameters.buildUpon()
