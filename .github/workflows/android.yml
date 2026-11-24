@@ -153,13 +153,22 @@ jobs:
           java-version: '17'
 
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          # Keep Robolectric's Android jars (about 300 MB) between runs on this branch too.
+          cache-read-only: false
 
-      - name: Lint and unit tests
-        id: run
+      - name: Unit tests
+        id: tests
         continue-on-error: true
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --continue :app:lintDebug :app:testDebugUnitTest 2>&1 | tee checks-log.txt
+          ./gradlew --no-daemon :app:testDebugUnitTest 2>&1 | tee checks-log.txt
+
+      - name: Lint
+        if: always()
+        continue-on-error: true
+        run: |
+          ./gradlew --no-daemon :app:lintDebug 2>&1 | tee -a checks-log.txt
 
       # Unused code (private members, parameters, imports) and unreachable code, by detekt's rules. Only
       # those findings are kept: the rest of detekt's default style rules aren't this project's style.
@@ -187,10 +196,10 @@ jobs:
           grep -E "tests completed|FAILED|BUILD (SUCCESSFUL|FAILED)|What went wrong" -A3 checks-log.txt > out/summary.txt || true
           bash scripts/publish-ci-results.sh out "checks/${GITHUB_REF_NAME}"
 
-      - name: Fail on test failures
-        if: steps.run.outcome == 'failure'
-        run: |
-          grep -q "testDebugUnitTest FAILED\|There were failing tests" checks-log.txt && exit 1 || echo "Lint findings are in the report; tests passed"
+      # Tests that fail, or don't run at all, fail the job; lint and unused-code findings are reported only.
+      - name: Fail if the unit tests didn't pass
+        if: steps.tests.outcome != 'success'
+        run: exit 1
 
   screenshots:
     name: TV emulator screenshots (API ${{ matrix.api }})
