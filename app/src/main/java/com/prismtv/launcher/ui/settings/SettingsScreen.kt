@@ -310,7 +310,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "wp:shuffle" to glyph(Icons.Rounded.Shuffle, 0xFF4CD0DF, 0xFF1C8AA6),
     "w:order" to glyph(Icons.Rounded.SwapVert, 0xFF5E5CE6, 0xFF3634A3),
     "pf:name" to glyph(Icons.Rounded.Badge, 0xFF3D9BFF, 0xFF0A5FE0),
-    "pf:accounts" to glyph(Icons.Rounded.ManageAccounts, 0xFF9C9CA3, 0xFF5E5E64),
+    "pf:google" to glyph(Icons.Rounded.ManageAccounts, 0xFF5AC8FA, 0xFF0A6CFF),
     "ui:High" to glyph(Icons.Rounded.Opacity, 0xFF64D2FF, 0xFF1A8CFF),
     "ui:Medium" to glyph(Icons.Rounded.Opacity, 0xFF5AA9FF, 0xFF1A6CE0),
     "ui:Low" to glyph(Icons.Rounded.Opacity, 0xFF7C86A8, 0xFF4A5170),

@@ -237,6 +237,12 @@ start "${B[@]}" "${DARK[@]}" --es screen keyboard --es text caf --ei keyRow 0 --
 adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 1.2
 key KEYCODE_DPAD_RIGHT 0.6; key KEYCODE_DPAD_CENTER 1; cap 44f-keyboard-accent-typed
 shot 45-settings-profile           "${B[@]}" "${DARK[@]}" --es avatar preset:3 --es screen settings --es page Profile --ei focus 5
+# Profile › Google Account: the TV's accounts page on Android TV 12+, the TV's Settings before that.
+start "${B[@]}" "${DARK[@]}" --es screen settings --es page Profile --ei focus 1; sleep 3
+cap 45c-settings-google-account-row
+key KEYCODE_DPAD_CENTER 4
+echo "google account opens: $(adb shell dumpsys activity activities | grep -m1 -E 'ResumedActivity' | tr -d '\r')" | tee "$OUT/google-account-test.txt"
+cap 45d-google-account-opened
 shot 45b-cc-four-circles           "${B[@]}" "${DARK[@]}" --es avatar preset:3 --es screen controlcentre --ei focus 15
 shot 46-settings-widget-apps       "${B[@]}" "${DARK[@]}" --es widgets both --es screen settings --es page WidgetApps --es widgetKey all:continue --ei focus 2
 shot 46b-settings-widget-order     "${B[@]}" "${DARK[@]}" --es widgets both --es screen settings --es page WidgetOrder --ei focus 0

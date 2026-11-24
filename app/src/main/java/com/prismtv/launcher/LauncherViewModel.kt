@@ -4360,9 +4360,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }.ifEmpty { listOf(SettingsRow("wo:none", "Turn on two or more widgets to arrange them", "ORDER")) }
         }
-        SettingsPage.Profile -> listOf(
+        SettingsPage.Profile -> listOfNotNull(
             SettingsRow("pf:name", "Name", "PROFILE", profileName(), chevron = true),
-            SettingsRow("pf:accounts", "Accounts", "PROFILE", chevron = true),
+            // The TV's own Google account belongs to the TV's owner: only on the main profile.
+            if (activeProfileSpec.id == com.prismtv.launcher.data.Profiles.MainId) {
+                SettingsRow("pf:google", "Google Account", "PROFILE", chevron = true)
+            } else null,
         ) + com.prismtv.launcher.ui.components.AvatarPresets.mapIndexed { i, a ->
             SettingsRow("pf:preset:$i", a.name, "PRISM AVATARS", selectable = true, checked = prefs.avatar == "preset:$i")
         } + if (!hasPhotoAccess()) {
@@ -4508,7 +4511,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 updatePrefs(prefs.copy(profileName = name.trim().take(30)))
                 cue(Cue.Confirm)
             }
-            r.id == "pf:accounts" -> SystemActions.open(ctx, Settings.ACTION_SYNC_SETTINGS)
+            r.id == "pf:google" -> SystemActions.openAccounts(ctx)
             r.id == "pf:allow" -> photoPermissionTick++
             r.id.startsWith("pf:preset:") || r.id.startsWith("pf:photo:") -> updatePrefs(p.copy(avatar = r.id.removePrefix("pf:")))
             r.id == "kb:system" -> openKeyboardSetup()

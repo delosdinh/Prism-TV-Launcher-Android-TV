@@ -352,6 +352,29 @@ object SystemActions {
         null
     }
 
+    /**
+     * The TV's Google account page. Android TV 12 and later (Google TV included) answer
+     * ACTION_SYNC_SETTINGS with Accounts & Profiles. Older TV Settings (the SHIELD's Android 11) answer it
+     * with one account's sync page, which needs that account named and shows nothing without it; Prism
+     * can't read the TV's Google account, so there the TV's Settings open, with Accounts & Sign In on
+     * their first page. Phone-style Settings (some boxes) list the accounts.
+     */
+    fun openAccounts(ctx: Context): Boolean {
+        val sync = Intent(Settings.ACTION_SYNC_SETTINGS)
+        val handler = handlerOf(ctx, sync)
+        if (handler != null && !handler.endsWith(".AccountSyncActivity") && start(ctx, sync)) return true
+        return start(ctx, Intent(Settings.ACTION_SETTINGS))
+    }
+
+    /** The activity class a real screen would open [intent] with, or null (see [canHandle]). */
+    private fun handlerOf(ctx: Context, intent: Intent): String? = try {
+        if (canHandle(ctx, intent)) {
+            ctx.packageManager.resolveActivity(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.name
+        } else null
+    } catch (_: Throwable) {
+        null
+    }
+
     fun open(ctx: Context, action: String): Boolean {
         if (action == Settings.ACTION_ACCESSIBILITY_SETTINGS) return openAccessibility(ctx)
         val intent = Intent(action)

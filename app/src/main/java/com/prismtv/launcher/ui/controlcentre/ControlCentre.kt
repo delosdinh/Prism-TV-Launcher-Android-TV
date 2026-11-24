@@ -91,7 +91,6 @@ private val captions = mapOf(
     CC.Memory to "Free Up Memory",
     CC.Access to "Accessibility",
     CC.Screensaver to "Show Screensaver",
-    CC.Profile to "Accounts",
 )
 
 /**
@@ -222,7 +221,12 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
             }
             // Caption for icon-only controls, like the tvOS focus label.
             // Free Up Memory says what it's doing, then what it freed, in its caption.
-            val caption = (if (f == CC.Memory) vm.memoryCaption else null) ?: captions[f]
+            // The profile picture opens Who's Watching? with two or more profiles, else the profile page.
+            val caption = when (f) {
+                CC.Memory -> vm.memoryCaption ?: captions[f]
+                CC.Profile -> if (vm.profileList.size >= 2) "Switch Profile" else "Profile"
+                else -> captions[f]
+            }
             PText(
                 caption ?: "", 13.sp, FontWeight.SemiBold, ink,
                 Modifier

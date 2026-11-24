@@ -185,7 +185,7 @@ private val Exact: Map<String, String> = mapOf(
 
     // Profile
     "pf:name" to "The name shown in the time pill, the sidebar and Control Centre.",
-    "pf:accounts" to "The Android accounts on this TV.",
+    "pf:google" to "The Google account this TV is signed in with, in the TV's own settings (on older Android TV, Settings › Accounts & Sign In).",
     "pf:allow" to AllowPictures,
     "pf:none" to PicturesNeeded,
 
