@@ -1,0 +1,104 @@
+PrefsStoreTest > everySwitchSurvivesASaveAndLoad FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+PrefsStoreTest > defaultsSurviveASaveAndLoad FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+KeyboardControllerTest > typingSuggestsCompletions FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+KeyboardControllerTest > holdingALetterOffersItsAccents FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+KeyboardControllerTest > aLetterWithoutAccentsStillTypesItsCapital FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+KeyboardControllerTest > noPredictionsAfterAFullStop FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+KeyboardControllerTest > backClosesTheAccentsWithoutTyping FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+KeyboardControllerTest > predictsTheNextWordAfterASpace FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+WordPredictorTest > completesAPrefix FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+WordPredictorTest > knowsEverydayWords FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+WordPredictorTest > leavesChosenAccentsAlone FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+WordPredictorTest > learntPhrasesComeFirst FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+WordPredictorTest > predictsTheNextWord FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+WordPredictorTest > correctsANeighbouringKeySlip FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+RemoteButtonsTest > mappingsSurviveEncodeAndDecode FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+RemoteButtonsTest > brokenLinesAreSkipped FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+RemoteButtonsTest > theDpadBackAndHomeCanNeverBeChanged FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+RemoteButtonsTest > buttonsAreNamedAsRemotesLabelThem FAILED
+    java.lang.AssertionError at MavenArtifactFetcher.java:129
+        Caused by: java.util.concurrent.ExecutionException at AbstractFuture.java:596
+            Caused by: java.io.IOException at HttpURLConnection.java:2059
+--
+25 tests completed, 18 failed
+
+> Task :app:testDebugUnitTest FAILED
+> Task :app:lintAnalyzeDebugUnitTest
+> Task :app:lintAnalyzeDebug
+
+--
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/reports/tests/testDebugUnitTest/index.html
+
+--
+BUILD FAILED in 2m 57s
+39 actionable tasks: 37 executed, 2 from cache
