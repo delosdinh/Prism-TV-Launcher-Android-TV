@@ -123,6 +123,17 @@ private val Pill = RoundedCornerShape(50)
 /** How bright Home treats a playing aerial for its labels: dark enough for white text. */
 private const val AerialLuma = 0.3f
 
+/**
+ * App names and widget row titles follow what's actually behind them while browsing: the blurred
+ * wallpaper, tinted by the glass colour. Dark ink only over a bright backdrop; white (with a shadow)
+ * otherwise. One rule for both, so a row title never turns dark while the app names beside it stay white.
+ */
+private fun homeLabelColor(gridMode: Boolean, backdropLuma: Float, palette: PrismPalette): Color {
+    val tintAlpha = palette.backgroundDim * 0.6f
+    val bgLuma = backdropLuma * (1f - tintAlpha) + palette.bgBase.luminance() * tintAlpha
+    return if (gridMode && bgLuma > 0.55f) Color(0xFF15171E) else Color.White
+}
+
 @Composable
 fun HomeScreen(vm: LauncherViewModel, clock: String) {
     val theme = LocalPrism.current
@@ -185,7 +196,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             rowGap = rowGap,
             gridMode = gridMode,
             hidden = expanded || vm.overlay == Overlay.Sidebar,
-            labelColor = if (gridMode && luma > 0.55f) Color(0xFF15171E) else Color.White,
+            labelColor = homeLabelColor(gridMode, luma, p),
         )
 
         val focusIndex = if (vm.zone == Zone.Grid && vm.overlay != Overlay.Sidebar) vm.row * cols + vm.col else -1
@@ -593,11 +604,7 @@ private fun AppGrid(
     val iconH = HomeLayout.iconH(cols)
     val trayH = HomeLayout.trayH(cols)
     val focusRow = if (focusIndex >= 0) focusIndex / cols else -1
-    // App names follow what's actually behind them while browsing: the blurred wallpaper, tinted by
-    // the glass colour. Dark ink only over a bright backdrop; white (with a shadow) otherwise.
-    val tintAlpha = palette.backgroundDim * 0.6f
-    val bgLuma = backdropLuma * (1f - tintAlpha) + palette.bgBase.luminance() * tintAlpha
-    val labelColor = if (gridMode && bgLuma > 0.55f) Color(0xFF15171E) else Color.White
+    val labelColor = homeLabelColor(gridMode, backdropLuma, palette)
 
     Box(Modifier.fillMaxSize()) {
         // "Swipe up" affordance above the dock.
