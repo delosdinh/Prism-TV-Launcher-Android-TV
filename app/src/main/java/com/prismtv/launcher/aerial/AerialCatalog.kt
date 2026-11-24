@@ -204,12 +204,6 @@ object AerialCatalog {
     private fun displayWidth(ctx: Context): Int = runCatching {
         val dm = ctx.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         val display = dm.getDisplay(Display.DEFAULT_DISPLAY)
-        if (Build.VERSION.SDK_INT >= 23) {
-            display.supportedModes.maxOf { maxOf(it.physicalWidth, it.physicalHeight) }
-        } else {
-            val p = android.graphics.Point()
-            @Suppress("DEPRECATION") display.getRealSize(p)
-            maxOf(p.x, p.y)
-        }
+        display.supportedModes.maxOf { maxOf(it.physicalWidth, it.physicalHeight) }
     }.getOrDefault(1920)
 }

@@ -1,6 +1,5 @@
 package com.prismtv.launcher
 
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -163,7 +162,7 @@ class MainActivity : ComponentActivity() {
 
     /** First launch: ask once for access to other apps' recommendation cards. */
     private fun askForRecommendationsOnce() {
-        if (Build.VERSION.SDK_INT < 23 || vm.hasRecommendationAccess()) return
+        if (vm.hasRecommendationAccess()) return
         val sp = getSharedPreferences("prism_prefs", MODE_PRIVATE)
         if (sp.getBoolean("askedTvListings", false)) return
         sp.edit().putBoolean("askedTvListings", true).apply()
@@ -187,7 +186,6 @@ class MainActivity : ComponentActivity() {
 
     /** Settings › Wallpaper › Your Pictures. */
     fun requestPhotoAccess() {
-        if (Build.VERSION.SDK_INT < 23) return
         val perm = if (Build.VERSION.SDK_INT >= 33) android.Manifest.permission.READ_MEDIA_IMAGES else android.Manifest.permission.READ_EXTERNAL_STORAGE
         if (checkSelfPermission(perm) == PackageManager.PERMISSION_GRANTED) {
             vm.loadPhotos()
@@ -197,7 +195,6 @@ class MainActivity : ComponentActivity() {
     }
 
     fun requestRecommendationAccess() {
-        if (Build.VERSION.SDK_INT < 23) return
         if (!shouldShowRequestPermissionRationale(TV_LISTINGS) &&
             getSharedPreferences("prism_prefs", MODE_PRIVATE).getBoolean("deniedTvListings", false)
         ) {
@@ -223,10 +220,8 @@ class MainActivity : ComponentActivity() {
 
     /** Settings › Keyboard › Dictation Microphone: Prism Keyboard listens through the remote's mic. */
     fun requestMicAccess() {
-        if (Build.VERSION.SDK_INT < 23) return
         askMic.launch(android.Manifest.permission.RECORD_AUDIO)
     }
-
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -419,7 +414,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     val scope = rememberCoroutineScope()
     val keys = remember { RemoteKeys(vm, scope) }
     val focusRequester = remember { FocusRequester() }
-    val activity = LocalContext.current as? Activity
+    val activity = androidx.activity.compose.LocalActivity.current
     // One-off requests from the view model. It outlives the window, so each request is marked as handled:
     // otherwise a rebuilt window saw the same request again (Restart Launcher restarted forever).
     LaunchedEffect(vm.restartTick) {

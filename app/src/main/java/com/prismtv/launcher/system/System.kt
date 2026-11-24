@@ -468,10 +468,13 @@ object SystemActions {
             it.type == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
                 (Build.VERSION.SDK_INT >= 31 && it.type == android.media.AudioDeviceInfo.TYPE_BLE_HEADSET)
         }
-        val usb = outs.firstOrNull { it.type == android.media.AudioDeviceInfo.TYPE_USB_DEVICE || it.type == android.media.AudioDeviceInfo.TYPE_USB_HEADSET }
+        val usb = outs.firstOrNull {
+            it.type == android.media.AudioDeviceInfo.TYPE_USB_DEVICE ||
+                (Build.VERSION.SDK_INT >= 26 && it.type == android.media.AudioDeviceInfo.TYPE_USB_HEADSET)
+        }
         val hdmi = outs.firstOrNull {
             it.type == android.media.AudioDeviceInfo.TYPE_HDMI || it.type == android.media.AudioDeviceInfo.TYPE_HDMI_ARC ||
-                (Build.VERSION.SDK_INT >= 30 && it.type == android.media.AudioDeviceInfo.TYPE_HDMI_EARC)
+                (Build.VERSION.SDK_INT >= 31 && it.type == android.media.AudioDeviceInfo.TYPE_HDMI_EARC)
         }
         when {
             wireless != null -> wireless.productName?.toString()?.takeIf { it.isNotBlank() } ?: "Bluetooth"

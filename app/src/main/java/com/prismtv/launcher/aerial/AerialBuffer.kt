@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit
  * reaches the 125 MB first. A muted aerial only needs to ride out a hiccup, so these keep 10 to 30 seconds
  * within a byte budget (about 10 s of a 1080p aerial, more of a smaller one).
  */
+// Media3 marks its buffer tuning "unstable" (it may change between versions); this is the API it offers for it.
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 internal object AerialBuffer {
     private const val MB = 1024 * 1024
 

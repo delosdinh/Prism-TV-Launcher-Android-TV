@@ -38,6 +38,7 @@ import com.prismtv.launcher.data.AerialRange
  * Behind the app grid it blurs: with RenderEffect on Android 12 and later, through [AerialGlRenderer] on
  * Android 11 and older ([onLiveBlur] says when that's running, so the blurred still can stay away).
  */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun AerialWallpaper(
     blur: () -> Float,

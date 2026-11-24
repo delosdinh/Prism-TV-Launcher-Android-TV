@@ -153,6 +153,7 @@ class AerialView(context: Context) : FrameLayout(context) {
 
     // ------------------------------------------------------------------------------------ videos
 
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun startVideos(list: List<AerialVideo>) {
         videos = list
         sceneA.visibility = GONE
