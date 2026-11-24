@@ -12,6 +12,7 @@ import android.os.SystemClock
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
@@ -192,7 +193,7 @@ class MainActivity : ComponentActivity() {
             vm.loadPhotos()
             return
         }
-        requestPermissions(arrayOf(perm), REQ_PHOTOS)
+        askPhotos.launch(perm)
     }
 
     fun requestRecommendationAccess() {
@@ -209,31 +210,23 @@ class MainActivity : ComponentActivity() {
             }
             return
         }
-        requestPermissions(arrayOf(TV_LISTINGS), REQ_TV_LISTINGS)
+        askTvListings.launch(TV_LISTINGS)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_TV_LISTINGS) {
-            val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
-            getSharedPreferences("prism_prefs", MODE_PRIVATE).edit().putBoolean("deniedTvListings", !granted).apply()
-            if (granted) vm.refreshRecommendations(force = true)
-        }
-        if (requestCode == REQ_PHOTOS) vm.loadPhotos()
-        if (requestCode == REQ_MIC) vm.resumeTick++
+    // Android's own permission questions (Activity Result API): what happens after each answer.
+    private val askTvListings = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        getSharedPreferences("prism_prefs", MODE_PRIVATE).edit().putBoolean("deniedTvListings", !granted).apply()
+        if (granted) vm.refreshRecommendations(force = true)
     }
+    private val askPhotos = registerForActivityResult(ActivityResultContracts.RequestPermission()) { vm.loadPhotos() }
+    private val askMic = registerForActivityResult(ActivityResultContracts.RequestPermission()) { vm.resumeTick++ }
 
     /** Settings › Keyboard › Dictation Microphone: Prism Keyboard listens through the remote's mic. */
     fun requestMicAccess() {
         if (Build.VERSION.SDK_INT < 23) return
-        requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), REQ_MIC)
+        askMic.launch(android.Manifest.permission.RECORD_AUDIO)
     }
 
-    private companion object {
-        const val REQ_TV_LISTINGS = 41
-        const val REQ_PHOTOS = 42
-        const val REQ_MIC = 43
-    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

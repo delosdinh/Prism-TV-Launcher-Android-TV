@@ -40,6 +40,8 @@ class ImeTestActivity : Activity() {
         setContentView(root)
         field.requestFocus()
         field.postDelayed({
+            // CI's emulator has no hardware keyboard to tap: force the keyboard up (debug builds only).
+            @Suppress("DEPRECATION")
             (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(field, InputMethodManager.SHOW_FORCED)
         }, 400)
     }

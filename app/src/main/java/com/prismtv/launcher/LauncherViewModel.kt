@@ -905,6 +905,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Low memory (Android's onTrimMemory): drop cached artwork; what's on screen stays referenced. */
+    @Suppress("DEPRECATION") // Android 13 and older (the SHIELD) still send the finer trim levels
     fun trimMemory(level: Int) {
         artRepo.trim(level)
         if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE) failedThumbs.clear()
@@ -5370,6 +5371,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 val ms = (SystemClock.elapsedRealtimeNanos() - t0) / 1_000_000.0
                 android.util.Log.i("PrismBench", "backdrop $i: ${"%.1f".format(java.util.Locale.ROOT, ms)} ms")
             }
+            @Suppress("DEPRECATION")
             repo.trim(android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
             // Navigation sounds: time on the main thread to start loading them, and until all are ready.
             val s0 = SystemClock.elapsedRealtimeNanos()

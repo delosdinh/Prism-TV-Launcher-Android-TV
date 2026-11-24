@@ -54,7 +54,7 @@ import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.RocketLaunch
-import androidx.compose.material.icons.rounded.Input
+import androidx.compose.material.icons.automirrored.rounded.Input
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Image
@@ -317,7 +317,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "lite" to glyph(Icons.Rounded.Speed, 0xFF4CD964, 0xFF239B3E),
     "ss:media" to glyph(Icons.Rounded.MusicNote, 0xFFFF6482, 0xFFE0264A),
     "startupApp" to glyph(Icons.Rounded.RocketLaunch, 0xFFFF9F0A, 0xFFE06A00),
-    "inputs" to glyph(Icons.Rounded.Input, 0xFF5AC8FA, 0xFF0A6CFF),
+    "inputs" to glyph(Icons.AutoMirrored.Rounded.Input, 0xFF5AC8FA, 0xFF0A6CFF),
     "backup" to glyph(Icons.Rounded.SettingsBackupRestore, 0xFF4CD964, 0xFF239B3E),
     "iconPack" to glyph(Icons.Rounded.Style, 0xFFFF6482, 0xFFE0264A),
     "banner" to glyph(Icons.Rounded.Image, 0xFFFF9F0A, 0xFFE06A00),

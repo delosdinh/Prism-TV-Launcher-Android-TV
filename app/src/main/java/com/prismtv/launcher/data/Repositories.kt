@@ -322,6 +322,7 @@ class ArtRepository(private val context: Context) {
     private fun bytes(b: ImageBitmap): Int = runCatching { b.asAndroidBitmap().allocationByteCount }.getOrDefault(b.width * b.height * 4)
 
     /** Android asked for memory back: let go of artwork that isn't on screen. */
+    @Suppress("DEPRECATION") // Android 13 and older (the SHIELD) still send the finer trim levels
     fun trim(level: Int) {
         when {
             level >= android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> releaseUnused()
