@@ -42,14 +42,7 @@
    can be unused too, such as the new <tag> element in layouts introduced in
    API 21.
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:34: Warning: Duplicate declaration of uses-feature android.hardware.microphone [DuplicateUsesFeature]
-    <uses-feature android:name="android.hardware.microphone" android:required="false" />
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Explanation for issues of type "DuplicateUsesFeature":
-   A given feature should only be declared once in the manifest.
-
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:28: Warning: Your app is currently not handling Selected Photos Access introduced in Android 14+ [SelectedPhotoAccess]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:27: Warning: Your app is currently not handling Selected Photos Access introduced in Android 14+ [SelectedPhotoAccess]
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -205,7 +198,7 @@ testCore = "1.6.1"
    However, you may simply not be aware that a more recent version is
    available, and that is what this lint check helps find.
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:51: Warning: Expecting android:resizeableActivity="true" for this activity so the user can take advantage of the multi-window environment on all devices. NOTE: beginning with Android 12, all apps run in multi-window mode on large screen devices. [NonResizeableActivity]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:50: Warning: Expecting android:resizeableActivity="true" for this activity so the user can take advantage of the multi-window environment on all devices. NOTE: beginning with Android 12, all apps run in multi-window mode on large screen devices. [NonResizeableActivity]
             android:resizeableActivity="false"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -218,6 +211,32 @@ testCore = "1.6.1"
    with resizableActivity="true" attribute.
 
    https://developer.android.com/topic/arc/window-management
+
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml:45: Information: There are multiple dependencies org.robolectric:android-all-instrumented but with different version [SimilarGradleDependency]
+robolectric-android14 = { group = "org.robolectric", name = "android-all-instrumented", version = "14-robolectric-10818077-i7" }
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml:45: Information: There are multiple dependencies org.robolectric:android-all-instrumented but with different version [SimilarGradleDependency]
+robolectric-android14 = { group = "org.robolectric", name = "android-all-instrumented", version = "14-robolectric-10818077-i7" }
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml:45: Information: There are multiple dependencies org.robolectric:android-all-instrumented but with different version [SimilarGradleDependency]
+robolectric-android14 = { group = "org.robolectric", name = "android-all-instrumented", version = "14-robolectric-10818077-i7" }
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml:46: Information: There are multiple dependencies org.robolectric:android-all-instrumented but with different version [SimilarGradleDependency]
+robolectric-android15 = { group = "org.robolectric", name = "android-all-instrumented", version = "15-robolectric-12650502-i7" }
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml:46: Information: There are multiple dependencies org.robolectric:android-all-instrumented but with different version [SimilarGradleDependency]
+robolectric-android15 = { group = "org.robolectric", name = "android-all-instrumented", version = "15-robolectric-12650502-i7" }
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml:46: Information: There are multiple dependencies org.robolectric:android-all-instrumented but with different version [SimilarGradleDependency]
+robolectric-android15 = { group = "org.robolectric", name = "android-all-instrumented", version = "15-robolectric-12650502-i7" }
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "SimilarGradleDependency":
+   This detector looks for usages of libraries when name and group are the
+   same but versions are different. Using multiple versions in big project is
+   fine, and there are cases where you deliberately want to stick with such
+   approach. However, you may simply not be aware that this situation happens,
+   and that is what this lint check helps find.
 
 /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/components/Primitives.kt:186: Warning: Optional Modifier parameter should have a default value of Modifier [ModifierParameter from androidx.compose.ui]
 fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
@@ -235,13 +254,13 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Identifier: androidx.compose.ui
    Feedback: https://issuetracker.google.com/issues/new?component=612128
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:51: Warning: Activity should not be non-resizable. With this setting, apps cannot be used in multi-window or free form mode. [DiscouragedApi]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:50: Warning: Activity should not be non-resizable. With this setting, apps cannot be used in multi-window or free form mode. [DiscouragedApi]
             android:resizeableActivity="false"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:52: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:51: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
             android:screenOrientation="landscape"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:74: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:73: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
             android:screenOrientation="landscape"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/system/ForceStopper.kt:273: Warning: Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. R.foo.bar) than by name (e.g. getIdentifier("bar", "foo", null)). [DiscouragedApi]
@@ -261,10 +280,10 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Discouraged APIs are allowed and are not deprecated, but they may be unfit
    for common use (e.g. due to slow performance or subtle behavior).
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:2913: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:2912: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     var searchFocus by mutableStateOf(-1)
                        ~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3257: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3256: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     private var screenTimeTick by mutableStateOf(0)
                                   ~~~~~~~~~~~~~~
 
@@ -283,7 +302,7 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Identifier: androidx.compose.runtime
    Feedback: https://issuetracker.google.com/issues/new?component=612128
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/settings/SettingsScreen.kt:526: Warning: State backed values should use the lambda overload of Modifier.offset [UseOfNonLambdaOffsetOverload from androidx.compose.foundation]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/settings/SettingsScreen.kt:524: Warning: State backed values should use the lambda overload of Modifier.offset [UseOfNonLambdaOffsetOverload from androidx.compose.foundation]
                             .offset((knobX - 24f).dp, 13.dp)
                              ~~~~~~
 
@@ -328,4 +347,4 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
 
    https://developer.android.com/guide/topics/resources/localization.html
 
-0 errors, 58 warnings
+0 errors, 57 warnings
