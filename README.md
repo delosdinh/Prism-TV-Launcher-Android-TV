@@ -389,7 +389,18 @@ adb shell am start -n com.prismtv.launcher/.MainActivity \
 
 ## Credits
 
-Typeface: [Inter](https://rsms.me/inter/) (SIL Open Font License). Not affiliated with Apple.
+Also listed in the app under Settings › About › Acknowledgements.
+
+Typeface: [Inter](https://rsms.me/inter/) by Rasmus Andersson (SIL Open Font License 1.1). Not affiliated with Apple.
+
+Keyboard data: word frequencies from [wordfreq](https://github.com/rspeer/wordfreq) by Robyn Speer
+(CC BY-SA 4.0; Prism TV's adapted word list is shared under the same licence), next words from the Google
+Books Ngram Corpus via [orgtre/google-books-ngram-frequency](https://github.com/orgtre/google-books-ngram-frequency)
+(CC BY 3.0).
+
+Software: Android Jetpack and Jetpack Compose, Media3 (Google), Kotlin (JetBrains) and the
+[Shizuku API](https://github.com/RikkaApps/Shizuku-API) (RikkaApps), all under the
+[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
 Navigation sounds: Prism TV Originals 1.6.2, procedurally synthesised (no recordings) and licensed
 GPL-2.0-or-later — the generator, licence and cue mapping are in
