@@ -42,6 +42,8 @@ import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.WbSunny
+import androidx.compose.material.icons.rounded.DeviceThermostat
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material.icons.rounded.Spellcheck
@@ -369,6 +371,8 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "st:passcode" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
     "bannersOver" to glyph(Icons.Rounded.NotificationsActive, 0xFFFF6961, 0xFFD63A31),
     "snapshots" to glyph(Icons.Rounded.ViewCarousel, 0xFF3D9BFF, 0xFF0A5FE0),
+    "weather" to glyph(Icons.Rounded.WbSunny, 0xFF5AB8FF, 0xFF2B7BE4),
+    "tempUnit" to glyph(Icons.Rounded.DeviceThermostat, 0xFFFF9F0A, 0xFFE06A00),
     "wifi" to glyph(Icons.Rounded.Wifi, 0xFF3D9BFF, 0xFF0A5FE0),
 )
 

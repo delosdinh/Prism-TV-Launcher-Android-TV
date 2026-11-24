@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -173,6 +174,7 @@ private fun AccentStrip(kb: KeyboardController, c: KeyColours, m: KeyboardMetric
     val shape = RoundedCornerShape(14.dp)
     val appear = remember(list) { androidx.compose.animation.core.Animatable(0f) }
     androidx.compose.runtime.LaunchedEffect(list) { appear.animateTo(1f, spring(dampingRatio = 0.75f, stiffness = 520f)) }
+    val lightKeys = !c.clear && c.key.luminance() > 0.7f
     Box(
         Modifier
             .offset(x.dp, y.dp)
@@ -188,9 +190,14 @@ private fun AccentStrip(kb: KeyboardController, c: KeyColours, m: KeyboardMetric
                 this.shape = shape
                 clip = true
             }
-            // Solid enough to read over the keys, whatever the keyboard's colour.
+            // Solid enough to read over the keys, whatever the keyboard's colour. Over white keys (Light)
+            // a dark hairline outlines it, as the white strip would otherwise run into the row it covers.
             .background(if (c.clear) Color(0xFF26262B).copy(alpha = 0.94f) else c.key, shape)
-            .border(0.5.dp, Color.White.copy(alpha = 0.12f), shape),
+            .border(
+                if (lightKeys) 1.dp else 0.5.dp,
+                if (lightKeys) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.12f),
+                shape,
+            ),
     ) {
         list.forEachIndexed { i, v ->
             val focused = i == kb.accentIndex

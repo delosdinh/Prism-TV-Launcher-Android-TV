@@ -39,6 +39,8 @@ class WordPredictorTest {
     fun leavesChosenAccentsAlone() {
         assertNull(p.autoCorrection("café"))
         assertNull(p.autoCorrection("naïve"))
+        // Nor offered without the accent ("café" → "caf").
+        assertTrue(p.corrections("café", 3).isEmpty())
     }
 
     @Test

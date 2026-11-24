@@ -4070,8 +4070,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun allowRecommendations() {
         shellDialog(
             title = "Allow Recommendations",
-            intro = "Prism TV shows the cards your apps publish (Continue Watching, Recommended for You) once Android allows it. " +
-                "Select Ask Android, or Do It for Me, or type this command yourself:",
+            intro = "Shows the cards your apps publish, like Continue Watching. " +
+                "Select Ask Android or Do It for Me, or type this command yourself:",
             command = "pm grant ${ctx.packageName} $TV_LISTINGS",
             done = { hasRecommendationAccess().also { if (it) refreshRecommendations(force = true) } },
             doneMessage = "Done. Cards from your apps now show on the Top Shelf and in widgets.",

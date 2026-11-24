@@ -162,7 +162,8 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             count = vm.currentHeroItems.size,
             index = vm.heroIndex,
             expanded = expanded,
-            visible = heroOn && !gridMode && vm.overlay != Overlay.Sidebar,
+            // Search's results row takes the Top Shelf's place, so the title steps aside for it.
+            visible = heroOn && !gridMode && vm.overlay != Overlay.Sidebar && !vm.searchOpen,
             focusedButton = if (vm.zone == Zone.Hero && vm.overlay == Overlay.None) vm.heroButton else -1,
             spotlight = spotlight,
             compact = above.size >= 2 && !spotlight,
@@ -199,7 +200,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
 
         MoveHint(visible = vm.movingId != null, modifier = Modifier.align(Alignment.BottomCenter))
 
-        val pillVisible = !gridMode && vm.overlay != Overlay.ControlCentre
+        val pillVisible = !gridMode && vm.overlay != Overlay.ControlCentre && !vm.searchOpen
         val pillAlpha by animateFloatAsState(if (pillVisible) 1f else 0f, tween(300), label = "pill")
         TimePill(
             time = clock,

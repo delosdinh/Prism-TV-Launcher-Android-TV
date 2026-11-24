@@ -283,6 +283,11 @@ private fun Tile(
     focused: Boolean,
     modifier: Modifier,
     shape: Shape,
+    /**
+     * Text cards (notifications, Now Playing) bend a blurred Home Screen, like open folders: bright tiles
+     * in the dock behind them soften instead of showing through the text.
+     */
+    soft: Boolean = false,
     content: @Composable BoxScope.(Color) -> Unit,
 ) {
     val theme = LocalPrism.current
@@ -297,7 +302,7 @@ private fun Tile(
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .then(
                 if (focused) Modifier.shadow(20.dp, shape).background(theme.controlFocused(), shape)
-                else Modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp)
+                else Modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp, blurredLens = soft)
             )
     ) {
         content(fg)
@@ -397,6 +402,7 @@ private fun NotificationTile(n: PrismNotification, focused: Boolean, clearing: B
                         scaleY = s
                     },
                 RoundedCornerShape(20.dp),
+                soft = true,
             ) { c ->
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     PIcon(Icons.Rounded.Close, c, 16.dp)
@@ -415,7 +421,7 @@ private fun NotificationTile(n: PrismNotification, focused: Boolean, clearing: B
 
 @Composable
 private fun NotificationCard(n: PrismNotification, focused: Boolean, modifier: Modifier) {
-    Tile(focused, modifier, RoundedCornerShape(20.dp)) { c ->
+    Tile(focused, modifier, RoundedCornerShape(20.dp), soft = true) { c ->
         Row(
             Modifier
                 .fillMaxSize()
@@ -454,7 +460,7 @@ private fun NowPlayingTile(np: com.prismtv.launcher.system.NowPlaying, focus: In
     val fg = if (p.isDark) Color.White else p.textPrimary
     val shape = RoundedCornerShape(22.dp)
     val tint = theme.overlayVeil(dark = 0.40f, light = 0.56f)
-    Box(modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp)) {
+    Box(modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp, blurredLens = true)) {
         Row(
             Modifier
                 .fillMaxSize()

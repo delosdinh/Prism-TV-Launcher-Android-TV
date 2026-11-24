@@ -139,6 +139,8 @@ class WordPredictor private constructor(private val context: Context) {
     fun corrections(typed: String, n: Int): List<String> {
         val w = typed.lowercase()
         if (w.length < 2) return emptyList()
+        // An accent was chosen on purpose: "café" shouldn't offer "caf" (the é dropped as a slip).
+        if (w.any { it.code > 127 }) return emptyList()
         Contractions[w]?.let { return listOf(it) }
         val best = HashMap<String, Double>()
         fun offer(c: String, cost: Double) {
@@ -182,6 +184,8 @@ class WordPredictor private constructor(private val context: Context) {
     }
 
     companion object {
+        // Holds only the application context (see get), which lives as long as the process anyway.
+        @android.annotation.SuppressLint("StaticFieldLeak")
         @Volatile private var instance: WordPredictor? = null
 
         /** Loads the word list the first time (about 100 ms); call off the main thread. */
