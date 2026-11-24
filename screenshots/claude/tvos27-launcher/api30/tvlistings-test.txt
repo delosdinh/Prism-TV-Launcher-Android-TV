@@ -2,4 +2,4 @@ before: android.permission.READ_TV_LISTINGS: granted=true
 declined Android's question at launch: android.permission.READ_TV_LISTINGS: granted=false, flags=[ USER_SET]
 captured 66f-allow-recommendations-dialog
 captured 66h-allow-recommendations-done
-after: android.permission.READ_TV_LISTINGS: granted=false, flags=[ USER_SET]
+after: android.permission.READ_TV_LISTINGS: granted=true, flags=[ USER_SET]

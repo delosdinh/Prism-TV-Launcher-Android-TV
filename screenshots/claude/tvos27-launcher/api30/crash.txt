@@ -1,59 +1,59 @@
 --------- beginning of crash
-11-24 10:36:56.031   406 17726 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
-11-24 10:36:56.031   406 17726 F DEBUG   : Build fingerprint: 'google/sdk_google_atv_x86/generic_x86:11/RTU1.221129.002/9351025:user/dev-keys'
-11-24 10:36:56.031   406 17726 F DEBUG   : Revision: '0'
-11-24 10:36:56.031   406 17726 F DEBUG   : ABI: 'x86'
-11-24 10:36:56.031   406 17726 F DEBUG   : Timestamp: 2026-11-24 10:36:56+0000
-11-24 10:36:56.031   406 17726 F DEBUG   : pid: 406, tid: 17726, name: omx@1.0-service  >>> media.codec <<<
-11-24 10:36:56.031   406 17726 F DEBUG   : uid: 1046
-11-24 10:36:56.031   406 17726 F DEBUG   : signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
-11-24 10:36:56.031   406 17726 F DEBUG   : Abort message: 'frameworks/av/media/libstagefright/omx/SimpleSoftOMXComponent.cpp:423 CHECK(mState == OMX_StateExecuting && mTargetState == mState) failed.'
-11-24 10:36:56.031   406 17726 F DEBUG   :     eax 00000000  ebx 00000196  ecx 0000453e  edx 00000006
-11-24 10:36:56.031   406 17726 F DEBUG   :     edi f09cd95e  esi ee2ef9e0
-11-24 10:36:56.031   406 17726 F DEBUG   :     ebp f2974b90  esp ee2ef988  eip f2974b99
-11-24 10:36:56.042   406 17726 F DEBUG   : 
-11-24 10:36:56.042   406 17726 F DEBUG   : backtrace:
-11-24 10:36:56.042   406 17726 F DEBUG   :       #00 pc 00000b99  [vdso] (__kernel_vsyscall+9)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #01 pc 0005aea8  /apex/com.android.runtime/lib/bionic/libc.so (syscall+40) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #02 pc 00076651  /apex/com.android.runtime/lib/bionic/libc.so (abort+209) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #03 pc 00006245  /system/lib/liblog.so (__android_log_default_aborter+37) (BuildId: bbac430fc6349b937996bb914e70c060)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #04 pc 00006dbd  /system/lib/liblog.so (__android_log_assert+285) (BuildId: bbac430fc6349b937996bb914e70c060)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #05 pc 0000a6f8  /vendor/lib/libstagefright_softomx.so (android::SimpleSoftOMXComponent::onMessageReceived(android::sp<android::AMessage> const&)+1288) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #06 pc 0000a15c  /vendor/lib/libstagefright_softomx.so (android::AHandlerReflector<android::SimpleSoftOMXComponent>::onMessageReceived(android::sp<android::AMessage> const&)+140) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #07 pc 00014443  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AHandler::deliverMessage(android::sp<android::AMessage> const&)+51) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #08 pc 000187b2  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AMessage::deliver()+130) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #09 pc 0001502e  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::loop()+718) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #10 pc 00015ba3  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::LooperThread::threadLoop()+35) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #11 pc 000150b3  /apex/com.android.vndk.v30/lib/libutils.so (android::Thread::_threadLoop(void*)+275) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #12 pc 000147d9  /apex/com.android.vndk.v30/lib/libutils.so (thread_data_t::trampoline(thread_data_t const*)+457) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #13 pc 000e6ab4  /apex/com.android.runtime/lib/bionic/libc.so (__pthread_start(void*)+100) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:36:56.042   406 17726 F DEBUG   :       #14 pc 000786a7  /apex/com.android.runtime/lib/bionic/libc.so (__start_thread+71) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:37:50.912 17891 18206 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
-11-24 10:37:50.912 17891 18206 F DEBUG   : Build fingerprint: 'google/sdk_google_atv_x86/generic_x86:11/RTU1.221129.002/9351025:user/dev-keys'
-11-24 10:37:50.912 17891 18206 F DEBUG   : Revision: '0'
-11-24 10:37:50.912 17891 18206 F DEBUG   : ABI: 'x86'
-11-24 10:37:50.912 17891 18206 F DEBUG   : Timestamp: 2026-11-24 10:37:50+0000
-11-24 10:37:50.912 17891 18206 F DEBUG   : pid: 17891, tid: 18206, name: omx@1.0-service  >>> media.codec <<<
-11-24 10:37:50.912 17891 18206 F DEBUG   : uid: 1046
-11-24 10:37:50.912 17891 18206 F DEBUG   : signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
-11-24 10:37:50.913 17891 18206 F DEBUG   : Abort message: 'frameworks/av/media/libstagefright/omx/SimpleSoftOMXComponent.cpp:423 CHECK(mState == OMX_StateExecuting && mTargetState == mState) failed.'
-11-24 10:37:50.913 17891 18206 F DEBUG   :     eax 00000000  ebx 000045e3  ecx 0000471e  edx 00000006
-11-24 10:37:50.913 17891 18206 F DEBUG   :     edi ef94e95e  esi ee48a9e0
-11-24 10:37:50.913 17891 18206 F DEBUG   :     ebp f14e2b90  esp ee48a988  eip f14e2b99
-11-24 10:37:50.915 17891 18206 F DEBUG   : 
-11-24 10:37:50.915 17891 18206 F DEBUG   : backtrace:
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #00 pc 00000b99  [vdso] (__kernel_vsyscall+9)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #01 pc 0005aea8  /apex/com.android.runtime/lib/bionic/libc.so (syscall+40) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #02 pc 00076651  /apex/com.android.runtime/lib/bionic/libc.so (abort+209) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #03 pc 00006245  /system/lib/liblog.so (__android_log_default_aborter+37) (BuildId: bbac430fc6349b937996bb914e70c060)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #04 pc 00006dbd  /system/lib/liblog.so (__android_log_assert+285) (BuildId: bbac430fc6349b937996bb914e70c060)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #05 pc 0000a6f8  /vendor/lib/libstagefright_softomx.so (android::SimpleSoftOMXComponent::onMessageReceived(android::sp<android::AMessage> const&)+1288) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #06 pc 0000a15c  /vendor/lib/libstagefright_softomx.so (android::AHandlerReflector<android::SimpleSoftOMXComponent>::onMessageReceived(android::sp<android::AMessage> const&)+140) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #07 pc 00014443  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AHandler::deliverMessage(android::sp<android::AMessage> const&)+51) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #08 pc 000187b2  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AMessage::deliver()+130) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #09 pc 0001502e  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::loop()+718) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #10 pc 00015ba3  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::LooperThread::threadLoop()+35) (BuildId: a2b26450adff260cee54221b659e05b0)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #11 pc 000150b3  /apex/com.android.vndk.v30/lib/libutils.so (android::Thread::_threadLoop(void*)+275) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #12 pc 000147d9  /apex/com.android.vndk.v30/lib/libutils.so (thread_data_t::trampoline(thread_data_t const*)+457) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #13 pc 000e6ab4  /apex/com.android.runtime/lib/bionic/libc.so (__pthread_start(void*)+100) (BuildId: 9218b33f5938a58b408756bbac51c75f)
-11-24 10:37:50.915 17891 18206 F DEBUG   :       #14 pc 000786a7  /apex/com.android.runtime/lib/bionic/libc.so (__start_thread+71) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:33:48.070   399 17767 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+11-24 11:33:48.070   399 17767 F DEBUG   : Build fingerprint: 'google/sdk_google_atv_x86/generic_x86:11/RTU1.221129.002/9351025:user/dev-keys'
+11-24 11:33:48.070   399 17767 F DEBUG   : Revision: '0'
+11-24 11:33:48.070   399 17767 F DEBUG   : ABI: 'x86'
+11-24 11:33:48.071   399 17767 F DEBUG   : Timestamp: 2026-11-24 11:33:48+0000
+11-24 11:33:48.071   399 17767 F DEBUG   : pid: 399, tid: 17767, name: omx@1.0-service  >>> media.codec <<<
+11-24 11:33:48.071   399 17767 F DEBUG   : uid: 1046
+11-24 11:33:48.071   399 17767 F DEBUG   : signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+11-24 11:33:48.071   399 17767 F DEBUG   : Abort message: 'frameworks/av/media/libstagefright/omx/SimpleSoftOMXComponent.cpp:423 CHECK(mState == OMX_StateExecuting && mTargetState == mState) failed.'
+11-24 11:33:48.071   399 17767 F DEBUG   :     eax 00000000  ebx 0000018f  ecx 00004567  edx 00000006
+11-24 11:33:48.071   399 17767 F DEBUG   :     edi f2f0295e  esi efbe09e0
+11-24 11:33:48.071   399 17767 F DEBUG   :     ebp f41b9b90  esp efbe0988  eip f41b9b99
+11-24 11:33:48.074   399 17767 F DEBUG   : 
+11-24 11:33:48.074   399 17767 F DEBUG   : backtrace:
+11-24 11:33:48.074   399 17767 F DEBUG   :       #00 pc 00000b99  [vdso] (__kernel_vsyscall+9)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #01 pc 0005aea8  /apex/com.android.runtime/lib/bionic/libc.so (syscall+40) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #02 pc 00076651  /apex/com.android.runtime/lib/bionic/libc.so (abort+209) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #03 pc 00006245  /system/lib/liblog.so (__android_log_default_aborter+37) (BuildId: bbac430fc6349b937996bb914e70c060)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #04 pc 00006dbd  /system/lib/liblog.so (__android_log_assert+285) (BuildId: bbac430fc6349b937996bb914e70c060)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #05 pc 0000a6f8  /vendor/lib/libstagefright_softomx.so (android::SimpleSoftOMXComponent::onMessageReceived(android::sp<android::AMessage> const&)+1288) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #06 pc 0000a15c  /vendor/lib/libstagefright_softomx.so (android::AHandlerReflector<android::SimpleSoftOMXComponent>::onMessageReceived(android::sp<android::AMessage> const&)+140) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #07 pc 00014443  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AHandler::deliverMessage(android::sp<android::AMessage> const&)+51) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #08 pc 000187b2  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AMessage::deliver()+130) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #09 pc 0001502e  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::loop()+718) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #10 pc 00015ba3  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::LooperThread::threadLoop()+35) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #11 pc 000150b3  /apex/com.android.vndk.v30/lib/libutils.so (android::Thread::_threadLoop(void*)+275) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #12 pc 000147d9  /apex/com.android.vndk.v30/lib/libutils.so (thread_data_t::trampoline(thread_data_t const*)+457) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #13 pc 000e6ab4  /apex/com.android.runtime/lib/bionic/libc.so (__pthread_start(void*)+100) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:33:48.074   399 17767 F DEBUG   :       #14 pc 000786a7  /apex/com.android.runtime/lib/bionic/libc.so (__start_thread+71) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:34:20.049 17896 18095 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+11-24 11:34:20.049 17896 18095 F DEBUG   : Build fingerprint: 'google/sdk_google_atv_x86/generic_x86:11/RTU1.221129.002/9351025:user/dev-keys'
+11-24 11:34:20.049 17896 18095 F DEBUG   : Revision: '0'
+11-24 11:34:20.049 17896 18095 F DEBUG   : ABI: 'x86'
+11-24 11:34:20.050 17896 18095 F DEBUG   : Timestamp: 2026-11-24 11:34:20+0000
+11-24 11:34:20.050 17896 18095 F DEBUG   : pid: 17896, tid: 18095, name: omx@1.0-service  >>> media.codec <<<
+11-24 11:34:20.050 17896 18095 F DEBUG   : uid: 1046
+11-24 11:34:20.050 17896 18095 F DEBUG   : signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+11-24 11:34:20.050 17896 18095 F DEBUG   : Abort message: 'frameworks/av/media/libstagefright/omx/SimpleSoftOMXComponent.cpp:423 CHECK(mState == OMX_StateExecuting && mTargetState == mState) failed.'
+11-24 11:34:20.050 17896 18095 F DEBUG   :     eax 00000000  ebx 000045e8  ecx 000046af  edx 00000006
+11-24 11:34:20.050 17896 18095 F DEBUG   :     edi f6d9a95e  esi f43c99e0
+11-24 11:34:20.050 17896 18095 F DEBUG   :     ebp f7578b90  esp f43c9988  eip f7578b99
+11-24 11:34:20.051 17896 18095 F DEBUG   : 
+11-24 11:34:20.051 17896 18095 F DEBUG   : backtrace:
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #00 pc 00000b99  [vdso] (__kernel_vsyscall+9)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #01 pc 0005aea8  /apex/com.android.runtime/lib/bionic/libc.so (syscall+40) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #02 pc 00076651  /apex/com.android.runtime/lib/bionic/libc.so (abort+209) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #03 pc 00006245  /system/lib/liblog.so (__android_log_default_aborter+37) (BuildId: bbac430fc6349b937996bb914e70c060)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #04 pc 00006dbd  /system/lib/liblog.so (__android_log_assert+285) (BuildId: bbac430fc6349b937996bb914e70c060)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #05 pc 0000a6f8  /vendor/lib/libstagefright_softomx.so (android::SimpleSoftOMXComponent::onMessageReceived(android::sp<android::AMessage> const&)+1288) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #06 pc 0000a15c  /vendor/lib/libstagefright_softomx.so (android::AHandlerReflector<android::SimpleSoftOMXComponent>::onMessageReceived(android::sp<android::AMessage> const&)+140) (BuildId: ae962adf69fcc0365eb81ca5a1dc6e40)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #07 pc 00014443  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AHandler::deliverMessage(android::sp<android::AMessage> const&)+51) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #08 pc 000187b2  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::AMessage::deliver()+130) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #09 pc 0001502e  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::loop()+718) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #10 pc 00015ba3  /apex/com.android.vndk.v30/lib/libstagefright_foundation.so (android::ALooper::LooperThread::threadLoop()+35) (BuildId: a2b26450adff260cee54221b659e05b0)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #11 pc 000150b3  /apex/com.android.vndk.v30/lib/libutils.so (android::Thread::_threadLoop(void*)+275) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #12 pc 000147d9  /apex/com.android.vndk.v30/lib/libutils.so (thread_data_t::trampoline(thread_data_t const*)+457) (BuildId: 8f2000730ac5d10333c58e77d7b0303c)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #13 pc 000e6ab4  /apex/com.android.runtime/lib/bionic/libc.so (__pthread_start(void*)+100) (BuildId: 9218b33f5938a58b408756bbac51c75f)
+11-24 11:34:20.051 17896 18095 F DEBUG   :       #14 pc 000786a7  /apex/com.android.runtime/lib/bionic/libc.so (__start_thread+71) (BuildId: 9218b33f5938a58b408756bbac51c75f)
