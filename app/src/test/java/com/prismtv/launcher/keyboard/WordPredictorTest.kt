@@ -31,8 +31,20 @@ class WordPredictorTest {
 
     @Test
     fun correctsANeighbouringKeySlip() {
-        // r sits next to t on the keyboard.
+        // r sits next to t on the keyboard; "rhe" is in the word list (a misreading in scanned books).
         assertEquals("the", p.autoCorrection("rhe"))
+        assertEquals("you", p.autoCorrection("yoy"))
+        // Real words, however rare, are left alone ("mow" isn't "now").
+        assertNull(p.autoCorrection("mow"))
+        assertNull(p.autoCorrection("watch"))
+    }
+
+    @Test
+    fun aKeptSlipIsNotCorrectedAgain() {
+        assertEquals("you", p.autoCorrection("tou"))
+        // Delete after the correction, then space: the word is kept as typed, and learnt.
+        p.learn("tou")
+        assertNull(p.autoCorrection("tou"))
     }
 
     @Test

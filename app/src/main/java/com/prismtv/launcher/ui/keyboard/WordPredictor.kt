@@ -110,7 +110,9 @@ class WordPredictor private constructor(private val context: Context) {
     /** Remembers a word the user kept as typed, so it's never corrected again. */
     fun learn(word: String) {
         val w = word.lowercase()
-        if (w.length < 2 || isWord(w) || w.length > 30) return
+        if (w.length < 2 || w.length > 30 || w in userWords) return
+        // Known words needn't be learnt, unless auto-correct would change them (see commonSlip).
+        if (isWord(w) && commonSlip(w) == null) return
         userWords += w
         sp.edit().putStringSet("userWords", HashSet(userWords)).apply()
     }
@@ -169,21 +171,50 @@ class WordPredictor private constructor(private val context: Context) {
     }
 
     /**
-     * The correction auto-correct would make for [typed], or null. Only for words it doesn't know, and
-     * only when the fix is clearly likely (a common word one slip away).
+     * The correction auto-correct would make for [typed], or null. Only for words it doesn't know (or
+     * barely knows, see [commonSlip]), and only when the fix is clearly likely (a common word one slip away).
      */
     fun autoCorrection(typed: String): String? {
         val w = typed.lowercase()
         if (w == "i") return "I"
-        if (w.length < 2 || isWord(w) || w.any { !it.isLetter() && it != '\'' }) return null
+        if (w.length < 2 || w.any { !it.isLetter() && it != '\'' }) return null
         // An accent was chosen on purpose (café, naïve): never "corrected" away.
         if (w.any { it.code > 127 }) return null
+        if (isWord(w)) return commonSlip(w)
         Contractions[w]?.let { return it }
         val c = corrections(w, 1).firstOrNull() ?: return null
         return c.takeIf { rankOf(it).let { r -> r in 0 until 30_000 } }
     }
 
+    /**
+     * The word list comes from scanned books, so it also holds misreadings and abbreviations such as
+     * "rhe", "tou" and "yoy". A rare three-letter word like that, one neighbouring key from one of the
+     * hundred commonest words, is almost always that word mistyped ("rhe" → "the"). Words you've kept
+     * as typed are never changed.
+     */
+    private fun commonSlip(w: String): String? {
+        if (w.length != 3 || w in userWords || rankOf(w) < RareRank) return null
+        var best: String? = null
+        var bestRank = CommonRank
+        for (i in w.indices) {
+            for (ch in 'a'..'z') {
+                if (ch == w[i] || !neighbours(w[i], ch)) continue
+                val c = w.substring(0, i) + ch + w.substring(i + 1)
+                val r = rankOf(c)
+                if (r in 0 until bestRank && !quietByRank[r]) {
+                    best = c
+                    bestRank = r
+                }
+            }
+        }
+        return best
+    }
+
     companion object {
+        /** See [commonSlip]: rarer than this, and one slip from a word commoner than [CommonRank]. */
+        private const val RareRank = 30_000
+        private const val CommonRank = 100
+
         // Holds only the application context (see get), which lives as long as the process anyway.
         @android.annotation.SuppressLint("StaticFieldLeak")
         @Volatile private var instance: WordPredictor? = null
