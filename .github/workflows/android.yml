@@ -173,7 +173,7 @@ jobs:
             --build-upon-default-config --config .github/detekt-unused.yml \
             --report "txt:$RUNNER_TEMP/detekt-all.txt" > "$RUNNER_TEMP/detekt-log.txt" 2>&1 || true
           grep -E "^(Unused[A-Za-z]*|UnreachableCode)\b" "$RUNNER_TEMP/detekt-all.txt" > out/detekt.txt || echo "No unused or unreachable code found" > out/detekt.txt
-          tail -5 "$RUNNER_TEMP/detekt-log.txt" >> out/detekt.txt
+          grep -E "^(Analysis|Build|error)" "$RUNNER_TEMP/detekt-log.txt" >> out/detekt.txt || true
 
       - name: Publish reports
         if: always()

@@ -109,7 +109,8 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     "baselineProfile"(project(":baselineprofile"))
-    robolectricRuntime(libs.robolectric.android.all)
+    robolectricRuntime(libs.robolectric.android14)
+    robolectricRuntime(libs.robolectric.android15)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)

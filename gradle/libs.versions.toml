@@ -40,8 +40,10 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-# The Android 14 framework Robolectric runs tests on (matches robolectric 4.14.1; update the two together).
-robolectric-android-all = { group = "org.robolectric", name = "android-all-instrumented", version = "14-robolectric-10818077-i7" }
+# The Android frameworks Robolectric needs (match robolectric 4.14.1; update them together): tests run
+# on Android 14, and Robolectric also loads the newest it knows (Android 15) for framework resources.
+robolectric-android14 = { group = "org.robolectric", name = "android-all-instrumented", version = "14-robolectric-10818077-i7" }
+robolectric-android15 = { group = "org.robolectric", name = "android-all-instrumented", version = "15-robolectric-12650502-i7" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "testCore" }
 
 [plugins]
