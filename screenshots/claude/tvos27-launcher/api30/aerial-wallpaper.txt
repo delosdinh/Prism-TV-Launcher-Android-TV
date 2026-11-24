@@ -1,18 +1,18 @@
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.verifyCertificateChain(ConscryptEngine.java:1644)
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	at com.android.org.conscrypt.NativeCrypto.ENGINE_SSL_read_direct(Native Method)
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	at com.android.org.conscrypt.NativeSsl.readDirectByteBuffer(NativeSsl.java:568)
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextDataDirect(ConscryptEngine.java:1095)
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	... 29 more
-11-24 14:06:24.947 10670 10670 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
-11-24 14:06:24.947 10670 10670 W PrismAerial: 	... 43 more
-11-24 14:06:56.117 10670 10670 I PrismAerial: Home wallpaper: 12 aerials
-11-24 14:06:56.420 10670 13481 I PrismAerial: Home wallpaper: drawn through OpenGL (1920×1080, blur at 240×135)
-11-24 14:06:59.437 10670 10670 W PrismAerial: Home wallpaper: ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-11-24 14:06:59.789 10670 10670 I PrismAerial: Home wallpaper: playing
-memory: .Heap     4872     4872        0        0     4872                           
-memory: .LOS    17825    17792        0        0    19428                           
-memory: TOTAL PSS:   144271            TOTAL RSS:   269016      TOTAL SWAP (KB):      744
-11-24 14:06:56.420 10670 13481 I PrismAerial: Home wallpaper: drawn through OpenGL (1920×1080, blur at 240×135)
-11-24 14:06:59.437 10670 10670 W PrismAerial: Home wallpaper: ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-11-24 14:06:59.789 10670 10670 I PrismAerial: Home wallpaper: playing
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.verifyCertificateChain(ConscryptEngine.java:1644)
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	at com.android.org.conscrypt.NativeCrypto.ENGINE_SSL_read_direct(Native Method)
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	at com.android.org.conscrypt.NativeSsl.readDirectByteBuffer(NativeSsl.java:568)
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextDataDirect(ConscryptEngine.java:1095)
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	... 29 more
+11-24 15:52:30.436 10886 10886 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+11-24 15:52:30.436 10886 10886 W PrismAerial: 	... 43 more
+11-24 15:52:59.497 10886 10886 I PrismAerial: Home wallpaper: 12 aerials
+11-24 15:53:00.633 10886 13532 I PrismAerial: Home wallpaper: drawn through OpenGL (1920×1080, blur at 240×135)
+11-24 15:53:02.667 10886 10886 W PrismAerial: Home wallpaper: ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+11-24 15:53:03.038 10886 10886 I PrismAerial: Home wallpaper: playing
+memory: .Heap     4748     4748        0        0     4748                           
+memory: .LOS    22316    22280        0        0    23916                           
+memory: TOTAL PSS:   149553            TOTAL RSS:   274580      TOTAL SWAP (KB):      648
+11-24 15:53:00.633 10886 13532 I PrismAerial: Home wallpaper: drawn through OpenGL (1920×1080, blur at 240×135)
+11-24 15:53:02.667 10886 10886 W PrismAerial: Home wallpaper: ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+11-24 15:53:03.038 10886 10886 I PrismAerial: Home wallpaper: playing
