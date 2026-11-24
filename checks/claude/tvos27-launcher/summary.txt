@@ -1,28 +1,22 @@
-> Task :app:syncRobolectricJars FAILED
-> Task :app:processDebugManifestForPackage
-> Task :app:processDebugResources
-> Task :app:packageDebugUnitTestForUnitTest
---
-> Task :app:generateDebugUnitTestLintModel FAILED
-> Task :app:lintAnalyzeDebugUnitTest FAILED
-> Task :app:bundleDebugClassesToRuntimeJar
-> Task :app:processDebugJavaRes
-> Task :app:compileDebugUnitTestKotlin
---
-* What went wrong:
-Execution failed for task ':app:syncRobolectricJars'.
-> Could not resolve all files for configuration ':app:robolectricAndroid14'.
-   > Could not download android-all-instrumented-14-robolectric-10818077-i7.jar (org.robolectric:android-all-instrumented:14-robolectric-10818077-i7)
+WordPredictorTest > correctsANeighbouringKeySlip FAILED
+    java.lang.AssertionError at WordPredictorTest.kt:35
+
+34 tests completed, 1 failed
+
+> Task :app:testDebugUnitTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/tests-1795505375883.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/build/reports/problems/problems-report.html
 --
 * What went wrong:
-Execution failed for task ':app:generateDebugUnitTestLintModel'.
-> Could not resolve all files for configuration ':app:debugUnitTestRuntimeClasspath'.
-   > Could not download nativeruntime-dist-compat-1.0.16.jar (org.robolectric:nativeruntime-dist-compat:1.0.16)
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/reports/tests/testDebugUnitTest/index.html
+
 --
-* What went wrong:
-Execution failed for task ':app:lintAnalyzeDebugUnitTest'.
-> Could not resolve all files for configuration ':app:debugUnitTestRuntimeClasspath'.
-   > Could not download nativeruntime-dist-compat-1.0.16.jar (org.robolectric:nativeruntime-dist-compat:1.0.16)
+BUILD FAILED in 2m 37s
+29 actionable tasks: 29 executed
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
 --
-BUILD FAILED in 2m 55s
-36 actionable tasks: 34 executed, 2 from cache
+BUILD SUCCESSFUL in 1m 43s
+29 actionable tasks: 10 executed, 1 from cache, 18 up-to-date
