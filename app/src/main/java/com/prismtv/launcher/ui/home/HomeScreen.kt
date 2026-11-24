@@ -120,6 +120,9 @@ import com.prismtv.launcher.ui.theme.PrismPalette
 private val TileShape = RoundedCornerShape(13.dp)
 private val Pill = RoundedCornerShape(50)
 
+/** How bright Home treats a playing aerial for its labels: dark enough for white text. */
+private const val AerialLuma = 0.3f
+
 @Composable
 fun HomeScreen(vm: LauncherViewModel, clock: String) {
     val theme = LocalPrism.current
@@ -146,15 +149,18 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
     val spotlight = vm.spotlight
     // Spotlight shows the wallpaper behind the Top Shelf card; with the Top Shelf off it's the wallpaper too.
     val backdropArt = if (spotlight || !heroOn) vm.wallpaperArt ?: vm.currentArt else vm.currentArt
-    val luma = backdropArt?.luma ?: if (p.isDark) 0.15f else 0.7f
+    // Moving aerials behind Home (a still in Lite Mode, and while Home is behind an app).
+    val aerial = (spotlight || !heroOn) && vm.wallpaperKey == com.prismtv.launcher.AerialWallpaperKey &&
+        vm.homeVisible && !vm.prefs.liteMode
+    // Labels over a playing aerial are white with a shadow, as on tvOS: the footage changes as it plays,
+    // and the picture standing in for it before it starts says nothing about how bright it is.
+    val luma = if (aerial) AerialLuma else backdropArt?.luma ?: if (p.isDark) 0.15f else 0.7f
 
     Box(Modifier.fillMaxSize()) {
         HomeBackdrop(
             backdropArt, blurred = gridMode, palette = p, backdrop = LocalBackdrop.current,
             card = if (spotlight) vm.currentArt else null, expanded = expanded,
-            // Moving aerials behind Home (a still in Lite Mode, and while Home is behind an app).
-            aerial = (spotlight || !heroOn) && vm.wallpaperKey == com.prismtv.launcher.AerialWallpaperKey &&
-                vm.homeVisible && !vm.prefs.liteMode,
+            aerial = aerial,
         )
 
         HeroOverlay(
