@@ -5,8 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Surface
 import android.view.TextureView
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect

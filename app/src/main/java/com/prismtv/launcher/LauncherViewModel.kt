@@ -58,7 +58,6 @@ import com.prismtv.launcher.data.WidgetRepository
 import com.prismtv.launcher.data.WidgetRow
 import com.prismtv.launcher.system.PrismNotification
 import com.prismtv.launcher.system.PrismNotificationListener
-import com.prismtv.launcher.ui.SpotlightLayout
 import com.prismtv.launcher.ui.WidgetLayout
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.material.icons.rounded.Notifications

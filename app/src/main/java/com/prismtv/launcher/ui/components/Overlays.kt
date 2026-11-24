@@ -8,7 +8,6 @@ import com.prismtv.launcher.LaunchAnim
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.platform.LocalView
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import androidx.compose.ui.graphics.drawscope.Stroke

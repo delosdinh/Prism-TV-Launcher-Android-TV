@@ -1,6 +1,5 @@
 package com.prismtv.launcher.ui.home
 
-import android.os.Build
 import com.prismtv.launcher.ui.components.atLeast
 import android.provider.Settings
 import androidx.compose.animation.core.animateFloatAsState
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -35,7 +33,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -71,7 +68,6 @@ fun Sidebar(vm: LauncherViewModel, clock: String) {
     if (!tState.atLeast(0.002f)) return
     val theme = LocalPrism.current
     val p = theme.palette
-    val ctx = LocalContext.current
     val deviceName = vm.profileName()
     val fg = if (p.isDark) Color.White else p.textPrimary
     // Clear lens over the Home Screen, with a veil that matches the scrim so the list stays legible.

@@ -4,9 +4,8 @@
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <!-- Wi-Fi status and dictation are optional: Ethernet-only TVs and remotes without a mic are fine. -->
+    <!-- Wi-Fi status is optional: Ethernet-only TVs are fine. -->
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
-    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
