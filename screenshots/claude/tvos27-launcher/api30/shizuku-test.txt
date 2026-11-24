@@ -1,24 +1,21 @@
 captured 65-shizuku-steps
-own adb client: 11-24 11:28:27.573 15431 15431 I PrismAdb: result=Unreachable
+own adb client: 11-24 12:17:00.529 15915 15915 I PrismAdb: result=Unreachable
 captured 65b-shizuku-downloading
 captured 65c-shizuku-installer
-tapped "Install"
+no "Install" on screen
 captured 65d-shizuku-installed
-installed: package:/data/app/~~5mIEnGcl7Sf3GVMFbhn6BA==/moe.shizuku.privileged.api-YLEgQ1cY1P73c77YirdZuQ==/base.apk
-info: killing old process...
-info: apk path is /data/app/~~5mIEnGcl7Sf3GVMFbhn6BA==/moe.shizuku.privileged.api-YLEgQ1cY1P73c77YirdZuQ==/base.apk
-info: starting server...
-info: shizuku_server pid is 15785
-info: shizuku_starter exit with 0
+installed: 
+starter: 
+cp: bad '': No such file or directory
 captured 65e-shizuku-running
 captured 65f-shizuku-allow-prompt
-tapped "Allow all the time"
+no "Allow all the time" on screen
 captured 65g-shizuku-allowed
-before: pid=14954
-recents before:   * Recent #0: Task{2d9d937 #37 visible=false type=standard mode=fullscreen translucent=true A=10060:com.google.android.youtube.tv.main U=0 StackId=37 sz=1}
-  * Recent #1: Task{f11384a #42 visible=false type=standard mode=fullscreen translucent=true A=10060:com.google.android.youtube.tv U=0 StackId=42 sz=0}
-after: pid= stopped=true
-recents after: 1 card(s)
+before: pid=15450
+recents before:   * Recent #0: Task{df85115 #37 visible=false type=standard mode=fullscreen translucent=true A=10061:com.google.android.youtube.tv.main U=0 StackId=37 sz=1}
+  * Recent #1: Task{4ceb6ac #40 visible=false type=standard mode=fullscreen translucent=true A=10061:com.google.android.youtube.tv U=0 StackId=40 sz=0}
+after: pid= stopped=false
+recents after: 2 card(s)
 all cards before clear: 5
-all cards after clear: 4 (A=10060:com.google.android.youtube.tv A=10036:com.google.android.packageinstaller A=10076:com.prismtv.launcher A=1000:com.android.tv.settings )
-11-24 11:29:28.387 15431 15431 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
+all cards after clear: 3 (A=10061:com.google.android.youtube.tv A=10076:com.prismtv.launcher A=1000:com.android.tv.settings )
+11-24 12:20:00.793 15915 15915 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
