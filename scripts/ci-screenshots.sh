@@ -328,6 +328,20 @@ frames() { # label, extra args
 }
 frames full
 frames lite --ez lite true
+# Sitting on Home: frames drawn in 20 s with nothing moving (should be none), and with Auto-Advance on
+# (a cross-fade every 9 s and nothing in between).
+idleframes() { # label, extra args
+  local label="$1"; shift
+  start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 6
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  adb logcat -c
+  sleep 20
+  local log frames; log=$(adb logcat -d -s PrismDraw:D)
+  frames=$(adb shell dumpsys gfxinfo "$PKG" | grep -m1 "Total frames rendered" | grep -oE "[0-9]+$")
+  echo "$label: 20 s on Home: ${frames:-?} frames, scene re-recorded $(grep -c 'PrismDraw: Scene' <<<"$log")x" | tee -a "$OUT/frames.txt"
+}
+idleframes idle-still
+idleframes idle-advancing --ez autorotate true
 # The same for Settings: down the main list (rebuilt rows and page art on every press), into Apps and down.
 start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0; sleep 4
 adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
