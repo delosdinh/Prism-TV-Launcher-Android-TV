@@ -161,6 +161,20 @@ jobs:
           set -o pipefail
           ./gradlew --no-daemon --continue :app:lintDebug :app:testDebugUnitTest 2>&1 | tee checks-log.txt
 
+      # Unused code (private members, parameters, imports) and unreachable code, by detekt's rules. Only
+      # those findings are kept: the rest of detekt's default style rules aren't this project's style.
+      - name: Unused code
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p out
+          curl -sSfL -o "$RUNNER_TEMP/detekt.jar" https://github.com/detekt/detekt/releases/download/v1.23.7/detekt-cli-1.23.7-all.jar
+          java -jar "$RUNNER_TEMP/detekt.jar" --input app/src/main/java,app/src/debug/java,baselineprofile/src/main/java \
+            --build-upon-default-config --config .github/detekt-unused.yml \
+            --report "txt:$RUNNER_TEMP/detekt-all.txt" > "$RUNNER_TEMP/detekt-log.txt" 2>&1 || true
+          grep -E "^(Unused[A-Za-z]*|UnreachableCode)\b" "$RUNNER_TEMP/detekt-all.txt" > out/detekt.txt || echo "No unused or unreachable code found" > out/detekt.txt
+          tail -5 "$RUNNER_TEMP/detekt-log.txt" >> out/detekt.txt
+
       - name: Publish reports
         if: always()
         env:

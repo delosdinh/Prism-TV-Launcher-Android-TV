@@ -58,6 +58,8 @@ android {
         textReport = true
         textOutput = file("build/reports/lint-results-debug.txt")
         xmlReport = true
+        // Style hints only (SharedPreferences.edit { }, String.toUri()): the plain calls do the same.
+        disable += "UseKtx"
     }
 
     // JVM unit tests (app/src/test): Robolectric gives them real resources and SharedPreferences.
@@ -91,8 +93,23 @@ baselineProfile {
     dexLayoutOptimization = true
 }
 
+// Robolectric's Android framework jar comes through Gradle (and its cache) rather than being fetched by
+// Robolectric while tests run: Maven Central rate-limits those downloads on CI runners (HTTP 429).
+val robolectricRuntime: Configuration by configurations.creating { isTransitive = false }
+val robolectricJarsDir = layout.buildDirectory.dir("robolectric-jars")
+val syncRobolectricJars by tasks.registering(Sync::class) {
+    from(robolectricRuntime)
+    into(robolectricJarsDir)
+}
+tasks.withType<Test>().configureEach {
+    dependsOn(syncRobolectricJars)
+    systemProperty("robolectric.offline", "true")
+    systemProperty("robolectric.dependency.dir", robolectricJarsDir.get().asFile.absolutePath)
+}
+
 dependencies {
     "baselineProfile"(project(":baselineprofile"))
+    robolectricRuntime(libs.robolectric.android.all)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
