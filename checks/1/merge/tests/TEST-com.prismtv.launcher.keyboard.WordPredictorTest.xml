@@ -1,29 +1,167 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.prismtv.launcher.keyboard.WordPredictorTest" tests="6" skipped="0" failures="1" errors="0" timestamp="2026-11-24T06:49:42.545Z" hostname="runnervm0hi8g" time="0.445">
+<testsuite name="com.prismtv.launcher.keyboard.WordPredictorTest" tests="6" skipped="0" failures="6" errors="0" timestamp="2026-11-24T07:00:50.597Z" hostname="runnervm0hi8g" time="0.282">
   <properties/>
-  <testcase name="completesAPrefix" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.088"/>
-  <testcase name="knowsEverydayWords" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.084"/>
-  <testcase name="leavesChosenAccentsAlone" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.054"/>
-  <testcase name="learntPhrasesComeFirst" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.077"/>
-  <testcase name="predictsTheNextWord" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.061"/>
-  <testcase name="correctsANeighbouringKeySlip" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.079">
-    <failure message="java.lang.AssertionError: expected:&lt;the&gt; but was:&lt;null&gt;" type="java.lang.AssertionError">java.lang.AssertionError: expected:&lt;the&gt; but was:&lt;null&gt;
-	at org.junit.Assert.fail(Assert.java:89)
-	at org.junit.Assert.failNotEquals(Assert.java:835)
-	at org.junit.Assert.assertEquals(Assert.java:120)
-	at org.junit.Assert.assertEquals(Assert.java:146)
-	at com.prismtv.launcher.keyboard.WordPredictorTest.correctsANeighbouringKeySlip(WordPredictorTest.kt:35)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
-	at org.robolectric.RobolectricTestRunner$HelperTestRunner$1.evaluate(RobolectricTestRunner.java:502)
-	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:285)
+  <testcase name="completesAPrefix" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.063">
+    <failure message="java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar
+	at org.robolectric.internal.dependency.LocalDependencyResolver.validateFile(LocalDependencyResolver.java:50)
+	at org.robolectric.internal.dependency.LocalDependencyResolver.getLocalArtifactUrl(LocalDependencyResolver.java:27)
+	at org.robolectric.plugins.LegacyDependencyResolver.getLocalArtifactUrl(LegacyDependencyResolver.java:95)
+	at org.robolectric.plugins.DefaultSdkProvider$DefaultSdk.getJarPath(DefaultSdkProvider.java:143)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage_measured(AndroidTestEnvironment.java:400)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$loadAppPackage$3(AndroidTestEnvironment.java:393)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage(AndroidTestEnvironment.java:393)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:286)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</failure>
+  </testcase>
+  <testcase name="knowsEverydayWords" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.047">
+    <failure message="java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar
+	at org.robolectric.internal.dependency.LocalDependencyResolver.validateFile(LocalDependencyResolver.java:50)
+	at org.robolectric.internal.dependency.LocalDependencyResolver.getLocalArtifactUrl(LocalDependencyResolver.java:27)
+	at org.robolectric.plugins.LegacyDependencyResolver.getLocalArtifactUrl(LegacyDependencyResolver.java:95)
+	at org.robolectric.plugins.DefaultSdkProvider$DefaultSdk.getJarPath(DefaultSdkProvider.java:143)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage_measured(AndroidTestEnvironment.java:400)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$loadAppPackage$3(AndroidTestEnvironment.java:393)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage(AndroidTestEnvironment.java:393)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:286)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</failure>
+  </testcase>
+  <testcase name="leavesChosenAccentsAlone" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.046">
+    <failure message="java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar
+	at org.robolectric.internal.dependency.LocalDependencyResolver.validateFile(LocalDependencyResolver.java:50)
+	at org.robolectric.internal.dependency.LocalDependencyResolver.getLocalArtifactUrl(LocalDependencyResolver.java:27)
+	at org.robolectric.plugins.LegacyDependencyResolver.getLocalArtifactUrl(LegacyDependencyResolver.java:95)
+	at org.robolectric.plugins.DefaultSdkProvider$DefaultSdk.getJarPath(DefaultSdkProvider.java:143)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage_measured(AndroidTestEnvironment.java:400)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$loadAppPackage$3(AndroidTestEnvironment.java:393)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage(AndroidTestEnvironment.java:393)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:286)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</failure>
+  </testcase>
+  <testcase name="learntPhrasesComeFirst" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.055">
+    <failure message="java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar
+	at org.robolectric.internal.dependency.LocalDependencyResolver.validateFile(LocalDependencyResolver.java:50)
+	at org.robolectric.internal.dependency.LocalDependencyResolver.getLocalArtifactUrl(LocalDependencyResolver.java:27)
+	at org.robolectric.plugins.LegacyDependencyResolver.getLocalArtifactUrl(LegacyDependencyResolver.java:95)
+	at org.robolectric.plugins.DefaultSdkProvider$DefaultSdk.getJarPath(DefaultSdkProvider.java:143)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage_measured(AndroidTestEnvironment.java:400)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$loadAppPackage$3(AndroidTestEnvironment.java:393)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage(AndroidTestEnvironment.java:393)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:286)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</failure>
+  </testcase>
+  <testcase name="predictsTheNextWord" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.027">
+    <failure message="java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar
+	at org.robolectric.internal.dependency.LocalDependencyResolver.validateFile(LocalDependencyResolver.java:50)
+	at org.robolectric.internal.dependency.LocalDependencyResolver.getLocalArtifactUrl(LocalDependencyResolver.java:27)
+	at org.robolectric.plugins.LegacyDependencyResolver.getLocalArtifactUrl(LegacyDependencyResolver.java:95)
+	at org.robolectric.plugins.DefaultSdkProvider$DefaultSdk.getJarPath(DefaultSdkProvider.java:143)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage_measured(AndroidTestEnvironment.java:400)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$loadAppPackage$3(AndroidTestEnvironment.java:393)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage(AndroidTestEnvironment.java:393)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:286)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</failure>
+  </testcase>
+  <testcase name="correctsANeighbouringKeySlip" classname="com.prismtv.launcher.keyboard.WordPredictorTest" time="0.043">
+    <failure message="java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Path is not a file: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar
+	at org.robolectric.internal.dependency.LocalDependencyResolver.validateFile(LocalDependencyResolver.java:50)
+	at org.robolectric.internal.dependency.LocalDependencyResolver.getLocalArtifactUrl(LocalDependencyResolver.java:27)
+	at org.robolectric.plugins.LegacyDependencyResolver.getLocalArtifactUrl(LegacyDependencyResolver.java:95)
+	at org.robolectric.plugins.DefaultSdkProvider$DefaultSdk.getJarPath(DefaultSdkProvider.java:143)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage_measured(AndroidTestEnvironment.java:400)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$loadAppPackage$3(AndroidTestEnvironment.java:393)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.loadAppPackage(AndroidTestEnvironment.java:393)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:286)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
 	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
 	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
@@ -32,5 +170,29 @@
 </failure>
   </testcase>
   <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
+  <system-err><![CDATA[ERROR: Unable to locate dependency: '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar'
+ERROR: Parent directory exists but is missing the dependency
+ERROR: Contents of directory '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars':
+ERROR: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-14-robolectric-10818077-i7.jar
+ERROR: Unable to locate dependency: '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar'
+ERROR: Parent directory exists but is missing the dependency
+ERROR: Contents of directory '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars':
+ERROR: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-14-robolectric-10818077-i7.jar
+ERROR: Unable to locate dependency: '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar'
+ERROR: Parent directory exists but is missing the dependency
+ERROR: Contents of directory '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars':
+ERROR: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-14-robolectric-10818077-i7.jar
+ERROR: Unable to locate dependency: '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar'
+ERROR: Parent directory exists but is missing the dependency
+ERROR: Contents of directory '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars':
+ERROR: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-14-robolectric-10818077-i7.jar
+ERROR: Unable to locate dependency: '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar'
+ERROR: Parent directory exists but is missing the dependency
+ERROR: Contents of directory '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars':
+ERROR: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-14-robolectric-10818077-i7.jar
+ERROR: Unable to locate dependency: '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-15-robolectric-12650502-i7.jar'
+ERROR: Parent directory exists but is missing the dependency
+ERROR: Contents of directory '/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars':
+ERROR: /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/robolectric-jars/android-all-instrumented-14-robolectric-10818077-i7.jar
+]]></system-err>
 </testsuite>

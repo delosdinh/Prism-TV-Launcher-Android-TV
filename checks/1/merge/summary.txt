@@ -1,10 +1,61 @@
-> Task :app:testDebugUnitTest FAILED
+PrefsStoreTest > everySwitchSurvivesASaveAndLoad FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+PrefsStoreTest > defaultsSurviveASaveAndLoad FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+KeyboardControllerTest > typingSuggestsCompletions FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+KeyboardControllerTest > holdingALetterOffersItsAccents FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+KeyboardControllerTest > aLetterWithoutAccentsStillTypesItsCapital FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+KeyboardControllerTest > noPredictionsAfterAFullStop FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+KeyboardControllerTest > backClosesTheAccentsWithoutTyping FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+KeyboardControllerTest > predictsTheNextWordAfterASpace FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+WordPredictorTest > completesAPrefix FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+WordPredictorTest > knowsEverydayWords FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+WordPredictorTest > leavesChosenAccentsAlone FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+WordPredictorTest > learntPhrasesComeFirst FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+WordPredictorTest > predictsTheNextWord FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
 
 WordPredictorTest > correctsANeighbouringKeySlip FAILED
-    java.lang.AssertionError at WordPredictorTest.kt:35
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
 
-25 tests completed, 1 failed
+RemoteButtonsTest > mappingsSurviveEncodeAndDecode FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
 
+RemoteButtonsTest > brokenLinesAreSkipped FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+RemoteButtonsTest > theDpadBackAndHomeCanNeverBeChanged FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+RemoteButtonsTest > buttonsAreNamedAsRemotesLabelThem FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+25 tests completed, 18 failed
+
+> Task :app:testDebugUnitTest FAILED
+> Task :app:lintAnalyzeDebug
 > Task :app:lintAnalyzeDebugUnitTest
 
 --
@@ -13,5 +64,5 @@ Execution failed for task ':app:testDebugUnitTest'.
 > There were failing tests. See the report at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/reports/tests/testDebugUnitTest/index.html
 
 --
-BUILD FAILED in 3m 58s
-39 actionable tasks: 37 executed, 2 from cache
+BUILD FAILED in 3m 56s
+40 actionable tasks: 38 executed, 2 from cache
