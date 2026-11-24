@@ -924,6 +924,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun trimMemory(level: Int) {
         artRepo.trim(level)
         if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE) failedThumbs.clear()
+        // One small entry per picture ever shown added up over days on a launcher that's never closed. Keep
+        // the ones still loading or waiting to retry; what's on screen already holds its own, and anything
+        // shown again gets a fresh one.
+        thumbVersions.keys.retainAll { it in loadingThumbs || it in failedThumbs }
     }
 
     /** Reads the TV's inputs (and your names for them) into Home Screen tiles. */
@@ -2290,8 +2294,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         override fun onCapabilitiesChanged(n: android.net.Network, caps: android.net.NetworkCapabilities) = refreshNetwork()
     }
 
-    /** Re-reads the network on the main thread (a callback burst becomes one read). */
+    /**
+     * Re-reads the network on the main thread (a callback burst becomes one read). Only while Prism is on
+     * screen: Wi-Fi signal changes arrive every few seconds, and [onResume] reads it again anyway.
+     */
     fun refreshNetwork() {
+        if (!homeVisible) return
         networkMain.removeCallbacks(readNetwork)
         networkMain.postDelayed(readNetwork, 150)
     }
