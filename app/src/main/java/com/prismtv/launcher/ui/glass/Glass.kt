@@ -178,8 +178,10 @@ fun Modifier.glass(
      */
     bentRim: Boolean = false,
     /**
-     * Liquid Glass over a blurred backdrop (open folders): the lens bends the *blurred* scene, so the
-     * panel reads as glass over a soft background rather than over sharp icons.
+     * Liquid Glass over a blurred backdrop (open folders, Control Centre, the Clear keyboard): the lens
+     * bends the *blurred* scene, so the panel reads as glass over a soft background rather than over
+     * sharp icons. Every surface shares the source's one blurred layer (Android 12+ keeps its blurred
+     * result until the source changes); before Android 12 it's the pre-blurred artwork.
      */
     blurredLens: Boolean = false,
 ): Modifier = composed {
