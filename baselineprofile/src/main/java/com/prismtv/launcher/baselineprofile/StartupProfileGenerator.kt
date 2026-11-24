@@ -18,16 +18,19 @@ class StartupProfileGenerator {
     @get:Rule
     val rule = BaselineProfileRule()
 
+    /** Launch to a settled Home Screen: also the startup profile, which orders the APK's dex files. */
     @Test
-    fun generate() = rule.collect(
+    fun startup() = rule.collect(
         packageName = "com.prismtv.launcher",
         includeInStartupProfile = true,
     ) {
-        // Otherwise the first launch asks Android's TV listings question over Prism.
-        device.executeShellCommand("pm grant $packageName android.permission.READ_TV_LISTINGS")
-        pressHome()
-        startActivityAndWait()
-        settle(3_000)
+        launch()
+    }
+
+    /** Then around Prism with the remote: compiled ahead of time, but not counted as startup. */
+    @Test
+    fun journey() = rule.collect(packageName = "com.prismtv.launcher") {
+        launch()
 
         // Home: along the dock, into the rows and widgets, up to the Top Shelf.
         press(KeyEvent.KEYCODE_DPAD_RIGHT, 3)
@@ -61,6 +64,14 @@ class StartupProfileGenerator {
         press(KeyEvent.KEYCODE_BACK, wait = 1_000)
         press(KeyEvent.KEYCODE_DPAD_RIGHT, 2)
         settle(1_500)
+    }
+
+    private fun MacrobenchmarkScope.launch() {
+        // Otherwise the first launch asks Android's TV listings question over Prism.
+        device.executeShellCommand("pm grant $packageName android.permission.READ_TV_LISTINGS")
+        pressHome()
+        startActivityAndWait()
+        settle(3_000)
     }
 
     private fun MacrobenchmarkScope.press(code: Int, times: Int = 1, wait: Long = 450) {
