@@ -139,6 +139,45 @@ jobs:
           grep -E "^e: |error:|What went wrong|FAILURE" -A4 build-log.txt > out/errors.txt || true
           bash scripts/publish-ci-results.sh out "build/${GITHUB_REF_NAME}"
 
+  # Android Lint and the JVM unit tests, beside the build (so they add no time). Reports go to
+  # ci-results under checks/<branch>/; the job fails if a unit test fails.
+  checks:
+    name: Lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Lint and unit tests
+        id: run
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --continue :app:lintDebug :app:testDebugUnitTest 2>&1 | tee checks-log.txt
+
+      - name: Publish reports
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p out/tests
+          cp app/build/reports/lint-results-debug.txt out/lint.txt 2>/dev/null || echo "no lint report" > out/lint.txt
+          cp app/build/reports/lint-results-debug.xml out/lint.xml 2>/dev/null || true
+          cp app/build/test-results/testDebugUnitTest/*.xml out/tests/ 2>/dev/null || true
+          grep -E "tests completed|FAILED|BUILD (SUCCESSFUL|FAILED)|What went wrong" -A3 checks-log.txt > out/summary.txt || true
+          bash scripts/publish-ci-results.sh out "checks/${GITHUB_REF_NAME}"
+
+      - name: Fail on test failures
+        if: steps.run.outcome == 'failure'
+        run: |
+          grep -q "testDebugUnitTest FAILED\|There were failing tests" checks-log.txt && exit 1 || echo "Lint findings are in the report; tests passed"
+
   screenshots:
     name: TV emulator screenshots (API ${{ matrix.api }})
     needs: build

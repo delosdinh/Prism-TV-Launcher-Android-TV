@@ -51,6 +51,23 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    // Reports only (CI's "Lint and unit tests" job publishes them): findings never fail a build.
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        textReport = true
+        textOutput = file("build/reports/lint-results-debug.txt")
+        xmlReport = true
+    }
+
+    // JVM unit tests (app/src/test): Robolectric gives them real resources and SharedPreferences.
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -76,6 +93,9 @@ baselineProfile {
 
 dependencies {
     "baselineProfile"(project(":baselineprofile"))
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     // Prism Keyboard (an input method) hosts Compose outside an activity.
