@@ -1,0 +1,17 @@
+> Task :app:testDebugUnitTest FAILED
+
+WordPredictorTest > correctsANeighbouringKeySlip FAILED
+    java.lang.AssertionError at WordPredictorTest.kt:35
+
+25 tests completed, 1 failed
+
+> Task :app:lintAnalyzeDebugUnitTest
+
+--
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/reports/tests/testDebugUnitTest/index.html
+
+--
+BUILD FAILED in 3m 58s
+39 actionable tasks: 37 executed, 2 from cache
