@@ -288,8 +288,9 @@ private fun Tile(
     modifier: Modifier,
     shape: Shape,
     /**
-     * Text cards (notifications, Now Playing) bend a blurred Home Screen, like open folders: bright tiles
-     * in the dock behind them soften instead of showing through the text.
+     * Control Centre's glass bends a blurred Home Screen, as tvOS 26's platters blur and refract what's
+     * behind them: app icons behind a label soften instead of showing through it. The Clear material
+     * keeps its sharp, see-through lens, except on text cards ([soft]: notifications, Now Playing).
      */
     soft: Boolean = false,
     content: @Composable BoxScope.(Color) -> Unit,
@@ -306,7 +307,7 @@ private fun Tile(
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .then(
                 if (focused) Modifier.shadow(20.dp, shape).background(theme.controlFocused(), shape)
-                else Modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp, blurredLens = soft)
+                else Modifier.glass(shape, tint, GlassSource.Scene, elevation = 6.dp, blurredLens = soft || !theme.clear)
             )
     ) {
         content(fg)
@@ -371,7 +372,7 @@ private fun ClearAllButton(focused: Boolean) {
             .size(lerpF(h, 76f, open).dp, h.dp)
             .then(
                 if (focused) Modifier.shadow(10.dp, CircleShape).background(theme.controlFocused(), CircleShape)
-                else Modifier.glass(CircleShape, theme.overlayVeil(dark = 0.40f, light = 0.56f), GlassSource.Scene, elevation = 3.dp)
+                else Modifier.glass(CircleShape, theme.overlayVeil(dark = 0.40f, light = 0.56f), GlassSource.Scene, elevation = 3.dp, blurredLens = !theme.clear)
             ),
         contentAlignment = Alignment.Center,
     ) {
