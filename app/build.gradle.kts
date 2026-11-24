@@ -95,10 +95,13 @@ baselineProfile {
 
 // Robolectric's Android framework jar comes through Gradle (and its cache) rather than being fetched by
 // Robolectric while tests run: Maven Central rate-limits those downloads on CI runners (HTTP 429).
-val robolectricRuntime: Configuration by configurations.creating { isTransitive = false }
+// One configuration per jar: they're versions of the same artifact, which Gradle would otherwise resolve
+// to just the newest.
+val robolectricAndroid14: Configuration by configurations.creating { isTransitive = false }
+val robolectricAndroid15: Configuration by configurations.creating { isTransitive = false }
 val robolectricJarsDir = layout.buildDirectory.dir("robolectric-jars")
 val syncRobolectricJars by tasks.registering(Sync::class) {
-    from(robolectricRuntime)
+    from(robolectricAndroid14, robolectricAndroid15)
     into(robolectricJarsDir)
 }
 tasks.withType<Test>().configureEach {
@@ -109,8 +112,8 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     "baselineProfile"(project(":baselineprofile"))
-    robolectricRuntime(libs.robolectric.android14)
-    robolectricRuntime(libs.robolectric.android15)
+    robolectricAndroid14(libs.robolectric.android14)
+    robolectricAndroid15(libs.robolectric.android15)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
