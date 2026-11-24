@@ -36,22 +36,6 @@
     </issue>
 
     <issue
-        id="DuplicateUsesFeature"
-        severity="Warning"
-        message="Duplicate declaration of uses-feature `android.hardware.microphone`"
-        category="Correctness"
-        priority="5"
-        summary="Feature declared more than once"
-        explanation="A given feature should only be declared once in the manifest."
-        errorLine1="    &lt;uses-feature android:name=&quot;android.hardware.microphone&quot; android:required=&quot;false&quot; />"
-        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
-            line="34"
-            column="19"/>
-    </issue>
-
-    <issue
         id="SelectedPhotoAccess"
         severity="Warning"
         message="Your app is currently not handling Selected Photos Access introduced in Android 14+"
@@ -65,7 +49,7 @@
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
-            line="28"
+            line="27"
             column="36"/>
     </issue>
 
@@ -755,8 +739,104 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
-            line="51"
+            line="50"
             column="13"/>
+    </issue>
+
+    <issue
+        id="SimilarGradleDependency"
+        severity="Information"
+        message="There are multiple dependencies org.robolectric:android-all-instrumented but with different version"
+        category="Correctness"
+        priority="4"
+        summary="Multiple Versions Gradle Dependency"
+        explanation="This detector looks for usages of libraries when name and group are the same but versions are different. Using multiple versions in big project is fine, and there are cases where you deliberately want to stick with such approach. However, you may simply not be aware that this situation happens, and that is what this lint check helps find."
+        errorLine1="robolectric-android14 = { group = &quot;org.robolectric&quot;, name = &quot;android-all-instrumented&quot;, version = &quot;14-robolectric-10818077-i7&quot; }"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml"
+            line="45"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SimilarGradleDependency"
+        severity="Information"
+        message="There are multiple dependencies org.robolectric:android-all-instrumented but with different version"
+        category="Correctness"
+        priority="4"
+        summary="Multiple Versions Gradle Dependency"
+        explanation="This detector looks for usages of libraries when name and group are the same but versions are different. Using multiple versions in big project is fine, and there are cases where you deliberately want to stick with such approach. However, you may simply not be aware that this situation happens, and that is what this lint check helps find."
+        errorLine1="robolectric-android14 = { group = &quot;org.robolectric&quot;, name = &quot;android-all-instrumented&quot;, version = &quot;14-robolectric-10818077-i7&quot; }"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml"
+            line="45"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SimilarGradleDependency"
+        severity="Information"
+        message="There are multiple dependencies org.robolectric:android-all-instrumented but with different version"
+        category="Correctness"
+        priority="4"
+        summary="Multiple Versions Gradle Dependency"
+        explanation="This detector looks for usages of libraries when name and group are the same but versions are different. Using multiple versions in big project is fine, and there are cases where you deliberately want to stick with such approach. However, you may simply not be aware that this situation happens, and that is what this lint check helps find."
+        errorLine1="robolectric-android14 = { group = &quot;org.robolectric&quot;, name = &quot;android-all-instrumented&quot;, version = &quot;14-robolectric-10818077-i7&quot; }"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml"
+            line="45"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SimilarGradleDependency"
+        severity="Information"
+        message="There are multiple dependencies org.robolectric:android-all-instrumented but with different version"
+        category="Correctness"
+        priority="4"
+        summary="Multiple Versions Gradle Dependency"
+        explanation="This detector looks for usages of libraries when name and group are the same but versions are different. Using multiple versions in big project is fine, and there are cases where you deliberately want to stick with such approach. However, you may simply not be aware that this situation happens, and that is what this lint check helps find."
+        errorLine1="robolectric-android15 = { group = &quot;org.robolectric&quot;, name = &quot;android-all-instrumented&quot;, version = &quot;15-robolectric-12650502-i7&quot; }"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml"
+            line="46"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SimilarGradleDependency"
+        severity="Information"
+        message="There are multiple dependencies org.robolectric:android-all-instrumented but with different version"
+        category="Correctness"
+        priority="4"
+        summary="Multiple Versions Gradle Dependency"
+        explanation="This detector looks for usages of libraries when name and group are the same but versions are different. Using multiple versions in big project is fine, and there are cases where you deliberately want to stick with such approach. However, you may simply not be aware that this situation happens, and that is what this lint check helps find."
+        errorLine1="robolectric-android15 = { group = &quot;org.robolectric&quot;, name = &quot;android-all-instrumented&quot;, version = &quot;15-robolectric-12650502-i7&quot; }"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml"
+            line="46"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SimilarGradleDependency"
+        severity="Information"
+        message="There are multiple dependencies org.robolectric:android-all-instrumented but with different version"
+        category="Correctness"
+        priority="4"
+        summary="Multiple Versions Gradle Dependency"
+        explanation="This detector looks for usages of libraries when name and group are the same but versions are different. Using multiple versions in big project is fine, and there are cases where you deliberately want to stick with such approach. However, you may simply not be aware that this situation happens, and that is what this lint check helps find."
+        errorLine1="robolectric-android15 = { group = &quot;org.robolectric&quot;, name = &quot;android-all-instrumented&quot;, version = &quot;15-robolectric-12650502-i7&quot; }"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/gradle/libs.versions.toml"
+            line="46"
+            column="26"/>
     </issue>
 
     <issue
@@ -787,6 +867,22 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
+            line="50"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        severity="Warning"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        category="Correctness"
+        priority="2"
+        summary="Using discouraged APIs"
+        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
+        errorLine1="            android:screenOrientation=&quot;landscape&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
             line="51"
             column="13"/>
     </issue>
@@ -803,23 +899,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
-            line="52"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="DiscouragedApi"
-        severity="Warning"
-        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
-        category="Correctness"
-        priority="2"
-        summary="Using discouraged APIs"
-        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
-        errorLine1="            android:screenOrientation=&quot;landscape&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml"
-            line="74"
+            line="73"
             column="13"/>
     </issue>
 
@@ -899,7 +979,7 @@
         errorLine2="                       ~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt"
-            line="2913"
+            line="2912"
             column="24"/>
     </issue>
 
@@ -915,7 +995,7 @@
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt"
-            line="3257"
+            line="3256"
             column="35"/>
     </issue>
 
@@ -931,7 +1011,7 @@
         errorLine2="                             ~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/settings/SettingsScreen.kt"
-            line="526"
+            line="524"
             column="30"/>
     </issue>
 

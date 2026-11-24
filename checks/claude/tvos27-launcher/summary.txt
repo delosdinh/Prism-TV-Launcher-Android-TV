@@ -1,3 +1,21 @@
+GridLayoutTest > aSavedLayoutIsAppliedAndNewAppsGoAtTheEnd FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+GridLayoutTest > theStoreKeepsALayout FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+GridLayoutTest > withoutALayoutAppsKeepTheirOrderAndHiddenOnesStayOut FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+GridLayoutTest > removingAnAppEmptiesAndDropsItsFolder FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+GridLayoutTest > aFolderOfHiddenAppsDisappears FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
+GridLayoutTest > itemsRoundTripThroughALayout FAILED
+    java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
+
 PrefsStoreTest > everySwitchSurvivesASaveAndLoad FAILED
     java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
 
@@ -52,17 +70,17 @@ RemoteButtonsTest > theDpadBackAndHomeCanNeverBeChanged FAILED
 RemoteButtonsTest > buttonsAreNamedAsRemotesLabelThem FAILED
     java.lang.IllegalArgumentException at LocalDependencyResolver.java:50
 
-25 tests completed, 18 failed
+34 tests completed, 24 failed
 
 > Task :app:testDebugUnitTest FAILED
-> Task :app:lintAnalyzeDebug
+> Task :app:lintAnalyzeDebugAndroidTest
 > Task :app:lintAnalyzeDebugUnitTest
-
+> Task :app:lintAnalyzeDebug
 --
 * What went wrong:
 Execution failed for task ':app:testDebugUnitTest'.
 > There were failing tests. See the report at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/build/reports/tests/testDebugUnitTest/index.html
 
 --
-BUILD FAILED in 4m 9s
+BUILD FAILED in 4m 5s
 40 actionable tasks: 38 executed, 2 from cache
