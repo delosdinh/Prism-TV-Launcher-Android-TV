@@ -17,6 +17,7 @@ jobs:
   build:
     name: Build APKs
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -144,6 +145,7 @@ jobs:
   checks:
     name: Lint and unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -203,6 +205,9 @@ jobs:
 
   screenshots:
     name: TV emulator screenshots (API ${{ matrix.api }})
+    # A run takes 40–65 min. When an emulator dies mid-run the script can wait forever (GitHub's own
+    # limit is 6 hours), so stop it well before that.
+    timeout-minutes: 100
     needs: build
     runs-on: ubuntu-latest
     strategy:

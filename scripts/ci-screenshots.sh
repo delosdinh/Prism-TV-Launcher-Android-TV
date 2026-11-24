@@ -193,6 +193,8 @@ shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings -
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
 shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 19
+shot 27f-settings-about             "${B[@]}" "${DARK[@]}" --es screen settings --es page About --ei focus 2
+shot 27g-settings-acknowledgements  "${B[@]}" "${DARK[@]}" --es screen settings --es page Acknowledgements --ei focus 1
 shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings --es page SoftwareUpdate --ei focus 0
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
