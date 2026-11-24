@@ -198,7 +198,7 @@ testCore = "1.6.1"
    However, you may simply not be aware that a more recent version is
    available, and that is what this lint check helps find.
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:50: Warning: Expecting android:resizeableActivity="true" for this activity so the user can take advantage of the multi-window environment on all devices. NOTE: beginning with Android 12, all apps run in multi-window mode on large screen devices. [NonResizeableActivity]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:52: Warning: Expecting android:resizeableActivity="true" for this activity so the user can take advantage of the multi-window environment on all devices. NOTE: beginning with Android 12, all apps run in multi-window mode on large screen devices. [NonResizeableActivity]
             android:resizeableActivity="false"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -254,13 +254,13 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Identifier: androidx.compose.ui
    Feedback: https://issuetracker.google.com/issues/new?component=612128
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:50: Warning: Activity should not be non-resizable. With this setting, apps cannot be used in multi-window or free form mode. [DiscouragedApi]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:52: Warning: Activity should not be non-resizable. With this setting, apps cannot be used in multi-window or free form mode. [DiscouragedApi]
             android:resizeableActivity="false"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:51: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:53: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
             android:screenOrientation="landscape"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:73: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/AndroidManifest.xml:75: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
             android:screenOrientation="landscape"
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/system/ForceStopper.kt:273: Warning: Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. R.foo.bar) than by name (e.g. getIdentifier("bar", "foo", null)). [DiscouragedApi]
@@ -280,10 +280,10 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Discouraged APIs are allowed and are not deprecated, but they may be unfit
    for common use (e.g. due to slow performance or subtle behavior).
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:2912: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:2928: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     var searchFocus by mutableStateOf(-1)
                        ~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3256: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3272: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     private var screenTimeTick by mutableStateOf(0)
                                   ~~~~~~~~~~~~~~
 
