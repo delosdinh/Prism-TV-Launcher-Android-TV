@@ -382,7 +382,7 @@ private fun glyphFor(id: String): Any? = when {
 }
 
 private fun pageGlyph(page: SettingsPage): Any = when (page) {
-    SettingsPage.Root, SettingsPage.About -> LogoGlyph
+    SettingsPage.Root, SettingsPage.About, SettingsPage.Acknowledgements -> LogoGlyph
     SettingsPage.Appearance -> Glyphs.getValue("appearance")
     SettingsPage.HomeScreen -> Glyphs.getValue("home")
     SettingsPage.Screensaver -> Glyphs.getValue("screensaver")

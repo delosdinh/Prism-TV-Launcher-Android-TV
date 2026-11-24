@@ -153,7 +153,7 @@ data class BannerSpec(val title: String, val message: String, val icon: ImageVec
 
 enum class SettingsPage(val title: String) {
     Root("Settings"), Appearance("Appearance"), HomeScreen("Home Screen"), Screensaver("Screensaver"),
-    Apps("Apps"), SoftwareUpdate("Software Update"), About("About"),
+    Apps("Apps"), SoftwareUpdate("Software Update"), About("About"), Acknowledgements("Acknowledgements"),
     TextSize("Text Size"), Wallpaper("Wallpaper"), Widgets("Widgets"),
     Keyboard("Keyboard"), WidgetApps("Widget"), WidgetOrder("Arrange Widgets"), Profile("Profile"),
     Startup("Open at Startup"), Inputs("Inputs"), Backup("Backup & Restore"), IconPack("Icon Pack"),
@@ -161,6 +161,22 @@ enum class SettingsPage(val title: String) {
     Access("Privacy & Access"), Closing("Closing Apps"), Shizuku("Shizuku"), HomeApp("Home App"),
     RemoteButtons("Remote Buttons"), RemoteButton("Button"), RemoteAction("Action"), ScreenTime("Screen Time"),
 }
+
+/**
+ * Settings › About › Acknowledgements: what Prism TV is made with, and under which licences. Each row's
+ * description (SettingsHelp, "ack:") names the authors and where the licence is.
+ */
+private val AcknowledgementRows = listOf(
+    SettingsRow("ack:inter", "Inter", "TYPEFACE", "SIL Open Font License 1.1"),
+    SettingsRow("ack:wordfreq", "Word List", "KEYBOARD", "CC BY-SA 4.0"),
+    SettingsRow("ack:ngram", "Next-Word Predictions", "KEYBOARD", "CC BY 3.0"),
+    SettingsRow("ack:sounds", "Prism TV Originals", "NAVIGATION SOUNDS", "GPL 2.0 or Later"),
+    SettingsRow("ack:androidx", "Android Jetpack and Compose", "SOFTWARE", "Apache 2.0"),
+    SettingsRow("ack:media3", "Media3", "SOFTWARE", "Apache 2.0"),
+    SettingsRow("ack:kotlin", "Kotlin", "SOFTWARE", "Apache 2.0"),
+    SettingsRow("ack:shizuku", "Shizuku API", "SOFTWARE", "Apache 2.0"),
+    SettingsRow("ack:apple", "Apple TV and tvOS", "TRADEMARKS", "Apple Inc."),
+)
 
 /** Prism Search results: apps, titles from apps' rows, and places in Settings. */
 sealed interface SearchResult {
@@ -4397,9 +4413,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Profiles -> profileRows()
         SettingsPage.Restrictions -> restrictionRows()
         SettingsPage.ScreensaverPictures -> screensaverPictureRows()
+        SettingsPage.Acknowledgements -> AcknowledgementRows
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
+            SettingsRow("i:legal", "Acknowledgements", "PRISM TV", chevron = true),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
             SettingsRow("i:glass", "Liquid Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 33) "Refraction Shader" else "Refraction Bands"),
@@ -4563,6 +4581,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "screensaver" -> pushPage(SettingsPage.Screensaver)
             r.id == "apps" -> pushPage(SettingsPage.Apps)
             r.id == "about" -> pushPage(SettingsPage.About)
+            r.id == "i:legal" -> pushPage(SettingsPage.Acknowledgements)
             r.id == "i:crash" -> {
                 dialog = DialogSpec(
                     "Last Problem",

@@ -12,6 +12,7 @@ fun settingsHelp(page: SettingsPage, id: String?): String? {
     Prefixes.firstOrNull { (prefix, _) -> id.startsWith(prefix) }?.let { return it.second }
     return when (page) {
         SettingsPage.About -> "About Prism TV and this TV."
+        SettingsPage.Acknowledgements -> "What Prism TV is made with, and under which licences."
         else -> null
     }
 }
@@ -210,6 +211,17 @@ private val Exact: Map<String, String> = mapOf(
     "i:glass" to "How Liquid Glass is drawn here: a refraction shader on Android 13 and later, refraction bands before that.",
     "i:memory" to "How much memory Prism TV is using now.",
     "i:crash" to "Details of the last problem, to help fix it.",
+    "i:legal" to "The typeface, word lists, sounds and software Prism TV is made with, and their licences.",
+    // Acknowledgements
+    "ack:inter" to "Typeface by Rasmus Andersson (rsms.me/inter). Licence: SIL Open Font License 1.1 (openfontlicense.org).",
+    "ack:wordfreq" to "Word frequencies from wordfreq by Robyn Speer (github.com/rspeer/wordfreq), CC BY-SA 4.0. Prism TV's word list, adapted from it, is shared under the same licence.",
+    "ack:ngram" to "From the Google Books Ngram Corpus, as published by orgtre/google-books-ngram-frequency on GitHub. Licence: CC BY 3.0.",
+    "ack:sounds" to "Prism TV's navigation sounds, from the Prism TV Originals 1.6.2 pack. Licence: GPL 2.0 or later; their generator is in the project's tools/ui-sounds folder.",
+    "ack:androidx" to "Google's Android Jetpack libraries, including Jetpack Compose. Licence: Apache License 2.0 (apache.org/licenses/LICENSE-2.0).",
+    "ack:media3" to "Google's Media3 (ExoPlayer) plays the aerials. Licence: Apache License 2.0 (apache.org/licenses/LICENSE-2.0).",
+    "ack:kotlin" to "The Kotlin language and libraries by JetBrains. Licence: Apache License 2.0 (apache.org/licenses/LICENSE-2.0).",
+    "ack:shizuku" to "The Shizuku API by RikkaApps (github.com/RikkaApps/Shizuku-API). Licence: Apache License 2.0 (apache.org/licenses/LICENSE-2.0).",
+    "ack:apple" to "Apple TV and tvOS are trademarks of Apple Inc. Prism TV isn't made by or affiliated with Apple. Aerial videos stream from Apple's servers.",
 )
 
 /** Lines shared by rows made per app, album, profile, picture… (checked in order). */

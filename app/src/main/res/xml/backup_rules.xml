@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android's own backup (Android 11 and older): settings, profiles and layouts are kept; left out are
+     Prism's adb key (it unlocks this TV's debugging, so it never leaves the TV), App Switcher snapshots
+     (pictures of other apps' screens) and the last crash report. -->
+<full-backup-content>
+    <exclude domain="file" path="adb/" />
+    <exclude domain="file" path="snapshots/" />
+    <exclude domain="file" path="last_crash.txt" />
+</full-backup-content>
