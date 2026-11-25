@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.prismtv.launcher.keyboard.KeyboardControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-25T20:58:45.464Z" hostname="ip-10-0-128-151" time="0.295">
+<testsuite name="com.prismtv.launcher.keyboard.KeyboardControllerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-11-25T21:20:11.693Z" hostname="runnervm0hi8g" time="0.575">
   <properties/>
-  <testcase name="typingSuggestsCompletions" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.151"/>
-  <testcase name="holdingALetterOffersItsAccents" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.044"/>
-  <testcase name="aLetterWithoutAccentsStillTypesItsCapital" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.025"/>
-  <testcase name="noPredictionsAfterAFullStop" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.021"/>
-  <testcase name="backClosesTheAccentsWithoutTyping" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.026"/>
-  <testcase name="predictsTheNextWordAfterASpace" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.027"/>
+  <testcase name="searchKeepsUpAtTheTopForItsResults" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.181"/>
+  <testcase name="theEmojiGridAndBarWrap" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.031"/>
+  <testcase name="leftAndRightWrapRoundARow" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.024"/>
+  <testcase name="upAndDownWrapBetweenTopAndBottomRows" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.025"/>
+  <testcase name="typingSuggestsCompletions" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.052"/>
+  <testcase name="theSuggestionBarWrapsToo" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.048"/>
+  <testcase name="holdingALetterOffersItsAccents" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.04"/>
+  <testcase name="aLetterWithoutAccentsStillTypesItsCapital" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.049"/>
+  <testcase name="noPredictionsAfterAFullStop" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.027"/>
+  <testcase name="backClosesTheAccentsWithoutTyping" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.029"/>
+  <testcase name="theAccentStripWraps" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.031"/>
+  <testcase name="predictsTheNextWordAfterASpace" classname="com.prismtv.launcher.keyboard.KeyboardControllerTest" time="0.033"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
