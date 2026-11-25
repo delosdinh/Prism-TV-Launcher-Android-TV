@@ -1,24 +1,24 @@
 apk bytes: 4694051
-apk dex 1642598, images 2205122, audio 275054 (0 compressed), other 516194
-cold start ms:  1633 1521 1670 1436 1369  (median 1521)
+apk dex 1642595, images 2205122, audio 275054 (0 compressed), other 516193
+cold start ms:  1379 1116 1075 1006 1208  (median 1116)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  207 207 205 200 217  (median 207)
-walk: Total frames rendered: 80
-walk: Janky frames: 80 (100.00%)
-walk: Janky frames (legacy): 80 (100.00%)
-walk: 50th percentile: 200ms
-walk: 90th percentile: 350ms
-walk: 99th percentile: 700ms
-walk: Number Slow UI thread: 44
-rapid: Total frames rendered: 77
-rapid: Janky frames: 77 (100.00%)
-rapid: Janky frames (legacy): 77 (100.00%)
-rapid: 90th percentile: 300ms
-rapid: Number Slow UI thread: 51
-memory: Native Heap    37809    37748        8        1    40060    55348    41680     3052
-memory: Java Heap:     5816                          32936
-memory: Native Heap:    37748                          40060
+back to home ms:  172 127 188 157 208  (median 172)
+walk: Total frames rendered: 95
+walk: Janky frames: 95 (100.00%)
+walk: Janky frames (legacy): 95 (100.00%)
+walk: 50th percentile: 150ms
+walk: 90th percentile: 300ms
+walk: 99th percentile: 450ms
+walk: Number Slow UI thread: 51
+rapid: Total frames rendered: 61
+rapid: Janky frames: 61 (100.00%)
+rapid: Janky frames (legacy): 61 (100.00%)
+rapid: 90th percentile: 150ms
+rapid: Number Slow UI thread: 35
+memory: Native Heap    41310    41292        0       27    42240    59696    46021     2685
+memory: Java Heap:     4892                          19920
+memory: Native Heap:    41292                          42240
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    77703            TOTAL RSS:   183896       TOTAL SWAP PSS:       10
-idle on home, 60 s: 987 ticks
-behind another app, 60 s: 1 ticks
+memory: TOTAL PSS:    78185            TOTAL RSS:   173856       TOTAL SWAP PSS:      279
+idle on home, 60 s: 700 ticks
+behind another app, 60 s: 0 ticks
