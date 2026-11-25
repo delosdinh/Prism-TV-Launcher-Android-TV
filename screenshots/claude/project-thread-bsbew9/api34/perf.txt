@@ -1,24 +1,24 @@
-apk bytes: 4694051
-apk dex 1642645, images 2205122, audio 275054 (0 compressed), other 516193
-cold start ms:  1657 1906 1485 1505 1271  (median 1505)
+apk bytes: 4851587
+apk dex 1643034, images 2362661, audio 275054 (0 compressed), other 515763
+cold start ms:  2096 1618 1783 1545 1389  (median 1618)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  185 204 207 195 220  (median 204)
-walk: Total frames rendered: 89
-walk: Janky frames: 89 (100.00%)
-walk: Janky frames (legacy): 89 (100.00%)
+back to home ms:  211 233 219 242 222  (median 222)
+walk: Total frames rendered: 84
+walk: Janky frames: 84 (100.00%)
+walk: Janky frames (legacy): 84 (100.00%)
 walk: 50th percentile: 150ms
-walk: 90th percentile: 300ms
+walk: 90th percentile: 350ms
 walk: 99th percentile: 700ms
-walk: Number Slow UI thread: 53
-rapid: Total frames rendered: 87
-rapid: Janky frames: 87 (100.00%)
-rapid: Janky frames (legacy): 87 (100.00%)
-rapid: 90th percentile: 250ms
-rapid: Number Slow UI thread: 61
-memory: Native Heap    42381    42336        0        0    44832    59368    45709     3151
-memory: Java Heap:     6584                          34196
-memory: Native Heap:    42336                          44832
+walk: Number Slow UI thread: 55
+rapid: Total frames rendered: 73
+rapid: Janky frames: 73 (100.00%)
+rapid: Janky frames (legacy): 73 (100.00%)
+rapid: 90th percentile: 300ms
+rapid: Number Slow UI thread: 53
+memory: Native Heap    37946    37932        0       27    38844    55608    41912     3211
+memory: Java Heap:     6644                          21768
+memory: Native Heap:    37932                          38844
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    75967            TOTAL RSS:   194864      TOTAL SWAP (KB):      932
-idle on home, 60 s: 959 ticks
+memory: TOTAL PSS:    71348            TOTAL RSS:   173680       TOTAL SWAP PSS:      275
+idle on home, 60 s: 1093 ticks
 behind another app, 60 s: 1 ticks
