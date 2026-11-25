@@ -31,7 +31,7 @@ import com.prismtv.launcher.data.AerialRange
 
 /**
  * Settings › Wallpaper › Apple TV Aerials: the aerials play, silently, behind the Home Screen. 1080p
- * SDR (light on the TV's decoder), shown only while Home is on screen; the still underneath shows
+ * SDR (light on the TV's decoder; on the video layer, below, the screensaver's resolution), shown only while Home is on screen; the still underneath shows
  * until the first frame and in Lite Mode. Drawn through a TextureView so Liquid Glass can see it.
  *
  * On a TV measured too slow for that ([GlassPerf.slowTv]: every video frame in a TextureView redraws all
@@ -53,10 +53,24 @@ fun AerialWallpaper(
 ) {
     val ctx = LocalContext.current
     val liveBlur by rememberUpdatedState(onLiveBlur)
-    var videos by remember { mutableStateOf(Resume.list) }
+    // A TV measured too slow for the glass (see below); decided once, so the stream and buffer match.
+    val videoLayer = remember { com.prismtv.launcher.ui.glass.GlassPerf.slowTv && android.os.Build.VERSION.SDK_INT >= 31 }
+    var videos by remember { mutableStateOf(Resume.list?.takeIf { Resume.videoLayer == videoLayer }) }
     LaunchedEffect(Unit) {
         if (videos == null) {
-            videos = AerialCatalog.load(ctx, AerialQuality.HD, AerialRange.SDR).shuffled().take(12).also { Resume.list = it }
+            // On the video layer, the same resolution as the screensaver (4K on a 4K panel, by default):
+            // a TV that matches its output to the video (Ugoos AM9 Pro, auto frame rate) otherwise
+            // switched to 1080p a few seconds in and back to 4K when the aerial stopped, blacking out
+            // the screen for a moment each time. In a TextureView, 4K would cost the GPU too much.
+            val quality = if (videoLayer) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.prismtv.launcher.data.PrefsStore(ctx).load().aerialQuality
+                }
+            } else AerialQuality.HD
+            videos = AerialCatalog.load(ctx, quality, AerialRange.SDR).shuffled().take(12).also {
+                Resume.list = it
+                Resume.videoLayer = videoLayer
+            }
         }
         android.util.Log.i("PrismAerial", "Home wallpaper: ${videos?.size ?: 0} aerials")
     }
@@ -66,7 +80,7 @@ fun AerialWallpaper(
     val gl = remember { GlHolder() }
     val player = remember {
         if (AerialNet.preferHttp(ctx)) Resume.http = true
-        ExoPlayer.Builder(ctx).setLoadControl(AerialBuffer.wallpaper()).build().apply {
+        ExoPlayer.Builder(ctx).setLoadControl(if (videoLayer) AerialBuffer.screensaver() else AerialBuffer.wallpaper()).build().apply {
             volume = 0f
             repeatMode = Player.REPEAT_MODE_ALL
             trackSelectionParameters = trackSelectionParameters.buildUpon()
@@ -123,7 +137,8 @@ fun AerialWallpaper(
             gl.renderer?.setBlur(b)
         }
     }
-    val onVideoLayer = com.prismtv.launcher.ui.glass.GlassPerf.slowTv && !useGl
+    // Also once measured slow mid-session (its stream is still 1080p then; 4K from the next time Home shows).
+    val onVideoLayer = (videoLayer || com.prismtv.launcher.ui.glass.GlassPerf.slowTv) && !useGl
     LaunchedEffect(onVideoLayer) {
         android.util.Log.i("PrismAerial", "Home wallpaper: ${if (onVideoLayer) "SurfaceView (slow GPU)" else "TextureView"}")
     }
@@ -221,4 +236,6 @@ private object Resume {
     var http = false
     /** OpenGL wouldn't start on this TV: the still stands in behind the grid, as before. */
     var glFailed = false
+    /** Whether [list] was picked for the video layer (the screensaver's resolution) or a TextureView (1080p). */
+    var videoLayer = false
 }
