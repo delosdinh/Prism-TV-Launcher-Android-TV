@@ -3,21 +3,21 @@
 #
 # Android only installs an update over Prism TV when both are signed with the same key, so every
 # build must use one permanent key. Where it comes from, in order:
-#   1. Repo secrets PRISM_KEYSTORE_B64 + PRISM_KEYSTORE_PASSWORD (PKCS12, alias "prism"), if set.
-#   2. The private draft release tagged "prism-signing-key". Draft releases are visible only to
-#      people with write access to the repo (and to this workflow's token), never to the public.
-#   3. On the first push build with neither: generate a new key and store it in that draft release.
-#   4. Otherwise (e.g. pull requests from forks): a throwaway key, and Software Update won't offer it.
+#   1. Repo secrets PRISM_KEYSTORE_B64 + PRISM_KEYSTORE_PASSWORD (PKCS12, alias "prism"). This is where
+#      the key belongs (docs/release-signing.md says how to put it there).
+#   2. Until then, the older private draft release tagged "prism-signing-key" (read only, never changed).
+#   3. Neither: with REQUIRE_KEY=true (push builds, which publish) this step fails, so nothing is ever
+#      published with the wrong key. Otherwise (pull requests) the build goes on unsigned-for-release and
+#      Gradle signs it with a throwaway debug key for testing; nothing from it is published.
 #
-# Never publish or delete the "prism-signing-key" draft: publishing makes the key public, deleting it
-# means the next build gets a new key and every TV has to uninstall and reinstall Prism TV.
+# This script never creates, edits, publishes or deletes any release. A new key is never made here:
+# a new key would mean every TV has to uninstall and reinstall Prism TV.
 #
 # Env: GH_TOKEN, GH_REPO, RUNNER_TEMP, GITHUB_ENV, PRISM_KEYSTORE_B64 / PRISM_KEYSTORE_PASSWORD
-# (optional), CAN_CREATE ("true" to allow step 3).
+# (optional), REQUIRE_KEY ("true" to fail when there's no permanent key).
 set -euo pipefail
 
 TAG="prism-signing-key"
-TITLE="Prism TV signing key (private, never publish or delete)"
 KEY_DIR="$RUNNER_TEMP/prism-key"
 KS="$KEY_DIR/prism.p12"
 PW_FILE="$KEY_DIR/prism-p12-password.txt"
@@ -66,45 +66,20 @@ if [ -n "${PRISM_KEYSTORE_B64:-}" ] && [ -n "${PRISM_KEYSTORE_PASSWORD:-}" ]; th
   exit 0
 fi
 
-# 2. The private draft release.
+# 2. The older private draft release (transitional: read only).
 ID="$(draft_id || true)"
 if [ -n "$ID" ] && fetch_draft_key "$ID"; then
   SOURCE="draft release $ID"
   use_key "$(cat "$PW_FILE")"
+  echo "::warning title=Signing::The signing key was read from the draft release. Move it into repo secrets (docs/release-signing.md); then this workflow no longer needs write access to read it."
   exit 0
 fi
 
-# 3. First permanent-key build: create the key and keep it in a private draft release.
-if [ "${CAN_CREATE:-false}" = "true" ] && [ -z "$ID" ]; then
-  PW="$(openssl rand -hex 24)"
-  echo "::add-mask::$PW"
-  keytool -genkeypair -noprompt -storetype PKCS12 -keystore "$KS" -alias prism \
-    -keyalg RSA -keysize 4096 -validity 36500 \
-    -dname "CN=Prism TV, O=Prism TV Launcher" -storepass "$PW" -keypass "$PW"
-  printf '%s' "$PW" > "$PW_FILE"
-  NOTES="This draft holds the permanent key that signs every Prism TV build, so new versions install over the old one (Settings › Software Update).
-
-- It's a **draft**, so only people with write access to this repo can see it. **Never publish it** (that would make the key public).
-- **Don't delete it.** Without it the next build gets a new key, and every TV has to uninstall and reinstall Prism TV.
-- Back it up by downloading both files somewhere private. To keep it in repo secrets instead: \`PRISM_KEYSTORE_B64\` = base64 of prism.p12, \`PRISM_KEYSTORE_PASSWORD\` = the text in prism-p12-password.txt. Secrets win over this draft.
-
-Created by CI run ${GITHUB_RUN_ID:-?} for ${GITHUB_SHA:-?}."
-  gh release create "$TAG" --draft --title "$TITLE" --notes "$NOTES" "$KS" "$PW_FILE" >/dev/null
-  # If another run created one at the same moment, the oldest draft wins and ours is removed.
-  WINNER="$(draft_id || true)"
-  MINE="$(gh api --paginate "repos/$GH_REPO/releases?per_page=100" \
-    --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" | sort -n | tail -1)"
-  if [ -n "$WINNER" ] && [ "$WINNER" != "$MINE" ]; then
-    gh api -X DELETE "repos/$GH_REPO/releases/$MINE" || true
-    fetch_draft_key "$WINNER"
-    PW="$(cat "$PW_FILE")"
-  fi
-  SOURCE="draft release ${WINNER:-$TAG} (created by this run)"
-  use_key "$PW"
-  exit 0
-fi
-
-# 4. No permanent key available to this run.
+# 3. No permanent key available to this run.
 [ -n "$ID" ] && echo "::warning title=Signing::Draft release $ID exists but its key files couldn't be read."
 echo "PRISM_SIGNED=false" >> "$GITHUB_ENV"
-echo "::warning title=Signing::No permanent signing key for this run, so it's signed with a throwaway key and Software Update won't offer it."
+if [ "${REQUIRE_KEY:-false}" = "true" ]; then
+  echo "::error title=Signing::No permanent signing key, so this build stops here and nothing is published. Set the PRISM_KEYSTORE_B64 and PRISM_KEYSTORE_PASSWORD repo secrets (docs/release-signing.md)."
+  exit 1
+fi
+echo "::warning title=Signing::No permanent signing key for this run: a test build only, signed with a throwaway key, and never published."

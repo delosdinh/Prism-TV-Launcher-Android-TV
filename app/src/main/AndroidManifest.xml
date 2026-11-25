@@ -130,6 +130,14 @@
             android:process=":restart"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- Shown instead of Home when Prism TV crashes several times in a row (CrashLog). Own process, plain views. -->
+        <activity
+            android:name=".system.RescueActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:process=":rescue"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+
         <!-- Android's voice input screen, for dictation when the keyboard can't listen itself. -->
         <activity
             android:name=".ime.VoiceInputActivity"
