@@ -33,6 +33,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -387,6 +388,9 @@ private fun KeyCap(
     }
     Box(
         modifier
+            // The focused key pops out over its neighbours (a key drawn after it, like the mic beside the
+            // space bar, covered its edge), and stays on top while it settles back.
+            .zIndex(if (focused || s > 1.001f) 1f else 0f)
             .graphicsLayer {
                 scaleX = s
                 scaleY = s
