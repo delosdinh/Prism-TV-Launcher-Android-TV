@@ -299,7 +299,9 @@ private fun HomeBackdrop(
             animationSpec = tween(if (LocalPrism.current.lite) 350 else 900),
             label = "heroArt",
             modifier = Modifier.graphicsLayer {
-                alpha = if (aerialLiveBlur) stillAlpha else maxOf(stillAlpha, blur.value)
+                // An aerial on the video layer stays in view behind the grid too: it can't be blurred there,
+                // so a deeper tint (below) keeps the grid legible over it instead of the blurred still.
+                alpha = if (aerialLiveBlur || underHome) stillAlpha else maxOf(stillAlpha, blur.value)
             },
         ) { a ->
             if (a != null) {
@@ -344,6 +346,12 @@ private fun HomeBackdrop(
                 .fillMaxSize()
                 .graphicsLayer { alpha = blur.value }
                 .background(palette.bgBase.copy(alpha = palette.backgroundDim * 0.6f))
+        )
+        if (underHome) Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = blur.value * (1f - stillAlpha) }
+                .background(Color.Black.copy(alpha = 0.28f))
         )
         if (spot) SpotlightCard(card, expanded, visible = !blurred)
     }
