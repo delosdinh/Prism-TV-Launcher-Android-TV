@@ -6,7 +6,7 @@ package com.prismtv.launcher
  * edition says them its own way. The GitHub edition keeps the original words.
  */
 object Edition {
-    const val PrivacyPolicyUrl = "https://delosdinh.github.io/Prism-TV-Releases/privacy-policy.html"
+    const val PrivacyPolicyUrl = "https://delosdinh.github.io/Prism-TV-Launcher-Release/privacy-policy.html"
 
     private val PlayWords = listOf(
         ", like tvOS 26." to ".",

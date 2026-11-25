@@ -108,9 +108,9 @@ installs beside the GitHub one (it's a separate app, `com.prismtv.launcher.play`
 **Monitor and improve › Policy and programmes › App content**. Each card is a short form:
 
 - **Privacy policy**: a public web address. The listing kit's `privacy-policy.html` is ready (fill in
-  your support email). Host it free with GitHub Pages on the public `Prism-TV-Releases` repository:
+  your support email). Host it free with GitHub Pages on the public `Prism-TV-Launcher-Release` repository:
   add the file there, then that repository's **Settings › Pages › Deploy from a branch › main / (root)**.
-  The address becomes `https://delosdinh.github.io/Prism-TV-Releases/privacy-policy.html`, which the
+  The address becomes `https://delosdinh.github.io/Prism-TV-Launcher-Release/privacy-policy.html`, which the
   app's Settings › About › Privacy Policy already shows. (Pages needs a public repository on the free
   plan, which is why it goes there and not in the code repository.)
 - **Ads**: No.
