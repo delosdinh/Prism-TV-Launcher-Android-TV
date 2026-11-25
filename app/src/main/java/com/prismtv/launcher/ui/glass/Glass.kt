@@ -326,7 +326,7 @@ fun Modifier.glass(
                     !liquid || frosted -> clipPath(clip) {
                         drawBlurred()
                         drawRect(tint)
-                        if (liquid && bentRim) {
+                        if (liquid && bentRim && gpuOk) {
                             // Bend the (blurred) backdrop around the rim: thick-glass edges without
                             // sharp fragments of what's behind showing through.
                             clipPath(bentBand, clipOp = ClipOp.Difference) {
@@ -351,7 +351,8 @@ fun Modifier.glass(
                         drawBlurred(-strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                drawBlurred(strength * 0.40f)
+                                // A slow GPU draws the blurred backdrop once (Control Centre has a dozen of these).
+                                if (gpuOk) drawBlurred(strength * 0.40f)
                                 drawRect(rimLight)
                             }
                         }

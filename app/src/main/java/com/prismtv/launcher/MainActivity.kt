@@ -40,6 +40,7 @@ import com.prismtv.launcher.ui.theme.uiBlurRadius
 import com.prismtv.launcher.ui.theme.uiSaturation
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -511,10 +512,19 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
                     .then(isolate)
                     .backdropSource(backdrop, GlassSource.Full)
             ) {
+                // While something is open over Home (Control Centre, the sidebar, a folder, Settings…), Home is
+                // kept as one rendered picture: every frame of the overlay otherwise re-issued all of Home's
+                // drawing (each tile, image and glass surface) under it. On the AM9 that was most of a
+                // Control Centre frame. Home renders into it again only when something on it changes.
+                val sceneCached = vm.overlay != Overlay.None
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .then(isolate)
+                        .then(
+                            if (vm.isolateScene || sceneCached) Modifier.graphicsLayer {
+                                compositingStrategy = if (sceneCached) CompositingStrategy.Offscreen else CompositingStrategy.Auto
+                            } else Modifier
+                        )
                         .backdropSource(backdrop, GlassSource.Scene)
                 ) {
                     HomeScreen(vm, clock)
