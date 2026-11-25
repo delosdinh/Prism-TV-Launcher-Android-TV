@@ -1,4 +1,10 @@
-# Release signing: moving the key into GitHub secrets
+# Release signing: the key in GitHub secrets
+
+> **Done (2026-11-25).** The key is in repo secrets and CI reads it only from there. The
+> `scripts/signing-key.sh` check also compares its certificate SHA-256 with the permanent key's
+> (`5D:D9:6C:…:12:BE`) and stops the build if they differ. CI no longer reads the
+> `prism-signing-key` draft release; it is yours to keep as a backup or remove, whenever you like.
+> The steps below stay as a record, and for setting the secrets up again (e.g. in a new repository).
 
 Every Prism TV build is signed with one permanent key. Android only installs an update over an
 existing Prism TV if both are signed with the same key, so this key must never change.
@@ -47,17 +53,16 @@ That copies the text to your clipboard. (On macOS: `base64 -i prism.p12 | pbcopy
 3. That SHA-256 must be **the same** as in earlier runs (it was printed in the same place, with
    "from draft release" instead). Same fingerprint means same key, so TVs keep updating.
 
-If it says "draft release" there's a typo in a secret name; if the step fails, the password
-doesn't match the file.
+If the step fails, its message says what is wrong: a secret missing, a password that doesn't open
+the file, or a key that isn't the permanent one.
 
 ## 5. Afterwards
 
 - Store `prism.p12` and the password somewhere safe and offline too (a password manager is good).
   If both GitHub and your copy were lost, no future build could update existing installs.
 - Delete the downloaded files from your Downloads folder once they're backed up.
-- Tell Claude when step 4 shows "repo secrets". A small follow-up change then removes the draft
-  release from the build entirely and drops the build job's write permission to read-only for
-  the key. The draft itself stays untouched until **you** decide what to do with it.
+- CI no longer reads the draft release, and the build job is read-only. The draft itself is
+  yours to keep as a backup or remove, whenever you decide.
 
 ## Google Play later
 

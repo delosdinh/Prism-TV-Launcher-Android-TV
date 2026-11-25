@@ -20,10 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
-      # Write only to (a) read the signing key from the older draft release, which GitHub shows only to
-      # tokens that can write, and (b) save the build log to the ci-results branch when a build fails.
-      # Once the key is in repo secrets (docs/release-signing.md), (a) goes away.
-      contents: write
+      # Read-only: this job runs Gradle and its plugins with the signing key, so it can't change the
+      # repository or its releases. Publishing and saving logs happen in the jobs after it.
+      contents: read
     outputs:
       signed: ${{ steps.result.outputs.signed }}
       signer: ${{ steps.result.outputs.signer }}
@@ -56,8 +55,6 @@ jobs:
       # it's kept). Push builds publish, so they stop here if the key can't be found.
       - name: Signing key
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
           REQUIRE_KEY: ${{ github.event_name == 'push' }}
           PRISM_KEYSTORE_B64: ${{ secrets.PRISM_KEYSTORE_B64 }}
           PRISM_KEYSTORE_PASSWORD: ${{ secrets.PRISM_KEYSTORE_PASSWORD }}
@@ -134,14 +131,38 @@ jobs:
           path: app/build/outputs/bundle/playRelease/*.aab
           if-no-files-found: error
 
-      - name: Publish build log on failure
+      - name: Keep the build log on failure
         if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build-log.txt
+          if-no-files-found: ignore
+
+  # When the build fails, saves its log (and the errors in it) to the ci-results branch.
+  build-log:
+    name: Save build log
+    needs: build
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write   # only to save the log to the ci-results branch
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: build-log
+
+      - name: Publish build log
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p out
-          cp build-log.txt out/ || true
-          grep -E "^e: |error:|What went wrong|FAILURE" -A4 build-log.txt > out/errors.txt || true
+          cp build-log.txt out/ || echo "The build stopped before writing a log." > out/build-log.txt
+          grep -E "^e: |error:|What went wrong|FAILURE" -A4 out/build-log.txt > out/errors.txt || true
           bash scripts/publish-ci-results.sh out "build/${GITHUB_REF_NAME}"
 
   # Puts the build up for download and Software Update. Its own job, on pushes only, so the one
