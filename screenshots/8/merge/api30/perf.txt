@@ -1,22 +1,22 @@
-apk bytes: 4694051
-apk dex 1642981, images 2205122, audio 275054 (0 compressed), other 516197
-cold start ms:  2315 1990 2212 2128 2191  (median 2191)
+apk bytes: 4851587
+apk dex 1644684, images 2362661, audio 275054 (0 compressed), other 515763
+cold start ms:  2082 1932 2028 2596 2491  (median 2082)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  174 189 249 194 154  (median 189)
-walk: Total frames rendered: 123
-walk: Janky frames: 123 (100.00%)
+back to home ms:  235 195 152 169 180  (median 180)
+walk: Total frames rendered: 117
+walk: Janky frames: 117 (100.00%)
 walk: 50th percentile: 200ms
-walk: 90th percentile: 250ms
-walk: 99th percentile: 1000ms
-walk: Number Slow UI thread: 58
-rapid: Total frames rendered: 9
-rapid: Janky frames: 9 (100.00%)
-rapid: 90th percentile: 125ms
-rapid: Number Slow UI thread: 2
-memory: Native Heap    30223    30180        0        0    32044    45604    32696     3243
-memory: Java Heap:     8116                          26016
-memory: Native Heap:    30180                          32044
+walk: 90th percentile: 300ms
+walk: 99th percentile: 650ms
+walk: Number Slow UI thread: 55
+rapid: Total frames rendered: 17
+rapid: Janky frames: 17 (100.00%)
+rapid: 90th percentile: 133ms
+rapid: Number Slow UI thread: 6
+memory: Native Heap    30558    30516        0        0    32416    45920    32978     3222
+memory: Java Heap:     8528                          26428
+memory: Native Heap:    30516                          32416
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    62426            TOTAL RSS:   180700       TOTAL SWAP PSS:        2
-idle on home, 60 s: 235 ticks
-behind another app, 60 s: 1 ticks
+memory: TOTAL PSS:    62962            TOTAL RSS:   182144      TOTAL SWAP (KB):       28
+idle on home, 60 s: 256 ticks
+behind another app, 60 s: 2 ticks
