@@ -471,7 +471,8 @@ fun KeyboardOverlay(
             }
             val caret = rememberInfiniteTransition(label = "caret")
             val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
-            // The text field is Liquid Glass in its own colour (or the keyboard's): frosty, lavender, smoked or clear.
+            // The text field is Liquid Glass in its own colour (or the keyboard's): frosty, lavender, smoked or clear,
+            // always bending a softened copy of the screen, as iOS's search field does.
             val base = LocalPrism.current
             val fieldTheme = base.copy(palette = Palettes.of(fieldLook), material = GlassMaterial.Liquid, clearTint = fieldClear)
             val fieldInk = if (fieldLook == Appearance.Light && !fieldClear) Color(0xFF111318) else Color.White
@@ -485,7 +486,10 @@ fun KeyboardOverlay(
                             RoundedCornerShape(25.dp),
                             if (fieldClear) Color.White.copy(alpha = 0.08f)
                             else fieldTheme.palette.liquidTint.copy(alpha = if (fieldLook == Appearance.Light) 0.58f else 0.50f),
-                            GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f,
+                            // Over the blurred screen, like the Clear keyboard below it: sharp icons and
+                            // artwork behind a long field showed through as hard-edged slices (on TVs that
+                            // draw Refraction Bands, offset in the rim band too).
+                            GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f, blurredLens = true,
                         )
                         .padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
