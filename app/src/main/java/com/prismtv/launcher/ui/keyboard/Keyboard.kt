@@ -180,6 +180,8 @@ private fun AccentStrip(kb: KeyboardController, c: KeyColours, m: KeyboardMetric
         Modifier
             .offset(x.dp, y.dp)
             .size(stripW.dp, stripH.dp)
+            // Over the held key, which is raised as the focused key (it overlaps its top by a few dp).
+            .zIndex(2f)
             .graphicsLayer {
                 val a = appear.value
                 alpha = a.coerceIn(0f, 1f)
@@ -242,6 +244,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
                     Modifier
                         .offset((cc * cell).dp, (gridTop + vr * rowH).dp)
                         .size(m.unit.dp, rowH.dp)
+                        .zIndex(if (focused || s > 1.001f) 1f else 0f)
                         .graphicsLayer { scaleX = s; scaleY = s }
                         .then(if (focused) Modifier.shadow(10.dp, RoundedCornerShape(10.dp)).background(c.focus, RoundedCornerShape(10.dp)) else Modifier),
                     contentAlignment = Alignment.Center,
@@ -264,6 +267,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
                 Modifier
                     .offset(x.dp, y.dp)
                     .size(w.dp, m.keyH.dp)
+                    .zIndex(if (focused || s > 1.001f) 1f else 0f)
                     .graphicsLayer { scaleX = s; scaleY = s }
                     .background(
                         when {
@@ -325,6 +329,7 @@ private fun SuggestionBar(kb: KeyboardController, c: KeyColours, m: KeyboardMetr
                         Modifier
                             .offset((i * slotW).dp, 0.dp)
                             .size(slotW.dp, m.barH.dp)
+                            .zIndex(if (focused || sc > 1.001f) 1f else 0f)
                             .padding(horizontal = 3.dp)
                             .graphicsLayer { scaleX = sc; scaleY = sc }
                             .background(
