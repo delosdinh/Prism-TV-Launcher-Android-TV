@@ -3,7 +3,7 @@
 # Uses the debug-only intent extras (see LauncherViewModel.applyDebug) for deterministic states,
 # and real D-pad key events for the navigation/animation captures.
 set -uo pipefail
-APK="${1:-app/build/outputs/apk/debug/app-debug.apk}"
+APK="${1:-app/build/outputs/apk/github/debug/app-github-debug.apk}"
 OUT="${2:-shots}"
 PKG=com.prismtv.launcher
 ACT="$PKG/.MainActivity"

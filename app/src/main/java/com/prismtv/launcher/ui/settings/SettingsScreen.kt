@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Keyboard
@@ -288,6 +289,10 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "startup" to glyph(Icons.Rounded.PowerSettingsNew, 0xFF4CD964, 0xFF239B3E),
     "sleep" to glyph(Icons.Rounded.Timer, 0xFFC27BFF, 0xFF8A3FD1),
     "about" to glyph(Icons.Rounded.Info, 0xFF9C9CA3, 0xFF5E5E64),
+    "pro" to glyph(Icons.Rounded.WorkspacePremium, 0xFFFFC94D, 0xFFE08A00),
+    "pro:buy" to glyph(Icons.Rounded.WorkspacePremium, 0xFFFFC94D, 0xFFE08A00),
+    "pro:status" to glyph(Icons.Rounded.WorkspacePremium, 0xFFFFC94D, 0xFFE08A00),
+    "pro:restore" to glyph(Icons.Rounded.WorkspacePremium, 0xFFFFC94D, 0xFFE08A00),
     "restart" to glyph(Icons.Rounded.RestartAlt, 0xFF9C9CA3, 0xFF5E5E64),
     "reset" to glyph(Icons.Rounded.Restore, 0xFFFF6961, 0xFFD63A31),
     "upd:check" to glyph(com.prismtv.launcher.ui.components.PrismIcons.TvUpdate, 0xFF5AC8FA, 0xFF0A6CFF),
@@ -404,6 +409,7 @@ private fun pageGlyph(page: SettingsPage): Any = when (page) {
     SettingsPage.Access -> Glyphs.getValue("access")
     SettingsPage.Closing -> Glyphs.getValue("closing")
     SettingsPage.Shizuku -> Glyphs.getValue("cl:shizuku")
+    SettingsPage.Pro -> Glyphs.getValue("pro")
     SettingsPage.HomeApp -> Glyphs.getValue("homeApp")
     SettingsPage.RemoteButtons, SettingsPage.RemoteButton, SettingsPage.RemoteAction -> Glyphs.getValue("remote")
     SettingsPage.ScreenTime -> Glyphs.getValue("pr:screentime")

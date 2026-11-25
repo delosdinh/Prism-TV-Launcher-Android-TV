@@ -214,6 +214,7 @@ object ShizukuShell {
     }
 
     fun status(ctx: Context): Status {
+        if (com.prismtv.launcher.BuildConfig.PLAY) return Status.NotInstalled
         if (!alive()) return if (installed(ctx)) Status.NotRunning else Status.NotInstalled
         return try {
             when {
@@ -227,7 +228,7 @@ object ShizukuShell {
         }
     }
 
-    fun ready(): Boolean = try {
+    fun ready(): Boolean = !com.prismtv.launcher.BuildConfig.PLAY && try {
         Shizuku.pingBinder() && !Shizuku.isPreV11() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
     } catch (_: Throwable) {
         false
@@ -284,7 +285,7 @@ object RootShell {
         "/vendor/bin/su", "/debug_ramdisk/su", "/data/adb/ksu/bin/su", "/data/adb/magisk",
     )
 
-    fun present(): Boolean = Paths.any { runCatching { File(it).exists() }.getOrDefault(false) }
+    fun present(): Boolean = !com.prismtv.launcher.BuildConfig.PLAY && Paths.any { runCatching { File(it).exists() }.getOrDefault(false) }
 
     /** Asks for root (the root manager may show its prompt) and checks it works. */
     fun test(): Boolean = try {

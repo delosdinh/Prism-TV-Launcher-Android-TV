@@ -328,7 +328,7 @@ class PrismAccessibilityService : AccessibilityService() {
 
         /** On, and Android has given it the (newer) ability to see the Settings screen it presses Force Stop in. */
         val canCloseApps: Boolean
-            get() = instance?.let { s ->
+            get() = if (com.prismtv.launcher.BuildConfig.PLAY) false else instance?.let { s ->
                 runCatching {
                     (s.serviceInfo.capabilities and android.accessibilityservice.AccessibilityServiceInfo.CAPABILITY_CAN_RETRIEVE_WINDOW_CONTENT) != 0
                 }.getOrDefault(false)

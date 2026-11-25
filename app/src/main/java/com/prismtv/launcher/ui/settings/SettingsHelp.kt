@@ -6,7 +6,9 @@ import com.prismtv.launcher.SettingsPage
  * The short explanation under the artwork in Settings, for the focused row (as on tvOS). Rows made
  * per app, album, profile and so on share one line by their id's prefix.
  */
-fun settingsHelp(page: SettingsPage, id: String?): String? {
+fun settingsHelp(page: SettingsPage, id: String?): String? = rawHelp(page, id)?.let(com.prismtv.launcher.Edition::text)
+
+private fun rawHelp(page: SettingsPage, id: String?): String? {
     if (id == null) return null
     Exact[id]?.let { return it }
     Prefixes.firstOrNull { (prefix, _) -> id.startsWith(prefix) }?.let { return it.second }
@@ -38,6 +40,10 @@ private val Exact: Map<String, String> = mapOf(
     "startup" to "Shows Prism TV once after the TV starts, even when it isn't the default Home app.",
     "sleep" to "Turns the TV off after a set time. Select to choose how long.",
     "update" to "Check for and install new versions of Prism TV.",
+    "pro" to "Wallpapers, widgets, icon packs, profiles, Screen Time and more, unlocked once for every TV on your Google account.",
+    "pro:status" to "Prism Pro is bought once and stays with your Google account, on every TV signed in to it.",
+    "pro:buy" to "Buy Prism Pro once through Google Play. It's yours on every TV signed in to the same Google account.",
+    "pro:restore" to "Bought Prism Pro on another TV, or reinstalled? This asks Google Play again.",
     "backup" to "Save your settings, layout and folders to a file, or bring them back.",
     "access" to "What Prism TV may see: notifications, recommendations, recent apps, pictures and the microphone.",
     "about" to "The version, this TV's details, memory use and the last problem Prism TV ran into.",
@@ -226,6 +232,7 @@ private val Exact: Map<String, String> = mapOf(
 
 /** Lines shared by rows made per app, album, profile, picture… (checked in order). */
 private val Prefixes: List<Pair<String, String>> = listOf(
+    "pro:what:" to "Part of Prism Pro. Everything else in Prism TV stays free.",
     "app:" to "Show or hide this app on the Home Screen.",
     "rb:btn:" to "What this button does when pressed, and when held.",
     "ra:app:" to "The button opens this app.",

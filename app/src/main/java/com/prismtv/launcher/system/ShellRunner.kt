@@ -9,6 +9,8 @@ import android.content.Context
  */
 object ShellRunner {
     fun run(ctx: Context, command: String, allowPrompt: Boolean, rootAllowed: Boolean): LocalAdb.Result {
+        // Play edition: no Shizuku, root or adb (Play's policies); you type commands yourself if you want.
+        if (com.prismtv.launcher.BuildConfig.PLAY) return LocalAdb.Result.Off
         if (ShizukuShell.ready()) {
             ShizukuShell.exec(command)?.let { (exit, out) -> return LocalAdb.Result.Ok(out.trim(), exit) }
         }
@@ -19,6 +21,6 @@ object ShellRunner {
     }
 
     /** True when a command can run without anything to set up first (Shizuku, root or USB debugging is on). */
-    fun available(ctx: Context, rootAllowed: Boolean): Boolean =
-        ShizukuShell.ready() || (rootAllowed && RootShell.present()) || LocalAdb.enabled(ctx)
+    fun available(ctx: Context, rootAllowed: Boolean): Boolean = !com.prismtv.launcher.BuildConfig.PLAY && (
+        ShizukuShell.ready() || (rootAllowed && RootShell.present()) || LocalAdb.enabled(ctx))
 }

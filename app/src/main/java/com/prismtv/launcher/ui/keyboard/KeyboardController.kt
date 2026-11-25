@@ -544,6 +544,11 @@ class KeyboardController(
     // ----------------------------------------------------------------------------- dictation
 
     fun toggleDictation() {
+        if (!listening && !com.prismtv.launcher.data.Pro.active(app)) {
+            showNotice("Dictation is part of Prism Pro")
+            sound(Cue.Error)
+            return
+        }
         if (!micOn) {
             showNotice("Dictation isn't available here")
             sound(Cue.Error)

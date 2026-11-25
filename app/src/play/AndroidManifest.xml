@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Google Play edition: what Play's policies don't allow is taken out here (docs/editions.md).
+     Google Play installs updates, so no self-install permissions; no Shizuku, root or adb helpers. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- TV only: Google Play's target-API rule for TV apps (34+) is what lets targetSdk 35 through, and the
+         listing, screenshots and review are all for TV. -->
+    <uses-feature android:name="android.software.leanback" android:required="true" tools:replace="android:required" />
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" tools:node="remove" />
+
+    <application>
+        <receiver android:name=".update.UpdateReceiver" tools:node="remove" />
+        <receiver android:name=".system.ShizukuInstallReceiver" tools:node="remove" />
+        <provider android:name="rikka.shizuku.ShizukuProvider" tools:node="remove" />
+    </application>
+</manifest>
