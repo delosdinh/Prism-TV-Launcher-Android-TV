@@ -457,6 +457,13 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
     LaunchedEffect(vm.micPermissionTick) {
         if (vm.consumeTick("mic", vm.micPermissionTick)) (activity as? MainActivity)?.requestMicAccess()
     }
+    // Settings › Prism Pro › Unlock (Play edition): Google Play's purchase sheet, over Prism TV.
+    LaunchedEffect(vm.purchaseTick) {
+        if (vm.consumeTick("pro", vm.purchaseTick)) {
+            val act = activity as? MainActivity
+            if (act == null || !com.prismtv.launcher.data.ProStore.buy(act)) vm.proUnavailable()
+        }
+    }
     val keyboardLook = when (vm.prefs.keyboardColour) {
         KeyboardColour.Automatic -> appearance
         KeyboardColour.Light -> Appearance.Light

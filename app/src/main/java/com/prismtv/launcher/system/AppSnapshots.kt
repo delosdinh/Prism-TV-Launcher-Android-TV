@@ -32,7 +32,8 @@ object AppSnapshots {
     @Volatile var version = 0L
         private set
 
-    fun supported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+    /** Android 11+, GitHub edition only (the Play edition's Power & Home Button can't take screenshots). */
+    fun supported(): Boolean = !com.prismtv.launcher.BuildConfig.PLAY && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
     fun enabled(ctx: Context): Boolean =
         supported() && ctx.getSharedPreferences("prism_prefs", Context.MODE_PRIVATE).getBoolean(PrefKey, true)

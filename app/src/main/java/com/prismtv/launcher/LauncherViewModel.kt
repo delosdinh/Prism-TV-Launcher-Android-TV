@@ -160,6 +160,7 @@ enum class SettingsPage(val title: String) {
     Banner("Banner"), Profiles("Profiles"), Restrictions("Restrictions"), ScreensaverPictures("Screensaver Pictures"),
     Access("Privacy & Access"), Closing("Closing Apps"), Shizuku("Shizuku"), HomeApp("Home App"),
     RemoteButtons("Remote Buttons"), RemoteButton("Button"), RemoteAction("Action"), ScreenTime("Screen Time"),
+    Pro("Prism Pro"),
 }
 
 /**
@@ -176,6 +177,21 @@ private val AcknowledgementRows = listOf(
     SettingsRow("ack:kotlin", "Kotlin", "SOFTWARE", "Apache 2.0"),
     SettingsRow("ack:shizuku", "Shizuku API", "SOFTWARE", "Apache 2.0"),
     SettingsRow("ack:apple", "Apple TV and tvOS", "TRADEMARKS", "Apple Inc."),
+)
+
+/** Settings › Prism Pro: what Pro adds (data/Pro.kt has the full rules). */
+private val ProFeatures = listOf(
+    "Your Pictures, Shuffle and Aerials as Wallpaper",
+    "Card Spotlight and Title Logos",
+    "Widgets",
+    "Lift & Shine and Focus Wobble",
+    "Material Colour by Hand and Transparency Levels",
+    "Icon Packs and Custom Banners",
+    "Profiles, Restrictions and Screen Time",
+    "Banners Over Apps",
+    "More Remote Buttons and Hold Actions",
+    "Keyboard Colours, Predictions and Dictation",
+    "Screensaver Shuffle, 4K and Dolby Vision",
 )
 
 /** Prism Search results: apps, titles from apps' rows, and places in Settings. */
@@ -397,6 +413,90 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         return true
     }
     var permissionRequestTick by mutableIntStateOf(0)
+
+    // ---------------------------------------------------------------- Prism Pro (Play edition)
+
+    /** Pro is on: always in the GitHub edition; bought, or in the free trial, in the Play edition. */
+    var proActive by mutableStateOf(!BuildConfig.PLAY)
+        private set
+    /** Pro's price from Google Play, in the viewer's currency (null until Play has said). */
+    private var proPrice by mutableStateOf<String?>(null)
+    /** Settings › Prism Pro › Unlock: MainActivity opens Google Play's purchase sheet. */
+    var purchaseTick by mutableIntStateOf(0)
+
+    /**
+     * Works out whether Pro is on. Without it, anything set with Pro goes back to its free choice
+     * ([com.prismtv.launcher.data.Pro.freeOnly]), so a trial that ended (or a refund) leaves nothing paid on.
+     */
+    private fun refreshPro() {
+        if (!BuildConfig.PLAY) return
+        val on = com.prismtv.launcher.data.Pro.active(ctx)
+        val allowed = com.prismtv.launcher.data.Pro.playOnly(prefs).let { if (on) it else com.prismtv.launcher.data.Pro.freeOnly(it) }
+        if (allowed != prefs) updatePrefs(allowed)
+        if (proActive != on) {
+            if (proActive && !on) showBanner("Prism Pro", "Your free trial of Prism Pro has ended. Settings › Prism Pro unlocks it again.", Icons.Rounded.Info)
+            proActive = on
+        }
+    }
+
+    /** Settings that need Pro to change (selecting one without it opens Settings › Prism Pro). */
+    private fun needsPro(id: String, p: LauncherPrefs): Boolean = when {
+        id.startsWith("gc:") -> id != "gc:${GlassColour.Automatic.name}"
+        id.startsWith("ui:") -> id != "ui:${UiTransparency.High.name}"
+        id == "fx:${FocusEffect.Lift.name}" -> true
+        id == "wobble" -> !p.focusWobble
+        id == "topShelf" -> p.topShelfStyle != TopShelfStyle.Spotlight
+        id == "logos" -> !p.titleLogos
+        id == "widgets" -> true
+        id == "wp:shuffle" -> p.wallpaperShuffle == 0
+        id == "wp:aerial" -> !aerialWallpaperOn
+        id.startsWith("wp:photo:") -> true
+        id == "iconPack" -> true
+        id == "kbColour" || id == "kbField" -> true
+        id == "kb:predictive" -> !p.predictive
+        id == "bannersOver" -> !p.bannersOverApps
+        id == "pr:add" -> true
+        // Limits already set can still be seen and removed.
+        id == "pr:restrict" -> activeProfileSpec.blocked.isEmpty()
+        id == "pr:screentime" -> !activeProfileSpec.timeLimited
+        id == "rb:homeHold" || id == "rbe:hold" -> true
+        id == "rb:add" -> remoteMappings().size >= com.prismtv.launcher.data.Pro.FreeRemoteButtons
+        else -> false
+    }
+
+    private fun proLabel(): String = when {
+        proActive && com.prismtv.launcher.data.Pro.owned(ctx) -> "Unlocked"
+        proActive -> com.prismtv.launcher.data.Pro.trialDaysLeft(ctx).let { "Trial · $it ${if (it == 1) "Day" else "Days"} Left" }
+        else -> proPrice ?: "Unlock"
+    }
+
+    private fun proRows(): List<SettingsRow> {
+        val owned = com.prismtv.launcher.data.Pro.owned(ctx)
+        val days = com.prismtv.launcher.data.Pro.trialDaysLeft(ctx)
+        val top = if (owned) {
+            listOf(SettingsRow("pro:status", "Prism Pro", "PRISM PRO", "Unlocked"))
+        } else {
+            listOf(
+                SettingsRow("pro:buy", "Unlock Prism Pro", "PRISM PRO", proPrice ?: "Google Play", chevron = true),
+                SettingsRow("pro:status", "Free Trial", "PRISM PRO", if (days > 0) "$days ${if (days == 1) "Day" else "Days"} Left" else "Ended"),
+                SettingsRow("pro:restore", "Restore Purchase", "PRISM PRO", chevron = true),
+            )
+        }
+        return top + ProFeatures.mapIndexed { i, f -> SettingsRow("pro:what:$i", f, "WHAT'S IN PRO") }
+    }
+
+    /** Without Pro: says what's Pro, and opens Settings › Prism Pro. */
+    private fun openPro(feature: String) {
+        pushPage(SettingsPage.Pro)
+        settingsFocus[SettingsPage.Pro] = 0
+        com.prismtv.launcher.data.ProStore.refresh()
+        showBanner("Prism Pro", "$feature is part of Prism Pro.", Icons.Rounded.Info)
+    }
+
+    /** MainActivity: Google Play's purchase sheet couldn't open. */
+    fun proUnavailable() {
+        showBanner("Prism Pro", "Google Play isn't ready yet. Check that this TV is signed in to Google Play, then try again.", Icons.Rounded.Info)
+    }
 
     // ---------------------------------------------------------------- editing
     var contextMenu by mutableStateOf<ContextMenuState?>(null)
@@ -726,6 +826,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun maybeAutoCheckForUpdate() {
+        if (BuildConfig.PLAY) return // Google Play updates the Play edition
         pendingAfterPermission?.let { info ->
             if (Updater.canInstall(ctx)) {
                 pendingAfterPermission = null
@@ -744,7 +845,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun checkForUpdates(manual: Boolean) {
-        if (updateJob?.isActive == true) return
+        if (BuildConfig.PLAY || updateJob?.isActive == true) return
         updateJob = viewModelScope.launch {
             updateStatus = "Checking…"
             val result = Updater.check()
@@ -767,6 +868,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** "Prism TV x is available" — Update Now / Later. Only shown on a quiet Home Screen. */
     private fun offerUpdate(info: UpdateInfo) {
+        if (BuildConfig.PLAY) return
         if (debugDriven || dialog != null || launchAnim != null || (overlay != Overlay.None && overlay != Overlay.Settings)) return
         val notes = info.notes.takeIf { it.isNotBlank() }?.let { "\n\nWhat's new: $it" } ?: ""
         dialog = DialogSpec(
@@ -782,6 +884,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun startUpdate(info: UpdateInfo) {
+        if (BuildConfig.PLAY) return // Google Play installs the Play edition's updates
         if (!Updater.canInstall(ctx)) {
             dialog = DialogSpec(
                 "Allow Updates",
@@ -1591,6 +1694,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         homeVisible = true
         noteInteraction()
         resumeTick++
+        refreshPro()
+        if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
         refreshRecommendations()
         maybeAutoCheckForUpdate()
         refreshWeather()
@@ -3003,7 +3108,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsPage.Apps, SettingsPage.Wallpaper, SettingsPage.Widgets, SettingsPage.TextSize, SettingsPage.Profiles,
             SettingsPage.Backup, SettingsPage.IconPack, SettingsPage.Access, SettingsPage.Closing, SettingsPage.Shizuku,
             SettingsPage.HomeApp, SettingsPage.RemoteButtons, SettingsPage.SoftwareUpdate, SettingsPage.About,
-        ).map { SettingSearchResult(it.title, "Settings", it) }
+        ).filter { !BuildConfig.PLAY || (it != SettingsPage.Shizuku && it != SettingsPage.SoftwareUpdate) }
+            .map { SettingSearchResult(it.title, "Settings", it) }
         val rows = listOf(
             SettingSearchResult("Lite Mode", "Appearance", SettingsPage.Appearance, "lite"),
             SettingSearchResult("Liquid Glass", "Appearance", SettingsPage.Appearance, "material"),
@@ -3026,7 +3132,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingSearchResult("Notifications", "Privacy & Access", SettingsPage.Access, "notif"),
             SettingSearchResult("Dictation", "Keyboard", SettingsPage.Keyboard),
         )
-        pages + rows
+        pages + rows.filter { !BuildConfig.PLAY || it.rowId != "snapshots" }
     }
 
     private fun search(query: String): List<SearchResult> {
@@ -3181,7 +3287,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 ) {
                     showBanner(
                         "Remote Buttons",
-                        "Holding works now. To keep the button's usual press as well, set up Shizuku (Settings › Apps › Closing Apps), or choose a Press action.",
+                        if (BuildConfig.PLAY) "Holding works now. While it has a hold action, the button's usual press does nothing: choose a Press action for it too."
+                        else "Holding works now. To keep the button's usual press as well, set up Shizuku (Settings › Apps › Closing Apps), or choose a Press action.",
                         Icons.Rounded.Info,
                     )
                 }
@@ -3487,6 +3594,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun closingRows(): List<SettingsRow> {
+        // Play edition: apps you swipe away have their memory freed. Closing them completely needs
+        // Shizuku, root or pressing Force Stop through Accessibility, which are GitHub-edition only.
+        if (BuildConfig.PLAY) return listOf(
+            SettingsRow("cl:full", "Close Apps Completely", "APP SWITCHER", onOff(prefs.closeCompletely)),
+            SettingsRow("cl:using", "Closing With", "APP SWITCHER", closingWithLabel()),
+        )
         val shizuku = shizukuStatus()
         val a11y = PrismAccessibilityService.isEnabled
         return listOfNotNull(
@@ -3522,6 +3635,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      * on itself where it can (Shizuku, root or the TV's own debugging), keeping any other services on.
      */
     private fun setUpPowerAndHome() {
+        if (BuildConfig.PLAY) {
+            setUpPowerAndHomePlay()
+            return
+        }
         val shell = com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)
         val open = DialogButton("Open Accessibility Settings") {
             if (!SystemActions.openAccessibility(ctx)) {
@@ -3554,6 +3671,48 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             code = "settings put secure enabled_accessibility_services ${ctx.packageName}/.system.PrismAccessibilityService\n" +
                 "settings put secure accessibility_enabled 1",
             codeNote = TypeNote,
+        )
+        dialogFocus = 0
+    }
+
+    /**
+     * Play edition: Google Play asks apps that use Accessibility for something other than helping people
+     * with disabilities to say exactly what it's used for, and to get a yes, before it's turned on. This is
+     * that disclosure; Prism TV only opens Android's Accessibility settings after Agree.
+     */
+    private fun setUpPowerAndHomePlay() {
+        val open = {
+            if (!SystemActions.openAccessibility(ctx)) {
+                showBanner("Power & Home Button", "This TV has no Accessibility settings screen.", Icons.Rounded.Info)
+            }
+        }
+        if (PrismAccessibilityService.isEnabled) {
+            dialog = DialogSpec(
+                "Power & Home Button Is On",
+                "It lets the remote's Home button open Prism TV, and runs Remote Buttons, the power menu, the Sleep Timer " +
+                    "and Banners Over Apps. To turn it off, open Accessibility settings and turn off Prism TV Power & Home Button.",
+                listOf(DialogButton("Open Accessibility Settings") { open() }, DialogButton("Keep On") {}),
+            )
+            dialogFocus = 1
+            return
+        }
+        dialog = DialogSpec(
+            "Use the Accessibility service?",
+            "Prism TV uses Android's Accessibility service, \"Prism TV Power & Home Button\", so that:\n" +
+                "• your remote's Home button opens Prism TV, even on TVs that keep another home screen,\n" +
+                "• Remote Buttons can give your remote's buttons new actions,\n" +
+                "• Control Centre can open the power menu and the Sleep Timer can put the TV to sleep,\n" +
+                "• notification banners can appear over other apps, if you turn them on.\n\n" +
+                "To do this, it sees which remote buttons you press and which app is on screen. It doesn't read or " +
+                "record what's on screen or what you type, and nothing it sees leaves your TV or is shared with anyone. " +
+                "You can turn it off at any time in Settings › Accessibility.",
+            listOf(
+                DialogButton("Agree & Open Settings") {
+                    ctx.getSharedPreferences("prism_pro", Context.MODE_PRIVATE).edit().putLong("a11yConsentAt", System.currentTimeMillis()).apply()
+                    open()
+                },
+                DialogButton("Not Now") {},
+            ),
         )
         dialogFocus = 0
     }
@@ -3799,7 +3958,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (!com.prismtv.launcher.system.ShellRunner.available(ctx, prefs.rootClose)) {
             dialog = DialogSpec(
                 title,
-                "This needs USB debugging (Settings › Apps › Closing Apps › Shizuku shows how) or Shizuku. Or type this " +
+                if (BuildConfig.PLAY) "Only Android's own shell can do this. Type this command in a shell on the TV:"
+                else "This needs USB debugging (Settings › Apps › Closing Apps › Shizuku shows how) or Shizuku. Or type this " +
                     "command yourself:",
                 listOf(DialogButton("OK") {}),
                 code = command,
@@ -3981,6 +4141,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun installShizuku() {
+        if (BuildConfig.PLAY) return
         if (com.prismtv.launcher.system.ShizukuShell.installed(ctx)) {
             showBanner("Shizuku", "Shizuku is installed. Next, turn on USB debugging.", Icons.Rounded.CheckCircle, Cue.Confirm)
             focusNextShizukuStep()
@@ -4051,6 +4212,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Once per run, a little after Prism TV opens: Shizuku stops when the TV restarts, so start it again. */
     private fun maybeStartShizuku() {
+        if (BuildConfig.PLAY) return
         if (shizukuAutoStartTried || !prefs.shizukuAutoStart || debugDriven) return
         shizukuAutoStartTried = true
         if (!com.prismtv.launcher.system.ShizukuShell.installed(ctx)) return
@@ -4074,10 +4236,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         open: Pair<String, () -> Unit>? = null,
     ) {
         dialog = DialogSpec(
-            title, intro,
+            title,
+            if (!BuildConfig.PLAY) intro else intro
+                .replace("select Do It for Me, or type", "type")
+                .replace("Select Do It for Me, or type", "Type")
+                .replace("Select Ask Android or Do It for Me, or type", "Select Ask Android, or type"),
             listOfNotNull(
                 open?.let { (label, action) -> DialogButton(label, action) },
-                DialogButton("Do It for Me") { runShellForYou(title, command, done, doneMessage) },
+                // Play edition: no Shizuku, root or adb, so only the command to type yourself.
+                if (BuildConfig.PLAY) null else DialogButton("Do It for Me") { runShellForYou(title, command, done, doneMessage) },
                 DialogButton("Cancel") {},
             ),
             code = command,
@@ -4150,7 +4317,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     com.prismtv.launcher.system.AppCloser.Method.Accessibility ->
                         "Prism TV presses Force Stop in Settings for you, behind a still of the screen. It takes a moment."
                     com.prismtv.launcher.system.AppCloser.Method.MemoryOnly ->
-                        if (p.closeCompletely) "Turn on Shizuku or Power & Home Button below to close apps completely."
+                        if (BuildConfig.PLAY) "Apps you swipe away have their memory freed. Android may keep a few of them ready in the background."
+                        else if (p.closeCompletely) "Turn on Shizuku or Power & Home Button below to close apps completely."
                         else "Apps you swipe away have their memory freed, and may keep running."
                 },
                 Icons.Rounded.Info,
@@ -4184,11 +4352,25 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun settingsRows(page: SettingsPage): List<SettingsRow> = when (page) {
+    /** A page's rows. Without Pro, settings that need it say so on the right. */
+    fun settingsRows(page: SettingsPage): List<SettingsRow> {
+        var rows = rawSettingsRows(page)
+        if (BuildConfig.PLAY) rows = rows.map { r ->
+            val t = Edition.text(r.title)
+            val v = r.value?.let(Edition::text)
+            if (t == r.title && v == r.value) r else r.copy(title = t, value = v)
+        }
+        if (proActive) return rows
+        val p = prefs
+        return rows.map { r -> if (r.value == null && r.toggle == null && needsPro(r.id, p)) r.copy(value = "Pro") else r }
+    }
+
+    private fun rawSettingsRows(page: SettingsPage): List<SettingsRow> = when (page) {
         // Reading resumeTick refreshes rows (Recent Apps Access, Power & Home Button) as soon as the
         // user comes back from Android's settings.
         // Grouped like tvOS: you and how it looks, then apps, the remote, and the system.
         SettingsPage.Root -> resumeTick.let { _ -> listOfNotNull(
+            if (BuildConfig.PLAY) SettingsRow("pro", "Prism Pro", "GENERAL", proLabel(), chevron = true) else null,
             SettingsRow("profile", "Profiles", "GENERAL", profileName(), chevron = true),
             SettingsRow("appearance", "Appearance", "GENERAL", prefs.appearance.label, chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
@@ -4207,7 +4389,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("homeOverride", "Home Button Opens Prism TV", "REMOTE & POWER", onOff(prefs.homeOverride)),
             SettingsRow("startup", "Open Prism TV at Startup", "REMOTE & POWER", onOff(prefs.openAtStartup)),
             SettingsRow("sleep", "Sleep Timer", "REMOTE & POWER", sleepLabel()),
-            SettingsRow("update", "Software Update", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
+            // Google Play updates the Play edition.
+            if (BuildConfig.PLAY) null else SettingsRow("update", "Software Update", "SYSTEM", if (availableUpdate != null) "Update Available" else null, chevron = true),
             SettingsRow("backup", "Backup & Restore", "SYSTEM", chevron = true),
             SettingsRow("access", "Privacy & Access", "SYSTEM", accessLabel(), chevron = true),
             SettingsRow("about", "About", "SYSTEM", chevron = true),
@@ -4260,7 +4443,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // Each group together: focus, the Top Shelf, widgets, the time pill, then the layout.
         SettingsPage.HomeScreen -> FocusEffect.entries.map {
             SettingsRow("fx:${it.name}", it.label, "FOCUS EFFECT", selectable = true, checked = prefs.focusEffect == it)
-        } + listOf(
+        } + listOfNotNull(
             SettingsRow("wobble", "Focus Wobble", "FOCUS EFFECT", onOff(prefs.focusWobble)),
             SettingsRow("hero", "Top Shelf", "TOP SHELF", onOff(prefs.heroEnabled)),
             SettingsRow("topShelf", "Top Shelf Style", "TOP SHELF", prefs.topShelfStyle.label),
@@ -4275,7 +4458,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("wifi", "Wi-Fi", "TIME PILL", onOff(prefs.wifiStatus)),
             SettingsRow("notif", "Notifications", "TIME PILL", if (status().notif) "Allowed" else "Not Allowed", chevron = !status().notif),
             SettingsRow("bannersOver", "Banners Over Apps", "TIME PILL", bannersOverLabel()),
-            SettingsRow("snapshots", "App Snapshots", "APP SWITCHER", snapshotsLabel()),
+            // GitHub edition only: the Play edition's Power & Home Button takes no screenshots.
+            if (BuildConfig.PLAY) null else SettingsRow("snapshots", "App Snapshots", "APP SWITCHER", snapshotsLabel()),
             SettingsRow("columns", "Columns", "LAYOUT", prefs.columns.toString()),
             SettingsRow("labels", "App Names", "LAYOUT", prefs.labels.label),
             SettingsRow("resetLayout", "Reset Home Screen Layout", "LAYOUT"),
@@ -4284,7 +4468,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // When it starts, what it shows, how aerials play, and the system screensaver.
         SettingsPage.Screensaver -> prefs.aerialSource.let { source ->
             val pictures = source == AerialSource.Pictures || source == AerialSource.Shuffle
-            val aerials = source == AerialSource.Apple || source == AerialSource.Shuffle
+            val aerials = !BuildConfig.PLAY && (source == AerialSource.Apple || source == AerialSource.Shuffle)
             listOfNotNull(
                 SettingsRow("ss:show", "Show Screensaver", "SCREENSAVER", chevron = true),
                 SettingsRow("ss:after", "Start After", "SCREENSAVER", startAfterLabel(prefs.screensaverAfter)),
@@ -4320,8 +4504,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             fun toggle(key: String): Boolean? = if (shuffling) key in inShuffle else null
             listOf(
                 SettingsRow("wp:shuffle", "Shuffle", "SHUFFLE", com.prismtv.launcher.data.shuffleLabel(prefs.wallpaperShuffle)),
-                SettingsRow("wp:aerial", "Apple TV Aerials", "MOVING WALLPAPER", toggle = aerialWallpaperOn),
-            ) + Wallpapers.map { (name, _) ->
+                if (BuildConfig.PLAY) null else SettingsRow("wp:aerial", "Apple TV Aerials", "MOVING WALLPAPER", toggle = aerialWallpaperOn),
+            ).filterNotNull() + Wallpapers.map { (name, _) ->
                 SettingsRow(
                     "wp:scene:$name", wallpaperName(name),
                     if (shuffling) "PRISM WALLPAPERS · IN SHUFFLE" else "PRISM WALLPAPERS",
@@ -4421,11 +4605,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         SettingsPage.Profiles -> profileRows()
         SettingsPage.Restrictions -> restrictionRows()
         SettingsPage.ScreensaverPictures -> screensaverPictureRows()
-        SettingsPage.Acknowledgements -> AcknowledgementRows
+        SettingsPage.Acknowledgements -> if (BuildConfig.PLAY) AcknowledgementRows.filter { it.id != "ack:shizuku" && it.id != "ack:apple" } else AcknowledgementRows
+        SettingsPage.Pro -> proRows()
         SettingsPage.About -> listOf(
             SettingsRow("i:name", "Name", "PRISM TV", "Prism TV Launcher"),
             SettingsRow("i:ver", "Version", "PRISM TV", BuildConfig.VERSION_NAME),
             SettingsRow("i:legal", "Acknowledgements", "PRISM TV", chevron = true),
+            SettingsRow("i:privacy", "Privacy Policy", "PRISM TV", chevron = true),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
             SettingsRow("i:glass", "Liquid Glass", "DEVICE", when {
@@ -4482,7 +4668,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun settingsSelect(r: SettingsRow) {
         val p = prefs
+        if (!proActive && needsPro(r.id, p)) {
+            openPro(r.title)
+            return
+        }
         when {
+            r.id == "pro" -> {
+                pushPage(SettingsPage.Pro)
+                com.prismtv.launcher.data.ProStore.refresh()
+            }
+            r.id == "pro:buy" -> purchaseTick++
+            r.id == "pro:restore" -> {
+                com.prismtv.launcher.data.ProStore.refresh()
+                showBanner("Prism Pro", "Asking Google Play… If Prism Pro was bought with this TV's Google account, it unlocks in a moment.", Icons.Rounded.Info)
+            }
             r.id == "appearance" -> pushPage(SettingsPage.Appearance)
             r.id == "material" -> {
                 pushPage(SettingsPage.Appearance)
@@ -4594,6 +4793,18 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "apps" -> pushPage(SettingsPage.Apps)
             r.id == "about" -> pushPage(SettingsPage.About)
             r.id == "i:legal" -> pushPage(SettingsPage.Acknowledgements)
+            r.id == "i:privacy" -> {
+                dialog = DialogSpec(
+                    "Privacy Policy",
+                    "Prism TV has no account, ads or analytics, and keeps your settings, pictures and app use on this TV. " +
+                        "It goes online only for what you see: the weather (your approximate location, from the TV's internet " +
+                        "address), title logos and artwork" + (if (BuildConfig.PLAY) "" else ", aerial videos and Software Update") +
+                        (if (BuildConfig.PLAY) ", and Prism Pro purchases through Google Play." else ".") +
+                        "\n\nThe full policy: " + Edition.PrivacyPolicyUrl,
+                    listOf(DialogButton("OK") {}),
+                )
+                dialogFocus = 0
+            }
             r.id == "i:crash" -> {
                 dialog = DialogSpec(
                     "Last Problem",
@@ -4668,9 +4879,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                         "It shows with Card Spotlight (around the title's card), or with the Top Shelf off.",
                     listOf(
                         DialogButton("Use Card Spotlight") {
-                            updatePrefs(prefs.copy(topShelfStyle = TopShelfStyle.Spotlight, heroEnabled = true))
-                            loadPhotos()
-                            pushPage(SettingsPage.Wallpaper)
+                            if (!proActive) {
+                                openPro("Card Spotlight")
+                            } else {
+                                updatePrefs(prefs.copy(topShelfStyle = TopShelfStyle.Spotlight, heroEnabled = true))
+                                loadPhotos()
+                                pushPage(SettingsPage.Wallpaper)
+                            }
                         },
                         DialogButton("Choose Anyway") { loadPhotos(); pushPage(SettingsPage.Wallpaper) },
                         DialogButton("Cancel") {},
@@ -4746,7 +4961,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "inputs" -> pushPage(SettingsPage.Inputs)
             r.id == "closing" -> pushPage(SettingsPage.Closing)
             r.id.startsWith("cl:") -> selectClosing(r.id)
-            r.id.startsWith("sz:") -> selectShizuku(r.id)
+            r.id.startsWith("sz:") -> if (!BuildConfig.PLAY) selectShizuku(r.id)
             r.id == "homeApp" -> pushPage(SettingsPage.HomeApp)
             r.id.startsWith("ha:") -> selectHomeApp(r.id)
             r.id == "iconPack" -> {
@@ -4817,15 +5032,31 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "ss:media" -> updatePrefs(p.copy(screensaverWaitForMedia = !p.screensaverWaitForMedia))
             r.id == "ss:source" -> {
-                val next = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]
+                var next = AerialSource.entries[(p.aerialSource.ordinal + 1) % AerialSource.entries.size]
+                if (BuildConfig.PLAY && next == AerialSource.Apple) next = AerialSource.entries[(next.ordinal + 1) % AerialSource.entries.size]
+                if (!proActive && next == AerialSource.Shuffle) {
+                    next = AerialSource.entries[(next.ordinal + 1) % AerialSource.entries.size]
+                    showBanner("Prism Pro", "Shuffle is part of Prism Pro.", Icons.Rounded.Info)
+                }
                 updatePrefs(p.copy(aerialSource = next))
                 // Your pictures need photo access; ask once when a source that uses them is picked.
                 if ((next == AerialSource.Pictures || next == AerialSource.Shuffle) && !hasPhotoAccess()) photoPermissionTick++
             }
-            r.id == "ss:quality" -> updatePrefs(p.copy(aerialQuality = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]))
+            r.id == "ss:quality" -> {
+                var next = AerialQuality.entries[(p.aerialQuality.ordinal + 1) % AerialQuality.entries.size]
+                if (!proActive && next == AerialQuality.UHD) {
+                    next = AerialQuality.entries[(next.ordinal + 1) % AerialQuality.entries.size]
+                    showBanner("Prism Pro", "4K aerials are part of Prism Pro.", Icons.Rounded.Info)
+                }
+                updatePrefs(p.copy(aerialQuality = next))
+            }
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
             r.id == "ss:range" -> {
-                val next = AerialRange.entries[(p.aerialRange.ordinal + 1) % AerialRange.entries.size]
+                var next = AerialRange.entries[(p.aerialRange.ordinal + 1) % AerialRange.entries.size]
+                if (!proActive && next == AerialRange.DolbyVision) {
+                    next = AerialRange.entries[(next.ordinal + 1) % AerialRange.entries.size]
+                    showBanner("Prism Pro", "Dolby Vision aerials are part of Prism Pro.", Icons.Rounded.Info)
+                }
                 updatePrefs(p.copy(aerialRange = next))
                 if (next == AerialRange.DolbyVision) {
                     val dv = dolbyVision
@@ -5004,6 +5235,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Hold OK › Change Banner: pick one of your pictures for an app. */
     private fun openBannerPage(app: LauncherApp) {
+        if (!proActive) {
+            settingsStack = listOf(SettingsPage.Root)
+            overlay = Overlay.Settings
+            openPro("Change Banner")
+            return
+        }
         bannerAppId = app.id
         statusCache = null
         settingsStack = listOf(SettingsPage.Banner)
@@ -5328,7 +5565,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 sounds.play(sound)
             }
         }
-        val spec = BannerSpec(title, message, icon)
+        val spec = BannerSpec(Edition.text(title), Edition.text(message), icon)
         banner = spec
         bannerJob?.cancel()
         bannerJob = viewModelScope.launch {
@@ -5795,8 +6032,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             (ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager)
                 .registerDefaultNetworkCallback(networkWatch)
         }
+        // Prism Pro (Play edition): what Google Play says is owned, and the price to show.
+        if (BuildConfig.PLAY) {
+            refreshPro()
+            com.prismtv.launcher.data.ProStore.start(ctx)
+            viewModelScope.launch { com.prismtv.launcher.data.ProStore.price.collect { proPrice = it } }
+            viewModelScope.launch {
+                var owned = com.prismtv.launcher.data.Pro.owned(ctx)
+                com.prismtv.launcher.data.ProStore.changes.collect {
+                    refreshPro()
+                    val now = com.prismtv.launcher.data.Pro.owned(ctx)
+                    if (now && !owned) showBanner("Prism Pro", "Thank you! Prism Pro is unlocked.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    owned = now
+                    resumeTick++
+                }
+            }
+        }
         // Shizuku hands over (or loses) its connection whenever it starts or stops: refresh Settings.
-        runCatching {
+        if (!BuildConfig.PLAY) runCatching {
             rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(shizukuConnected)
             rikka.shizuku.Shizuku.addBinderDeadListener(shizukuGone)
         }
@@ -5840,7 +6093,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             (ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager)
                 .unregisterNetworkCallback(networkWatch)
         }
-        runCatching {
+        if (!BuildConfig.PLAY) runCatching {
             rikka.shizuku.Shizuku.removeBinderReceivedListener(shizukuConnected)
             rikka.shizuku.Shizuku.removeBinderDeadListener(shizukuGone)
         }

@@ -45,8 +45,15 @@ sealed interface InstallEvent {
  */
 object Updater {
     private const val TAG = "PrismUpdate"
-    private const val RELEASE = "https://github.com/delosdinh/Prism-TV-Launcher-Android-TV/releases/download/preview"
-    private const val MANIFEST = "$RELEASE/update.json"
+    /**
+     * Where CI publishes the APK and update.json: a public releases-only repository (BuildConfig.UPDATE_URL),
+     * so the code repository can be private. Builds made before the move read the code repository's own
+     * "preview" release ([LEGACY]); CI publishes to both until it's made private, and this falls back to it.
+     */
+    private val RELEASES: List<String> = if (BuildConfig.PLAY) emptyList() else listOf(
+        BuildConfig.UPDATE_URL,
+        "https://github.com/delosdinh/Prism-TV-Launcher-Android-TV/releases/download/preview",
+    ).filter { it.isNotBlank() }.distinct()
 
     private val _events = MutableSharedFlow<InstallEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<InstallEvent> = _events
@@ -58,7 +65,17 @@ object Updater {
     /** Returns the newer build, or null when this is the latest (or the check failed). */
     suspend fun check(): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
         runCatching {
-            val json = JSONObject(httpText(MANIFEST))
+            var lastError: Throwable? = null
+            var release = ""
+            var text: String? = null
+            for (r in RELEASES) {
+                text = runCatching { httpText("$r/update.json") }.onFailure { lastError = it }.getOrNull()
+                if (text != null) {
+                    release = r
+                    break
+                }
+            }
+            val json = JSONObject(text ?: throw (lastError ?: IllegalStateException("No update source")))
             val code = json.getInt("versionCode")
             if (code <= BuildConfig.VERSION_CODE) return@runCatching null
             val apk = if (BuildConfig.DEBUG) json.optString("debugApk", "prismtv-debug.apk") else json.optString("apk", "prismtv.apk")
@@ -66,7 +83,7 @@ object Updater {
                 versionCode = code,
                 versionName = json.optString("versionName", code.toString()),
                 notes = json.optString("notes").trim(),
-                apkUrl = if (apk.startsWith("http")) apk else "$RELEASE/$apk",
+                apkUrl = if (apk.startsWith("http")) apk else "$release/$apk",
             )
         }.onFailure { Log.w(TAG, "Update check failed", it) }
     }

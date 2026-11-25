@@ -17,6 +17,13 @@ android {
 
     targetProjectPath = ":app"
 
+    // The same editions as :app (a producer needs the flavours its target app has).
+    flavorDimensions += "store"
+    productFlavors {
+        create("github") { dimension = "store" }
+        create("play") { dimension = "store" }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

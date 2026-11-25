@@ -34,6 +34,9 @@ object AerialCatalog {
     private const val MAX_AGE = 7L * 24 * 60 * 60 * 1000
 
     suspend fun load(ctx: Context, quality: AerialQuality, range: AerialRange): List<AerialVideo> = withContext(Dispatchers.IO) {
+        // Play edition: Apple's aerial videos aren't offered (Google Play's IP rules); the screensaver and
+        // wallpaper fall back to Prism's own scenes and your pictures.
+        if (com.prismtv.launcher.BuildConfig.PLAY) return@withContext emptyList()
         val json = entriesJson(ctx) ?: return@withContext emptyList()
         val keys = urlKeys(ctx, quality, range)
         runCatching { parse(json, keys) }

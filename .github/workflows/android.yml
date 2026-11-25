@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build APKs
+    name: Build APKs and Play bundle
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
@@ -66,19 +66,20 @@ jobs:
       - name: Build debug APK
         run: |
           set -o pipefail
-          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleDebug 2>&1 | tee build-log.txt; then exit 0; fi
+          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleGithubDebug 2>&1 | tee build-log.txt; then exit 0; fi
           # Fresh runners sometimes fail to download a dependency ("Could not find …"); try once more.
           grep -qE "Could not (find|resolve|GET|HEAD)" build-log.txt || exit 1
           echo "::warning::Dependency download failed; retrying the build once"
           sleep 20
-          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS :app:assembleDebug 2>&1 | tee build-log.txt
+          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS :app:assembleGithubDebug 2>&1 | tee build-log.txt
 
-      # The optimised build people install. If it fails (R8, signing), the whole run fails and nothing is
-      # published: a debug build is never put up in its place. The .aab is what Google Play takes.
-      - name: Build release APK and bundle
+      # The optimised GitHub-edition APK people install, and the Play edition's bundle (.aab), which is what
+      # Google Play takes (docs/editions.md). If either fails (R8, signing), the whole run fails and nothing
+      # is published: a debug build is never put up in its place.
+      - name: Build release APK and Play bundle
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleRelease :app:bundleRelease 2>&1 | tee -a build-log.txt
+          ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleGithubRelease :app:bundlePlayRelease 2>&1 | tee -a build-log.txt
 
       # Belt and braces: both APKs must really carry the permanent key. On a push (which publishes) a
       # mismatch fails the run; on a pull request it just means Software Update would never offer it.
@@ -87,7 +88,7 @@ jobs:
         run: |
           WANT="$(echo "$PRISM_SIGNER_SHA256" | tr -d ':' | tr 'A-F' 'a-f')"
           BAD=0
-          for apk in app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/app-release.apk; do
+          for apk in app/build/outputs/apk/github/debug/app-github-debug.apk app/build/outputs/apk/github/release/app-github-release.apk; do
             if [ ! -f "$apk" ]; then echo "::error::$apk is missing"; BAD=1; continue; fi
             GOT="$(python3 -I scripts/apk-signer.py "$apk" || true)"
             echo "$apk → $GOT"
@@ -96,6 +97,14 @@ jobs:
               BAD=1
             fi
           done
+          # The Play bundle is signed the older (jar) way: the same key, as Play App Signing needs.
+          AAB=app/build/outputs/bundle/playRelease/app-play-release.aab
+          if [ ! -f "$AAB" ]; then echo "::error::$AAB is missing"; BAD=1
+          else
+            GOT="$(keytool -printcert -jarfile "$AAB" 2>/dev/null | sed -n 's/^[[:space:]]*SHA256: //p' | head -1 | tr -d ':' | tr 'A-F' 'a-f')"
+            echo "$AAB → $GOT"
+            if [ "$GOT" != "$WANT" ]; then echo "::error::$AAB isn't signed with the permanent key"; BAD=1; fi
+          fi
           if [ "$BAD" = 1 ]; then
             echo "PRISM_SIGNED=false" >> "$GITHUB_ENV"
             [ "$GITHUB_EVENT_NAME" = "push" ] && exit 1
@@ -117,12 +126,12 @@ jobs:
           path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
 
-      # For Google Play later (upload it in Play Console). Kept with the run only, never published.
+      # The Play edition, to upload in Play Console (docs/play-store.md). Kept with the run only, never published.
       - name: Upload Play bundle
         uses: actions/upload-artifact@v4
         with:
           name: prism-tv-play-bundle
-          path: app/build/outputs/bundle/release/*.aab
+          path: app/build/outputs/bundle/playRelease/*.aab
           if-no-files-found: error
 
       - name: Publish build log on failure
@@ -165,13 +174,13 @@ jobs:
           PRISM_VN: ${{ needs.build.outputs.vn }}
         run: |
           # Only the real optimised build, signed with the permanent key, is ever published as prismtv.apk.
-          if [ "$PRISM_SIGNED" != "true" ] || [ ! -f apks/release/app-release.apk ]; then
+          if [ "$PRISM_SIGNED" != "true" ] || [ ! -f apks/github/release/app-github-release.apk ]; then
             echo "::error::No release APK signed with the permanent key, so nothing was published."
             exit 1
           fi
           mkdir -p dist
-          cp apks/release/app-release.apk dist/prismtv.apk
-          cp apks/debug/app-debug.apk dist/prismtv-debug.apk
+          cp apks/github/release/app-github-release.apk dist/prismtv.apk
+          cp apks/github/debug/app-github-debug.apk dist/prismtv-debug.apk
           NOTES="Latest build of \`${GITHUB_REF_NAME}\` (${GITHUB_SHA::7}).
 
           Install on Android TV with Downloader: \`https://github.com/${GITHUB_REPOSITORY}/releases/download/preview/prismtv.apk\`
@@ -202,6 +211,32 @@ jobs:
           cat dist/update.json
           gh release upload preview dist/update.json --clobber
 
+      # The same files on a public releases-only repository, so this code repository can be made private
+      # and TVs still update without signing in (docs/editions.md). Needs the repository variable
+      # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Release) and the secret RELEASES_TOKEN (a fine-grained token
+      # with Contents: read and write on that repository only). Skipped until both are set.
+      - name: Publish to the releases-only repository
+        env:
+          RELEASES_REPO: ${{ vars.RELEASES_REPO }}
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -z "$RELEASES_REPO" ] || [ -z "$RELEASES_TOKEN" ]; then
+            echo "::notice::RELEASES_REPO or RELEASES_TOKEN isn't set: published to this repository only."
+            exit 0
+          fi
+          export GH_TOKEN="$RELEASES_TOKEN" GH_REPO="$RELEASES_REPO"
+          NOTES="Prism TV for Android TV, version ${PRISM_VN}.
+
+          Install with Downloader: \`https://github.com/${RELEASES_REPO}/releases/download/preview/prismtv.apk\`
+
+          Prism TV updates itself after that (Settings › Software Update)."
+          if gh release view preview >/dev/null 2>&1; then
+            gh release edit preview --prerelease --title "Prism TV" --notes "$NOTES"
+          else
+            gh release create preview --prerelease --title "Prism TV" --notes "$NOTES"
+          fi
+          gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk dist/update.json --clobber
+
   # Android Lint and the JVM unit tests, beside the build (so they add no time). Reports go to
   # ci-results under checks/<branch>/; the job fails if a unit test fails.
   checks:
@@ -228,13 +263,13 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          ./gradlew --no-daemon :app:testDebugUnitTest 2>&1 | tee checks-log.txt
+          ./gradlew --no-daemon :app:testGithubDebugUnitTest 2>&1 | tee checks-log.txt
 
       - name: Lint
         if: always()
         continue-on-error: true
         run: |
-          ./gradlew --no-daemon :app:lintDebug 2>&1 | tee -a checks-log.txt
+          ./gradlew --no-daemon :app:lintGithubDebug 2>&1 | tee -a checks-log.txt
 
       # Unused code (private members, parameters, imports) and unreachable code, by detekt's rules. Only
       # those findings are kept: the rest of detekt's default style rules aren't this project's style.
@@ -244,7 +279,7 @@ jobs:
         run: |
           mkdir -p out
           curl -sSfL -o "$RUNNER_TEMP/detekt.jar" https://github.com/detekt/detekt/releases/download/v1.23.7/detekt-cli-1.23.7-all.jar
-          java -jar "$RUNNER_TEMP/detekt.jar" --input app/src/main/java,app/src/debug/java,baselineprofile/src/main/java \
+          java -jar "$RUNNER_TEMP/detekt.jar" --input app/src/main/java,app/src/debug/java,app/src/github/java,app/src/play/java,baselineprofile/src/main/java \
             --build-upon-default-config --config .github/detekt-unused.yml \
             --report "txt:$RUNNER_TEMP/detekt-all.txt" > "$RUNNER_TEMP/detekt-log.txt" 2>&1 || true
           grep -E "^(Unused[A-Za-z]*|UnreachableCode)\b" "$RUNNER_TEMP/detekt-all.txt" > out/detekt.txt || echo "No unused or unreachable code found" > out/detekt.txt
@@ -257,8 +292,8 @@ jobs:
         run: |
           mkdir -p out/tests
           cp app/build/reports/lint-results-debug.txt out/lint.txt 2>/dev/null || echo "no lint report" > out/lint.txt
-          cp app/build/reports/lint-results-debug.xml out/lint.xml 2>/dev/null || true
-          cp app/build/test-results/testDebugUnitTest/*.xml out/tests/ 2>/dev/null || true
+          cp app/build/reports/lint-results-githubDebug.xml out/lint.xml 2>/dev/null || true
+          cp app/build/test-results/testGithubDebugUnitTest/*.xml out/tests/ 2>/dev/null || true
           grep -E "tests completed|FAILED|BUILD (SUCCESSFUL|FAILED)|What went wrong" -A3 checks-log.txt > out/summary.txt || true
           bash scripts/publish-ci-results.sh out "checks/${GITHUB_REF_NAME}"
 
@@ -273,6 +308,9 @@ jobs:
     # limit is 6 hours), so stop it well before that.
     timeout-minutes: 100
     needs: build
+    # 2–3 emulator hours a push. Free while the repository is public; once it's private, GitHub counts those
+    # minutes against the plan's allowance, so they only run when a commit message asks with [screens].
+    if: ${{ !github.event.repository.private || contains(github.event.head_commit.message, '[screens]') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write   # only to save screenshots to the ci-results branch
@@ -304,7 +342,7 @@ jobs:
           disable-animations: false
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
-          script: bash scripts/ci-screenshots.sh apks/debug/app-debug.apk shots apks/release/app-release.apk
+          script: bash scripts/ci-screenshots.sh apks/github/debug/app-github-debug.apk shots apks/github/release/app-github-release.apk
 
       - name: Convert recordings to GIF
         if: always()

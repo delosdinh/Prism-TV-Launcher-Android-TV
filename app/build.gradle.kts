@@ -18,6 +18,30 @@ android {
         versionName = (project.findProperty("prismVersionName") as String?) ?: "0.1.0"
     }
 
+    // Two editions from one codebase (docs/editions.md):
+    //  - github: the APK for you and friends. Software Update, Shizuku/root/adb helpers, Pro unlocked.
+    //  - play:   the bundle for Google Play. No self-updater or shell helpers; Prism Pro through Play Billing.
+    // Both are signed with the same permanent key. The Play edition has its own package name, so the two can
+    // sit side by side on one TV and Google Play never replaces a GitHub install (or the other way round).
+    // A package name is permanent on Google Play once the first bundle is uploaded: decide before that.
+    flavorDimensions += "store"
+    productFlavors {
+        create("github") {
+            dimension = "store"
+            buildConfigField("boolean", "PLAY", "false")
+            // Where Software Update looks: a public releases-only repository, so the code repository can be
+            // private (docs/editions.md). Override with -PprismUpdateRepo=owner/name.
+            val updateRepo = (project.findProperty("prismUpdateRepo") as String?) ?: "delosdinh/Prism-TV-Launcher-Release"
+            buildConfigField("String", "UPDATE_URL", "\"https://github.com/$updateRepo/releases/download/preview\"")
+        }
+        create("play") {
+            dimension = "store"
+            applicationIdSuffix = ".play"
+            buildConfigField("boolean", "PLAY", "true")
+            buildConfigField("String", "UPDATE_URL", "\"\"")
+        }
+    }
+
     // A permanent signing key (from CI secrets) lets each new build install over the last one.
     // Without it, debug builds use the machine's debug key and can't update each other.
     val prismKeystore = System.getenv("PRISM_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
@@ -110,11 +134,13 @@ android {
     }
 }
 
-// The startup profile recorded on a device by :baselineprofile (src/release/generated/baselineProfiles),
+// The startup profile recorded on a device by :baselineprofile (src/main/generated/baselineProfiles),
 // added to the hand-written rules in src/main/baseline-prof.txt. It's only re-recorded on request (a
 // commit with [profile] in its message runs .github/workflows/baseline-profile.yml), never in a build.
 baselineProfile {
     automaticGenerationDuringBuild = false
+    // One profile for both editions (they share all startup code), kept in src/main/generated/baselineProfiles.
+    mergeIntoMain = true
     // Startup code first in the APK's dex files, so a cold start reads less.
     dexLayoutOptimization = true
 }
@@ -152,9 +178,13 @@ dependencies {
     // Installs the baseline profile (src/main/baseline-prof.txt) so Prism TV's code is compiled ahead of time.
     implementation(libs.androidx.profileinstaller)
     implementation(libs.media3.exoplayer)
-    // Optional: lets Shizuku users close apps completely (force stop) from the App Switcher.
+    // Optional: lets Shizuku users close apps completely (force stop) from the App Switcher. Compiled into
+    // both editions, but the Play edition never calls it (BuildConfig.PLAY) and drops its provider, so R8
+    // removes it there.
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+    // Prism Pro, bought once through Google Play (Play edition only).
+    "playImplementation"(libs.billing)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

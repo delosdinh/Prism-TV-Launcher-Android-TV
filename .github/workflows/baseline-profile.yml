@@ -3,7 +3,7 @@ name: Startup profile
 # Records Prism TV's startup (baseline) profile on the Android TV emulator. It only runs for a push
 # whose commit message contains [profile]; the result goes to the ci-results branch under
 # profile/<branch>/ (and the "startup-profile" artifact), to be committed under
-# app/src/release/generated/baselineProfiles/.
+# app/src/main/generated/baselineProfiles/ (one profile for both editions).
 on:
   push:
     branches-ignore: [ci-results]
@@ -34,7 +34,7 @@ jobs:
       # Built before the emulator starts, so it isn't kept waiting.
       - name: Build Prism TV and the recorder
         continue-on-error: true
-        run: ./gradlew --no-daemon --stacktrace :app:assembleNonMinifiedRelease :baselineprofile:assembleNonMinifiedRelease
+        run: ./gradlew --no-daemon --stacktrace :app:assembleGithubNonMinifiedRelease :baselineprofile:assembleGithubNonMinifiedRelease
 
       - name: Enable KVM
         run: |
@@ -60,7 +60,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p out
-          cp app/src/release/generated/baselineProfiles/*.txt out/ 2>/dev/null || echo "no profile was written"
+          cp app/src/main/generated/baselineProfiles/*.txt out/ 2>/dev/null || echo "no profile was written"
           bash scripts/publish-ci-results.sh out "profile/${GITHUB_REF_NAME}"
 
       - name: Upload the profile
