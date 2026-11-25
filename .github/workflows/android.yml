@@ -40,6 +40,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Version
+        env:
+          RELEASES_REPO: ${{ vars.RELEASES_REPO }}
         run: |
           VC=$((1000 + GITHUB_RUN_NUMBER))
           VN="0.2.${GITHUB_RUN_NUMBER}"
@@ -49,6 +51,8 @@ jobs:
           # Pull requests (forks can't see the key) may sign a test release with a throwaway key. Pushes,
           # which publish, never may: Gradle stops the release build instead.
           [ "$GITHUB_EVENT_NAME" = "pull_request" ] && ARGS="$ARGS -PprismAllowDebugSignedRelease=true"
+          # The app checks for updates in the same releases repository CI publishes to.
+          [ -n "$RELEASES_REPO" ] && ARGS="$ARGS -PprismUpdateRepo=$RELEASES_REPO"
           echo "GRADLE_VERSION_ARGS=$ARGS" >> "$GITHUB_ENV"
           echo "Version $VN ($VC)"
 
@@ -213,7 +217,7 @@ jobs:
 
       # The same files on a public releases-only repository, so this code repository can be made private
       # and TVs still update without signing in (docs/editions.md). Needs the repository variable
-      # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Release) and the secret RELEASES_TOKEN (a fine-grained token
+      # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Releases) and the secret RELEASES_TOKEN (a fine-grained token
       # with Contents: read and write on that repository only). Skipped until both are set.
       - name: Publish to the releases-only repository
         env:

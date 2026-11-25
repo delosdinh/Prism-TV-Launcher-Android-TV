@@ -31,7 +31,7 @@ android {
             buildConfigField("boolean", "PLAY", "false")
             // Where Software Update looks: a public releases-only repository, so the code repository can be
             // private (docs/editions.md). Override with -PprismUpdateRepo=owner/name.
-            val updateRepo = (project.findProperty("prismUpdateRepo") as String?) ?: "delosdinh/Prism-TV-Launcher-Release"
+            val updateRepo = (project.findProperty("prismUpdateRepo") as String?) ?: "delosdinh/Prism-TV-Launcher-Releases"
             buildConfigField("String", "UPDATE_URL", "\"https://github.com/$updateRepo/releases/download/preview\"")
         }
         create("play") {
