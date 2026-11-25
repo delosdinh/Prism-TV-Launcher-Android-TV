@@ -25,7 +25,8 @@ import androidx.compose.runtime.setValue
  * are clearly over budget it switches this TV to Refraction Bands, the path older Android uses (two
  * plain backdrop draws, no shader, no blur under the rim), and remembers that for this TV and Android
  * build (when it was only slow over an aerial, only while one plays; behind the app grid the blurred
- * still then stands in for blurring the video live). Lite Mode is the user's own setting and is never touched.
+ * still then stands in for blurring the video live). Either way Home's aerial then plays through a
+ * SurfaceView ([slowTv]). Lite Mode is the user's own setting and is never touched.
  *
  * `adb shell dumpsys activity com.prismtv.launcher/.MainActivity glass` prints what was measured;
  * add `reprobe` to forget the decision and measure again.
@@ -52,29 +53,18 @@ object GlassPerf {
     private var aerialState by mutableStateOf(false)
     @Volatile private var aerialNow = false
 
-    /** A remote button was pressed in the last moment (Home is moving): see [noteNav]. */
-    var navigating by mutableStateOf(false)
-        private set
-    private val navEnd = Runnable { navigating = false }
-
     /**
-     * Main thread, on each D-pad press. While the cheaper glass is on over an aerial, the aerial holds
-     * still as you move around (its every frame otherwise re-renders all the glass over it, on top of the
-     * focus animation) and carries on three seconds after you stop (sooner, it starts and stops between presses).
-     */
-    fun noteNav() {
-        if (!cheap) return
-        navigating = true
-        main.removeCallbacks(navEnd)
-        main.postDelayed(navEnd, 3_000)
-    }
-
-    /**
-     * Go easy on the GPU now: the Home aerial holds still behind the app grid (the blurred still covers it
-     * there, instead of blurring the video live) and while you move around. The glass itself switches to
-     * Refraction Bands only when [shaderOk] is false. Snapshot state.
+     * Go easy on the GPU now: behind the app grid the blurred still stands in for blurring the aerial live.
+     * The glass itself switches to Refraction Bands only when [shaderOk] is false. Snapshot state.
      */
     val cheap: Boolean get() = !shaderOk || (aerialState && !aerialOk)
+
+    /**
+     * This TV was measured too slow in either way. Home's aerial then plays through a SurfaceView (the
+     * hardware video layer) instead of a TextureView, so a video frame no longer redraws all of Home and
+     * the aerial never has to hold still. The glass over it can't refract the video there. Snapshot state.
+     */
+    val slowTv: Boolean get() = !shaderOk || !aerialOk
 
     /** Bump when the shader gets cheaper or dearer, so every TV measures again. */
     private const val PROBE = 3
@@ -186,7 +176,7 @@ object GlassPerf {
         slowWindows = if (slow) slowWindows + 1 else 0
         if (slowWindows >= 2) {
             slowWindows = 0
-            val why = "${if (aerial) "the aerial holds still behind the grid and while you move" else "switched to Refraction Bands"}: $line"
+            val why = "${if (aerial) "the aerial plays on the video layer" else "switched to Refraction Bands"}: $line"
             detail = why
             Log.i(TAG, "Liquid Glass: $why")
             prefs?.edit()?.putString("build", buildKey())?.putBoolean(if (aerial) "slowAerial" else "slow", true)
@@ -207,7 +197,7 @@ object GlassPerf {
     fun report(): String = when {
         !SupportsLensShader -> "Liquid Glass: Refraction Bands (Android ${Build.VERSION.RELEASE} has no runtime shaders)"
         !shaderOk -> "Liquid Glass: Refraction Bands for this GPU ($detail)"
-        !aerialOk -> "Liquid Glass: Refraction Shader; the Home aerial holds still behind the grid and while you move ($detail)"
+        !aerialOk -> "Liquid Glass: Refraction Shader; the Home aerial plays on the video layer ($detail)"
         else -> "Liquid Glass: Refraction Shader ($detail${if (listener != null) ", still timing" else ""})"
     }
 

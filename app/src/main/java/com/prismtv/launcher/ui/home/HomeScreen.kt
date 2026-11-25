@@ -273,7 +273,15 @@ private fun HomeBackdrop(
             com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = aerial
             if (!aerial) aerialShown = false
         }
-        val stillAlpha by animateFloatAsState(if (aerial && aerialShown) 0f else 1f, tween(900), label = "aerialStill")
+        // The still fades out once the aerial plays, but comes straight back when it stops (Home paused
+        // under a system pop-up, the wallpaper changed): fading it in from nothing showed the dark gradient
+        // underneath for most of a second, a black flash on the TV.
+        val stillAnim = remember { Animatable(1f) }
+        val aerialOn = aerial && aerialShown
+        LaunchedEffect(aerialOn) {
+            if (aerialOn) stillAnim.animateTo(0f, tween(900)) else stillAnim.snapTo(1f)
+        }
+        val stillAlpha by stillAnim.asState()
         // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).
         Crossfade(
             targetState = art,

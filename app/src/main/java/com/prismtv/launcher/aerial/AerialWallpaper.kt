@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.Looper
 import android.view.Surface
+import android.view.SurfaceView
 import android.view.TextureView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -32,6 +33,12 @@ import com.prismtv.launcher.data.AerialRange
  * Settings › Wallpaper › Apple TV Aerials: the aerials play, silently, behind the Home Screen. 1080p
  * SDR (light on the TV's decoder), shown only while Home is on screen; the still underneath shows
  * until the first frame and in Lite Mode. Drawn through a TextureView so Liquid Glass can see it.
+ *
+ * On a TV measured too slow for that ([GlassPerf.slowTv]: every video frame in a TextureView redraws all
+ * of Home, which ran at 29 ms a frame on a Ugoos AM9 Pro) it plays through a SurfaceView instead, on the
+ * hardware video layer under Home, as the screensaver does: Home only redraws when something on it
+ * moves, and the aerial never has to hold still. The glass over it then can't refract the video, and
+ * behind the app grid the blurred still covers it.
  *
  * Behind the app grid it blurs: with RenderEffect on Android 12 and later, through [AerialGlRenderer] on
  * Android 11 and older ([onLiveBlur] says when that's running, so the blurred still can stay away).
@@ -68,17 +75,6 @@ fun AerialWallpaper(
             setMediaItems(list.map { MediaItem.fromUri(if (Resume.http) it.fallbackUrl else it.url) }, Resume.index.coerceIn(0, list.size - 1), Resume.position)
             prepare()
             playWhenReady = true
-        }
-    }
-    // A GPU measured too slow over a moving aerial (GlassPerf): the aerial pauses behind the app grid,
-    // where the blurred still covers it anyway, and while you move around Home; it plays on after.
-    LaunchedEffect(player) {
-        snapshotFlow {
-            com.prismtv.launcher.ui.glass.GlassPerf.cheap &&
-                (blur() > 0.98f || com.prismtv.launcher.ui.glass.GlassPerf.navigating)
-        }.collect { hold ->
-            if (player.playWhenReady == hold) android.util.Log.i("PrismAerial", "Home wallpaper: ${if (hold) "holding still (slow GPU)" else "playing on"}")
-            player.playWhenReady = !hold
         }
     }
     DisposableEffect(player) {
@@ -126,6 +122,19 @@ fun AerialWallpaper(
             gl.blur = b
             gl.renderer?.setBlur(b)
         }
+    }
+    val onVideoLayer = com.prismtv.launcher.ui.glass.GlassPerf.slowTv && !useGl
+    LaunchedEffect(onVideoLayer) {
+        android.util.Log.i("PrismAerial", "Home wallpaper: ${if (onVideoLayer) "SurfaceView (slow GPU)" else "TextureView"}")
+    }
+    if (onVideoLayer) {
+        // Punches a hole through Home to the video layer below it; the still above covers it until the
+        // first frame. Setting it replaces the TextureView, if the TV was only just measured slow.
+        AndroidView(
+            factory = { c -> SurfaceView(c).also { player.setVideoSurfaceView(it) } },
+            modifier = modifier,
+        )
+        return
     }
     // Always drawn at full strength (a TextureView that's never drawn never gets its first frame):
     // the still above it fades away once the aerial is playing.
