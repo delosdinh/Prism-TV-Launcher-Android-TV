@@ -1,24 +1,24 @@
 apk bytes: 4851587
-apk dex 1644932, images 2362661, audio 275054 (0 compressed), other 516224
-cold start ms:  1616 1742 1395 1362 1347  (median 1395)
+apk dex 1644969, images 2362661, audio 275054 (0 compressed), other 515767
+cold start ms:  1277 1271 1308 1276 1293  (median 1277)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  184 201 194 181 176  (median 184)
-walk: Total frames rendered: 92
-walk: Janky frames: 92 (100.00%)
-walk: Janky frames (legacy): 92 (100.00%)
+back to home ms:  182 159 183 180 197  (median 182)
+walk: Total frames rendered: 87
+walk: Janky frames: 87 (100.00%)
+walk: Janky frames (legacy): 87 (100.00%)
 walk: 50th percentile: 150ms
 walk: 90th percentile: 300ms
-walk: 99th percentile: 650ms
-walk: Number Slow UI thread: 46
-rapid: Total frames rendered: 105
-rapid: Janky frames: 105 (100.00%)
-rapid: Janky frames (legacy): 105 (100.00%)
+walk: 99th percentile: 600ms
+walk: Number Slow UI thread: 52
+rapid: Total frames rendered: 100
+rapid: Janky frames: 100 (100.00%)
+rapid: Janky frames (legacy): 100 (100.00%)
 rapid: 90th percentile: 250ms
-rapid: Number Slow UI thread: 76
-memory: Native Heap    41837    41820        0       27    42756    60112    45891     3588
-memory: Java Heap:     3928                          19048
-memory: Native Heap:    41820                          42756
+rapid: Number Slow UI thread: 65
+memory: Native Heap    38131    38096        8       29    39024    55864    41980     3222
+memory: Java Heap:     7120                          21808
+memory: Native Heap:    38096                          39024
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    77597            TOTAL RSS:   174472       TOTAL SWAP PSS:      276
-idle on home, 60 s: 977 ticks
-behind another app, 60 s: 0 ticks
+memory: TOTAL PSS:    80092            TOTAL RSS:   172412       TOTAL SWAP PSS:      288
+idle on home, 60 s: 1130 ticks
+behind another app, 60 s: 1 ticks
