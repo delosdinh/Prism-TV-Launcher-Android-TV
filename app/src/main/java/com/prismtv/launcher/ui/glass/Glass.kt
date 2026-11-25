@@ -195,7 +195,9 @@ fun Modifier.glass(
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
     // Android 13+ TVs measured too slow for the refraction shader draw the bands instead (GlassPerf).
-    val gpuOk = !GlassPerf.cheap
+    // (Only slow over a moving aerial: the shader stays, the aerial holds still instead. On the AM9's Mali
+    // the bands cost more GPU than the shader, 11 ms against 5-7.)
+    val gpuOk = GlassPerf.shaderOk
     val originState = remember { mutableStateOf(Offset.Zero) }
     val lensLayer = rememberGraphicsLayer()
 

@@ -76,7 +76,10 @@ fun AerialWallpaper(
         snapshotFlow {
             com.prismtv.launcher.ui.glass.GlassPerf.cheap &&
                 (blur() > 0.98f || com.prismtv.launcher.ui.glass.GlassPerf.navigating)
-        }.collect { hold -> player.playWhenReady = !hold }
+        }.collect { hold ->
+            if (player.playWhenReady == hold) android.util.Log.i("PrismAerial", "Home wallpaper: ${if (hold) "holding still (slow GPU)" else "playing on"}")
+            player.playWhenReady = !hold
+        }
     }
     DisposableEffect(player) {
         val listener = object : Player.Listener {

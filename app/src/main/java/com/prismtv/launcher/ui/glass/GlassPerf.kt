@@ -70,8 +70,9 @@ object GlassPerf {
     }
 
     /**
-     * Draw the cheaper glass now: Refraction Bands with no blur under the rim, and over a moving aerial
-     * the blurred still behind the app grid instead of blurring the video live. Snapshot state.
+     * Go easy on the GPU now: the Home aerial holds still behind the app grid (the blurred still covers it
+     * there, instead of blurring the video live) and while you move around. The glass itself switches to
+     * Refraction Bands only when [shaderOk] is false. Snapshot state.
      */
     val cheap: Boolean get() = !shaderOk || (aerialState && !aerialOk)
 
@@ -185,7 +186,7 @@ object GlassPerf {
         slowWindows = if (slow) slowWindows + 1 else 0
         if (slowWindows >= 2) {
             slowWindows = 0
-            val why = "switched to Refraction Bands${if (aerial) " while an aerial plays" else ""}: $line"
+            val why = "${if (aerial) "the aerial holds still behind the grid and while you move" else "switched to Refraction Bands"}: $line"
             detail = why
             Log.i(TAG, "Liquid Glass: $why")
             prefs?.edit()?.putString("build", buildKey())?.putBoolean(if (aerial) "slowAerial" else "slow", true)
@@ -206,7 +207,7 @@ object GlassPerf {
     fun report(): String = when {
         !SupportsLensShader -> "Liquid Glass: Refraction Bands (Android ${Build.VERSION.RELEASE} has no runtime shaders)"
         !shaderOk -> "Liquid Glass: Refraction Bands for this GPU ($detail)"
-        !aerialOk -> "Liquid Glass: Refraction Shader, Refraction Bands while an aerial plays ($detail)"
+        !aerialOk -> "Liquid Glass: Refraction Shader; the Home aerial holds still behind the grid and while you move ($detail)"
         else -> "Liquid Glass: Refraction Shader ($detail${if (listener != null) ", still timing" else ""})"
     }
 
