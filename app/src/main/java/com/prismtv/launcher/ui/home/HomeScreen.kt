@@ -72,6 +72,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -309,11 +310,21 @@ private fun HomeBackdrop(
                     underHome -> maxOf(stillAlpha, blur.value * VideoLayerFrost)
                     else -> maxOf(stillAlpha, blur.value)
                 }
+                // Once only the blurred copy draws (below), its alpha can go straight onto it: no offscreen
+                // layer to fill and blend back, which costs a tiled GPU like the AM9's a flush each frame.
+                compositingStrategy = if (blur.value >= 1f) CompositingStrategy.ModulateAlpha else CompositingStrategy.Auto
             },
         ) { a ->
             if (a != null) {
                 Box(Modifier.fillMaxSize()) {
-                    Image(a.full, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    // Hidden under the opaque blurred copy once it's fully in, so not drawn then.
+                    Image(
+                        a.full, null,
+                        Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = if (blur.value >= 1f) 0f else 1f },
+                        contentScale = ContentScale.Crop,
+                    )
                     Image(
                         a.heavy, null,
                         Modifier
