@@ -3071,7 +3071,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             return true
         }
-        if (k == NavKey.Up && !keyboardController.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up)) {
+        if (k == NavKey.Up && !keyboardController.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up, wrapUp = results.isEmpty())) {
             // Up from the keyboard's top row goes to the results.
             if (results.isNotEmpty()) {
                 searchFocus = 0
