@@ -299,9 +299,7 @@ fun Modifier.glass(
                         if (d != 0f) scale(sx, sy, pivot = center)
                         translate(-origin.x, -origin.y)
                     }) {
-                        if (liveBlur) {
-                            drawLayer(backdrop.blurred(source))
-                        } else {
+                        fun DrawScope.drawStill() {
                             val img = backdrop.fallbackHeavy
                             if (img != null) {
                                 drawImage(
@@ -317,6 +315,15 @@ fun Modifier.glass(
                                     size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()),
                                 )
                             }
+                        }
+                        if (liveBlur) {
+                            // An aerial on the video layer leaves Home's backdrop clear (the app can't read or blur
+                            // the video), so frosted glass would show the sharp screen through it. The blurred still
+                            // goes under it there, as behind the app grid.
+                            if (com.prismtv.launcher.aerial.AerialVideoLayer.player != null) drawStill()
+                            drawLayer(backdrop.blurred(source))
+                        } else {
+                            drawStill()
                         }
                     }
                 }
