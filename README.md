@@ -360,11 +360,12 @@ On Android 12+ the update then installs straight away; Android 11 (e.g. SHIELD) 
 system's install confirmation.
 
 Updates only install over a build signed with the same key, so every CI build is signed with one
-permanent key (`scripts/signing-key.sh`). It comes from the repository secrets `PRISM_KEYSTORE_B64`
-(base64 PKCS12 keystore, alias `prism`) and `PRISM_KEYSTORE_PASSWORD`; until those are set, from the
-older private draft release `prism-signing-key`. [docs/release-signing.md](docs/release-signing.md)
-explains moving it into secrets. **Never publish or delete that draft**: publishing makes the key
-public, and losing it means a new key and a reinstall on every TV. CI never creates a new key.
+permanent key (`scripts/signing-key.sh`), from the repository secrets `PRISM_KEYSTORE_B64` (base64
+PKCS12 keystore, alias `prism`) and `PRISM_KEYSTORE_PASSWORD` ([docs/release-signing.md](docs/release-signing.md)).
+The script checks the key's certificate fingerprint, so a wrong or replaced secret stops the build
+instead of shipping something existing TVs can't update to. CI never creates a new key, and never
+reads or changes the older `prism-signing-key` draft release. Keep an offline copy of the key:
+losing it means a new key and a reinstall on every TV.
 
 A push build that can't find the permanent key, or whose release build fails, stops and publishes
 nothing: a debug build is never put up as `prismtv.apk`. Pull requests (e.g. from forks) build with
