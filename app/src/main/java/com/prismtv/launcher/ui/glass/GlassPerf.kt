@@ -77,7 +77,7 @@ object GlassPerf {
     val cheap: Boolean get() = !shaderOk || (aerialState && !aerialOk)
 
     /** Bump when the shader gets cheaper or dearer, so every TV measures again. */
-    private const val PROBE = 2
+    private const val PROBE = 3
     private const val PREFS = "prism_glass_perf"
     private const val WINDOW = 120
     private const val TAG = "PrismGlass"
