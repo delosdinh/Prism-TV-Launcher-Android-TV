@@ -46,6 +46,17 @@ object Pro {
         return if (left <= 0) 0 else ((left + DayMs - 1) / DayMs).toInt()
     }
 
+    /** Debug builds only (CI screenshots): "trial" (5 days left), "ended" or "owned". */
+    fun debugSet(ctx: Context, state: String) {
+        if (!BuildConfig.DEBUG) return
+        val now = System.currentTimeMillis()
+        val start = when (state) {
+            "ended" -> now - (TrialDays + 1) * DayMs
+            else -> now - 2 * DayMs - 60_000
+        }
+        sp(ctx).edit().putLong("trialStart", start).putBoolean("owned", state == "owned").apply()
+    }
+
     fun active(ctx: Context): Boolean = alwaysOn || owned(ctx) || trialDaysLeft(ctx) > 0
 
     /**

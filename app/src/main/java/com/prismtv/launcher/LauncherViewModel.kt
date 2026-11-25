@@ -5775,6 +5775,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
         )
         demoSnapshotPkg = b.getString("demoSnapshot")?.takeIf { it.isNotBlank() }
+        // Play edition: Prism Pro as on a trial, after it, or bought.
+        b.getString("pro")?.let {
+            com.prismtv.launcher.data.Pro.debugSet(ctx, it)
+            refreshPro()
+        }
         // A banner that stays up for the screenshot.
         bannerJob?.cancel()
         banner = b.getString("banner")?.let { BannerSpec("Prism TV Updated", it, Icons.Rounded.CheckCircle) }
@@ -5937,6 +5942,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         // CI: Settings › Restart Launcher.
+        // Play edition without Pro: picking a locked setting (opens Settings › Prism Pro with its banner).
+        b.getString("proLocked")?.takeIf { it.isNotBlank() && !proActive }?.let {
+            openPro(it)
+            bannerJob?.cancel()
+        }
         if (b.getBoolean("restart", false)) restartTick++
         // CI: close a real app the way a swipe-up in the App Switcher does, and log what happened.
         b.getString("closeApp")?.takeIf { it.isNotBlank() }?.let { pkg ->
