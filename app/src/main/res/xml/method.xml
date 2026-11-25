@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Prism Keyboard: English, with emoji. -->
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="com.prismtv.launcher.MainActivity"
+    android:supportsSwitchingToNextInputMethod="false">
+    <subtype
+        android:imeSubtypeLocale="en_US"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/keyboard_subtype" />
+</input-method>

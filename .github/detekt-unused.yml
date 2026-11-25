@@ -1,0 +1,15 @@
+# detekt, for CI's "Unused code" step only (the step keeps just the Unused* and UnreachableCode findings).
+style:
+  UnusedImports:
+    active: true
+  UnusedPrivateMember:
+    active: true
+  UnusedPrivateProperty:
+    active: true
+  UnusedPrivateClass:
+    active: true
+  UnusedParameter:
+    active: true
+potential-bugs:
+  UnreachableCode:
+    active: true
