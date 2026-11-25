@@ -52,6 +52,23 @@ object GlassPerf {
     private var aerialState by mutableStateOf(false)
     @Volatile private var aerialNow = false
 
+    /** A remote button was pressed in the last moment (Home is moving): see [noteNav]. */
+    var navigating by mutableStateOf(false)
+        private set
+    private val navEnd = Runnable { navigating = false }
+
+    /**
+     * Main thread, on each D-pad press. While the cheaper glass is on over an aerial, the aerial holds
+     * still as you move around (its every frame otherwise re-renders all the glass over it, on top of the
+     * focus animation) and carries on a moment after you stop.
+     */
+    fun noteNav() {
+        if (!cheap) return
+        navigating = true
+        main.removeCallbacks(navEnd)
+        main.postDelayed(navEnd, 1_200)
+    }
+
     /**
      * Draw the cheaper glass now: Refraction Bands with no blur under the rim, and over a moving aerial
      * the blurred still behind the app grid instead of blurring the video live. Snapshot state.
@@ -59,7 +76,7 @@ object GlassPerf {
     val cheap: Boolean get() = !shaderOk || (aerialState && !aerialOk)
 
     /** Bump when the shader gets cheaper or dearer, so every TV measures again. */
-    private const val PROBE = 1
+    private const val PROBE = 2
     private const val PREFS = "prism_glass_perf"
     private const val WINDOW = 120
     private const val TAG = "PrismGlass"

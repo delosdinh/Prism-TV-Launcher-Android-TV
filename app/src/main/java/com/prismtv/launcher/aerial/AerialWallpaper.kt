@@ -70,6 +70,14 @@ fun AerialWallpaper(
             playWhenReady = true
         }
     }
+    // A GPU measured too slow over a moving aerial (GlassPerf): the aerial pauses behind the app grid,
+    // where the blurred still covers it anyway, and while you move around Home; it plays on after.
+    LaunchedEffect(player) {
+        snapshotFlow {
+            com.prismtv.launcher.ui.glass.GlassPerf.cheap &&
+                (blur() > 0.98f || com.prismtv.launcher.ui.glass.GlassPerf.navigating)
+        }.collect { hold -> player.playWhenReady = !hold }
+    }
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() {

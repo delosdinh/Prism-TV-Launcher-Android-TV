@@ -264,17 +264,14 @@ private fun HomeBackdrop(
         if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(
             blur = { blur.value },
             modifier = Modifier.fillMaxSize(),
-            onShown = {
-                aerialShown = it
-                com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = it
-            },
+            onShown = { aerialShown = it },
             onLiveBlur = { aerialGlBlur = it },
         )
         LaunchedEffect(aerial) {
-            if (!aerial) {
-                aerialShown = false
-                com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = false
-            }
+            // From the moment the aerial starts loading (its start-up frames are heavy too), so they're
+            // timed as frames over an aerial, not held against the glass in general.
+            com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = aerial
+            if (!aerial) aerialShown = false
         }
         val stillAlpha by animateFloatAsState(if (aerial && aerialShown) 0f else 1f, tween(900), label = "aerialStill")
         // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).

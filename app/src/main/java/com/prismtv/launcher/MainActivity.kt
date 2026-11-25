@@ -545,6 +545,7 @@ private class RemoteKeys(private val vm: LauncherViewModel, private val scope: C
 
     fun handle(e: KeyEvent): Boolean {
         val native = e.nativeKeyEvent
+        if (native.action == AndroidKeyEvent.ACTION_DOWN) com.prismtv.launcher.ui.glass.GlassPerf.noteNav()
         val key = when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_UP -> NavKey.Up
             AndroidKeyEvent.KEYCODE_DPAD_DOWN -> NavKey.Down
