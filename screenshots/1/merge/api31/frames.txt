@@ -2,29 +2,29 @@ full: Total frames rendered: 62
 full: Janky frames: 62 (100.00%)
 full: Janky frames (legacy): 62 (100.00%)
 full: 50th percentile: 300ms
-full: 90th percentile: 550ms
-full: 99th percentile: 900ms
-full: Number Slow UI thread: 54
-full: Number Slow bitmap uploads: 13
+full: 90th percentile: 500ms
+full: 99th percentile: 750ms
+full: Number Slow UI thread: 55
+full: Number Slow bitmap uploads: 14
 full: Number Slow issue draw commands: 62
-lite: Total frames rendered: 63
-lite: Janky frames: 63 (100.00%)
-lite: Janky frames (legacy): 63 (100.00%)
+lite: Total frames rendered: 62
+lite: Janky frames: 62 (100.00%)
+lite: Janky frames (legacy): 62 (100.00%)
 lite: 50th percentile: 200ms
-lite: 90th percentile: 300ms
+lite: 90th percentile: 250ms
 lite: 99th percentile: 400ms
-lite: Number Slow UI thread: 63
-lite: Number Slow bitmap uploads: 11
-lite: Number Slow issue draw commands: 63
+lite: Number Slow UI thread: 55
+lite: Number Slow bitmap uploads: 12
+lite: Number Slow issue draw commands: 62
 idle-still: 20 s on Home: 0 frames, scene re-recorded 0x
-idle-advancing: 20 s on Home: 32 frames, scene re-recorded 3x
-settings: Total frames rendered: 86
-settings: Janky frames: 86 (100.00%)
-settings: Janky frames (legacy): 86 (100.00%)
-settings: 50th percentile: 400ms
+idle-advancing: 20 s on Home: 24 frames, scene re-recorded 2x
+settings: Total frames rendered: 90
+settings: Janky frames: 90 (100.00%)
+settings: Janky frames (legacy): 90 (100.00%)
+settings: 50th percentile: 350ms
 settings: 90th percentile: 450ms
-settings: 99th percentile: 500ms
-settings: Number Slow UI thread: 79
+settings: 99th percentile: 550ms
+settings: Number Slow UI thread: 77
 settings: 24 presses, page composed 0x, rows composed 63x
 open-new: Control Centre open+close: 9 frames, composed 2x, scene re-recorded 4x
 open-old: Control Centre open+close: 9 frames, composed 5x, scene re-recorded 5x
@@ -35,24 +35,24 @@ cc-new: Janky frames (legacy): 42 (100.00%)
 cc-new: 50th percentile: 350ms
 cc-new: 90th percentile: 450ms
 cc-new: 99th percentile: 650ms
-cc-new: Number Slow UI thread: 28
+cc-new: Number Slow UI thread: 23
 cc-new: Number Slow issue draw commands: 42
 cc-new: Control Centre composed 11x, scene re-recorded 4x, full 4x
-cc-old: Total frames rendered: 42
-cc-old: Janky frames: 42 (100.00%)
-cc-old: Janky frames (legacy): 42 (100.00%)
+cc-old: Total frames rendered: 43
+cc-old: Janky frames: 43 (100.00%)
+cc-old: Janky frames (legacy): 43 (100.00%)
 cc-old: 50th percentile: 350ms
-cc-old: 90th percentile: 450ms
-cc-old: 99th percentile: 700ms
-cc-old: Number Slow UI thread: 26
-cc-old: Number Slow issue draw commands: 42
+cc-old: 90th percentile: 500ms
+cc-old: 99th percentile: 800ms
+cc-old: Number Slow UI thread: 28
+cc-old: Number Slow issue draw commands: 43
 cc-old: Control Centre composed 14x, scene re-recorded 5x, full 5x
 cc-new-again: Total frames rendered: 43
 cc-new-again: Janky frames: 43 (100.00%)
 cc-new-again: Janky frames (legacy): 43 (100.00%)
 cc-new-again: 50th percentile: 350ms
-cc-new-again: 90th percentile: 500ms
-cc-new-again: 99th percentile: 750ms
-cc-new-again: Number Slow UI thread: 27
+cc-new-again: 90th percentile: 450ms
+cc-new-again: 99th percentile: 700ms
+cc-new-again: Number Slow UI thread: 28
 cc-new-again: Number Slow issue draw commands: 43
 cc-new-again: Control Centre composed 11x, scene re-recorded 4x, full 4x

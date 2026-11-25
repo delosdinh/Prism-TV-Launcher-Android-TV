@@ -1,24 +1,24 @@
 apk bytes: 4694007
-apk dex 1637461, images 2205122, audio 275054 (0 compressed), other 516136
-cold start ms:  4408 4084 3340 4187 3674  (median 4084)
+apk dex 1637607, images 2205122, audio 275054 (0 compressed), other 515734
+cold start ms:  3409 3320 2814 3390 3386  (median 3386)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  232 263 303 245 250  (median 250)
-walk: Total frames rendered: 65
-walk: Janky frames: 65 (100.00%)
-walk: Janky frames (legacy): 65 (100.00%)
-walk: 50th percentile: 250ms
+back to home ms:  306 280 327 307 316  (median 307)
+walk: Total frames rendered: 69
+walk: Janky frames: 69 (100.00%)
+walk: Janky frames (legacy): 69 (100.00%)
+walk: 50th percentile: 300ms
 walk: 90th percentile: 500ms
-walk: 99th percentile: 1700ms
-walk: Number Slow UI thread: 40
-rapid: Total frames rendered: 46
-rapid: Janky frames: 46 (100.00%)
-rapid: Janky frames (legacy): 46 (100.00%)
+walk: 99th percentile: 1350ms
+walk: Number Slow UI thread: 39
+rapid: Total frames rendered: 79
+rapid: Janky frames: 79 (100.00%)
+rapid: Janky frames (legacy): 79 (100.00%)
 rapid: 90th percentile: 150ms
-rapid: Number Slow UI thread: 22
-memory: Native Heap    41383    41364        0       35    42392    59588    44090     3917
-memory: Java Heap:     5900                          18700
-memory: Native Heap:    41364                          42392
+rapid: Number Slow UI thread: 34
+memory: Native Heap    37126    37104        0       26    38144    54572    39532     3366
+memory: Java Heap:     7356                          20128
+memory: Native Heap:    37104                          38144
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    71447            TOTAL RSS:   165500       TOTAL SWAP PSS:      267
-idle on home, 60 s: 311 ticks
-behind another app, 60 s: 2 ticks
+memory: TOTAL PSS:    68845            TOTAL RSS:   162668       TOTAL SWAP PSS:      258
+idle on home, 60 s: 299 ticks
+behind another app, 60 s: 3 ticks
