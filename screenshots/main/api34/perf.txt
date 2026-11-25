@@ -1,24 +1,24 @@
-apk bytes: 4694055
-apk dex 1642504, images 2205122, audio 275054 (0 compressed), other 516196
-cold start ms:  1565 1392 1146 1250 1221  (median 1250)
+apk bytes: 4851587
+apk dex 1642601, images 2362661, audio 275054 (0 compressed), other 516194
+cold start ms:  1365 1091 1112 1202 1139  (median 1139)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  159 135 192 156 192  (median 159)
-walk: Total frames rendered: 92
-walk: Janky frames: 92 (100.00%)
-walk: Janky frames (legacy): 92 (100.00%)
+back to home ms:  159 147 171 164 176  (median 164)
+walk: Total frames rendered: 93
+walk: Janky frames: 93 (100.00%)
+walk: Janky frames (legacy): 93 (100.00%)
 walk: 50th percentile: 150ms
 walk: 90th percentile: 250ms
-walk: 99th percentile: 600ms
-walk: Number Slow UI thread: 51
-rapid: Total frames rendered: 0
-rapid: Janky frames: 0 (0.00%)
-rapid: Janky frames (legacy): 0 (0.00%)
-rapid: 90th percentile: 4950ms
-rapid: Number Slow UI thread: 0
-memory: Native Heap    46128    46104        0       30    46896    63348    50148     2821
-memory: Java Heap:     6920                          20756
-memory: Native Heap:    46104                          46896
+walk: 99th percentile: 550ms
+walk: Number Slow UI thread: 48
+rapid: Total frames rendered: 96
+rapid: Janky frames: 96 (100.00%)
+rapid: Janky frames (legacy): 96 (100.00%)
+rapid: 90th percentile: 200ms
+rapid: Number Slow UI thread: 61
+memory: Native Heap    37028    36980       16       30    37848    54936    41230     2716
+memory: Java Heap:     6184                          20472
+memory: Native Heap:    36980                          37848
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    88347            TOTAL RSS:   177608       TOTAL SWAP PSS:      310
-idle on home, 60 s: 1079 ticks
+memory: TOTAL PSS:    79674            TOTAL RSS:   167844       TOTAL SWAP PSS:      295
+idle on home, 60 s: 880 ticks
 behind another app, 60 s: 0 ticks
