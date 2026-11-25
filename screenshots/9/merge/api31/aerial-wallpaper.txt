@@ -1,0 +1,18 @@
+11-25 21:54:53.077  9813  9813 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextDataDirect(ConscryptEngine.java:1095)
+11-25 21:54:53.077  9813  9813 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
+11-25 21:54:53.077  9813  9813 W PrismAerial: 	... 29 more
+11-25 21:54:53.077  9813  9813 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+11-25 21:54:53.077  9813  9813 W PrismAerial: 	... 43 more
+11-25 21:54:53.077  9813  9813 I PrismAerial: HTTPS to the aerial host fails on this TV: using HTTP from now on
+11-25 21:54:54.508  9813  9813 I PrismAerial: Screensaver: playing 1920×1080
+11-25 21:55:40.153  9813  9946 I PrismAerial: Aerials: Auto/Auto, panel 1920 px wide, hardware HEVC false, Dolby Vision DolbyVisionSupport(decoder=false, display=false, trusted=true); tried [url-1080-H264, url-1080-SDR, url-4K-SDR]; got {url-1080-H264=114}
+11-25 21:55:42.565  9813  9813 I PrismAerial: Screensaver: playing 1920×1080
+11-25 21:56:11.883  9813  9947 I PrismAerial: Aerials: HD/SDR, panel 1920 px wide, hardware HEVC false, Dolby Vision DolbyVisionSupport(decoder=false, display=false, trusted=true); tried [url-1080-H264, url-1080-SDR, url-4K-SDR]; got {url-1080-H264=114}
+11-25 21:56:12.503  9813  9813 I PrismAerial: Home wallpaper: 12 aerials
+11-25 21:56:14.323  9813  9813 I PrismAerial: Home wallpaper: playing
+memory: .Heap     4508     4508        0        0     4508                           
+memory: .LOS    27517    27392      124       33    27624                           
+memory: TOTAL PSS:   126547            TOTAL RSS:   230872       TOTAL SWAP PSS:       97
+11-25 21:54:54.508  9813  9813 I PrismAerial: Screensaver: playing 1920×1080
+11-25 21:55:42.565  9813  9813 I PrismAerial: Screensaver: playing 1920×1080
+11-25 21:56:14.323  9813  9813 I PrismAerial: Home wallpaper: playing
