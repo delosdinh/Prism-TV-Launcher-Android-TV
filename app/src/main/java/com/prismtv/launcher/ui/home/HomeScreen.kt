@@ -237,7 +237,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
 // ------------------------------------------------------------------------------------------ backdrop
 
 /** How much of the blurred still frosts over a video-layer aerial behind the app grid (the rest is the moving video). */
-private const val VideoLayerFrost = 0.72f
+private const val VideoLayerFrost = 0.62f
 
 @Composable
 private fun HomeBackdrop(

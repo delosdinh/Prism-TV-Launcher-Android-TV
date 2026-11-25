@@ -292,6 +292,35 @@ fun Modifier.glass(
                     }
                 }
 
+                // The pre-blurred wallpaper still, in root coordinates (the caller has translated to them).
+                fun DrawScope.drawStill(alpha: Float = 1f) {
+                    val img = backdrop.fallbackHeavy
+                    if (img != null) {
+                        drawImage(
+                            image = img,
+                            srcOffset = IntOffset.Zero,
+                            srcSize = IntSize(img.width, img.height),
+                            dstOffset = IntOffset.Zero,
+                            dstSize = backdrop.rootSize,
+                            alpha = alpha,
+                            filterQuality = FilterQuality.Low,
+                        )
+                        drawRect(
+                            backdrop.fallbackDim,
+                            size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()),
+                            alpha = alpha,
+                        )
+                    }
+                }
+
+                // Lens glass over an aerial on the video layer shows the video through it (the app can't bend or
+                // blur it); a little of the blurred still under it frosts the glass a touch there. Over anything
+                // else the lens draws opaque on top, so this only shows where the video does.
+                fun DrawScope.frostOverVideo() {
+                    if (com.prismtv.launcher.aerial.AerialVideoLayer.player == null) return
+                    translate(-origin.x, -origin.y) { drawStill(LensVideoFrost) }
+                }
+
                 fun DrawScope.drawBlurred(d: Float = 0f) {
                     val sx = (1f - 2f * d / size.width).coerceAtLeast(0.2f)
                     val sy = (1f - 2f * d / size.height).coerceAtLeast(0.2f)
@@ -299,23 +328,6 @@ fun Modifier.glass(
                         if (d != 0f) scale(sx, sy, pivot = center)
                         translate(-origin.x, -origin.y)
                     }) {
-                        fun DrawScope.drawStill() {
-                            val img = backdrop.fallbackHeavy
-                            if (img != null) {
-                                drawImage(
-                                    image = img,
-                                    srcOffset = IntOffset.Zero,
-                                    srcSize = IntSize(img.width, img.height),
-                                    dstOffset = IntOffset.Zero,
-                                    dstSize = backdrop.rootSize,
-                                    filterQuality = FilterQuality.Low,
-                                )
-                                drawRect(
-                                    backdrop.fallbackDim,
-                                    size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()),
-                                )
-                            }
-                        }
                         if (liveBlur) {
                             // An aerial on the video layer leaves Home's backdrop clear (the app can't read or blur
                             // the video), so frosted glass would show the sharp screen through it. The blurred still
@@ -350,6 +362,7 @@ fun Modifier.glass(
                             }
                         }
                         clipPath(clip) {
+                            frostOverVideo()
                             translate(-margin, -margin) { drawLayer(lensLayer) }
                             drawRect(tint)
                         }
@@ -367,6 +380,7 @@ fun Modifier.glass(
                         drawRect(specular)
                     }
                     else -> clipPath(clip) {
+                        frostOverVideo()
                         drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
@@ -388,6 +402,9 @@ fun Modifier.glass(
             }
         }
 }
+
+/** How much of the blurred still frosts lens glass over an aerial on the video layer (the rest is the video). */
+private const val LensVideoFrost = 0.35f
 
 /** Width of the blur applied to live backdrops, per material. */
 fun blurRadiusFor(liquid: Boolean): Dp = if (liquid) 22.dp else 34.dp
