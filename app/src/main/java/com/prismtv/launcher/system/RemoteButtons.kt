@@ -29,9 +29,13 @@ object Foreground {
      * waiting for the accessibility service and delivers the key to the screen as well (AM9: 2.3 s
      * later), and the second Menu closed the Control Centre the first had just opened.
      */
-    @Synchronized fun claimMenu(downTime: Long): Boolean {
-        if (downTime == lastMenuDown) return false
+    @Synchronized fun claimMenu(downTime: Long, via: String): Boolean {
+        if (downTime == lastMenuDown) {
+            android.util.Log.i("PrismKeys", "Menu (down $downTime) via $via: already handled, ignored")
+            return false
+        }
         lastMenuDown = downTime
+        android.util.Log.i("PrismKeys", "Menu (down $downTime) via $via")
         return true
     }
 }

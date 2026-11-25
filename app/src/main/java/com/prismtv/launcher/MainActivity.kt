@@ -607,7 +607,7 @@ private class RemoteKeys(private val vm: LauncherViewModel, private val scope: C
         if (native.action == AndroidKeyEvent.ACTION_DOWN) {
             // The same Menu press may already have come through Power & Home Button (Foreground.claimMenu).
             val dupe = native.keyCode == AndroidKeyEvent.KEYCODE_MENU && native.repeatCount == 0 &&
-                !com.prismtv.launcher.system.Foreground.claimMenu(native.downTime)
+                !com.prismtv.launcher.system.Foreground.claimMenu(native.downTime, "screen")
             if (!dupe) vm.onKey(key, repeat = native.repeatCount > 0)
         }
         return true
