@@ -404,7 +404,7 @@ fun Modifier.glass(
 }
 
 /** How much of the blurred still frosts lens glass over an aerial on the video layer (the rest is the video). */
-private const val LensVideoFrost = 0.35f
+private const val LensVideoFrost = 0.20f
 
 /** Width of the blur applied to live backdrops, per material. */
 fun blurRadiusFor(liquid: Boolean): Dp = if (liquid) 22.dp else 34.dp
