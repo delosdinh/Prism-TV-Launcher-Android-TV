@@ -259,7 +259,10 @@ private fun HomeBackdrop(
         var aerialShown by remember { mutableStateOf(false) }
         var aerialGlBlur by remember { mutableStateOf(false) }
         // Android 12+ blurs the video with RenderEffect, unless this GPU was measured too slow for it.
-        val aerialLiveBlur = aerialGlBlur || (android.os.Build.VERSION.SDK_INT >= 31 && !com.prismtv.launcher.ui.glass.GlassPerf.cheap)
+        // Never for an aerial on the video layer (AerialVideoLayerHost), which nothing in the app can blur: behind
+        // the grid the blurred still covers it (it was left sharp while the GPU was being measured again).
+        val aerialLiveBlur = (aerialGlBlur || (android.os.Build.VERSION.SDK_INT >= 31 && !com.prismtv.launcher.ui.glass.GlassPerf.cheap)) &&
+            com.prismtv.launcher.aerial.AerialVideoLayer.player == null
         // The still fades out once the aerial plays, but comes straight back when it stops (Home paused
         // under a system pop-up, the wallpaper changed): fading it in from nothing showed the dark gradient
         // underneath for most of a second, a black flash on the TV.
