@@ -503,6 +503,8 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             // a new recording makes Liquid Glass's copy and the blurred twin render the whole Home Screen
             // again in that frame, although nothing on it changed. A plain layer draws exactly the same.
             val isolate = if (vm.isolateScene) Modifier.graphicsLayer() else Modifier
+            // A slow TV's Home aerial, on the video layer under everything (see AerialVideoLayerHost).
+            com.prismtv.launcher.aerial.AerialVideoLayerHost(Modifier.fillMaxSize())
             Box(
                 Modifier
                     .fillMaxSize()

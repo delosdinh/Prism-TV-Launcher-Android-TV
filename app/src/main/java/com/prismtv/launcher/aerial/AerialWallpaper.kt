@@ -142,15 +142,14 @@ fun AerialWallpaper(
     LaunchedEffect(onVideoLayer) {
         android.util.Log.i("PrismAerial", "Home wallpaper: ${if (onVideoLayer) "SurfaceView (slow GPU)" else "TextureView"}")
     }
-    if (onVideoLayer) {
-        // Punches a hole through Home to the video layer below it; the still above covers it until the
-        // first frame. Setting it replaces the TextureView, if the TV was only just measured slow.
-        AndroidView(
-            factory = { c -> SurfaceView(c).also { player.setVideoSurfaceView(it) } },
-            modifier = modifier,
-        )
-        return
+    // On the video layer the SurfaceView is drawn by [AerialVideoLayerHost], under all of Home: in here it
+    // would be replayed by every glass surface drawing Home's backdrop, and the video moves to wherever it
+    // was drawn last (on the AM9 it ended up a rectangle above the dock, with black around it).
+    DisposableEffect(player, onVideoLayer) {
+        if (onVideoLayer) AerialVideoLayer.player = player
+        onDispose { if (AerialVideoLayer.player === player) AerialVideoLayer.player = null }
     }
+    if (onVideoLayer) return
     // Always drawn at full strength (a TextureView that's never drawn never gets its first frame):
     // the still above it fades away once the aerial is playing.
     key(useGl) {
@@ -215,6 +214,28 @@ fun AerialWallpaper(
                         .asComposeRenderEffect()
                 } else renderEffect = null
             },
+        )
+    }
+}
+
+/** The Home aerial's player while it plays on the video layer (see [AerialVideoLayerHost]). Snapshot state. */
+object AerialVideoLayer {
+    var player by mutableStateOf<ExoPlayer?>(null)
+}
+
+/**
+ * The Home aerial's SurfaceView on a slow TV: drawn once, full screen, under everything else on the
+ * screen and outside every Liquid Glass backdrop. A SurfaceView's video follows where its view was last
+ * drawn, and a backdrop is drawn again, offset, by each glass surface over it. It punches a hole through
+ * the black under it; Home's backdrop above it stays clear where the aerial plays.
+ */
+@Composable
+fun AerialVideoLayerHost(modifier: Modifier = Modifier) {
+    val p = AerialVideoLayer.player ?: return
+    key(p) {
+        AndroidView(
+            factory = { c -> SurfaceView(c).also { p.setVideoSurfaceView(it) } },
+            modifier = modifier,
         )
     }
 }
