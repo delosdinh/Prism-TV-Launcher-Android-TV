@@ -194,6 +194,10 @@ class AerialView(context: Context) : FrameLayout(context) {
                 reveal()
             }
 
+            override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+                if (videoSize.width > 0) Log.i("PrismAerial", "Screensaver: playing ${videoSize.width}×${videoSize.height}")
+            }
+
             override fun onPlayerError(error: PlaybackException) {
                 Log.w("PrismAerial", "Playback error", error)
                 recover(error)

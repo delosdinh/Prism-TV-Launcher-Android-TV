@@ -19,7 +19,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /** One aerial video. [url] is the preferred stream; [fallbackUrl] is the same file over HTTP. */
-data class AerialVideo(val id: String, val label: String, val url: String) {
+data class AerialVideo(val id: String, val label: String, val url: String, val key: String = "") {
     val fallbackUrl: String get() = url.replaceFirst("https://", "http://")
 }
 
@@ -35,9 +35,16 @@ object AerialCatalog {
 
     suspend fun load(ctx: Context, quality: AerialQuality, range: AerialRange): List<AerialVideo> = withContext(Dispatchers.IO) {
         val json = entriesJson(ctx) ?: return@withContext emptyList()
-        runCatching { parse(json, urlKeys(ctx, quality, range)) }
+        val keys = urlKeys(ctx, quality, range)
+        runCatching { parse(json, keys) }
             .onFailure { Log.w(TAG, "Couldn't parse aerial manifest", it) }
             .getOrDefault(emptyList())
+            .also { list ->
+                // Which stream this TV gets, and why (`adb logcat -s PrismAerial`).
+                val picked = list.groupingBy { it.key }.eachCount()
+                Log.i(TAG, "Aerials: $quality/$range, panel ${displayWidth(ctx)} px wide, hardware HEVC ${hasHardwareHevc()}, " +
+                    "Dolby Vision ${dolbyVisionSupport(ctx)}; tried $keys; got $picked")
+            }
     }
 
     private fun entriesJson(ctx: Context): String? {
@@ -124,7 +131,7 @@ object AerialCatalog {
             val a = assets.optJSONObject(i) ?: continue
             val url = keys.firstNotNullOfOrNull { k -> a.optString(k).takeIf { it.startsWith("http") } } ?: continue
             val label = a.optString("accessibilityLabel").ifBlank { a.optString("title") }
-            out += AerialVideo(a.optString("id", url), label, url)
+            out += AerialVideo(a.optString("id", url), label, url, keys.first { k -> a.optString(k) == url })
         }
         return out
     }
@@ -196,10 +203,15 @@ object AerialCatalog {
         MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
             !info.isEncoder &&
                 info.supportedTypes.any { it.equals("video/hevc", ignoreCase = true) } &&
-                if (Build.VERSION.SDK_INT >= 29) info.isHardwareAccelerated
-                else !info.name.startsWith("OMX.google.") && !info.name.startsWith("c2.android.")
+                // Some vendor codec lists (Amlogic's among them) don't flag their decoders as hardware:
+                // a vendor decoder that isn't marked software-only counts too.
+                if (Build.VERSION.SDK_INT >= 29) info.isHardwareAccelerated || (!info.isSoftwareOnly && !info.isAlias && isVendor(info.name))
+                else isVendor(info.name)
         }
     }.getOrDefault(false)
+
+    private fun isVendor(name: String): Boolean =
+        !name.startsWith("OMX.google.") && !name.startsWith("c2.android.") && !name.endsWith(".secure")
 
     private fun displayWidth(ctx: Context): Int = runCatching {
         val dm = ctx.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
