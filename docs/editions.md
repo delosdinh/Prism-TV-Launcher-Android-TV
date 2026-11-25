@@ -35,19 +35,19 @@ The code itself stays private.
 
 ### What you do (about 10 minutes, once)
 
-1. **Create the releases repository.** On GitHub: **New repository**, name `Prism-TV-Launcher-Release`,
+1. **Create the releases repository.** On GitHub: **New repository**, name `Prism-TV-Launcher-Releases`,
    **Public**, and tick **Add a README** (a release needs at least one commit to point at).
    If you choose a different name, tell Claude so the app's address is changed to match.
 2. **Make a token that can only publish there.** GitHub › your picture › **Settings › Developer settings
    › Personal access tokens › Fine-grained tokens › Generate new token**.
    - Name: `Prism releases`. Expiration: 1 year (set a reminder to renew it).
-   - Repository access: **Only select repositories** › `Prism-TV-Launcher-Release`.
+   - Repository access: **Only select repositories** › `Prism-TV-Launcher-Releases`.
    - Permissions › Repository permissions › **Contents: Read and write**. Nothing else.
    - Generate, and copy the token.
 3. **Give it to the build.** In **this** repository: **Settings › Secrets and variables › Actions**.
    - **Secrets** tab › New repository secret › name `RELEASES_TOKEN`, value: the token.
-   - **Variables** tab › New repository variable › name `RELEASES_REPO`, value `delosdinh/Prism-TV-Launcher-Release`.
-4. **Push any commit** (or re-run the latest build). Check that `Prism-TV-Launcher-Release` now has a
+   - **Variables** tab › New repository variable › name `RELEASES_REPO`, value `delosdinh/Prism-TV-Launcher-Releases`.
+4. **Push any commit** (or re-run the latest build). Check that `Prism-TV-Launcher-Releases` now has a
    **Prism TV** release with `prismtv.apk`, `prismtv-debug.apk` and `update.json`.
 5. **Update every TV once**, including your friend's: Settings › Software Update › Check for Updates.
    The build installed now knows the new address.
@@ -80,7 +80,7 @@ Check for Updates.
 Once:
 
 1. On the TV, install **Downloader** (by AFTVnews) from the Play Store.
-2. Open it and type `https://github.com/delosdinh/Prism-TV-Launcher-Release/releases/download/preview/prismtv.apk`
+2. Open it and type `https://github.com/delosdinh/Prism-TV-Launcher-Releases/releases/download/preview/prismtv.apk`
    (or make a short code for it in Downloader's own shortener).
 3. Install, and allow Downloader to install apps when Android asks.
 4. In Prism TV, Settings › Software Update: allow Prism TV to install apps when it asks, once.

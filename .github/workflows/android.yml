@@ -40,6 +40,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Version
+        env:
+          RELEASES_REPO: ${{ vars.RELEASES_REPO }}
         run: |
           VC=$((1000 + GITHUB_RUN_NUMBER))
           VN="0.2.${GITHUB_RUN_NUMBER}"
@@ -49,6 +51,8 @@ jobs:
           # Pull requests (forks can't see the key) may sign a test release with a throwaway key. Pushes,
           # which publish, never may: Gradle stops the release build instead.
           [ "$GITHUB_EVENT_NAME" = "pull_request" ] && ARGS="$ARGS -PprismAllowDebugSignedRelease=true"
+          # The app checks for updates in the same releases repository CI publishes to.
+          [ -n "$RELEASES_REPO" ] && ARGS="$ARGS -PprismUpdateRepo=$RELEASES_REPO"
           echo "GRADLE_VERSION_ARGS=$ARGS" >> "$GITHUB_ENV"
           echo "Version $VN ($VC)"
 
@@ -66,12 +70,12 @@ jobs:
       - name: Build debug APK
         run: |
           set -o pipefail
-          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleGithubDebug 2>&1 | tee build-log.txt; then exit 0; fi
+          if ./gradlew --no-daemon --stacktrace $GRADLE_VERSION_ARGS :app:assembleGithubDebug :app:assemblePlayDebug 2>&1 | tee build-log.txt; then exit 0; fi
           # Fresh runners sometimes fail to download a dependency ("Could not find …"); try once more.
           grep -qE "Could not (find|resolve|GET|HEAD)" build-log.txt || exit 1
           echo "::warning::Dependency download failed; retrying the build once"
           sleep 20
-          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS :app:assembleGithubDebug 2>&1 | tee build-log.txt
+          ./gradlew --no-daemon --stacktrace --refresh-dependencies $GRADLE_VERSION_ARGS :app:assembleGithubDebug :app:assemblePlayDebug 2>&1 | tee build-log.txt
 
       # The optimised GitHub-edition APK people install, and the Play edition's bundle (.aab), which is what
       # Google Play takes (docs/editions.md). If either fails (R8, signing), the whole run fails and nothing
@@ -213,7 +217,7 @@ jobs:
 
       # The same files on a public releases-only repository, so this code repository can be made private
       # and TVs still update without signing in (docs/editions.md). Needs the repository variable
-      # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Release) and the secret RELEASES_TOKEN (a fine-grained token
+      # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Releases) and the secret RELEASES_TOKEN (a fine-grained token
       # with Contents: read and write on that repository only). Skipped until both are set.
       - name: Publish to the releases-only repository
         env:
@@ -342,7 +346,7 @@ jobs:
           disable-animations: false
           emulator-boot-timeout: 900
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
-          script: bash scripts/ci-screenshots.sh apks/github/debug/app-github-debug.apk shots apks/github/release/app-github-release.apk
+          script: bash scripts/ci-screenshots.sh apks/github/debug/app-github-debug.apk shots apks/github/release/app-github-release.apk apks/play/debug/app-play-debug.apk
 
       - name: Convert recordings to GIF
         if: always()

@@ -28,6 +28,8 @@ QUICK=0
 [ "${SDK:-0}" -ge 33 ] && QUICK=1
 
 RELEASE_APK="${3:-}"
+# The Play edition's debug APK (optional): its Prism Pro page, and what a locked setting looks like.
+PLAY_APK="${4:-}"
 if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
   # Smoke-test the optimised (R8) build as a real user would see it: no demo content.
   echo "smoke testing release build"
@@ -127,6 +129,26 @@ emu_key() { # linux code, hold seconds
 
 B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false --es net wifi3)
 DARK=(--es appearance dark --es glass liquid)
+
+# Play edition: Settings › Prism Pro during the trial and after it, a page of locked settings, and the
+# banner from picking one. Its own package, uninstalled afterwards so it never answers the Home button.
+if [ -n "$PLAY_APK" ] && [ -f "$PLAY_APK" ]; then
+  PLAY_PKG=com.prismtv.launcher.play
+  if adb install -r -g "$PLAY_APK"; then
+    pshot() { local name="$1"; shift; timeout 120 adb shell am start -W -n "$PLAY_PKG/com.prismtv.launcher.MainActivity" "$@" >/dev/null 2>&1; sleep "${WAIT:-4}"; cap "$name"; }
+    WAIT=6 pshot play-00-warm-up "${B[@]}" "${DARK[@]}" --es screen home --ei col 0
+    WAIT=5 pshot play-01-settings-root-trial "${B[@]}" "${DARK[@]}" --es pro trial --es screen settings --ei focus 0
+    WAIT=5 pshot play-02-pro-page-trial      "${B[@]}" "${DARK[@]}" --es pro trial --es screen settings --es page Pro --ei focus 0
+    WAIT=5 pshot play-03-pro-page-ended      "${B[@]}" "${DARK[@]}" --es pro ended --es screen settings --es page Pro --ei focus 0
+    WAIT=5 pshot play-04-locked-appearance   "${B[@]}" "${DARK[@]}" --es pro ended --es screen settings --es page Appearance --ei focus 4
+    WAIT=5 pshot play-05-locked-widgets-banner "${B[@]}" "${DARK[@]}" --es pro ended --es screen settings --es proLocked Widgets
+    WAIT=5 pshot play-06-pro-page-owned      "${B[@]}" "${DARK[@]}" --es pro owned --es screen settings --es page Pro --ei focus 0
+    rm -f "$OUT/play-00-warm-up.png"
+    adb uninstall "$PLAY_PKG" >/dev/null 2>&1 || true
+  else
+    echo "::warning::Play edition APK didn't install"
+  fi
+fi
 
 # Warm up (first launch decodes artwork).
 start "${B[@]}" "${DARK[@]}" --es screen home --ei col 0; sleep 6
