@@ -236,6 +236,9 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
 
 // ------------------------------------------------------------------------------------------ backdrop
 
+/** How much of the blurred still frosts over a video-layer aerial behind the app grid (the rest is the moving video). */
+private const val VideoLayerFrost = 0.62f
+
 @Composable
 private fun HomeBackdrop(
     art: HeroArt?,
@@ -299,9 +302,13 @@ private fun HomeBackdrop(
             animationSpec = tween(if (LocalPrism.current.lite) 350 else 900),
             label = "heroArt",
             modifier = Modifier.graphicsLayer {
-                // An aerial on the video layer stays in view behind the grid too: it can't be blurred there,
-                // so a deeper tint (below) keeps the grid legible over it instead of the blurred still.
-                alpha = if (aerialLiveBlur || underHome) stillAlpha else maxOf(stillAlpha, blur.value)
+                // An aerial on the video layer can't be blurred, so behind the grid the blurred still lies over
+                // it like frosted glass: most of the way, so the motion reads through as soft, moving colour.
+                alpha = when {
+                    aerialLiveBlur -> stillAlpha
+                    underHome -> maxOf(stillAlpha, blur.value * VideoLayerFrost)
+                    else -> maxOf(stillAlpha, blur.value)
+                }
             },
         ) { a ->
             if (a != null) {
@@ -351,7 +358,7 @@ private fun HomeBackdrop(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = blur.value * (1f - stillAlpha) }
-                .background(Color.Black.copy(alpha = 0.28f))
+                .background(Color.Black.copy(alpha = 0.12f))
         )
         if (spot) SpotlightCard(card, expanded, visible = !blurred)
     }
