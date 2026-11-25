@@ -60,13 +60,13 @@ object GlassPerf {
     /**
      * Main thread, on each D-pad press. While the cheaper glass is on over an aerial, the aerial holds
      * still as you move around (its every frame otherwise re-renders all the glass over it, on top of the
-     * focus animation) and carries on a moment after you stop.
+     * focus animation) and carries on three seconds after you stop (sooner, it starts and stops between presses).
      */
     fun noteNav() {
         if (!cheap) return
         navigating = true
         main.removeCallbacks(navEnd)
-        main.postDelayed(navEnd, 1_200)
+        main.postDelayed(navEnd, 3_000)
     }
 
     /**
