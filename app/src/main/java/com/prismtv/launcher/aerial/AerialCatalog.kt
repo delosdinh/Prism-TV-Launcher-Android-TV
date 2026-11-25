@@ -157,11 +157,25 @@ object AerialCatalog {
     }
 
     /** What this box and TV report for Dolby Vision (Apple's HDR aerials are Dolby Vision profile 5). */
-    data class DolbyVisionSupport(val decoder: Boolean, val display: Boolean) {
-        val full: Boolean get() = decoder && display
+    data class DolbyVisionSupport(val decoder: Boolean, val display: Boolean, val trusted: Boolean = true) {
+        /** What Automatic goes by. */
+        val full: Boolean get() = decoder && display && trusted
     }
 
-    fun dolbyVisionSupport(ctx: Context): DolbyVisionSupport = DolbyVisionSupport(hasDolbyVisionDecoder(), displaySupportsDolbyVision(ctx))
+    fun dolbyVisionSupport(ctx: Context): DolbyVisionSupport =
+        DolbyVisionSupport(hasDolbyVisionDecoder(), displaySupportsDolbyVision(ctx), !amlogicDolbyVision())
+
+    /**
+     * Amlogic boxes (Ugoos AM9 Pro) report a Dolby Vision decoder and display, but Apple's profile 5
+     * aerials came out magenta and green there through ExoPlayer. Automatic stays SDR on them; choosing
+     * Dolby Vision in Settings still plays it.
+     */
+    private fun amlogicDolbyVision(): Boolean = runCatching {
+        MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+            !info.isEncoder && info.name.contains("amlogic", ignoreCase = true) &&
+                info.supportedTypes.any { it.equals("video/dolby-vision", ignoreCase = true) }
+        }
+    }.getOrDefault(false) || Build.HARDWARE.contains("amlogic", ignoreCase = true)
 
     /**
      * Automatic plays Dolby Vision only when both the box and the TV support it. Choosing Dolby Vision
