@@ -52,13 +52,16 @@ half4 main(float2 coord) {
     float4 cr = float4(content.eval(coord + off * (1.0 + dispersion) + mag));
     float4 cb = float4(content.eval(coord + off * (1.0 - dispersion) + mag));
     float3 col = float3(cr.r, cg.g, cb.b);
+    // Keep what's behind see-through where it is (premultiplied): an aerial on the video layer leaves Home's
+    // backdrop clear, and past the screen's edge there's nothing at all. Forced opaque, both came out black.
+    float a = cg.a;
 
     float2 L = normalize(float2(-0.55, -0.85));
     float spec = pow(max(dot(n, L), 0.0), 2.0) * curve;
     float shade = pow(max(dot(n, -L), 0.0), 2.0) * curve;
-    col = col + float3(spec * 0.42);
+    col = col + float3(spec * 0.42) * a;
     col = col * (1.0 - shade * mix(0.10, 0.22, darkMode));
-    return half4(float4(col, 1.0));
+    return half4(float4(min(col, float3(a)), a));
 }
 """
 
