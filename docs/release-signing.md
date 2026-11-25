@@ -61,11 +61,11 @@ doesn't match the file.
 
 ## Google Play later
 
-When you create the app in Play Console, Play App Signing asks which key Google should sign with.
-Choose to **upload your own existing key** (Play Console walks you through exporting it with its
-PEPK tool) rather than letting Google create a new one. Then installs from Play and from the
-`preview` release are signed by the same key and can update each other. CI already builds the
-Play bundle (`app-release.aab`, in each run's artifacts as `prism-tv-play-bundle`).
+The Play edition is planned as a separate app id (`com.prismtv.launcher.play`), so Play installs
+and GitHub installs never update each other and don't need to share a key. For Play, let Google
+create the app signing key (Play App Signing) and use a separate **upload key** of your own; keep
+the GitHub key above for the GitHub edition only. CI builds the Play bundle (`app-release.aab`, in
+each run's artifacts as `prism-tv-play-bundle`).
 
 ## What the build does now if the key is missing
 
