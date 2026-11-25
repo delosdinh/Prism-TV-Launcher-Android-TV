@@ -120,11 +120,44 @@ class PrismAccessibilityService : AccessibilityService() {
         if (code == KeyEvent.KEYCODE_MENU && downMapping == null) {
             val sink = Foreground.menuSink
             if (Foreground.prismResumed && sink != null && RemoteButtons.mappings(this).none { it.matches(event) }) {
-                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) main.post { sink() }
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) menuPress(sink)
                 return true
             }
         }
         return mappedKey(event)
+    }
+
+    // ---- Menu on Prism TV's screen: once for Control Centre. On a SHIELD, twice still opens Android
+    // Settings, as NVIDIA's own double press does (Prism takes the button before NVIDIA's handling sees it).
+    private var lastMenuAt = 0L
+    private var pendingMenu: Runnable? = null
+    private val shieldMenu = Build.MANUFACTURER.equals("NVIDIA", ignoreCase = true)
+
+    private fun menuPress(sink: () -> Unit) {
+        if (!shieldMenu) {
+            main.post { sink() }
+            return
+        }
+        val now = android.os.SystemClock.uptimeMillis()
+        val waiting = pendingMenu
+        if (waiting != null && now - lastMenuAt < MenuDoubleMs) {
+            main.removeCallbacks(waiting)
+            pendingMenu = null
+            lastMenuAt = 0L
+            try {
+                startActivity(Intent(android.provider.Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (t: Throwable) {
+                Log.i("PrismKeys", "couldn't open Android Settings: ${t.message}")
+            }
+            return
+        }
+        lastMenuAt = now
+        val single = Runnable {
+            pendingMenu = null
+            sink()
+        }
+        pendingMenu = single
+        main.postDelayed(single, MenuDoubleMs)
     }
 
     private fun homeKey(event: KeyEvent): Boolean {
@@ -284,6 +317,9 @@ class PrismAccessibilityService : AccessibilityService() {
     }
 
     companion object {
+        /** Two Menu presses this close together are a double press (SHIELD: Android Settings). */
+        const val MenuDoubleMs = 400L
+
         @Volatile
         var instance: PrismAccessibilityService? = null
             private set
