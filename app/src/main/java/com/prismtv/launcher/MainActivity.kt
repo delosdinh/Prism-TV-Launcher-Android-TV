@@ -258,10 +258,12 @@ class MainActivity : ComponentActivity() {
         com.prismtv.launcher.system.Foreground.prismResumed = true
         hideSystemBars()
         vm.onResume()
+        com.prismtv.launcher.system.Foreground.menuSink = { if (com.prismtv.launcher.system.Foreground.prismResumed) vm.onKey(NavKey.Menu, repeat = false) }
     }
 
     override fun onPause() {
         com.prismtv.launcher.system.Foreground.prismResumed = false
+        com.prismtv.launcher.system.Foreground.menuSink = null
         vm.onPause()
         super.onPause()
     }

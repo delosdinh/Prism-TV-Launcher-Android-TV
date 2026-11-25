@@ -117,6 +117,13 @@ class PrismAccessibilityService : AccessibilityService() {
             return false
         }
         if (code == KeyEvent.KEYCODE_HOME || code == KeyEvent.KEYCODE_ALL_APPS) return homeKey(event)
+        if (code == KeyEvent.KEYCODE_MENU && downMapping == null) {
+            val sink = Foreground.menuSink
+            if (Foreground.prismResumed && sink != null && RemoteButtons.mappings(this).none { it.matches(event) }) {
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) main.post { sink() }
+                return true
+            }
+        }
         return mappedKey(event)
     }
 

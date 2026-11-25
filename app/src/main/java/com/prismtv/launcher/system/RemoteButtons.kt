@@ -13,6 +13,13 @@ object Foreground {
 
     /** Prism TV's screensaver is showing (its own or as the system's). Not Screen Time. */
     @Volatile var screensaver = false
+
+    /**
+     * While Prism TV's own screen is showing: hands it a Menu press. Some TVs take Menu before it reaches
+     * any app (the SHIELD's "Customize menu button" handling in its window manager), so Power & Home
+     * Button, which sees the remote's buttons first, gives it to Prism TV directly.
+     */
+    @Volatile var menuSink: (() -> Unit)? = null
 }
 
 /**
