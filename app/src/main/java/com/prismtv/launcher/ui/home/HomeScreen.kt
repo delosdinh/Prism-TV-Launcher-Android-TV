@@ -258,14 +258,24 @@ private fun HomeBackdrop(
         // the grid the aerial blurs live (Android 11 and older: through OpenGL; if that can't start there,
         // the still comes back, blurred, as before).
         var aerialShown by remember { mutableStateOf(false) }
-        var aerialLiveBlur by remember { mutableStateOf(android.os.Build.VERSION.SDK_INT >= 31) }
+        var aerialGlBlur by remember { mutableStateOf(false) }
+        // Android 12+ blurs the video with RenderEffect, unless this GPU was measured too slow for it.
+        val aerialLiveBlur = aerialGlBlur || (android.os.Build.VERSION.SDK_INT >= 31 && !com.prismtv.launcher.ui.glass.GlassPerf.cheap)
         if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(
             blur = { blur.value },
             modifier = Modifier.fillMaxSize(),
-            onShown = { aerialShown = it },
-            onLiveBlur = { aerialLiveBlur = it || android.os.Build.VERSION.SDK_INT >= 31 },
+            onShown = {
+                aerialShown = it
+                com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = it
+            },
+            onLiveBlur = { aerialGlBlur = it },
         )
-        LaunchedEffect(aerial) { if (!aerial) aerialShown = false }
+        LaunchedEffect(aerial) {
+            if (!aerial) {
+                aerialShown = false
+                com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = false
+            }
+        }
         val stillAlpha by animateFloatAsState(if (aerial && aerialShown) 0f else 1f, tween(900), label = "aerialStill")
         // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).
         Crossfade(

@@ -195,7 +195,7 @@ fun Modifier.glass(
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
     // Android 13+ TVs measured too slow for the refraction shader draw the bands instead (GlassPerf).
-    val gpuOk = GlassPerf.shaderOk
+    val gpuOk = !GlassPerf.cheap
     val originState = remember { mutableStateOf(Offset.Zero) }
     val lensLayer = rememberGraphicsLayer()
 
@@ -333,7 +333,6 @@ fun Modifier.glass(
                         }
                     }
                     useShader -> {
-                        GlassPerf.lastShaderDraw = System.nanoTime()
                         lensLayer.renderEffect = lensEffect
                         lensLayer.record(size = layerSize) {
                             translate(-origin.x + margin, -origin.y + margin) {

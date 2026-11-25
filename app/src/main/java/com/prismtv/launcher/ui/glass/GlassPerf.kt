@@ -19,11 +19,13 @@ import androidx.compose.runtime.setValue
  *
  * The shader samples the backdrop three times per pixel for every lens on screen. A SHIELD-class GPU
  * doesn't notice, but a Mali in a 1080p box (Ugoos AM9 Pro) spent 16 ms of GPU time per frame on the app
- * grid, so every other frame was late. So Prism times the frames that draw a lens (Android's own frame
- * metrics: GPU time and total time against the screen's refresh interval). When two windows in a row
+ * grid over a moving aerial (5 ms over a still), so every other frame was late. So Prism times its frames
+ * (Android's own frame metrics: GPU time and total time against the screen's refresh interval), over an
+ * aerial and not, apart. When two windows in a row
  * are clearly over budget it switches this TV to Refraction Bands, the path older Android uses (two
  * plain backdrop draws, no shader, no blur under the rim), and remembers that for this TV and Android
- * build. Lite Mode is the user's own setting and is never touched.
+ * build (when it was only slow over an aerial, only while one plays; behind the app grid the blurred
+ * still then stands in for blurring the video live). Lite Mode is the user's own setting and is never touched.
  *
  * `adb shell dumpsys activity com.prismtv.launcher/.MainActivity glass` prints what was measured;
  * add `reprobe` to forget the decision and measure again.
@@ -33,8 +35,28 @@ object GlassPerf {
     var shaderOk by mutableStateOf(true)
         private set
 
-    /** When a lens shader was last drawn (System.nanoTime): only those frames are timed. */
-    @Volatile var lastShaderDraw = 0L
+    /**
+     * Measured too slow with an aerial moving behind Home (Home's glass then re-renders, and the aerial
+     * blurs, on every video frame). Only applies while one plays.
+     */
+    var aerialOk by mutableStateOf(true)
+        private set
+
+    /** An aerial is playing behind Home (set by Home's backdrop). */
+    var aerialPlaying: Boolean
+        get() = aerialState
+        set(value) {
+            aerialState = value
+            aerialNow = value
+        }
+    private var aerialState by mutableStateOf(false)
+    @Volatile private var aerialNow = false
+
+    /**
+     * Draw the cheaper glass now: Refraction Bands with no blur under the rim, and over a moving aerial
+     * the blurred still behind the app grid instead of blurring the video live. Snapshot state.
+     */
+    val cheap: Boolean get() = !shaderOk || (aerialState && !aerialOk)
 
     /** Bump when the shader gets cheaper or dearer, so every TV measures again. */
     private const val PROBE = 1
@@ -53,6 +75,7 @@ object GlassPerf {
     private val gpu = LongArray(WINDOW)
     private val total = LongArray(WINDOW)
     private var n = 0
+    private var windowAerial = false
     private var slowWindows = 0
     private var startedAt = 0L
     private var intervalNs = 16_666_667L
@@ -66,10 +89,13 @@ object GlassPerf {
         if (!SupportsLensShader || prefs != null) return
         val sp = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         prefs = sp
-        if (sp.getString("build", null) == buildKey() && sp.getBoolean("slow", false)) {
-            shaderOk = false
-            detail = sp.getString("detail", null) ?: "too slow for the shader"
-            Log.i(TAG, "Liquid Glass: Refraction Bands on this TV ($detail)")
+        if (sp.getString("build", null) == buildKey()) {
+            shaderOk = !sp.getBoolean("slow", false)
+            aerialOk = !sp.getBoolean("slowAerial", false)
+            if (!shaderOk || !aerialOk) {
+                detail = sp.getString("detail", null) ?: "too slow for the shader"
+                Log.i(TAG, "Liquid Glass: cheaper glass on this TV${if (shaderOk) " over aerials" else ""} ($detail)")
+            }
         }
     }
 
@@ -112,8 +138,15 @@ object GlassPerf {
         // Let start-up, first shader compiles and returning from an app settle first.
         if (now - startedAt < 6_000_000_000L) return
         if (m.getMetric(FrameMetrics.FIRST_DRAW_FRAME) == 1L) return
-        // Only frames that drew a lens say anything about the shader.
-        if (now - lastShaderDraw > 300_000_000L) return
+        // Every frame counts: Home draws none while nothing moves, and the glass is redrawn (from its
+        // recorded lenses) in every frame, re-recorded or not. Frames over an aerial are timed apart.
+        val aerial = aerialNow
+        if (aerial && !aerialOk) return
+        if (aerial != windowAerial) {
+            windowAerial = aerial
+            n = 0
+            slowWindows = 0
+        }
         val tot = m.getMetric(FrameMetrics.TOTAL_DURATION)
         val g = m.getMetric(FrameMetrics.GPU_DURATION)
         if (tot <= 0 || tot > 500_000_000L || g < 0) return
@@ -126,18 +159,23 @@ object GlassPerf {
         val budget = intervalNs
         // GPU busy for most of the frame interval, or frames twice the interval with the GPU a big part of it.
         val slow = gpuMed > budget * 3 / 4 || (totMed > budget * 2 && gpuMed > budget / 2)
-        val line = "GPU p50 ${ms(gpuMed)} ms, frame p50 ${ms(totMed)} ms, budget ${ms(budget)} ms"
+        val line = "GPU p50 ${ms(gpuMed)} ms, frame p50 ${ms(totMed)} ms, budget ${ms(budget)} ms${if (aerial) ", over an aerial" else ""}"
         detail = "measured $line"
-        Log.i(TAG, "Liquid Glass shader frames: $line${if (slow) " (over budget)" else ""}")
+        Log.i(TAG, "Liquid Glass frames: $line${if (slow) " (over budget)" else ""}")
         slowWindows = if (slow) slowWindows + 1 else 0
         if (slowWindows >= 2) {
-            val why = "switched to Refraction Bands: $line"
+            slowWindows = 0
+            val why = "switched to Refraction Bands${if (aerial) " while an aerial plays" else ""}: $line"
             detail = why
             Log.i(TAG, "Liquid Glass: $why")
-            prefs?.edit()?.putString("build", buildKey())?.putBoolean("slow", true)?.putString("detail", line)?.apply()
+            prefs?.edit()?.putString("build", buildKey())?.putBoolean(if (aerial) "slowAerial" else "slow", true)
+                ?.putString("detail", line)?.apply()
             main.post {
-                shaderOk = false
-                unwatch()
+                if (aerial) aerialOk = false
+                else {
+                    shaderOk = false
+                    unwatch()
+                }
             }
         }
     }
@@ -147,8 +185,9 @@ object GlassPerf {
     /** For `dumpsys … glass`. */
     fun report(): String = when {
         !SupportsLensShader -> "Liquid Glass: Refraction Bands (Android ${Build.VERSION.RELEASE} has no runtime shaders)"
-        shaderOk -> "Liquid Glass: Refraction Shader ($detail${if (listener != null) ", still timing" else ""})"
-        else -> "Liquid Glass: Refraction Bands for this GPU ($detail)"
+        !shaderOk -> "Liquid Glass: Refraction Bands for this GPU ($detail)"
+        !aerialOk -> "Liquid Glass: Refraction Shader, Refraction Bands while an aerial plays ($detail)"
+        else -> "Liquid Glass: Refraction Shader ($detail${if (listener != null) ", still timing" else ""})"
     }
 
     /** For `dumpsys … glass reprobe`: forget the decision and time the shader again. */
@@ -157,6 +196,7 @@ object GlassPerf {
         detail = "not measured yet"
         unwatch()
         shaderOk = true
+        aerialOk = true
         watch(window)
     }
 }

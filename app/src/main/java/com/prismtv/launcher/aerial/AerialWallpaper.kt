@@ -172,7 +172,8 @@ fun AerialWallpaper(
             },
             modifier = modifier.graphicsLayer {
                 val b = blur()
-                if (android.os.Build.VERSION.SDK_INT >= 31 && b > 0.01f) {
+                // A GPU measured too slow for this (GlassPerf) gets the blurred still over the grid instead.
+                if (android.os.Build.VERSION.SDK_INT >= 31 && b > 0.01f && !com.prismtv.launcher.ui.glass.GlassPerf.cheap) {
                     // Lighter than a still's blur, so the aerial still reads as moving behind the app grid.
                     val r = (22f * b).dp.toPx()
                     renderEffect = android.graphics.RenderEffect.createBlurEffect(r, r, android.graphics.Shader.TileMode.CLAMP)
