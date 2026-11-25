@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -145,7 +146,9 @@ private fun LetterKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics
                 listening = kb.listening,
                 actionLabel = kb.actionLabel,
                 c = c,
+                // The focused key grows over its neighbours, so it draws above them.
                 modifier = Modifier
+                    .zIndex(if (r == kb.row && i == kb.col) 1f else 0f)
                     .offset(x.dp, y.dp)
                     .size(w.dp, m.keyH.dp),
             )
@@ -177,6 +180,7 @@ private fun AccentStrip(kb: KeyboardController, c: KeyColours, m: KeyboardMetric
     val lightKeys = !c.clear && c.key.luminance() > 0.7f
     Box(
         Modifier
+            .zIndex(2f) // above the focused key, which is raised over its neighbours
             .offset(x.dp, y.dp)
             .size(stripW.dp, stripH.dp)
             .graphicsLayer {
@@ -239,6 +243,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
                 val s by animateFloatAsState(if (focused) 1.3f else 1f, spring(dampingRatio = 0.6f, stiffness = 420f), label = "emoji")
                 Box(
                     Modifier
+                        .zIndex(if (focused) 1f else 0f)
                         .offset((cc * cell).dp, (gridTop + vr * rowH).dp)
                         .size(m.unit.dp, rowH.dp)
                         .graphicsLayer { scaleX = s; scaleY = s }
@@ -261,6 +266,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
             val s by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.7f, stiffness = 500f), label = "cat")
             Box(
                 Modifier
+                    .zIndex(if (focused) 1f else 0f)
                     .offset(x.dp, y.dp)
                     .size(w.dp, m.keyH.dp)
                     .graphicsLayer { scaleX = s; scaleY = s }
@@ -283,7 +289,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
         } else {
             KeyCap(
                 key, focused, shift = false, capsLock = false, listening = false, actionLabel = kb.actionLabel, c = c,
-                modifier = Modifier.offset(x.dp, y.dp).size(w.dp, m.keyH.dp),
+                modifier = Modifier.zIndex(if (focused) 1f else 0f).offset(x.dp, y.dp).size(w.dp, m.keyH.dp),
             )
         }
         x += w + m.gap
@@ -322,6 +328,7 @@ private fun SuggestionBar(kb: KeyboardController, c: KeyColours, m: KeyboardMetr
                     val corr = s.kind == Suggestion.Kind.Correction
                     Box(
                         Modifier
+                            .zIndex(if (focused) 1f else 0f)
                             .offset((i * slotW).dp, 0.dp)
                             .size(slotW.dp, m.barH.dp)
                             .padding(horizontal = 3.dp)
