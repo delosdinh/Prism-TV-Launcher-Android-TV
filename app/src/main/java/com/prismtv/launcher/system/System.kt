@@ -120,7 +120,7 @@ class PrismAccessibilityService : AccessibilityService() {
         if (code == KeyEvent.KEYCODE_MENU && downMapping == null) {
             val sink = Foreground.menuSink
             if (Foreground.prismResumed && sink != null && RemoteButtons.mappings(this).none { it.matches(event) }) {
-                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) menuPress(sink)
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0 && Foreground.claimMenu(event.downTime)) menuPress(sink)
                 return true
             }
         }

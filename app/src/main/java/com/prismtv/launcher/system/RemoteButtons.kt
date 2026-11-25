@@ -20,6 +20,20 @@ object Foreground {
      * Button, which sees the remote's buttons first, gives it to Prism TV directly.
      */
     @Volatile var menuSink: (() -> Unit)? = null
+
+    private var lastMenuDown = Long.MIN_VALUE
+
+    /**
+     * True the first time a given Menu press (by its down time) is seen. Power & Home Button and Prism
+     * TV's own screen can both be handed the same press: when the main thread is busy, Android stops
+     * waiting for the accessibility service and delivers the key to the screen as well (AM9: 2.3 s
+     * later), and the second Menu closed the Control Centre the first had just opened.
+     */
+    @Synchronized fun claimMenu(downTime: Long): Boolean {
+        if (downTime == lastMenuDown) return false
+        lastMenuDown = downTime
+        return true
+    }
 }
 
 /**
