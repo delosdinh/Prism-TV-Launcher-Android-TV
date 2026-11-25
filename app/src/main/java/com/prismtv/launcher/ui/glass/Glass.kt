@@ -194,7 +194,8 @@ fun Modifier.glass(
     val reduce = theme.reduceTransparency || (!liquid && !liveBlur && source == GlassSource.Full)
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
-    // Android 13+ TVs measured too slow for the refraction shader draw the bands instead (GlassPerf).
+    // Android 13+ TVs measured too slow for the refraction shader draw a lighter approximation instead
+    // (GlassPerf): the backdrop once, with a rim light, and no refracting band.
     // (Only slow over a moving aerial: the shader stays, the aerial holds still instead. On the AM9's Mali
     // the bands cost more GPU than the shader, 11 ms against 5-7.)
     val gpuOk = GlassPerf.shaderOk
@@ -361,8 +362,13 @@ fun Modifier.glass(
                         drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                // A weak GPU skips the live blur under the rim too (a blur of a moving aerial runs every frame).
-                                if (liveBlur && gpuOk) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                // A TV measured too slow for the shader (Android 13+) draws no second copy in the rim:
+                                // unblurred, its step from the interior read as a hard panel inside every glass
+                                // (offset, and black where it reached past the screen's edge, on the AM9). The
+                                // glass stays seamless, with its rim light and edge, and draws the backdrop once.
+                                if (gpuOk) {
+                                    if (liveBlur) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                }
                                 drawRect(rimLight)
                             }
                         }
