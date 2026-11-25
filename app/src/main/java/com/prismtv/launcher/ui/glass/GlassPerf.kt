@@ -175,7 +175,10 @@ object GlassPerf {
         val totMed = total.sorted()[WINDOW / 2]
         val budget = intervalNs
         // GPU busy for most of the frame interval, or frames twice the interval with the GPU a big part of it.
-        val slow = gpuMed > budget * 3 / 4 || (totMed > budget * 2 && gpuMed > budget / 2)
+        // Over an aerial the cost is mostly the RenderThread issuing the glass again on every video frame
+        // (AM9: GPU 5 ms, frames 18-29 ms), so the frame time alone decides there.
+        val slow = gpuMed > budget * 3 / 4 || (totMed > budget * 2 && gpuMed > budget / 2) ||
+            (aerial && totMed > budget * 5 / 4)
         val line = "GPU p50 ${ms(gpuMed)} ms, frame p50 ${ms(totMed)} ms, budget ${ms(budget)} ms${if (aerial) ", over an aerial" else ""}"
         detail = "measured $line"
         Log.i(TAG, "Liquid Glass frames: $line${if (slow) " (over budget)" else ""}")
