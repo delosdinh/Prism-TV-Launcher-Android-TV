@@ -1,6 +1,9 @@
 """Prism TV wallpapers: soft light fields with a prism's spectral beam (Python 3, NumPy, Pillow).
 
-Usage: python generate_wallpapers.py OUTPUT_DIR  -> wall_prism_light.jpg, wall_prism_dusk.jpg, wall_prism_night.jpg, wall_prism_blue.jpg
+Usage: python generate_wallpapers.py OUTPUT_DIR  -> wall_prism_blue.jpg
+
+Prism Light, Prism Dusk and Prism Night come from the brand's boot artwork instead:
+tools/branding/render_prism_waves.js.
 """
 import sys
 from pathlib import Path
@@ -54,18 +57,6 @@ def save(img, path):
 
 def main(out):
     out.mkdir(parents=True, exist_ok=True)
-    light = field([(.15, .2, .35, (.78, .84, 1.0), .9), (.85, .25, .32, (1.0, .86, .92), .8),
-                   (.6, .9, .4, (.86, .8, 1.0), .85), (.1, .95, .3, (.8, .95, .98), .6)], (.93, .94, .98))
-    save(grain(beam(light, .55, .52, .18, .30, mix=True), 1), out / "wall_prism_light.jpg")
-
-    dusk = field([(.2, .15, .4, (.42, .38, .78), .95), (.85, .2, .35, (.95, .52, .62), .85),
-                  (.55, .95, .45, (.27, .22, .5), .9), (.95, .85, .3, (1.0, .66, .45), .55)], (.36, .33, .6))
-    save(grain(beam(dusk, .5, .55, .2, .32), 2), out / "wall_prism_dusk.jpg")
-
-    night = field([(.2, .2, .4, (.09, .1, .2), .95), (.8, .3, .35, (.2, .12, .35), .9),
-                   (.5, 1.0, .5, (.04, .05, .1), .9), (.95, .9, .25, (.1, .2, .35), .6)], (.05, .06, .1))
-    save(grain(beam(night, .58, .5, .16, .42), 3), out / "wall_prism_night.jpg")
-
     blue = field([(.15, .2, .4, (.16, .42, .86), .95), (.85, .2, .35, (.32, .72, .98), .85),
                   (.55, .95, .45, (.04, .16, .42), .9), (.95, .85, .3, (.18, .6, .78), .6)], (.07, .25, .58))
     save(grain(beam(blue, .52, .53, .18, .34), 4), out / "wall_prism_blue.jpg")

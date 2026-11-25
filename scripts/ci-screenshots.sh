@@ -221,6 +221,10 @@ shot 27d-settings-software-update  "${B[@]}" "${DARK[@]}" --es screen settings -
 # Spotlight Top Shelf, widget rows, keyboard, Text Size, notifications, wallpapers, Balanced menu.
 shot 33-home-spotlight             "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
 shot 33b-spotlight-expanded        "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-dusk --es screen hero --ei col 1
+# The Prism wave wallpapers, each with the look it was drawn for.
+shot 33c-spotlight-waves-dark      "${B[@]}" "${DARK[@]}" --es topShelf spotlight --es wallpaper prism-night --es screen home --ei col 0
+shot 33d-spotlight-waves-balanced  "${B[@]}" --es appearance balanced --es glass liquid --es topShelf spotlight --es wallpaper prism-dusk --es screen home --ei col 0
+shot 33e-spotlight-waves-light     "${B[@]}" --es appearance light --es glass liquid --es topShelf spotlight --es wallpaper prism-light --es screen home --ei col 0
 shot 34-widgets-above-dock         "${B[@]}" "${DARK[@]}" --es widgets above --es screen widget --ei widget 0 --ei focus 1
 shot 34b-widgets-below-dock        "${B[@]}" "${DARK[@]}" --es widgets below --es screen widget --ei widget 0 --ei focus 2
 shot 35-keyboard-dark              "${B[@]}" "${DARK[@]}" --es screen keyboard --ei keyRow 1 --ei keyCol 4
