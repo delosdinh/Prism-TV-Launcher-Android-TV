@@ -27,11 +27,38 @@ object CrashLog {
                         error.stackTraceToString().take(8000)
                 )
             }
+            runCatching { noteCrash(app, System.currentTimeMillis()) }
             previous?.uncaughtException(thread, error)
         }
     }
 
     private fun file(context: Context) = File(context.filesDir, "last_crash.txt")
+    private fun timesFile(context: Context) = File(context.filesDir, "crash_times.txt")
+
+    /** Crashes this close together (3 within 2 minutes) mean Prism TV is crashing as fast as Android reopens it. */
+    private const val LoopCrashes = 3
+    private const val LoopWindowMs = 2 * 60_000L
+
+    private fun crashTimes(context: Context): List<Long> =
+        runCatching { timesFile(context).takeIf { it.exists() }?.readLines()?.mapNotNull { it.trim().toLongOrNull() } }
+            .getOrNull() ?: emptyList()
+
+    private fun noteCrash(context: Context, now: Long) {
+        val times = (crashTimes(context) + now).takeLast(LoopCrashes)
+        timesFile(context).writeText(times.joinToString("\n"))
+    }
+
+    /** True when the last [LoopCrashes] crashes all happened within [LoopWindowMs] of [now]. */
+    internal fun isLoop(times: List<Long>, now: Long): Boolean =
+        times.size >= LoopCrashes && times.takeLast(LoopCrashes).all { now - it in 0..LoopWindowMs }
+
+    /** Prism TV keeps crashing on start: show the rescue screen rather than crash again. */
+    fun isCrashLooping(context: Context): Boolean = isLoop(crashTimes(context), System.currentTimeMillis())
+
+    /** Forget the recent crashes (Try Again on the rescue screen), so the next start is a normal one. */
+    fun clearLoop(context: Context) {
+        runCatching { timesFile(context).delete() }
+    }
 
     /** When it happened (first line), or null. */
     fun lastTime(context: Context): String? = runCatching { file(context).takeIf { it.exists() }?.useLines { it.firstOrNull() } }.getOrNull()

@@ -361,12 +361,14 @@ system's install confirmation.
 
 Updates only install over a build signed with the same key, so every CI build is signed with one
 permanent key (`scripts/signing-key.sh`). It comes from the repository secrets `PRISM_KEYSTORE_B64`
-(base64 PKCS12 keystore, alias `prism`) and `PRISM_KEYSTORE_PASSWORD` if they're set; otherwise
-from the private draft release `prism-signing-key`, which the first push build creates. Draft
-releases are only visible to people with write access to the repo. **Never publish or delete that
-draft**: publishing makes the key public, and deleting it means a new key and a reinstall on every
-TV. `update.json` is only published for builds that carry the permanent key; anything else (e.g.
-pull requests from forks) uses a throwaway key and has to be uninstalled before a newer build.
+(base64 PKCS12 keystore, alias `prism`) and `PRISM_KEYSTORE_PASSWORD`; until those are set, from the
+older private draft release `prism-signing-key`. [docs/release-signing.md](docs/release-signing.md)
+explains moving it into secrets. **Never publish or delete that draft**: publishing makes the key
+public, and losing it means a new key and a reinstall on every TV. CI never creates a new key.
+
+A push build that can't find the permanent key, or whose release build fails, stops and publishes
+nothing: a debug build is never put up as `prismtv.apk`. Pull requests (e.g. from forks) build with
+a throwaway key and are never published.
 
 ### Demo content
 

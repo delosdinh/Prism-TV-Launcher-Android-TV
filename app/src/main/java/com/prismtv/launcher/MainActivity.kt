@@ -108,6 +108,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         com.prismtv.launcher.system.CrashLog.install(this)
+        // Crashing as fast as Android reopens it: show the rescue screen instead of the launcher (and its
+        // view model, which is never created here). onDestroy is the only other callback that then runs.
+        if (intent?.let { isDebugIntent(it) } != true && com.prismtv.launcher.system.CrashLog.isCrashLooping(this)) {
+            super.onCreate(null)
+            runCatching {
+                startActivity(
+                    Intent(this, com.prismtv.launcher.system.RescueActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION),
+                )
+            }
+            finish()
+            return
+        }
         super.onCreate(savedInstanceState)
         hideSystemBars()
         intent?.let { i -> i.extras?.let { if (isDebugIntent(i)) vm.applyDebug(it) } }

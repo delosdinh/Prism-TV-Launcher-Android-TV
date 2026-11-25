@@ -19,8 +19,14 @@ android {
     }
 
     // A permanent signing key (from CI secrets) lets each new build install over the last one.
-    // Without it, builds fall back to the machine's debug key and can't update each other.
+    // Without it, debug builds use the machine's debug key and can't update each other.
     val prismKeystore = System.getenv("PRISM_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+    // A release build signed with a debug key must never be mistaken for the real thing, so on CI a release
+    // build without the permanent key fails (see the check after this block). On your own computer, or on CI
+    // with -PprismAllowDebugSignedRelease=true (pull requests from forks, which can't see the key), it's
+    // signed with the debug key instead, for testing only.
+    val allowDebugSignedRelease = System.getenv("CI") != "true" ||
+        (project.findProperty("prismAllowDebugSignedRelease") as String?) == "true"
     signingConfigs {
         if (prismKeystore != null) {
             create("prism") {
@@ -40,7 +46,27 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName(if (prismKeystore != null) "prism" else "debug")
+            signingConfig = when {
+                prismKeystore != null -> signingConfigs.getByName("prism")
+                allowDebugSignedRelease -> signingConfigs.getByName("debug")
+                else -> null
+            }
+        }
+    }
+
+    // Fail at the start, with a plain reason, rather than after R8 has run for minutes.
+    gradle.taskGraph.whenReady {
+        if (prismKeystore != null || allowDebugSignedRelease) return@whenReady
+        val release = allTasks.filter { t ->
+            t.project == project && t.name.endsWith("Release") &&
+                listOf("assemble", "bundle", "package", "sign").any { t.name.startsWith(it) }
+        }
+        if (release.isNotEmpty()) {
+            throw GradleException(
+                "Release build without the permanent signing key (PRISM_KEYSTORE isn't set). Refusing to sign a " +
+                    "release with the debug key. Set the PRISM_KEYSTORE_B64 and PRISM_KEYSTORE_PASSWORD secrets " +
+                    "(docs/release-signing.md), or pass -PprismAllowDebugSignedRelease=true for a test build."
+            )
         }
     }
 
