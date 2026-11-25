@@ -11,8 +11,6 @@ Google's screens get renamed now and then; the names here were current in Novemb
 - An Android phone to verify the account (Google asks for it).
 - The Play bundle: every push builds it. On GitHub, open **Actions**, the latest green **Android CI**
   run, and download the **prism-tv-play-bundle** artifact (a zip with `app-play-release.aab` inside).
-- The signing key files `prism.p12` and its password (from the `prism-signing-key` draft release;
-  download only, never publish or delete it).
 
 ## 1. Create the developer account (once)
 
@@ -34,21 +32,17 @@ Google's screens get renamed now and then; the names here were current in Novemb
   screenshots).
 - Default language, **App**, **Free** (Prism Pro is sold inside it), tick the declarations, **Create app**.
 
-## 3. App signing: use the existing key (once)
+## 3. App signing (once)
 
-Prism TV's builds are signed with the permanent `prism` key. Tell Google to use that same key, so
-Play's copy is signed exactly like the GitHub edition:
+Let Google create and keep the **app signing key** (the default, "Use a Google-generated key"). The
+two editions have different package names and never update each other, so Play's copy doesn't need
+the `prism` key. CI signs the bundle with the `prism` key, which makes `prism` your **upload key**:
+Play registers it from the first bundle you upload. If the upload key is ever lost, Play support can
+reset it; the GitHub edition keeps using `prism` as before.
 
-1. Open **Test and release › Setup › App signing** (or you'll be asked on the first upload).
-2. Choose **Use a different key** › **Export and upload a key from Java keystore**.
-3. Google shows a download for **PEPK** (`pepk.jar`) and an encryption key file. Download both into the
-   folder that has `prism.p12`, and run the command Google shows, with these values:
-   ```
-   java -jar pepk.jar --keystore=prism.p12 --alias=prism --output=prism-for-play.zip --include-cert --rsa-aes-encryption --encryption-key-path=encryption_public_key.pem
-   ```
-   It asks for the password twice (the one in `prism-p12-password.txt`). You need Java installed.
-4. Upload `prism-for-play.zip`. When asked for an **upload key**, use the same key (the build already
-   signs the bundle with it). Then delete `prism-for-play.zip` and keep the key files private.
+(If the Play edition ever shares the GitHub edition's package name instead, choose **Use a different
+key › Export and upload a key from Java keystore** and upload `prism` with Google's PEPK tool, so
+the two can update each other.)
 
 ## 4. Prism Pro, the in-app product (once)
 
