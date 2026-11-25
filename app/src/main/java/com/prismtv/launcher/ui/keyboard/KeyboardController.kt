@@ -121,8 +121,9 @@ class KeyboardController(
     private fun accentNav(n: KbNav): Boolean {
         val list = accents ?: return false
         when (n) {
-            KbNav.Left -> if (accentIndex > 0) { accentIndex--; sound(Cue.FocusKey) } else { sound(Cue.FocusSmall); return false }
-            KbNav.Right -> if (accentIndex < list.size - 1) { accentIndex++; sound(Cue.FocusKey) } else { sound(Cue.FocusSmall); return false }
+            // The strip wraps round at its ends, like the keys.
+            KbNav.Left -> if (list.size > 1) { accentIndex = if (accentIndex > 0) accentIndex - 1 else list.size - 1; sound(Cue.FocusKey) } else { sound(Cue.FocusSmall); return false }
+            KbNav.Right -> if (list.size > 1) { accentIndex = if (accentIndex < list.size - 1) accentIndex + 1 else 0; sound(Cue.FocusKey) } else { sound(Cue.FocusSmall); return false }
             KbNav.Select -> {
                 accents = null
                 editor?.let { typeChar(list[accentIndex], it) } // already in the right case
@@ -153,29 +154,52 @@ class KeyboardController(
 
     // ----------------------------------------------------------------------------- navigation
 
-    /** Handles a remote key. Returns false when it went nowhere (an edge), for the bump sound. */
-    fun nav(n: KbNav): Boolean {
+    /**
+     * Handles a remote key. Every edge wraps: Left on a row's first key goes to its last (and Right the
+     * other way), Up from the top row goes to the bottom row and Down from the bottom row to the top,
+     * landing on the nearest key. The suggestion bar counts as the top row while it shows.
+     * [wrapUp] false leaves Up at the top unhandled (false), so Search can move up to its results.
+     * Returns false only when the key went nowhere, for the bump sound.
+     */
+    fun nav(n: KbNav, wrapUp: Boolean = true): Boolean {
         clearOldNotice()
         if (accents != null) return accentNav(n)
         if (n == KbNav.Delete) { delete(); return true }
-        if (layer == KeyboardLayout.Emoji) return emojiNav(n)
+        if (layer == KeyboardLayout.Emoji) return emojiNav(n, wrapUp)
         val rows = KeyboardLayout.of(layer)
         val bar = suggestions.isNotEmpty() && !listening
         if (row == -1 && !bar) row = 0
+        val last = rows.size - 1
         val moved = when (n) {
-            KbNav.Left -> if (col > 0) { col--; true } else false
+            KbNav.Left -> {
+                val max = if (row == -1) suggestions.size - 1 else rows[row].size - 1
+                if (max > 0) { col = if (col > 0) col - 1 else max; true } else false
+            }
             KbNav.Right -> {
                 val max = if (row == -1) suggestions.size - 1 else rows[row].size - 1
-                if (col < max) { col++; true } else false
+                if (max > 0) { col = if (col < max) col + 1 else 0; true } else false
             }
             KbNav.Up -> when {
-                row == -1 -> false
-                row == 0 -> if (bar) {
-                    val x = KeyboardLayout.centre(layer, 0, col)
-                    row = -1
-                    col = slotFor(x)
+                row == -1 -> if (wrapUp) {
+                    row = last
+                    col = KeyboardLayout.nearest(layer, last, slotX(col))
                     true
                 } else false
+                row == 0 -> when {
+                    bar -> {
+                        val x = KeyboardLayout.centre(layer, 0, col)
+                        row = -1
+                        col = slotFor(x)
+                        true
+                    }
+                    wrapUp -> {
+                        val x = KeyboardLayout.centre(layer, 0, col)
+                        row = last
+                        col = KeyboardLayout.nearest(layer, last, x)
+                        true
+                    }
+                    else -> false
+                }
                 else -> {
                     val x = KeyboardLayout.centre(layer, row, col)
                     row--
@@ -185,13 +209,17 @@ class KeyboardController(
             }
             KbNav.Down -> when {
                 row == -1 -> { row = 0; col = KeyboardLayout.nearest(layer, 0, slotX(col)); true }
-                row < rows.size - 1 -> {
+                row < last -> {
                     val x = KeyboardLayout.centre(layer, row, col)
                     row++
                     col = KeyboardLayout.nearest(layer, row, x)
                     true
                 }
-                else -> false
+                else -> {
+                    val x = KeyboardLayout.centre(layer, row, col)
+                    if (bar) { row = -1; col = slotFor(x) } else { row = 0; col = KeyboardLayout.nearest(layer, 0, x) }
+                    true
+                }
             }
             KbNav.Select -> {
                 if (row == -1) pick(col) else press(rows[row][col])
@@ -211,14 +239,18 @@ class KeyboardController(
     private fun slotFor(x: Float): Int = (x / (10f / 3f)).toInt().coerceIn(0, (suggestions.size - 1).coerceAtLeast(0))
     private fun slotX(slot: Int): Float = slot * (10f / 3f) + 10f / 6f
 
-    private fun emojiNav(n: KbNav): Boolean {
+    /** The emoji keyboard wraps like the letters: the grid's top row and the bar are each other's neighbours. */
+    private fun emojiNav(n: KbNav, wrapUp: Boolean): Boolean {
         val list = emojiList()
         val bar = KeyboardLayout.emojiBar
         val inBar = row == 3 || list.isEmpty()
+        val rowStart = emojiIndex / 10 * 10
+        val rowEnd = (rowStart + 9).coerceAtMost(list.size - 1)
         val moved = when (n) {
-            KbNav.Left -> if (inBar) { if (col > 0) { col--; true } else false } else if (emojiIndex % 10 > 0) { emojiIndex--; true } else false
-            KbNav.Right -> if (inBar) { if (col < bar.size - 1) { col++; true } else false }
-            else if (emojiIndex % 10 < 9 && emojiIndex + 1 < list.size) { emojiIndex++; true } else false
+            KbNav.Left -> if (inBar) { col = if (col > 0) col - 1 else bar.size - 1; true }
+            else if (rowEnd > rowStart) { emojiIndex = if (emojiIndex > rowStart) emojiIndex - 1 else rowEnd; true } else false
+            KbNav.Right -> if (inBar) { col = if (col < bar.size - 1) col + 1 else 0; true }
+            else if (rowEnd > rowStart) { emojiIndex = if (emojiIndex < rowEnd) emojiIndex + 1 else rowStart; true } else false
             KbNav.Up -> when {
                 inBar && list.isNotEmpty() -> {
                     val lastRow = (list.size - 1) / 10
@@ -228,10 +260,17 @@ class KeyboardController(
                     true
                 }
                 !inBar && emojiIndex >= 10 -> { emojiIndex -= 10; true }
+                // The grid's first row wraps round to the bar.
+                !inBar && wrapUp -> { col = (emojiIndex % 10).coerceIn(0, bar.size - 1); row = 3; true }
                 else -> false
             }
             KbNav.Down -> when {
-                inBar -> false
+                // The bar wraps round to the top of the grid.
+                inBar -> if (list.isNotEmpty()) {
+                    emojiIndex = col.coerceIn(0, 9).coerceAtMost(list.size - 1)
+                    row = 0
+                    true
+                } else false
                 emojiIndex + 10 < list.size -> { emojiIndex += 10; true }
                 emojiIndex / 10 < (list.size - 1) / 10 -> { emojiIndex = list.size - 1; true }
                 else -> { col = (emojiIndex % 10).coerceIn(0, bar.size - 1); row = 3; true }
