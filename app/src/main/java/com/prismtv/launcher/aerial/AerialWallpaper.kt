@@ -58,6 +58,7 @@ fun AerialWallpaper(
     var shown by remember { mutableStateOf(false) }
     val gl = remember { GlHolder() }
     val player = remember {
+        if (AerialNet.preferHttp(ctx)) Resume.http = true
         ExoPlayer.Builder(ctx).setLoadControl(AerialBuffer.wallpaper()).build().apply {
             volume = 0f
             repeatMode = Player.REPEAT_MODE_ALL
@@ -85,6 +86,7 @@ fun AerialWallpaper(
                 val index = player.currentMediaItemIndex.coerceAtLeast(0)
                 if (!Resume.http) {
                     Resume.http = true
+                    AerialNet.fellBack(ctx, error)
                     player.setMediaItems(list.map { MediaItem.fromUri(it.fallbackUrl) }, index, 0L)
                 } else if (player.mediaItemCount > 1) {
                     player.seekToNextMediaItem()

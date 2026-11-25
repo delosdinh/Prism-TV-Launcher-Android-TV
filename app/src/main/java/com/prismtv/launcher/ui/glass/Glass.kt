@@ -194,6 +194,8 @@ fun Modifier.glass(
     val reduce = theme.reduceTransparency || (!liquid && !liveBlur && source == GlassSource.Full)
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
+    // Android 13+ TVs measured too slow for the refraction shader draw the bands instead (GlassPerf).
+    val gpuOk = GlassPerf.shaderOk
     val originState = remember { mutableStateOf(Offset.Zero) }
     val lensLayer = rememberGraphicsLayer()
 
@@ -230,7 +232,7 @@ fun Modifier.glass(
                 is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
                 else -> 0f
             }
-            val useShader = liquid && lens && !frosted && SupportsLensShader && !backdrop.lensSuspended
+            val useShader = liquid && lens && !frosted && SupportsLensShader && gpuOk && !backdrop.lensSuspended
             val lensEffect = if (useShader) {
                 LensShader.effect(size.width, size.height, margin, radius, bevel, strength, isDark)
             } else null
@@ -331,6 +333,7 @@ fun Modifier.glass(
                         }
                     }
                     useShader -> {
+                        GlassPerf.lastShaderDraw = System.nanoTime()
                         lensLayer.renderEffect = lensEffect
                         lensLayer.record(size = layerSize) {
                             translate(-origin.x + margin, -origin.y + margin) {
@@ -357,7 +360,8 @@ fun Modifier.glass(
                         drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                if (liveBlur) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                // A weak GPU skips the live blur under the rim too (a blur of a moving aerial runs every frame).
+                                if (liveBlur && gpuOk) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
                                 drawRect(rimLight)
                             }
                         }

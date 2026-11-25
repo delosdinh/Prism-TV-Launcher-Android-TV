@@ -69,12 +69,23 @@ class AerialView(context: Context) : FrameLayout(context) {
 
     private var player: ExoPlayer? = null
     private var videos: List<AerialVideo> = emptyList()
-    private var useHttp = false
+    private var useHttp = AerialNet.preferHttp(context)
     private var errors = 0
     private var fadedOut = false
     private var started = false
     private var stillIndex = 0
     private var frontIsA = true
+
+    // Watchdog (see [fadeWatcher]): a shot that stops moving, or a curtain that stays down, moves on.
+    private var lastIndex = -1
+    private var lastPosition = -1L
+    private var lastFrames = -1
+    private var movedAt = 0L
+    private var framesAt = 0L
+    private var blackSince = 0L
+    private var stalls = 0
+    /** The shot whose length looked wrong: no dip to black for it (it plays out, then the next one). */
+    private var noDipIndex = -1
 
     /** A still for the slideshows: one of Prism's scenes or one of your pictures. */
     private data class Still(val res: Int = 0, val uri: Uri? = null, val label: String = "")
@@ -162,6 +173,11 @@ class AerialView(context: Context) : FrameLayout(context) {
         player = p
         p.setVideoSurfaceView(surface)
         p.volume = 0f
+        // Silent anyway; without an audio track the clock follows the video, so a stuck decoder stops
+        // the position instead of the muted audio carrying it on over a frozen or black picture.
+        p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_AUDIO, true)
+            .build()
         p.repeatMode = Player.REPEAT_MODE_ALL
         // Shuffle pauses at the end of each aerial for a run of stills.
         p.pauseAtEndOfMediaItems = shuffle && stills.isNotEmpty()
@@ -180,13 +196,14 @@ class AerialView(context: Context) : FrameLayout(context) {
 
             override fun onPlayerError(error: PlaybackException) {
                 Log.w("PrismAerial", "Playback error", error)
-                recover()
+                recover(error)
             }
         })
         p.setMediaItems(items(), 0, 0L)
         p.prepare()
         p.playWhenReady = true
         onNewShot(p.currentMediaItem)
+        resetWatchdog()
         handler.post(fadeWatcher)
     }
 
@@ -199,29 +216,76 @@ class AerialView(context: Context) : FrameLayout(context) {
     }
 
     /** First failure: retry everything over HTTP (some TV trust stores reject Apple's CDN). Then skip. */
-    private fun recover() {
+    private fun recover(error: Throwable? = null) {
         val p = player ?: return
         errors++
         if (errors > 6) {
-            p.release()
-            player = null
-            startStills(if (shuffle) stills.ifEmpty { sceneStills() } else sceneStills())
+            toStills()
             return
         }
         val index = p.currentMediaItemIndex.coerceAtLeast(0)
         if (!useHttp) {
             useHttp = true
+            AerialNet.fellBack(context, error)
             p.setMediaItems(items(), index, 0L)
         } else if (p.mediaItemCount > 1) {
-            p.removeMediaItem(index)
-            videos = videos.filterIndexed { i, _ -> i != index }
+            dropShot(p, index)
+        } else {
+            toStills()
+            return
         }
         p.prepare()
         p.playWhenReady = true
+        resetWatchdog()
+    }
+
+    private fun dropShot(p: ExoPlayer, index: Int) {
+        p.removeMediaItem(index)
+        videos = videos.filterIndexed { i, _ -> i != index }
+    }
+
+    /** No aerial will play: Prism's scenes (or, in Shuffle, the stills) instead of a black screen. */
+    private fun toStills() {
+        Log.w("PrismAerial", "Screensaver: aerials won't play, showing pictures instead")
+        handler.removeCallbacks(fadeWatcher)
+        handler.removeCallbacks(nextStill)
+        showingStills = false
+        player?.release()
+        player = null
+        curtain.animate().cancel()
+        curtain.bringToFront()
+        location.bringToFront()
+        clock.bringToFront()
+        startStills(if (shuffle) stills.ifEmpty { sceneStills() } else sceneStills())
+    }
+
+    /** A shot that stopped moving (a stalled download raises no error): skip it, or give up on video. */
+    private fun stalled(p: ExoPlayer, why: String) {
+        stalls++
+        Log.w("PrismAerial", "Screensaver: $why, skipping the shot ($stalls in a row)")
+        if (stalls >= 3 || p.mediaItemCount <= 1) {
+            toStills()
+            return
+        }
+        dropShot(p, p.currentMediaItemIndex.coerceAtLeast(0))
+        p.prepare()
+        p.playWhenReady = true
+        resetWatchdog()
+    }
+
+    private fun resetWatchdog() {
+        val now = android.os.SystemClock.uptimeMillis()
+        lastIndex = -1
+        lastPosition = -1L
+        lastFrames = -1
+        movedAt = now
+        framesAt = now
+        blackSince = 0L
     }
 
     private fun onNewShot(item: MediaItem?) {
         fadedOut = false
+        noDipIndex = -1
         showLocation(item?.mediaMetadata?.title?.toString().orEmpty())
         // Between shots the curtain is already down; lift it once the new shot is moving.
         handler.postDelayed({ reveal() }, 350)
@@ -232,19 +296,84 @@ class AerialView(context: Context) : FrameLayout(context) {
         curtain.animate().alpha(0f).setDuration(1400).setStartDelay(0).start()
     }
 
-    /** Dips to black just before each shot ends, like the Apple TV screensaver. */
+    /**
+     * Dips to black just before each shot ends, like the Apple TV screensaver. It also watches that the
+     * shot is actually moving: a download can stall without an error, and on the AM9 the screensaver once
+     * sat on black with only the clock for most of an hour. A shot that hasn't moved for [STALL_MS], or
+     * whose decoder hasn't put out a frame for that long, is skipped (three in a row: pictures instead);
+     * a curtain that has been down for [CURTAIN_MS] is lifted, or the shot behind it skipped.
+     */
     private val fadeWatcher = object : Runnable {
         override fun run() {
             val p = player ?: return
+            if (!started) return
+            handler.postDelayed(this, 300)
+            if (!watchdog(p)) return
             val duration = p.duration
-            if (duration > 0 && !fadedOut && duration - p.currentPosition < 1500) {
+            if (duration > 0 && !fadedOut && p.currentMediaItemIndex != noDipIndex && duration - p.currentPosition < 1500) {
                 fadedOut = true
                 curtain.animate().alpha(1f).setDuration(1100).setStartDelay(0).start()
                 location.animate().cancel()
                 location.animate().alpha(0f).setStartDelay(0).setDuration(600).start()
             }
-            handler.postDelayed(this, 300)
         }
+    }
+
+    /** False when it moved on (the player may have gone). */
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun watchdog(p: ExoPlayer): Boolean {
+        val now = android.os.SystemClock.uptimeMillis()
+        // Shuffle's stills, or paused at the end of a shot for them: nothing should be moving.
+        if (showingStills || !p.playWhenReady) {
+            resetWatchdog()
+            return true
+        }
+        val index = p.currentMediaItemIndex
+        val position = p.currentPosition
+        val moving = index != lastIndex || position > lastPosition + 200
+        if (index != lastIndex || position < lastPosition) {
+            lastIndex = index
+            lastPosition = position
+            movedAt = now
+        } else if (moving) {
+            lastPosition = position
+            movedAt = now
+            // Two seconds of real progress: whatever stalled before has recovered.
+            if (position > 2_000) stalls = 0
+        }
+        val frames = p.videoDecoderCounters?.let { it.ensureUpdated(); it.renderedOutputBufferCount } ?: -1
+        if (frames != lastFrames || p.playbackState != Player.STATE_READY) {
+            lastFrames = frames
+            framesAt = now
+        }
+        // A shot that hasn't started yet gets longer to load (a 4K aerial on a slow connection).
+        val limit = if (lastPosition <= 0L) FIRST_LOAD_MS else STALL_MS
+        when {
+            now - movedAt > limit -> {
+                stalled(p, "no progress for ${limit / 1000} s (state ${p.playbackState})")
+                return false
+            }
+            now - framesAt > STALL_MS -> {
+                stalled(p, "playing but no new video frames for ${STALL_MS / 1000} s")
+                return false
+            }
+        }
+        // The curtain: down (or most of the way) for too long.
+        if (curtain.alpha > 0.9f) {
+            if (blackSince == 0L) blackSince = now
+            // Over a shot that is still playing (well past where its length said it would end, or its
+            // first frame was missed): lift it and let the shot play out with no dip. Over a shot that
+            // isn't moving, the stall check above moves on.
+            if (now - blackSince > CURTAIN_MS && now - movedAt < 1_000 && now - framesAt < 1_000) {
+                blackSince = 0L
+                Log.w("PrismAerial", "Screensaver: curtain down for ${CURTAIN_MS / 1000} s over a moving shot, lifting it")
+                noDipIndex = index
+                fadedOut = false
+                curtain.animate().cancel()
+                curtain.animate().alpha(0f).setStartDelay(0).setDuration(900).start()
+            }
+        } else blackSince = 0L
+        return true
     }
 
     private fun showLocation(text: String) {
@@ -416,6 +545,12 @@ class AerialView(context: Context) : FrameLayout(context) {
 
     private companion object {
         const val SCENE_MS = 14_000L
+        /** A shot that hasn't moved (or shown a new frame) for this long is skipped. */
+        const val STALL_MS = 15_000L
+        /** The same before a shot's first frame. */
+        const val FIRST_LOAD_MS = 30_000L
+        /** Longest the dip to black (or the curtain before a shot's first frame) may stay down. */
+        const val CURTAIN_MS = 9_000L
         /** Shuffle: stills between two aerials. */
         const val STILLS_PER_RUN = 3
     }

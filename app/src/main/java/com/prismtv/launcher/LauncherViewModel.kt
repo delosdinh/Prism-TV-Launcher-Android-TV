@@ -4428,7 +4428,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("i:legal", "Acknowledgements", "PRISM TV", chevron = true),
             SettingsRow("i:model", "Model", "DEVICE", "${Build.MANUFACTURER} ${Build.MODEL}"),
             SettingsRow("i:os", "Android", "DEVICE", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"),
-            SettingsRow("i:glass", "Liquid Glass", "DEVICE", if (Build.VERSION.SDK_INT >= 33) "Refraction Shader" else "Refraction Bands"),
+            SettingsRow("i:glass", "Liquid Glass", "DEVICE", when {
+                Build.VERSION.SDK_INT < 33 -> "Refraction Bands"
+                com.prismtv.launcher.ui.glass.GlassPerf.shaderOk -> "Refraction Shader"
+                else -> "Refraction Bands (for this GPU)"
+            }),
             SettingsRow("i:memory", "Memory", "DEVICE", status().memory),
         ) + listOfNotNull(
             status().crash?.let { SettingsRow("i:crash", "Last Problem", "DIAGNOSTICS", it, chevron = true) },

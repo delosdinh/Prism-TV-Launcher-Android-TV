@@ -112,7 +112,9 @@ class MainActivity : ComponentActivity() {
         hideSystemBars()
         intent?.let { i -> i.extras?.let { if (isDebugIntent(i)) vm.applyDebug(it) } }
         intent?.getStringExtra(com.prismtv.launcher.system.PrismAccessibilityService.ExtraAction)?.let { vm.remoteAction(it) }
+        com.prismtv.launcher.ui.glass.GlassPerf.init(this)
         setContent { PrismApp(vm) }
+        com.prismtv.launcher.ui.glass.GlassPerf.watch(window)
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
@@ -277,6 +279,11 @@ class MainActivity : ComponentActivity() {
         writer.println("${prefix}Prism memory:")
         // `… MainActivity gc`: also collect garbage first, to tell memory still held from memory waiting to be freed.
         val collect = args?.any { it == "gc" } == true
+        // `… MainActivity glass`: which Liquid Glass path this TV draws and what was measured; `glass reprobe` measures again.
+        if (args?.any { it == "glass" } == true) {
+            if (args?.any { it == "reprobe" } == true) runOnUiThread { com.prismtv.launcher.ui.glass.GlassPerf.reprobe(window) }
+            writer.println("$prefix  ${com.prismtv.launcher.ui.glass.GlassPerf.report()}")
+        }
         if (args?.any { it == "hwtest" } == true) writer.println("$prefix  ${com.prismtv.launcher.system.HardwareProbe.run()}")
         runCatching { vm.memoryReport(collect) }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
         writer.println("${prefix}Prism memory history (a line a minute when anything happened):")
@@ -292,6 +299,7 @@ class MainActivity : ComponentActivity() {
         if (com.prismtv.launcher.system.AppCloser.snapshotter === snapshot) com.prismtv.launcher.system.AppCloser.snapshotter = null
         runCatching { unregisterReceiver(packageReceiver) }
         runCatching { unregisterReceiver(screenReceiver) }
+        com.prismtv.launcher.ui.glass.GlassPerf.unwatch()
         super.onDestroy()
     }
 
