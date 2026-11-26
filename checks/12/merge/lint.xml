@@ -1027,7 +1027,7 @@
         errorLine2="                       ~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt"
-            line="3048"
+            line="3052"
             column="24"/>
     </issue>
 
@@ -1043,8 +1043,24 @@
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
             file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt"
-            line="3409"
+            line="3413"
             column="35"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        severity="Information"
+        message="Prefer `mutableFloatStateOf` instead of `mutableStateOf`"
+        category="Performance"
+        priority="3"
+        summary="`State&lt;T>` will autobox values assigned to this state. Use a specialized state type instead."
+        explanation="Calling `mutableStateOf&lt;T>()` when `T` is either backed by a primitive type on the JVM or is a value class results in a state implementation that requires all state values to be boxed. This usually causes an additional allocation for each state write, and adds some additional work to auto-unbox values when reading the value of the state. Instead, prefer to use a specialized primitive state implementation for `Int`, `Long`, `Float`, and `Double` when the state does not need to track null values and does not override the default `SnapshotMutationPolicy`. See `mutableIntStateOf()`, `mutableLongStateOf()`, `mutableFloatStateOf()`, and `mutableDoubleStateOf()` for more information."
+        errorLine1="    private var veilScale by mutableStateOf(0.8f)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ime/PrismKeyboardService.kt"
+            line="78"
+            column="30"/>
     </issue>
 
     <issue
