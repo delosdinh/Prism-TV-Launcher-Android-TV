@@ -336,6 +336,20 @@ private fun HomeBackdrop(
                 }
             }
         }
+        // A slow TV's aerial, coming back (Home from an app, the App Switcher closing): until the video's
+        // first frame the wallpaper picture showed, which looked like an older aerial held still. A frame of
+        // the shot it picks up from stands in instead, and fades with the still as the video comes in.
+        val poster = if (aerial) com.prismtv.launcher.aerial.AerialVideoLayer.poster else null
+        if (poster != null) {
+            Image(
+                poster, null,
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = stillAlpha * (1f - blur.value) },
+                contentScale = ContentScale.Crop,
+                filterQuality = FilterQuality.Low,
+            )
+        }
         if (!spot) {
             // Hero scrims keep type legible without looking "dimmed".
             Box(
