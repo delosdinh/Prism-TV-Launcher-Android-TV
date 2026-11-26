@@ -1,18 +1,18 @@
-11-26 01:40:46.767  9776  9776 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
-11-26 01:40:46.767  9776  9776 W PrismAerial: 	... 29 more
-11-26 01:40:46.767  9776  9776 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
-11-26 01:40:46.767  9776  9776 W PrismAerial: 	... 43 more
-11-26 01:40:46.767  9776  9776 I PrismAerial: HTTPS to the aerial host fails on this TV: using HTTP from now on
-11-26 01:40:47.775  9776  9776 I PrismAerial: Screensaver: playing 1920×1080
-11-26 01:41:34.482  9776  9856 I PrismAerial: Aerials: Auto/Auto, panel 1920 px wide, hardware HEVC false, Dolby Vision DolbyVisionSupport(decoder=false, display=false, trusted=true); tried [url-1080-H264, url-1080-SDR, url-4K-SDR]; got {url-1080-H264=114}
-11-26 01:41:36.678  9776  9776 I PrismAerial: Screensaver: playing 1920×1080
-11-26 01:42:06.060  9776  9855 I PrismAerial: Aerials: HD/SDR, panel 1920 px wide, hardware HEVC false, Dolby Vision DolbyVisionSupport(decoder=false, display=false, trusted=true); tried [url-1080-H264, url-1080-SDR, url-4K-SDR]; got {url-1080-H264=114}
-11-26 01:42:06.496  9776  9776 I PrismAerial: Home wallpaper: 12 aerials
-11-26 01:42:06.659  9776  9776 I PrismAerial: Home wallpaper: TextureView
-11-26 01:42:08.155  9776  9776 I PrismAerial: Home wallpaper: playing
+11-26 17:05:16.192  9909  9909 W PrismAerial: 	at com.android.org.conscrypt.ConscryptEngine.readPlaintextData(ConscryptEngine.java:1079)
+11-26 17:05:16.192  9909  9909 W PrismAerial: 	... 29 more
+11-26 17:05:16.192  9909  9909 W PrismAerial: Caused by: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+11-26 17:05:16.192  9909  9909 W PrismAerial: 	... 43 more
+11-26 17:05:16.192  9909  9909 I PrismAerial: HTTPS to the aerial host fails on this TV: using HTTP from now on
+11-26 17:05:17.315  9909  9909 I PrismAerial: Screensaver: playing 1920×1080
+11-26 17:06:07.341  9909  9969 I PrismAerial: Aerials: Auto/Auto, panel 1920 px wide, hardware HEVC false, Dolby Vision DolbyVisionSupport(decoder=false, display=false, trusted=true); tried [url-1080-H264, url-1080-SDR, url-4K-SDR]; got {url-1080-H264=114}
+11-26 17:06:09.375  9909  9909 I PrismAerial: Screensaver: playing 1920×1080
+11-26 17:06:39.448  9909  9988 I PrismAerial: Aerials: HD/SDR, panel 1920 px wide, hardware HEVC false, Dolby Vision DolbyVisionSupport(decoder=false, display=false, trusted=true); tried [url-1080-H264, url-1080-SDR, url-4K-SDR]; got {url-1080-H264=114}
+11-26 17:06:39.913  9909  9909 I PrismAerial: Home wallpaper: 12 aerials
+11-26 17:06:40.082  9909  9909 I PrismAerial: Home wallpaper: TextureView
+11-26 17:06:41.551  9909  9909 I PrismAerial: Home wallpaper: playing
 memory: .Heap     4568     4568        0        0     4568                           
-memory: .LOS    27181    27056      124       31    27284                           
-memory: TOTAL PSS:   126847            TOTAL RSS:   232208       TOTAL SWAP PSS:       92
-11-26 01:40:47.775  9776  9776 I PrismAerial: Screensaver: playing 1920×1080
-11-26 01:41:36.678  9776  9776 I PrismAerial: Screensaver: playing 1920×1080
-11-26 01:42:08.155  9776  9776 I PrismAerial: Home wallpaper: playing
+memory: .LOS    21073    20952      120       32    21188                           
+memory: TOTAL PSS:   121369            TOTAL RSS:   224224       TOTAL SWAP PSS:       91
+11-26 17:05:17.315  9909  9909 I PrismAerial: Screensaver: playing 1920×1080
+11-26 17:06:09.375  9909  9909 I PrismAerial: Screensaver: playing 1920×1080
+11-26 17:06:41.551  9909  9909 I PrismAerial: Home wallpaper: playing
