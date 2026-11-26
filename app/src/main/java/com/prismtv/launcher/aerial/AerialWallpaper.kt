@@ -94,18 +94,36 @@ fun AerialWallpaper(
         }
     }
     DisposableEffect(player) {
+        var disposed = false
+        val retry = Runnable {
+            if (!disposed) {
+                player.prepare()
+                player.playWhenReady = true
+            }
+        }
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() {
                 if (!shown) android.util.Log.i("PrismAerial", "Home wallpaper: playing")
                 shown = true
+                // Playing again: the error budget below is for failures in a row, not for the whole session
+                // (it never reset, so after a few screensaver -> Home trips on the AM9 the aerial stopped for good).
+                Resume.errors = 0
                 onShown(true)
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.w("PrismAerial", "Home wallpaper: ${error.errorCodeName}")
+                if (Resume.errors++ >= 6) return
+                // The decoder wasn't free yet: on the AM9 the screensaver's 4K decoder is still being released as
+                // Home comes back (DECODER_INIT_FAILED). That's not the network, so the same shot again in a
+                // moment, instead of switching to HTTP and skipping it.
+                if (isDecoderBusy(error) && Resume.errors <= 2) {
+                    retryHandler.removeCallbacks(retry)
+                    retryHandler.postDelayed(retry, 1000)
+                    return
+                }
                 // As the screensaver does: first try the same files over HTTP (some TVs don't trust Apple's
                 // CDN certificate), then skip a clip that won't play, and stop trying if none will.
-                if (Resume.errors++ >= 6) return
                 val index = player.currentMediaItemIndex.coerceAtLeast(0)
                 if (!Resume.http) {
                     Resume.http = true
@@ -120,6 +138,8 @@ fun AerialWallpaper(
         }
         player.addListener(listener)
         onDispose {
+            disposed = true
+            retryHandler.removeCallbacks(retry)
             // Carries on from the same shot next time Home shows.
             Resume.index = player.currentMediaItemIndex
             Resume.position = player.currentPosition
@@ -321,6 +341,12 @@ fun AerialVideoLayerHost(modifier: Modifier = Modifier) {
 }
 
 private val posterHandler = Handler(Looper.getMainLooper())
+private val retryHandler = Handler(Looper.getMainLooper())
+
+/** A decoder that couldn't start or was taken back (another player still holds it), not a bad file or network. */
+private fun isDecoderBusy(e: androidx.media3.common.PlaybackException): Boolean =
+    e.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+        e.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_DECODING_FAILED
 
 /** The OpenGL path's pieces, shared between the TextureView's listener and the player's disposal. */
 private class GlHolder {
