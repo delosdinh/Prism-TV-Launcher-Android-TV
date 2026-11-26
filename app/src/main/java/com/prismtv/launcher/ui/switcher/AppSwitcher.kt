@@ -70,6 +70,14 @@ fun AppSwitcher(vm: LauncherViewModel) {
     )
     if (open < 0.002f) return
     val backdrop = LocalBackdrop.current
+    androidx.compose.runtime.LaunchedEffect(visible) {
+        // For checking the Home card on a TV: what it has to draw the wallpaper with.
+        if (visible) android.util.Log.i(
+            "PrismSwitcher",
+            "open: wallpaper=${vm.wallpaperKey} videoLayer=${com.prismtv.launcher.aerial.AerialVideoLayer.player != null} " +
+                "still=${(vm.wallpaperArt ?: vm.currentArt)?.full?.let { "${it.width}x${it.height}" }}",
+        )
+    }
     DisposableEffect(backdrop) {
         backdrop.lensSuspended = true
         onDispose { backdrop.lensSuspended = false }
