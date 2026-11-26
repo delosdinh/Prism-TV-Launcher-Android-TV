@@ -3776,25 +3776,46 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private val homeIntent get() = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
 
-    /** The TV's Home app right now (its package), or null when Android would ask. */
-    private fun currentHomePackage(): String? = runCatching {
-        ctx.packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
-            ?.takeIf { it != "android" }
+    /** The activity Android opens for Home right now, or null when Android would ask. */
+    private fun resolvedHome(): android.content.pm.ActivityInfo? = runCatching {
+        ctx.packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo
+            ?.takeIf { it.packageName != "android" }
     }.getOrNull()
 
-    /** The TV's own launcher (Google TV, Android TV Home…): package and activity. */
+    /** The TV's Home app right now (its package), or null when Android would ask. */
+    private fun currentHomePackage(): String? = resolvedHome()?.packageName
+
+    private fun isSetupWizard(pkg: String, cls: String?): Boolean {
+        val label = runCatching {
+            if (cls != null) ctx.packageManager.getActivityInfo(android.content.ComponentName(pkg, cls), PackageManager.MATCH_DISABLED_COMPONENTS)
+                .loadLabel(ctx.packageManager).toString()
+            else appName(pkg)
+        }.getOrNull()
+        return com.prismtv.launcher.system.HomeApps.isSetupWizard(pkg, cls, label)
+    }
+
+    /**
+     * The TV's setup wizard, when it's still what Android opens for Home. It should switch that off when
+     * setup ends; some TVs (a Xiaomi) don't, and it then outranks any Home app the person picks.
+     */
+    private fun stuckSetupWizard(): android.content.pm.ActivityInfo? =
+        resolvedHome()?.takeIf { it.packageName != ctx.packageName && isSetupWizard(it.packageName, it.name) }
+
+    /** The TV's own launcher (Google TV, Android TV Home, PatchWall…): package and activity. Never the setup wizard. */
     private fun stockLauncher(): android.content.ComponentName? {
-        prefs.hiddenLauncher.takeIf { it.contains('/') }?.let { return android.content.ComponentName.unflattenFromString(it) }
-        val known = listOf(
-            "com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher", "com.google.android.leanbacklauncher",
-            "com.amazon.tv.launcher", "com.android.tv.launcher",
-        )
+        prefs.hiddenLauncher.takeIf { it.contains('/') }?.let { android.content.ComponentName.unflattenFromString(it) }
+            ?.takeIf { !isSetupWizard(it.packageName, it.className) }?.let { return it }
+        val known = com.prismtv.launcher.system.HomeApps.knownLaunchers
         @Suppress("DEPRECATION")
         val all = runCatching {
             ctx.packageManager.queryIntentActivities(homeIntent, PackageManager.MATCH_DISABLED_COMPONENTS)
         }.getOrDefault(emptyList())
+            .filter { ri ->
+                val ai = ri.activityInfo
+                ai.packageName != ctx.packageName && ai.packageName != "com.android.settings" && ai.packageName != "com.android.tv.settings" &&
+                    !com.prismtv.launcher.system.HomeApps.isSetupWizard(ai.packageName, ai.name, runCatching { ri.loadLabel(ctx.packageManager).toString() }.getOrNull())
+            }
             .map { android.content.ComponentName(it.activityInfo.packageName, it.activityInfo.name) }
-            .filter { it.packageName != ctx.packageName && it.packageName != "com.android.settings" && it.packageName != "com.android.tv.settings" }
         return all.minByOrNull { c -> known.indexOf(c.packageName).let { if (it < 0) 99 else it } }
     }
 
@@ -3844,7 +3865,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val isPrism = home == ctx.packageName
         val isStock = stock != null && home == stock.packageName
         val ready = isStock && !hidden
+        val wizard = stuckSetupWizard()
         return listOfNotNull(
+            if (wizard != null) {
+                SettingsRow("ha:wizard", "Finish ${appName(wizard.packageName)}", "THE TV'S SETUP WIZARD IS STILL HOME", chevron = true)
+            } else null,
             SettingsRow("ha:prism", "Prism TV", "HOME APP", selectable = true, checked = isPrism),
             if (stock != null) {
                 SettingsRow("ha:stock", stockName, "HOME APP", if (hidden) "Hidden" else null, selectable = true, checked = isStock)
@@ -3863,6 +3888,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
         when (id) {
             "ha:prism" -> makePrismHome()
+            "ha:wizard" -> stuckSetupWizard()?.let { askFinishWizard(it.packageName) }
+                ?: showBanner("Home App", "The setup wizard isn't the Home app any more.", Icons.Rounded.CheckCircle, Cue.Confirm)
             "ha:stock", "ha:restore" -> when {
                 stock == null -> showBanner("Home App", "This TV has no other launcher to go back to.", Icons.Rounded.Info)
                 currentHomePackage() == stock.packageName && !launcherHidden(stock) ->
@@ -3916,6 +3943,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     return@launch
                 }
                 resumeTick++
+                stuckSetupWizard()?.let {
+                    askFinishWizard(it.packageName)
+                    return@launch
+                }
                 if (stock == null) {
                     showBanner("Home App", "Android didn't change the Home app. Press Home and choose Prism TV if Android asks.", Icons.Rounded.Info)
                     return@launch
@@ -3928,6 +3959,35 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     listOf(DialogButton("Hide $stockName") { hideLauncher(stock, stockName) }, DialogButton("Not Now") {}),
                 )
                 dialogFocus = 0
+            }
+        }
+    }
+
+    /** The setup wizard still answers Home: offer to do what it should have done when setup ended. */
+    private fun askFinishWizard(wizardPackage: String) {
+        val name = appName(wizardPackage)
+        dialog = DialogSpec(
+            "Finish $name?",
+            "$name is still set to open when you press Home, so Android keeps it as the Home app whatever you choose. " +
+                "Prism TV can finish it: mark setup as done, turn $name off and make Prism TV the Home app. " +
+                "Your apps and accounts aren't touched. To undo it, run pm enable $wizardPackage.",
+            listOf(DialogButton("Finish Setup") { finishWizard(wizardPackage, name) }, DialogButton("Cancel") {}),
+        )
+        dialogFocus = 0
+    }
+
+    private fun finishWizard(wizardPackage: String, name: String) {
+        val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
+        runShellSteps("Finish $name", com.prismtv.launcher.system.HomeApps.finishWizardCommand(wizardPackage, main)) { ok ->
+            if (!ok) return@runShellSteps
+            viewModelScope.launch {
+                val done = settles(6000) { currentHomePackage() == ctx.packageName }
+                resumeTick++
+                when {
+                    done -> showBanner("Home App", "$name is finished and Prism TV is now the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    stuckSetupWizard() == null -> showBanner("Home App", "$name is finished. Press Home and choose Prism TV if Android asks.", Icons.Rounded.Info)
+                    else -> showBanner("Home App", "Android kept $name as Home. Restart the TV, then choose Prism TV here again.", Icons.Rounded.Info)
+                }
             }
         }
     }
