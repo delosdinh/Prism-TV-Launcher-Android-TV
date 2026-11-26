@@ -245,6 +245,28 @@ jobs:
           fi
           gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk dist/update.json --clobber
 
+      # Every preview build also goes to the releases repository's "testing" release: TVs set to Update Channel ›
+      # Testing (Settings › Software Update) read it, so test TVs keep updating themselves while the stable
+      # channel ("preview" there, read by every other TV) only gets main.
+      - name: Publish to the releases repository's testing channel
+        if: steps.channels.outputs.preview == 'true'
+        env:
+          RELEASES_REPO: ${{ vars.RELEASES_REPO }}
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -z "$RELEASES_REPO" ] || [ -z "$RELEASES_TOKEN" ]; then
+            echo "::notice::RELEASES_REPO or RELEASES_TOKEN isn't set: no testing channel."
+            exit 0
+          fi
+          export GH_TOKEN="$RELEASES_TOKEN" GH_REPO="$RELEASES_REPO"
+          NOTES="Prism TV test build ${PRISM_VN} (\`${GITHUB_REF_NAME}\`, ${GITHUB_SHA::7}). For TVs on Update Channel › Testing; may have problems."
+          if gh release view testing >/dev/null 2>&1; then
+            gh release edit testing --prerelease --title "Prism TV (testing)" --notes "$NOTES"
+          else
+            gh release create testing --prerelease --title "Prism TV (testing)" --notes "$NOTES"
+          fi
+          gh release upload testing dist/prismtv.apk dist/prismtv-debug.apk dist/update.json --clobber
+
       # The same files on a public releases-only repository, so this code repository can be made private
       # and TVs still update without signing in (docs/editions.md). Needs the repository variable
       # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Releases) and the secret RELEASES_TOKEN (a fine-grained token

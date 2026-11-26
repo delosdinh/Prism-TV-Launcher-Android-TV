@@ -104,6 +104,8 @@ data class LauncherPrefs(
     val aerialRange: AerialRange = AerialRange.Auto,
     /** Look for new Prism TV builds and offer to install them. */
     val updateCheck: Boolean = true,
+    /** Software Update › Update Channel: Testing gets every test build, not only main (GitHub edition). */
+    val updateTesting: Boolean = false,
     /** A version the user chose "Later" for; not offered again automatically. */
     val skippedUpdate: Int = 0,
     /** Current weather in the time pill. */
@@ -264,6 +266,7 @@ class PrefsStore(context: Context) {
             aerialShowLocation = sp.getBoolean("aerialShowLocation", d.aerialShowLocation),
             aerialRange = enumOr(sp.getString("aerialRange", null), d.aerialRange),
             updateCheck = sp.getBoolean("updateCheck", d.updateCheck),
+            updateTesting = sp.getBoolean("updateTesting", d.updateTesting),
             skippedUpdate = sp.getInt("skippedUpdate", d.skippedUpdate),
             weather = sp.getBoolean("weather", d.weather),
             wifiStatus = sp.getBoolean("wifiStatus", d.wifiStatus),
@@ -315,6 +318,7 @@ class PrefsStore(context: Context) {
             .putBoolean("aerialShowLocation", p.aerialShowLocation)
             .putString("aerialRange", p.aerialRange.name)
             .putBoolean("updateCheck", p.updateCheck)
+            .putBoolean("updateTesting", p.updateTesting)
             .putInt("skippedUpdate", p.skippedUpdate)
             .putBoolean("weather", p.weather)
             .putBoolean("wifiStatus", p.wifiStatus)

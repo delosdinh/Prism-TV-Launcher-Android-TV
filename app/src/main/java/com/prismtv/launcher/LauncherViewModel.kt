@@ -915,7 +915,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (BuildConfig.PLAY || updateJob?.isActive == true) return
         updateJob = viewModelScope.launch {
             updateStatus = "Checking…"
-            val result = Updater.check()
+            val result = Updater.check(testing = prefs.updateTesting)
             updateSp.edit().putLong("lastCheck", System.currentTimeMillis()).apply()
             result.onSuccess { info ->
                 availableUpdate = info
@@ -4648,6 +4648,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 chevron = true,
             ),
             SettingsRow("upd:auto", "Check Automatically", "PRISM TV LAUNCHER", onOff(prefs.updateCheck)),
+            SettingsRow("upd:channel", "Update Channel", "PRISM TV LAUNCHER", if (prefs.updateTesting) "Testing" else "Stable"),
             SettingsRow("upd:ver", "Installed Version", "PRISM TV LAUNCHER", BuildConfig.VERSION_NAME),
         )
         SettingsPage.TextSize -> emptyList()
@@ -5225,6 +5226,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "upd:check" -> availableUpdate?.let { offerUpdate(it) } ?: checkForUpdates(manual = true)
             r.id == "upd:auto" -> updatePrefs(p.copy(updateCheck = !p.updateCheck))
+            r.id == "upd:channel" -> {
+                updatePrefs(p.copy(updateTesting = !p.updateTesting))
+                // What's on offer depends on the channel: look again.
+                availableUpdate = null
+                updateStatus = ""
+            }
             r.id == "weather" -> {
                 updatePrefs(p.copy(weather = !p.weather))
                 if (prefs.weather) refreshWeather(force = true)

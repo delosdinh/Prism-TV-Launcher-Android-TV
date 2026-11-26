@@ -55,6 +55,13 @@ object Updater {
         "https://github.com/delosdinh/Prism-TV-Launcher-Android-TV/releases/download/preview",
     ).filter { it.isNotBlank() }.distinct()
 
+    /**
+     * The Testing channel (Settings › Software Update › Update Channel): every test build, which CI puts on
+     * the releases repository's "testing" release. The stable sources above only get main.
+     */
+    private val TESTING: String = BuildConfig.UPDATE_URL.takeIf { it.endsWith("/preview") }
+        ?.removeSuffix("/preview")?.plus("/testing").orEmpty()
+
     private val _events = MutableSharedFlow<InstallEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<InstallEvent> = _events
 
@@ -62,8 +69,27 @@ object Updater {
         _events.tryEmit(e)
     }
 
-    /** Returns the newer build, or null when this is the latest (or the check failed). */
-    suspend fun check(): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
+    /**
+     * Returns the newer build, or null when this is the latest (or the check failed). [testing]: the newest of
+     * the Testing channel and the stable sources, so a TV on Testing also gets main as soon as it's out.
+     */
+    suspend fun check(testing: Boolean = false): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
+        if (testing && TESTING.isNotBlank()) {
+            val t = runCatching { parse(httpText("$TESTING/update.json"), TESTING) }
+                .onFailure { Log.w(TAG, "Testing channel check failed", it) }
+            val s = stable()
+            val best = listOfNotNull(t.getOrNull(), s.getOrNull()).maxByOrNull { it.versionCode }
+            return@withContext when {
+                best != null -> Result.success(best.takeIf { it.versionCode > BuildConfig.VERSION_CODE })
+                t.isSuccess || s.isSuccess -> Result.success(null)
+                else -> Result.failure(s.exceptionOrNull() ?: IllegalStateException("No update source"))
+            }
+        }
+        stable().map { info -> info?.takeIf { it.versionCode > BuildConfig.VERSION_CODE } }
+    }
+
+    /** The newest build on the first stable source that answers (whatever its version). */
+    private fun stable(): Result<UpdateInfo?> =
         runCatching {
             var lastError: Throwable? = null
             var release = ""
@@ -75,17 +101,19 @@ object Updater {
                     break
                 }
             }
-            val json = JSONObject(text ?: throw (lastError ?: IllegalStateException("No update source")))
-            val code = json.getInt("versionCode")
-            if (code <= BuildConfig.VERSION_CODE) return@runCatching null
-            val apk = if (BuildConfig.DEBUG) json.optString("debugApk", "prismtv-debug.apk") else json.optString("apk", "prismtv.apk")
-            UpdateInfo(
-                versionCode = code,
-                versionName = json.optString("versionName", code.toString()),
-                notes = json.optString("notes").trim(),
-                apkUrl = if (apk.startsWith("http")) apk else "$release/$apk",
-            )
+            parse(text ?: throw (lastError ?: IllegalStateException("No update source")), release)
         }.onFailure { Log.w(TAG, "Update check failed", it) }
+
+    private fun parse(text: String, release: String): UpdateInfo {
+        val json = JSONObject(text)
+        val code = json.getInt("versionCode")
+        val apk = if (BuildConfig.DEBUG) json.optString("debugApk", "prismtv-debug.apk") else json.optString("apk", "prismtv.apk")
+        return UpdateInfo(
+            versionCode = code,
+            versionName = json.optString("versionName", code.toString()),
+            notes = json.optString("notes").trim(),
+            apkUrl = if (apk.startsWith("http")) apk else "$release/$apk",
+        )
     }
 
     /** Downloads the APK into the cache, reporting progress 0..1. */
