@@ -73,3 +73,16 @@ each run's artifacts as `prism-tv-play-bundle`).
   nothing is published.
 - **Pull request builds**: they still build and test, signed with a throwaway key, and are never
   published.
+
+## Release channels
+
+A push publishes to two places (the `publish` job in `.github/workflows/android.yml`):
+
+- **This repository's `preview` release**, for the test TVs: every branch push, or, once the
+  repository variable `PREVIEW_BRANCHES` is set (space-separated branch names), only those branches.
+- **The public releases-only repository** (`RELEASES_REPO`), which every other TV's Software Update
+  reads first: only pushes to `main`, so work-in-progress branches never reach them. Merging a pull
+  request is what releases it.
+
+Software Update takes the first source that answers, so a TV on a preview build newer than the
+releases repository simply sees no update until `main` catches up.
