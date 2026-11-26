@@ -29,12 +29,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prismtv.launcher.LauncherViewModel
@@ -49,6 +53,7 @@ import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.LocalBackdrop
 import com.prismtv.launcher.ui.glass.glass
+import kotlin.math.roundToInt
 
 /**
  * App Switcher, laid out like tvOS: Home shrinks into a centred card with recent apps stacked in a
@@ -189,7 +194,13 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                 .background(Color(0xFF15161A))
         ) {
             if (app == null) {
-                // A live miniature of the Home Screen.
+                // A live miniature of the Home Screen. A slow TV's aerial plays on the video layer, under the
+                // whole app (AerialVideoLayerHost), and Home clears its own wallpaper away over it, so the scene
+                // has no wallpaper in it there: the card showed its dark fill. The video plane can't be read
+                // back (PixelCopy gives black or green on Amlogic), so the wallpaper's still stands in for it.
+                val videoLayerStill = if (com.prismtv.launcher.aerial.AerialVideoLayer.player != null) {
+                    (vm.wallpaperArt ?: vm.currentArt)?.full
+                } else null
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -197,6 +208,7 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                             val root = backdrop.rootSize
                             val f = size.width / root.width.toFloat()
                             withTransform({ scale(f, f, pivot = Offset.Zero) }) {
+                                if (videoLayerStill != null) drawCropped(videoLayerStill, root)
                                 drawLayer(backdrop.scene)
                             }
                         }
@@ -237,4 +249,20 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
             if (shade > 0.005f) Box(Modifier.fillMaxSize().drawBehind { drawRect(Color.Black.copy(alpha = shade)) })
         }
     }
+}
+
+/** [img] filling [dst] from the origin, centre-cropped like ContentScale.Crop (as Home draws its wallpaper). */
+private fun DrawScope.drawCropped(img: ImageBitmap, dst: IntSize) {
+    if (img.width <= 0 || img.height <= 0 || dst.width <= 0 || dst.height <= 0) return
+    val s = maxOf(dst.width / img.width.toFloat(), dst.height / img.height.toFloat())
+    val sw = (dst.width / s).roundToInt().coerceIn(1, img.width)
+    val sh = (dst.height / s).roundToInt().coerceIn(1, img.height)
+    drawImage(
+        image = img,
+        srcOffset = IntOffset((img.width - sw) / 2, (img.height - sh) / 2),
+        srcSize = IntSize(sw, sh),
+        dstOffset = IntOffset.Zero,
+        dstSize = dst,
+        filterQuality = FilterQuality.Low,
+    )
 }
