@@ -45,7 +45,7 @@ private val Exact: Map<String, String> = mapOf(
     "pro:buy" to "Buy Prism Pro once through Google Play. It's yours on every TV signed in to the same Google account.",
     "pro:restore" to "Bought Prism Pro on another TV, or reinstalled? This asks Google Play again.",
     "backup" to "Save your settings, layout and folders to a file, or bring them back.",
-    "access" to "What Prism TV may see: notifications, recommendations, recent apps, pictures and the microphone.",
+    "access" to "What Prism TV may see: notifications, recommendations, recent apps, pictures, the microphone and remote button presses.",
     "about" to "The version, this TV's details, memory use and the last problem Prism TV ran into.",
     "restart" to "Closes and reopens Prism TV. Your settings and layout stay as they are.",
     "reset" to "Puts every Prism TV setting and the Home Screen layout back to how they started.",

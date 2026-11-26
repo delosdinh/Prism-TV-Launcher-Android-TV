@@ -4491,6 +4491,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("usage", "Recent Apps", "HOME SCREEN", if (status().usage) "Allowed" else "Not Allowed", chevron = !status().usage),
             SettingsRow("acc:photos", "Your Pictures", "WALLPAPER, SCREENSAVER & BANNERS", if (hasPhotoAccess()) "Allowed" else "Not Allowed", chevron = !hasPhotoAccess()),
             SettingsRow("kb:mic", "Dictation Microphone", "KEYBOARD", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
+            // The same row as on the main page (Turn On for Me where Prism TV can run it): it sees remote presses.
+            SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", if (PrismAccessibilityService.isEnabled) "Allowed" else "Not Allowed", chevron = !PrismAccessibilityService.isEnabled),
         ) }
         // Colour Mode colours Settings and pop-ups (always frosted glass); Material and Material Colour
         // are the Home Screen glass (Automatic follows Colour Mode, Clear drops the tint).
