@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.prismtv.launcher.keyboard.AbcKeyboardTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-26T01:19:28.428Z" hostname="ip-10-0-132-58" time="0.358">
+<testsuite name="com.prismtv.launcher.keyboard.AbcKeyboardTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-26T05:55:36.295Z" hostname="runnervm0hi8g" time="0.457">
   <properties/>
-  <testcase name="startsOnH" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.156"/>
-  <testcase name="typingUsesAutoCorrection" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.04"/>
-  <testcase name="nearestFindsEachKeyFromItsOwnCentre" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.027"/>
-  <testcase name="upAndDownWrapThroughTheBarAndTheFunctionRow" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.022"/>
-  <testcase name="spaceIsOnePressFromHAndM" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.02"/>
-  <testcase name="columnsLineUpDownTheGrid" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.031"/>
-  <testcase name="lettersRunAToZThenTheKeysYouNeed" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.022"/>
-  <testcase name="oneTwoThreeAndBackLandsOnTheSwitchKey" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.037"/>
+  <testcase name="startsOnA" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.167"/>
+  <testcase name="typingUsesAutoCorrection" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.045"/>
+  <testcase name="nearestFindsEachKeyFromItsOwnCentre" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.032"/>
+  <testcase name="leftAndRightWrapRoundARow" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.028"/>
+  <testcase name="clearEmptiesTheFieldAndDeleteBringsItBack" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.033"/>
+  <testcase name="abcTogglesCapitals" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.035"/>
+  <testcase name="upAndDownWrapThroughTheSwitchesAndTheBar" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.028"/>
+  <testcase name="theSwitchesStayPutAcrossLayers" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.041"/>
+  <testcase name="columnsLineUpDownTheGrid" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.025"/>
+  <testcase name="laidOutLikeTvOS" classname="com.prismtv.launcher.keyboard.AbcKeyboardTest" time="0.021"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
