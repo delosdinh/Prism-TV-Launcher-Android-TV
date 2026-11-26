@@ -165,6 +165,7 @@ fun SettingsScreen(vm: LauncherViewModel) {
     val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.9f, stiffness = 320f), label = "settings")
     val t by tState
     if (!tState.atLeast(0.002f)) return
+    com.prismtv.launcher.ui.glass.HoldSceneCache()
     if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "settings") }
     val theme = LocalPrism.current
     val p = theme.palette

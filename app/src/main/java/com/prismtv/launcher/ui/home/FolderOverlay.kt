@@ -52,6 +52,7 @@ fun FolderOverlay(vm: LauncherViewModel) {
     val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.86f, stiffness = 300f), label = "folder")
     val t by tState
     if (!tState.atLeast(0.002f)) return
+    com.prismtv.launcher.ui.glass.HoldSceneCache()
     val theme = LocalPrism.current
     val p = theme.palette
     val n = folder.apps.size

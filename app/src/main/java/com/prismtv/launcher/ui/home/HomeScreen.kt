@@ -113,6 +113,7 @@ import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.BackdropState
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.LocalBackdrop
+import com.prismtv.launcher.ui.glass.PerfSwitches
 import com.prismtv.launcher.ui.glass.backdropSource
 import com.prismtv.launcher.ui.glass.glass
 import com.prismtv.launcher.ui.theme.LocalPrism
@@ -219,7 +220,9 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
         MoveHint(visible = vm.movingId != null, modifier = Modifier.align(Alignment.BottomCenter))
 
         val pillVisible = !gridMode && vm.overlay != Overlay.ControlCentre && !vm.searchOpen
-        val pillAlpha by animateFloatAsState(if (pillVisible) 1f else 0f, tween(300), label = "pill")
+        val pillAlpha = animateFloatAsState(if (pillVisible) 1f else 0f, tween(300), label = "pill")
+        val backdrop = LocalBackdrop.current
+        backdrop.pillAlpha = pillAlpha
         TimePill(
             time = clock,
             weather = if (vm.prefs.weather) vm.weather else null,
@@ -230,7 +233,36 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 24.dp, end = 27.dp)
-                .graphicsLayer { alpha = pillAlpha },
+                // While Control Centre is up, its stand-in above Home's layer may draw it instead (PerfSwitches.ccPillAbove).
+                .graphicsLayer { alpha = if (PerfSwitches.ccPillAbove && backdrop.ccShown) 0f else pillAlpha.value },
+        )
+    }
+}
+
+/**
+ * The time pill drawn just above the Home Screen's layer, in the same place and with the same fade, while
+ * Control Centre is composed ([PerfSwitches.ccPillAbove]). Its fade then changes nothing in the Home Screen's
+ * layer, which Control Centre's glass looks through: in the layer, each frame of it re-rendered Home's layer,
+ * its blurred copy and every Control Centre lens.
+ */
+@Composable
+fun TimePillAbove(vm: LauncherViewModel, clock: String) {
+    val backdrop = LocalBackdrop.current
+    if (!PerfSwitches.ccPillAbove || !backdrop.ccShown) return
+    val pillAlpha = backdrop.pillAlpha ?: return
+    Box(Modifier.fillMaxSize()) {
+        TimePill(
+            time = clock,
+            weather = if (vm.prefs.weather) vm.weather else null,
+            network = if (vm.prefs.wifiStatus) vm.network else null,
+            notifications = vm.notifications.size,
+            unit = vm.prefs.temperatureUnit,
+            // Control Centre opened from the pill hands focus back to it as it closes.
+            focus = if (vm.zone == Zone.TopBar && vm.overlay == Overlay.None) vm.topIndex else -1,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 24.dp, end = 27.dp)
+                .graphicsLayer { alpha = pillAlpha.value },
         )
     }
 }

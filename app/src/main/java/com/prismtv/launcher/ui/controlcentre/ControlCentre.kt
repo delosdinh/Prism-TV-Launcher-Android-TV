@@ -37,6 +37,12 @@ import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.prismtv.launcher.ui.glass.LocalLensRest
+import com.prismtv.launcher.ui.glass.PerfSwitches
+import kotlin.math.roundToInt
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -103,6 +109,13 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
     val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.84f, stiffness = 280f), label = "cc")
     val t by tState
     if (!tState.atLeast(0.002f)) return
+    com.prismtv.launcher.ui.glass.HoldSceneCache()
+    // While Control Centre is composed, Home may draw its time pill above its layer (PerfSwitches.ccPillAbove).
+    val backdrop = com.prismtv.launcher.ui.glass.LocalBackdrop.current
+    androidx.compose.runtime.DisposableEffect(backdrop) {
+        backdrop.ccShown = true
+        onDispose { backdrop.ccShown = false }
+    }
     if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "cc") }
     val theme = LocalPrism.current
     val p = theme.palette
@@ -128,154 +141,175 @@ fun ControlCentre(vm: LauncherViewModel, clock: String) {
                     )
                 )
         )
-        Box(
-            Modifier
-                .offset(ClusterLeft.dp, 24.dp)
-                .size(ClusterW.dp, 500.dp)
-                .graphicsLayer {
-                    alpha = t
-                    val s = lerpF(0.86f, 1f, t)
-                    scaleX = s
-                    scaleY = s
-                    transformOrigin = TransformOrigin(1f, 0f)
-                }
-        ) {
-            // Header: the time pill unfolds into the Control Centre header.
-            Row(
+        // PerfSwitches.ccSteadyLens: while the cluster zooms, each tile's lens samples the backdrop where the tile
+        // rests (its position with the zoom taken out) instead of where this frame puts it, so the lenses aren't
+        // re-rendered on every frame. Exactly the resting position once the zoom ends.
+        val zoomOrigin = remember { floatArrayOf(Float.NaN, Float.NaN) }
+        val lensRest: ((Offset) -> Offset)? = if (PerfSwitches.ccSteadyLens) remember {
+            { pos: Offset ->
+                val s = lerpF(0.86f, 1f, tState.value)
+                val ox = zoomOrigin[0]
+                val oy = zoomOrigin[1]
+                if (s == 1f || s <= 0f || ox.isNaN()) pos
+                else Offset((ox + (pos.x - ox) / s).roundToInt().toFloat(), (oy + (pos.y - oy) / s).roundToInt().toFloat())
+            }
+        } else null
+        CompositionLocalProvider(LocalLensRest provides lensRest) {
+            Box(
                 Modifier
-                    .size(ClusterW.dp, 32.dp)
-                    .padding(start = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                PText(clock, 16.sp, FontWeight.SemiBold, ink, shadow = true)
-                if (weather != null) {
-                    HSpace(10.dp)
-                    WeatherGlyph(weather, 17.dp)
-                    HSpace(4.dp)
-                    PText(weather.label(vm.prefs.temperatureUnit), 15.sp, FontWeight.SemiBold, ink, shadow = true)
-                    if (weather.place.isNotBlank()) {
-                        HSpace(6.dp)
-                        PText(weather.place, 12.sp, FontWeight.Medium, ink.copy(alpha = 0.78f), shadow = true)
+                    .offset(ClusterLeft.dp, 24.dp)
+                    .size(ClusterW.dp, 500.dp)
+                    // Where the zoom is anchored (the cluster's top-right corner), outside its layer so unzoomed.
+                    .onGloballyPositioned {
+                        val b = it.boundsInRoot()
+                        zoomOrigin[0] = b.right
+                        zoomOrigin[1] = b.top
                     }
-                }
-                Box(Modifier.weight(1f))
-                Avatar(30.dp, focused = f == CC.Profile)
-            }
-
-            Tile(f == CC.Power, Modifier.offset(0.dp, TilesTop.dp).size(Big.dp, Big.dp), RoundedCornerShape(28.dp)) { c ->
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    PIcon(Icons.Rounded.PowerSettingsNew, c, 50.dp)
-                    VSpace(6.dp)
-                    PText("Power", 13.sp, FontWeight.SemiBold, c)
-                }
-            }
-            PillTile(
-                f == CC.WiFi, Modifier.offset((Big + Gutter).dp, TilesTop.dp),
-                icon = when {
-                    net.ethernet -> Icons.Rounded.SettingsEthernet
-                    net.connected -> Icons.Rounded.Wifi
-                    else -> Icons.Rounded.WifiOff
-                },
-                iconColor = if (net.connected) Color(0xFF0A84FF) else null,
-                circled = true,
-                title = net.title, subtitle = if (net.connected && !net.ethernet) "On" else net.subtitle,
-            )
-            PillTile(
-                f == CC.Bluetooth, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
-                icon = Icons.Rounded.Bluetooth,
-                iconColor = Color(0xFF0A84FF),
-                circled = true,
-                title = "Bluetooth", subtitle = "Remotes & More",
-            )
-            val output = remember(vm.resumeTick, visible) { SystemActions.audioOutput(ctx) }
-            PillTile(
-                f == CC.Sound, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
-                icon = Icons.AutoMirrored.Rounded.VolumeUp, iconColor = Color(0xFFFF375F), circled = true,
-                title = "Sound", subtitle = output,
-            )
-            PillTile(
-                f == CC.Sleep, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
-                icon = Icons.Rounded.Timer,
-                iconColor = if (vm.sleepMinutes > 0) Color(0xFFFF9F0A) else null,
-                circled = true,
-                title = "Sleep", subtitle = if (vm.sleepMinutes > 0) vm.sleepLabel() else "Timer", subtitleStrong = vm.sleepMinutes == 0,
-            )
-            val circles = listOf(
-                CC.Picture to Icons.Rounded.Tv,
-                CC.Memory to Icons.Rounded.Memory,
-                CC.Access to Icons.Rounded.AccessibilityNew,
-                CC.Screensaver to Icons.Rounded.Landscape,
-            )
-            // Four circles spread evenly under the tiles above.
-            val step = (ClusterW - Circle) / (circles.size - 1)
-            circles.forEachIndexed { i, (id, icon) ->
-                Tile(
-                    f == id,
-                    Modifier
-                        .offset((step * i).dp, CirclesTop.dp)
-                        .size(Circle.dp),
-                    CircleShape,
-                ) { c ->
-                    PIcon(icon, c, 24.dp, Modifier.align(Alignment.Center))
-                }
-            }
-            // Caption for icon-only controls, like the tvOS focus label.
-            // Free Up Memory says what it's doing, then what it freed, in its caption.
-            // The profile picture opens Who's Watching? with two or more profiles, else the profile page.
-            val caption = when (f) {
-                CC.Memory -> vm.memoryCaption ?: captions[f]
-                CC.Profile -> if (vm.profileList.size >= 2) "Switch Profile" else "Profile"
-                else -> captions[f]
-            }
-            PText(
-                caption ?: "", 13.sp, FontWeight.SemiBold, ink,
-                Modifier
-                    .offset(0.dp, (CirclesTop + Circle + 12f).dp)
-                    .size(ClusterW.dp, 20.dp)
-                    .graphicsLayer { alpha = if (caption != null) 1f else 0f },
-                align = TextAlign.Center, shadow = true,
-            )
-            // Now Playing: what another app is playing, with previous / play-pause / next.
-            val np = vm.nowPlaying
-            if (np != null) {
-                NowPlayingTile(
-                    np, f,
-                    Modifier
-                        .offset(0.dp, NowTop.dp)
-                        .size(ClusterW.dp, NowH.dp),
-                )
-            }
-            // Notifications: the latest few, newest first, under a header with a small ✕ (Clear All, as on
-            // iOS). Select opens one; Left or Right slides it aside to show Clear; hold OK clears it too.
-            val shown = vm.ccNotificationsShown
-            if (shown > 0) {
-                val headerTop = if (np != null) NowTop + NowH + Gutter else NotesTop
-                val notesTop = headerTop + NotesHeaderH
-                val more = vm.notifications.size - shown
+                    .graphicsLayer {
+                        alpha = t
+                        val s = lerpF(0.86f, 1f, t)
+                        scaleX = s
+                        scaleY = s
+                        transformOrigin = TransformOrigin(1f, 0f)
+                    }
+            ) {
+                // Header: the time pill unfolds into the Control Centre header.
                 Row(
                     Modifier
-                        .offset(0.dp, headerTop.dp)
-                        .size(ClusterW.dp, (NotesHeaderH - 4f).dp)
+                        .size(ClusterW.dp, 32.dp)
                         .padding(start = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    PText("Notifications", 13.sp, FontWeight.SemiBold, ink, shadow = true)
-                    if (more > 0) {
-                        HSpace(6.dp)
-                        PText("$more more", 11.sp, FontWeight.Medium, ink.copy(alpha = 0.72f), shadow = true)
+                    PText(clock, 16.sp, FontWeight.SemiBold, ink, shadow = true)
+                    if (weather != null) {
+                        HSpace(10.dp)
+                        WeatherGlyph(weather, 17.dp)
+                        HSpace(4.dp)
+                        PText(weather.label(vm.prefs.temperatureUnit), 15.sp, FontWeight.SemiBold, ink, shadow = true)
+                        if (weather.place.isNotBlank()) {
+                            HSpace(6.dp)
+                            PText(weather.place, 12.sp, FontWeight.Medium, ink.copy(alpha = 0.78f), shadow = true)
+                        }
                     }
                     Box(Modifier.weight(1f))
-                    ClearAllButton(f == CC.ClearAll)
+                    Avatar(30.dp, focused = f == CC.Profile)
                 }
-                vm.notifications.take(shown).forEachIndexed { i, n ->
-                    NotificationTile(
-                        n,
-                        focused = f == CC.Notification + i,
-                        clearing = f == CC.NotificationClear + i,
-                        modifier = Modifier
-                            .offset(0.dp, (notesTop + i * (NoteH + Gutter)).dp)
-                            .size(ClusterW.dp, NoteH.dp),
+
+                Tile(f == CC.Power, Modifier.offset(0.dp, TilesTop.dp).size(Big.dp, Big.dp), RoundedCornerShape(28.dp)) { c ->
+                    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                        PIcon(Icons.Rounded.PowerSettingsNew, c, 50.dp)
+                        VSpace(6.dp)
+                        PText("Power", 13.sp, FontWeight.SemiBold, c)
+                    }
+                }
+                PillTile(
+                    f == CC.WiFi, Modifier.offset((Big + Gutter).dp, TilesTop.dp),
+                    icon = when {
+                        net.ethernet -> Icons.Rounded.SettingsEthernet
+                        net.connected -> Icons.Rounded.Wifi
+                        else -> Icons.Rounded.WifiOff
+                    },
+                    iconColor = if (net.connected) Color(0xFF0A84FF) else null,
+                    circled = true,
+                    title = net.title, subtitle = if (net.connected && !net.ethernet) "On" else net.subtitle,
+                )
+                PillTile(
+                    f == CC.Bluetooth, Modifier.offset((Big + Gutter).dp, (TilesTop + PillH + Gutter).dp),
+                    icon = Icons.Rounded.Bluetooth,
+                    iconColor = Color(0xFF0A84FF),
+                    circled = true,
+                    title = "Bluetooth", subtitle = "Remotes & More",
+                )
+                val output = remember(vm.resumeTick, visible) { SystemActions.audioOutput(ctx) }
+                PillTile(
+                    f == CC.Sound, Modifier.offset((Big + Gutter).dp, (TilesTop + Big + Gutter).dp),
+                    icon = Icons.AutoMirrored.Rounded.VolumeUp, iconColor = Color(0xFFFF375F), circled = true,
+                    title = "Sound", subtitle = output,
+                )
+                PillTile(
+                    f == CC.Sleep, Modifier.offset(0.dp, (TilesTop + Big + Gutter).dp), width = Big,
+                    icon = Icons.Rounded.Timer,
+                    iconColor = if (vm.sleepMinutes > 0) Color(0xFFFF9F0A) else null,
+                    circled = true,
+                    title = "Sleep", subtitle = if (vm.sleepMinutes > 0) vm.sleepLabel() else "Timer", subtitleStrong = vm.sleepMinutes == 0,
+                )
+                val circles = listOf(
+                    CC.Picture to Icons.Rounded.Tv,
+                    CC.Memory to Icons.Rounded.Memory,
+                    CC.Access to Icons.Rounded.AccessibilityNew,
+                    CC.Screensaver to Icons.Rounded.Landscape,
+                )
+                // Four circles spread evenly under the tiles above.
+                val step = (ClusterW - Circle) / (circles.size - 1)
+                circles.forEachIndexed { i, (id, icon) ->
+                    Tile(
+                        f == id,
+                        Modifier
+                            .offset((step * i).dp, CirclesTop.dp)
+                            .size(Circle.dp),
+                        CircleShape,
+                    ) { c ->
+                        PIcon(icon, c, 24.dp, Modifier.align(Alignment.Center))
+                    }
+                }
+                // Caption for icon-only controls, like the tvOS focus label.
+                // Free Up Memory says what it's doing, then what it freed, in its caption.
+                // The profile picture opens Who's Watching? with two or more profiles, else the profile page.
+                val caption = when (f) {
+                    CC.Memory -> vm.memoryCaption ?: captions[f]
+                    CC.Profile -> if (vm.profileList.size >= 2) "Switch Profile" else "Profile"
+                    else -> captions[f]
+                }
+                PText(
+                    caption ?: "", 13.sp, FontWeight.SemiBold, ink,
+                    Modifier
+                        .offset(0.dp, (CirclesTop + Circle + 12f).dp)
+                        .size(ClusterW.dp, 20.dp)
+                        .graphicsLayer { alpha = if (caption != null) 1f else 0f },
+                    align = TextAlign.Center, shadow = true,
+                )
+                // Now Playing: what another app is playing, with previous / play-pause / next.
+                val np = vm.nowPlaying
+                if (np != null) {
+                    NowPlayingTile(
+                        np, f,
+                        Modifier
+                            .offset(0.dp, NowTop.dp)
+                            .size(ClusterW.dp, NowH.dp),
                     )
+                }
+                // Notifications: the latest few, newest first, under a header with a small ✕ (Clear All, as on
+                // iOS). Select opens one; Left or Right slides it aside to show Clear; hold OK clears it too.
+                val shown = vm.ccNotificationsShown
+                if (shown > 0) {
+                    val headerTop = if (np != null) NowTop + NowH + Gutter else NotesTop
+                    val notesTop = headerTop + NotesHeaderH
+                    val more = vm.notifications.size - shown
+                    Row(
+                        Modifier
+                            .offset(0.dp, headerTop.dp)
+                            .size(ClusterW.dp, (NotesHeaderH - 4f).dp)
+                            .padding(start = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PText("Notifications", 13.sp, FontWeight.SemiBold, ink, shadow = true)
+                        if (more > 0) {
+                            HSpace(6.dp)
+                            PText("$more more", 11.sp, FontWeight.Medium, ink.copy(alpha = 0.72f), shadow = true)
+                        }
+                        Box(Modifier.weight(1f))
+                        ClearAllButton(f == CC.ClearAll)
+                    }
+                    vm.notifications.take(shown).forEachIndexed { i, n ->
+                        NotificationTile(
+                            n,
+                            focused = f == CC.Notification + i,
+                            clearing = f == CC.NotificationClear + i,
+                            modifier = Modifier
+                                .offset(0.dp, (notesTop + i * (NoteH + Gutter)).dp)
+                                .size(ClusterW.dp, NoteH.dp),
+                        )
+                    }
                 }
             }
         }

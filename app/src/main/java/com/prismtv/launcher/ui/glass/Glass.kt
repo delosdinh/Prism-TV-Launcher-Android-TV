@@ -1,8 +1,12 @@
 package com.prismtv.launcher.ui.glass
 
 import android.os.Build
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -106,6 +110,15 @@ class BackdropState(
      */
     var lensSuspended by mutableStateOf(false)
 
+    /** Overlays composed right now, from the first frame of opening to the last of closing ([HoldSceneCache]). */
+    var overlaysShown by mutableIntStateOf(0)
+
+    /** Control Centre is composed (opening, open or closing); see [PerfSwitches.ccPillAbove]. */
+    var ccShown by mutableStateOf(false)
+
+    /** The Home Screen time pill's fade, shared with its stand-in above the Home Screen's layer. */
+    var pillAlpha: androidx.compose.runtime.State<Float>? = null
+
     fun blurred(source: GlassSource): GraphicsLayer = when (source) {
         GlassSource.Background -> bgBlur
         GlassSource.Scene -> sceneBlur
@@ -132,6 +145,26 @@ class BackdropState(
 }
 
 val LocalBackdrop = staticCompositionLocalOf<BackdropState> { error("No BackdropState provided") }
+
+/**
+ * Where a glass surface would sit with its container's opening zoom taken out, from where it is now (both in
+ * root pixels). Control Centre provides it while [PerfSwitches.ccSteadyLens] is on; null draws each lens from
+ * wherever this frame puts it.
+ */
+val LocalLensRest = compositionLocalOf<((Offset) -> Offset)?> { null }
+
+/**
+ * Called by an overlay over the Home Screen for as long as it's composed, closing animation included, so
+ * the Home Screen under it stays cached as one layer until it's gone ([PerfSwitches.cacheUntilClosed]).
+ */
+@Composable
+fun HoldSceneCache() {
+    val backdrop = LocalBackdrop.current
+    DisposableEffect(backdrop) {
+        backdrop.overlaysShown++
+        onDispose { backdrop.overlaysShown-- }
+    }
+}
 
 /** Records this node's content into [source]'s layer (and its blurred twin) and draws it. */
 fun Modifier.backdropSource(state: BackdropState, source: GlassSource): Modifier = this.drawWithContent {
@@ -200,6 +233,7 @@ fun Modifier.glass(
     // the bands cost more GPU than the shader, 11 ms against 5-7.)
     val gpuOk = GlassPerf.shaderOk
     val originState = remember { mutableStateOf(Offset.Zero) }
+    val lensRest = LocalLensRest.current
     val lensLayer = rememberGraphicsLayer()
 
     val base = if (elevation > 0.dp) {
@@ -212,7 +246,10 @@ fun Modifier.glass(
 
     this
         .then(base)
-        .onGloballyPositioned { originState.value = it.positionInRoot() }
+        .onGloballyPositioned {
+            val p = it.positionInRoot()
+            originState.value = lensRest?.invoke(p) ?: p
+        }
         .drawWithCache {
             val outline = shape.createOutline(size, layoutDirection, this)
             val clip = Path().apply { addOutline(outline) }
