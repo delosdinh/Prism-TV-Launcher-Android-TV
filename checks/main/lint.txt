@@ -289,12 +289,15 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Discouraged APIs are allowed and are not deprecated, but they may be unfit
    for common use (e.g. due to slow performance or subtle behavior).
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3046: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3122: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     var searchFocus by mutableStateOf(-1)
                        ~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3392: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3483: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     private var screenTimeTick by mutableStateOf(0)
                                   ~~~~~~~~~~~~~~
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ime/PrismKeyboardService.kt:78: Information: Prefer mutableFloatStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+    private var veilScale by mutableStateOf(0.8f)
+                             ~~~~~~~~~~~~~~
 
    Explanation for issues of type "AutoboxingStateCreation":
    Calling mutableStateOf<T>() when T is either backed by a primitive type on
@@ -311,7 +314,7 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
    Identifier: androidx.compose.runtime
    Feedback: https://issuetracker.google.com/issues/new?component=612128
 
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/settings/SettingsScreen.kt:530: Warning: State backed values should use the lambda overload of Modifier.offset [UseOfNonLambdaOffsetOverload from androidx.compose.foundation]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/settings/SettingsScreen.kt:532: Warning: State backed values should use the lambda overload of Modifier.offset [UseOfNonLambdaOffsetOverload from androidx.compose.foundation]
                             .offset((knobX - 24f).dp, 13.dp)
                              ~~~~~~
 
