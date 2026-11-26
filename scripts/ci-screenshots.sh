@@ -266,6 +266,8 @@ shot 44j-keyboard-abc-clear        "${B[@]}" "${DARK[@]}" --es kbLayout abc --es
 shot 44k-keyboard-abc-light        "${B[@]}" --es appearance light --es glass liquid --es kbLayout abc --es screen keyboard --ei keyRow 1 --ei keyCol 0
 shot 44l-keyboard-abc-123-balanced "${B[@]}" --es appearance balanced --es glass liquid --es kbLayout abc --es screen keyboard --ei layer 1 --ei keyRow 0 --ei keyCol 1
 shot 44m-keyboard-qwerty-clear-key "${B[@]}" "${DARK[@]}" --es screen keyboard --es text "'Hello world'" --ei keyRow 3 --ei keyCol 4
+shot 44n-search-abc-side           "${B[@]}" "${DARK[@]}" --es kbLayout abc --es screen search --es text Pri --ei keyRow 1 --ei keyCol 5
+shot 44o-search-abc-side-result    "${B[@]}" --es appearance balanced --es glass liquid --es kbLayout abc --es screen search --es text Pri --ei keyRow 1 --ei keyCol 5 --ei focus 0
 # Driven: hold e, Right to é, Select — "café", and no auto-correction back to "cafe".
 start "${B[@]}" "${DARK[@]}" --es screen keyboard --es text caf --ei keyRow 0 --ei keyCol 2; sleep 3
 adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 1.2

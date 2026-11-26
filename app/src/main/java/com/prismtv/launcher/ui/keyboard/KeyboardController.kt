@@ -251,6 +251,14 @@ class KeyboardController(
         return moved
     }
 
+    /** True on the last key of a row (or the last suggestion): where Search's Right goes across to its results. */
+    fun atRowEnd(): Boolean {
+        if (accents != null || layer == KeyboardLayout.Emoji) return false
+        val bar = suggestions.isNotEmpty() && !listening
+        return if (row == -1) bar && col == suggestions.size - 1
+        else col == KeyboardLayout.of(layer).getOrNull(row)?.size?.minus(1)
+    }
+
     /** Suggestion slots sit over the left, middle and right thirds of the keys. */
     private fun slotFor(x: Float): Int = (x / (10f / 3f)).toInt().coerceIn(0, (suggestions.size - 1).coerceAtLeast(0))
     private fun slotX(slot: Int): Float = slot * (10f / 3f) + 10f / 6f

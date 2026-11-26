@@ -57,8 +57,10 @@ fun SearchResults(vm: LauncherViewModel) {
     if (!tState.atLeast(0.01f)) return
     val results = vm.searchResults
     val focus = vm.searchFocus
+    // With the ABC keyboard down the left (as on Apple TV) the results sit to its right.
+    val left = if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) com.prismtv.launcher.ui.keyboard.SideKeyboardLayout.Right + 32f else RowLeft
     // The row scrolls so the focused card stays on screen.
-    val visible = ((960f - RowLeft * 2) / (CardW + Gap)).toInt()
+    val visible = ((960f - left - RowLeft) / (CardW + Gap)).toInt().coerceAtLeast(1)
     val first = if (focus < 0) 0 else (focus - visible + 2).coerceIn(0, (results.size - visible).coerceAtLeast(0))
     val scroll by animateFloatAsState(first * (CardW + Gap), spring(dampingRatio = 0.9f, stiffness = 260f), label = "searchScroll")
 
@@ -76,17 +78,17 @@ fun SearchResults(vm: LauncherViewModel) {
     ) {
         PText(
             vm.searchHeading, 14.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.78f),
-            Modifier.offset(RowLeft.dp, 22.dp), shadow = true,
+            Modifier.offset(left.dp, 22.dp), shadow = true,
         )
         if (results.isEmpty() && vm.keyboardText.isNotBlank()) {
             PText(
                 "Try another word, or an app's name.", 13.sp, FontWeight.Normal, Color.White.copy(alpha = 0.6f),
-                Modifier.offset(RowLeft.dp, 46.dp), shadow = true,
+                Modifier.offset(left.dp, 46.dp), shadow = true,
             )
         }
         results.forEachIndexed { i, r ->
             key(r.key) {
-                val x = RowLeft + i * (CardW + Gap) - scroll
+                val x = left + i * (CardW + Gap) - scroll
                 if (x > -CardW - 40f && x < 1000f) ResultCard(vm, r, i == focus, x)
             }
         }

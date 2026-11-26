@@ -3071,12 +3071,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (searchFocus >= 0) {
             when (k) {
                 NavKey.Left -> if (searchFocus > 0) { searchFocus--; cue(Cue.FocusSmall) }
+                    // The first result is next to the side keyboard: Left goes back to it.
+                    else if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) { searchFocus = -1; cue(Cue.FocusSmall) }
                 NavKey.Right -> if (searchFocus < results.size - 1) { searchFocus++; cue(Cue.FocusSmall) }
                 NavKey.Down, NavKey.Menu -> { searchFocus = -1; cue(Cue.FocusSmall) }
                 NavKey.Select -> results.getOrNull(searchFocus)?.let { openSearchResult(it) }
                 else -> Unit
             }
             return true
+        }
+        // ABC keyboard down the left: Right from the end of a row goes across to the results.
+        val side = com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical
+        if (side) {
+            if (k == NavKey.Right && results.isNotEmpty() && keyboardController.atRowEnd()) {
+                searchFocus = 0
+                cue(Cue.FocusSmall)
+                return true
+            }
+            return false
         }
         if (k == NavKey.Up && !keyboardController.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up, wrapUp = results.isEmpty())) {
             // Up from the keyboard's top row goes to the results.

@@ -179,4 +179,14 @@ class AbcKeyboardTest {
         kb.nav(KbNav.Delete)
         assertEquals("", field.text.toString())
     }
+
+    @Test
+    fun knowsTheEndOfARowForSearchResults() {
+        at("Hello. ", 1, 5) // f
+        assertTrue(kb.atRowEnd())
+        kb.nav(KbNav.Left) // e
+        assertTrue(!kb.atRowEnd())
+        kb.debugState(KeyboardLayout.Letters, 5, 4) // clear
+        assertTrue(kb.atRowEnd())
+    }
 }

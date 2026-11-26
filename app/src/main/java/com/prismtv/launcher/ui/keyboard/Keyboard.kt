@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.EmojiEmotions
 import androidx.compose.material.icons.rounded.KeyboardCapslock
 import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -117,6 +118,8 @@ data class KeyboardMetrics(
     companion object {
         /** Prism's own text entry (over the Home Screen). */
         val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f, gridKeyH = 37f)
+        /** The ABC grid down the left of the screen, as on Apple TV (Prism's own Search and text entry). */
+        val Side = KeyboardMetrics(width = 316f, keyH = 34f, gap = 5f, pad = 14f, barH = 30f, gridKeyH = 34f)
         /** The system keyboard in other apps: a little shorter so more of the app stays visible. */
         val System = KeyboardMetrics(width = 880f, keyH = 40f, gap = 7f, pad = 10f, barH = 32f, gridKeyH = 33f)
     }
@@ -124,7 +127,14 @@ data class KeyboardMetrics(
 
 /** The keys, the suggestion bar and the emoji grid, laid out on [m]. No background. */
 @Composable
-fun KeyboardKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean = true) {
+fun KeyboardKeys(
+    kb: KeyboardController,
+    c: KeyColours,
+    m: KeyboardMetrics,
+    active: Boolean = true,
+    /** Apple TV style: letters without key caps; only the focused key (and the lit switch) has a tile. */
+    bare: Boolean = false,
+) {
     Box(Modifier.size((m.width - m.pad * 2).dp, (m.barH + m.gap + m.keysH).dp)) {
         SuggestionBar(kb, c, m, active)
         Box(
@@ -135,7 +145,7 @@ fun KeyboardKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, acti
             if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m.forRows(4), active)
             else {
                 val lm = m.forRows(KeyboardLayout.of(kb.layer).size)
-                LetterKeys(kb, c, lm, active)
+                LetterKeys(kb, c, lm, active, bare)
                 AccentStrip(kb, c, lm, active)
             }
         }
@@ -143,7 +153,7 @@ fun KeyboardKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, acti
 }
 
 @Composable
-private fun LetterKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean) {
+private fun LetterKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean, bare: Boolean) {
     val layer = kb.layer
     val rows = KeyboardLayout.of(layer)
     rows.forEachIndexed { r, keys ->
@@ -164,6 +174,7 @@ private fun LetterKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics
                     (key.kind == KeyKind.Shift && layer == KeyboardLayout.Letters) ||
                         (key.kind == KeyKind.Layer && key.target == layer)
                     ),
+                bare = bare,
                 modifier = Modifier
                     .offset(x.dp, y.dp)
                     .size(w.dp, m.keyH.dp),
@@ -391,6 +402,8 @@ private fun KeyCap(
     c: KeyColours,
     modifier: Modifier,
     selected: Boolean = false,
+    /** No key cap unless focused or lit, and icons for the wide labels (the narrow Apple TV-style grid). */
+    bare: Boolean = false,
 ) {
     val s by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.8f, stiffness = 520f), label = "key")
     val shape = RoundedCornerShape(10.dp)
@@ -401,7 +414,8 @@ private fun KeyCap(
         focused -> c.focus
         mic -> Color(0xFFFF375F)
         action -> Color(0xFF0A84FF)
-        selected -> c.key
+        selected -> if (bare) c.function else c.key
+        bare -> Color.Transparent
         key.kind == KeyKind.Shift && shift -> c.key
         isFunction -> c.function
         else -> c.key
@@ -421,12 +435,12 @@ private fun KeyCap(
                 scaleY = s
                 // See-through Clear keys would show their own shadow through them, so only the focused key has one.
                 val lift = ((s - 1f) / 0.14f).coerceIn(0f, 1f)
-                shadowElevation = (if (c.clear) lerpF(0f, 14f, lift) else lerpF(1f, 14f, lift)).dp.toPx()
+                shadowElevation = (if (c.clear || bare) lerpF(0f, 14f, lift) else lerpF(1f, 14f, lift)).dp.toPx()
                 this.shape = shape
                 clip = true
             }
             .background(bg, shape)
-            .border(0.5.dp, Color.White.copy(alpha = 0.10f), shape),
+            .then(if (bare && bg == Color.Transparent) Modifier else Modifier.border(0.5.dp, Color.White.copy(alpha = 0.10f), shape)),
         contentAlignment = Alignment.Center,
     ) {
         when (key.kind) {
@@ -436,13 +450,16 @@ private fun KeyCap(
                 if (shift) "ABC" else "abc", 16.sp, if (capsLock) FontWeight.Bold else FontWeight.Medium, ink,
             ) else PIcon(if (capsLock) Icons.Rounded.KeyboardCapslock else Icons.Rounded.ArrowUpward, ink, 21.dp)
             KeyKind.Delete -> PIcon(Icons.AutoMirrored.Rounded.Backspace, ink, 21.dp)
-            KeyKind.Clear -> PText("clear", 15.sp, FontWeight.Medium, ink)
+            KeyKind.Clear -> PText("clear", if (bare) 13.sp else 15.sp, FontWeight.Medium, ink, shadow = c.clear && !focused)
             KeyKind.Layer -> PText(key.label, 16.sp, FontWeight.Medium, ink)
             KeyKind.Space -> PText("space", 15.sp, FontWeight.Medium, ink.copy(alpha = 0.75f), shadow = c.clear && !focused)
             KeyKind.Emoji -> PIcon(Icons.Rounded.EmojiEmotions, ink, 22.dp)
             KeyKind.Mic -> PIcon(Icons.Rounded.Mic, ink, 22.dp)
             KeyKind.EmojiCategory -> Unit
-            KeyKind.Done -> Row(verticalAlignment = Alignment.CenterVertically) {
+            // Too narrow for a word on the side grid: the return arrow, or a magnifier for Search.
+            KeyKind.Done -> if (bare) PIcon(
+                if (actionLabel == "search") Icons.Rounded.Search else Icons.AutoMirrored.Rounded.KeyboardReturn, ink, 20.dp,
+            ) else Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!action) {
                     PIcon(Icons.AutoMirrored.Rounded.KeyboardReturn, ink, 20.dp)
                     HSpace(6.dp)
@@ -473,6 +490,10 @@ fun KeyboardOverlay(
     val c = keyColoursFor(look, clear)
     val m = KeyboardMetrics.Overlay
     val kb = vm.keyboardController
+    if (KeyboardLayout.alphabetical) {
+        SideKeyboard(vm, req, t, live != null, look, clear, fieldLook, fieldClear)
+        return
+    }
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -551,6 +572,109 @@ fun KeyboardOverlay(
                     KeyboardKeys(kb, c, m, active = live != null)
                 }
             }
+        }
+    }
+}
+
+/** Where the side keyboard's panel sits on the 960 × 540 canvas; Search puts its results to the right of it. */
+object SideKeyboardLayout {
+    const val Left = 28f
+    const val Top = 28f
+    val Width: Float get() = KeyboardMetrics.Side.width
+    val Right: Float get() = Left + Width
+}
+
+/**
+ * The ABC grid down the left of the screen, as on Apple TV: the text at the top, then suggestions and the
+ * keys, on a Liquid Glass panel in the keyboard's colour. Search's results sit to the right.
+ */
+@Composable
+private fun SideKeyboard(
+    vm: LauncherViewModel,
+    req: com.prismtv.launcher.KeyboardRequest,
+    t: Float,
+    active: Boolean,
+    look: Appearance,
+    clear: Boolean,
+    fieldLook: Appearance,
+    fieldClear: Boolean,
+) {
+    val c = keyColoursFor(look, clear)
+    val m = KeyboardMetrics.Side
+    val kb = vm.keyboardController
+    val base = LocalPrism.current
+    Box(Modifier.fillMaxSize()) {
+        // Shade the left of the screen, where the panel is, more than the right, where results show.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = t }
+                .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.55f), 0.55f to Color.Black.copy(alpha = 0.25f), 1f to Color.Black.copy(alpha = 0.15f)))
+        )
+        val panelTheme = if (clear) base.copy(palette = Palettes.of(Appearance.Dark), material = GlassMaterial.Liquid, clearTint = true) else base
+        CompositionLocalProvider(LocalPrism provides panelTheme) {
+            Column(
+                Modifier
+                    .offset(SideKeyboardLayout.Left.dp, SideKeyboardLayout.Top.dp)
+                    .graphicsLayer { translationX = (1f - t) * -(m.width + 60f).dp.toPx(); alpha = t }
+                    .width(m.width.dp)
+                    .then(
+                        if (clear) Modifier.glass(RoundedCornerShape(28.dp), Color.Black.copy(alpha = 0.16f), GlassSource.Full, elevation = 26.dp, blurredLens = true, rimStrength = 1.3f)
+                        else Modifier.glass(RoundedCornerShape(28.dp), c.panel, GlassSource.Full, elevation = 26.dp, frosted = true)
+                    )
+                    .padding(m.pad.dp),
+            ) {
+                if (req.title.isNotBlank()) {
+                    PText(req.title, 13.sp, FontWeight.SemiBold, c.ink.copy(alpha = 0.75f), Modifier.padding(start = 4.dp, bottom = 6.dp), shadow = c.clear)
+                }
+                SideField(vm, req, fieldLook, fieldClear, m)
+                Box(Modifier.height(12.dp))
+                KeyboardKeys(kb, c, m, active = active, bare = true)
+            }
+        }
+    }
+}
+
+/** The text being typed, at the top of the side keyboard: a magnifier for Search, a blinking caret. */
+@Composable
+private fun SideField(vm: LauncherViewModel, req: com.prismtv.launcher.KeyboardRequest, fieldLook: Appearance, fieldClear: Boolean, m: KeyboardMetrics) {
+    val base = LocalPrism.current
+    val fieldTheme = base.copy(palette = Palettes.of(fieldLook), material = GlassMaterial.Liquid, clearTint = fieldClear)
+    val fieldInk = if (fieldLook == Appearance.Light && !fieldClear) Color(0xFF111318) else Color.White
+    val caret = rememberInfiniteTransition(label = "caret")
+    val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
+    CompositionLocalProvider(LocalPrism provides fieldTheme) {
+        Row(
+            Modifier
+                .width((m.width - m.pad * 2).dp)
+                .height(44.dp)
+                .glass(
+                    RoundedCornerShape(22.dp),
+                    if (fieldClear) Color.White.copy(alpha = 0.08f)
+                    else fieldTheme.palette.liquidTint.copy(alpha = if (fieldLook == Appearance.Light) 0.58f else 0.50f),
+                    GlassSource.Full, elevation = 10.dp, rimStrength = 1.1f, blurredLens = true,
+                )
+                .padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (vm.searchOpen) {
+                PIcon(Icons.Rounded.Search, fieldInk.copy(alpha = 0.7f), 18.dp)
+                HSpace(8.dp)
+            }
+            val text = vm.keyboardText
+            if (text.isEmpty()) {
+                PText(req.placeholder.ifBlank { "Type" }, 15.sp, FontWeight.Normal, fieldInk.copy(alpha = 0.45f), Modifier.weight(1f, fill = false), shadow = fieldInk == Color.White)
+            } else {
+                // The end of long text stays in view, next to the caret.
+                PText(text.takeLast(26), 16.sp, FontWeight.Medium, fieldInk, Modifier.weight(1f, fill = false), maxLines = 1, shadow = fieldInk == Color.White)
+            }
+            Box(
+                Modifier
+                    .padding(start = 2.dp)
+                    .size(2.dp, 20.dp)
+                    .graphicsLayer { alpha = if (blink > 0.5f) 1f else 0f }
+                    .background(Color(0xFF0A84FF), RoundedCornerShape(1.dp))
+            )
         }
     }
 }
