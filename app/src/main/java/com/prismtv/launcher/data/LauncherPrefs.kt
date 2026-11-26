@@ -80,6 +80,11 @@ enum class AerialRange(val label: String) {
     Auto("Automatic"), SDR("SDR"), DolbyVision("Dolby Vision")
 }
 
+/** How many of the Home Screen's aerials are kept on the TV instead of downloading again (see AerialStore). */
+enum class AerialSaving(val label: String, val count: Int = 0) {
+    Off("Off"), Six("6 Aerials", 6), Twelve("12 Aerials", 12)
+}
+
 enum class HeroSource(val label: String) {
     Recommendations("Recommendations"), AppArtwork("App Artwork")
 }
@@ -102,6 +107,8 @@ data class LauncherPrefs(
     val aerialQuality: AerialQuality = AerialQuality.Auto,
     val aerialShowLocation: Boolean = true,
     val aerialRange: AerialRange = AerialRange.Auto,
+    /** Settings › Screensaver › Save on This TV: Home's aerials kept on the TV, so they don't download again. */
+    val aerialSave: AerialSaving = AerialSaving.Twelve,
     /** Look for new Prism TV builds and offer to install them. */
     val updateCheck: Boolean = true,
     /** A version the user chose "Later" for; not offered again automatically. */
@@ -263,6 +270,7 @@ class PrefsStore(context: Context) {
             aerialQuality = enumOr(sp.getString("aerialQuality", null), d.aerialQuality),
             aerialShowLocation = sp.getBoolean("aerialShowLocation", d.aerialShowLocation),
             aerialRange = enumOr(sp.getString("aerialRange", null), d.aerialRange),
+            aerialSave = enumOr(sp.getString("aerialSave", null), d.aerialSave),
             updateCheck = sp.getBoolean("updateCheck", d.updateCheck),
             skippedUpdate = sp.getInt("skippedUpdate", d.skippedUpdate),
             weather = sp.getBoolean("weather", d.weather),
@@ -314,6 +322,7 @@ class PrefsStore(context: Context) {
             .putString("aerialQuality", p.aerialQuality.name)
             .putBoolean("aerialShowLocation", p.aerialShowLocation)
             .putString("aerialRange", p.aerialRange.name)
+            .putString("aerialSave", p.aerialSave.name)
             .putBoolean("updateCheck", p.updateCheck)
             .putInt("skippedUpdate", p.skippedUpdate)
             .putBoolean("weather", p.weather)

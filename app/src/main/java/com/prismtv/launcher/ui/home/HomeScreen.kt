@@ -320,6 +320,7 @@ private fun HomeBackdrop(
         if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(
             blur = { blur.value },
             modifier = Modifier.fillMaxSize(),
+            save = vm.prefs.aerialSave.count,
             onShown = { aerialShown = it },
             onLiveBlur = { aerialGlBlur = it },
         )

@@ -119,6 +119,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         keepScreenOn = true
     }
 
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     fun start() {
         if (started) return
         started = true
@@ -137,6 +138,10 @@ class AerialView(context: Context) : FrameLayout(context) {
                 return@launch
             }
             val list = AerialCatalog.load(context, prefs.aerialQuality, prefs.aerialRange).shuffled().take(40)
+            // Home's saved aerials (Save on This TV): a shot it has saved plays from the TV here too.
+            val saved = if (prefs.aerialSave != com.prismtv.launcher.data.AerialSaving.Off) {
+                withContext(Dispatchers.IO) { AerialStore.reader(context) }
+            } else null
             if (!started) return@launch
             shuffle = source == AerialSource.Shuffle
             val mixed = (photos + sceneStills()).shuffled()
@@ -144,7 +149,7 @@ class AerialView(context: Context) : FrameLayout(context) {
                 list.isEmpty() -> startStills(if (shuffle) mixed else sceneStills())
                 else -> {
                     stills = mixed
-                    startVideos(list)
+                    startVideos(list, saved)
                 }
             }
         }
@@ -165,11 +170,14 @@ class AerialView(context: Context) : FrameLayout(context) {
     // ------------------------------------------------------------------------------------ videos
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-    private fun startVideos(list: List<AerialVideo>) {
+    private fun startVideos(list: List<AerialVideo>, saved: androidx.media3.datasource.DataSource.Factory?) {
         videos = list
         sceneA.visibility = GONE
         sceneB.visibility = GONE
-        val p = ExoPlayer.Builder(context).setLoadControl(AerialBuffer.screensaver()).build()
+        val p = ExoPlayer.Builder(context)
+            .setLoadControl(AerialBuffer.screensaver())
+            .apply { if (saved != null) setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(saved)) }
+            .build()
         player = p
         p.setVideoSurfaceView(surface)
         p.volume = 0f

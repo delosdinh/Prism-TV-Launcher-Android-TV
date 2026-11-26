@@ -142,6 +142,7 @@ private val Exact: Map<String, String> = mapOf(
     "ss:location" to "Shows where each aerial was filmed, or the scene's name.",
     "ss:quality" to "The aerial video resolution. Automatic picks the best your TV can play.",
     "ss:range" to "SDR, HDR10 or Dolby Vision aerials.",
+    "ss:save" to "Keeps the Home Screen's aerials on this TV as they first play, so they don't download again each time round (a 4K aerial streams about 4 to 5 GB an hour). One is swapped for a new one each day. Uses at most a quarter of the free space; Off streams them and frees the space.",
     "ss:system" to "Use Prism Aerials as Android's own screensaver, so it also runs over other apps.",
     "sp:all" to "Show every picture on the TV.",
     "sp:allow" to AllowPictures,
