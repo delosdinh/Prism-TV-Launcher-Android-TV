@@ -466,7 +466,7 @@ private fun KeyCap(
             KeyKind.Mic -> PIcon(Icons.Rounded.Mic, ink, 22.dp)
             KeyKind.EmojiCategory -> Unit
             // Too narrow for a word on the side grid: the return arrow, or a magnifier for Search.
-            KeyKind.Done -> if (bare) PIcon(
+            KeyKind.Done -> if (bare || (key.units < 1.7f && actionLabel.length > 4)) PIcon(
                 if (actionLabel == "search") Icons.Rounded.Search else Icons.AutoMirrored.Rounded.KeyboardReturn, ink, 20.dp,
             ) else Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!action) {
