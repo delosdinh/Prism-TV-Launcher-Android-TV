@@ -1,7 +1,27 @@
-BUILD SUCCESSFUL in 58s
-29 actionable tasks: 16 executed, 13 from cache
+> Task :app:compileGithubDebugKotlin FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/tests-1795708117606.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/build/reports/problems/problems-report.html
+--
+* What went wrong:
+Execution failed for task ':app:compileGithubDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+--
+BUILD FAILED in 41s
+22 actionable tasks: 21 executed, 1 from cache
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
 --
-BUILD SUCCESSFUL in 1m 12s
-29 actionable tasks: 10 executed, 1 from cache, 18 up-to-date
+> Task :app:compileGithubDebugKotlin FAILED
+e: file:///home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/ui/home/HomeScreen.kt:323:20 Unresolved reference 'vm'.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795708157598.json
+
+--
+* What went wrong:
+Execution failed for task ':app:compileGithubDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+--
+BUILD FAILED in 25s
+18 actionable tasks: 2 executed, 1 from cache, 15 up-to-date
