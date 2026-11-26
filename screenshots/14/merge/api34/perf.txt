@@ -1,24 +1,24 @@
-apk bytes: 4918075
-apk dex 1709534, images 2362661, audio 275054 (0 compressed), other 516865
-cold start ms:  1454 1426 1273 1262 1180  (median 1273)
+apk bytes: 4934459
+apk dex 1716176, images 2362661, audio 275054 (0 compressed), other 516865
+cold start ms:  1771 1530 1670 1337 1373  (median 1530)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  174 152 176 187 198  (median 176)
-walk: Total frames rendered: 92
-walk: Janky frames: 92 (100.00%)
-walk: Janky frames (legacy): 92 (100.00%)
-walk: 50th percentile: 150ms
-walk: 90th percentile: 250ms
+back to home ms:  212 234 183 208 175  (median 208)
+walk: Total frames rendered: 48
+walk: Janky frames: 48 (100.00%)
+walk: Janky frames (legacy): 48 (100.00%)
+walk: 50th percentile: 200ms
+walk: 90th percentile: 350ms
 walk: 99th percentile: 550ms
-walk: Number Slow UI thread: 54
-rapid: Total frames rendered: 78
-rapid: Janky frames: 78 (100.00%)
-rapid: Janky frames (legacy): 78 (100.00%)
-rapid: 90th percentile: 250ms
-rapid: Number Slow UI thread: 50
-memory: Native Heap    38274    38236        0        4    40308    55972    41765     3535
-memory: Java Heap:     5444                          25892
-memory: Native Heap:    38236                          40308
+walk: Number Slow UI thread: 24
+rapid: Total frames rendered: 67
+rapid: Janky frames: 67 (100.00%)
+rapid: Janky frames (legacy): 67 (100.00%)
+rapid: 90th percentile: 300ms
+rapid: Number Slow UI thread: 45
+memory: Native Heap    40734    40676        8        2    42920    58428    44332     3100
+memory: Java Heap:     5432                          27288
+memory: Native Heap:    40676                          42920
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    72153            TOTAL RSS:   179488       TOTAL SWAP PSS:      136
-idle on home, 60 s: 1028 ticks
+memory: TOTAL PSS:    84236            TOTAL RSS:   183140       TOTAL SWAP PSS:      118
+idle on home, 60 s: 1009 ticks
 behind another app, 60 s: 1 ticks
