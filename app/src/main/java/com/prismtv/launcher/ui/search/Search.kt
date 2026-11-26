@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -80,12 +81,12 @@ fun SearchResults(vm: LauncherViewModel) {
     ) {
         PText(
             vm.searchHeading, 14.sp, FontWeight.SemiBold, ink.copy(alpha = 0.78f),
-            Modifier.offset(left.dp, 22.dp), shadow = true,
+            Modifier.offset(left.dp, 22.dp), shadow = searchShadow(),
         )
         if (results.isEmpty() && vm.keyboardText.isNotBlank()) {
             PText(
                 "Try another word, or an app's name.", 13.sp, FontWeight.Normal, ink.copy(alpha = 0.6f),
-                Modifier.offset(left.dp, 46.dp), shadow = true,
+                Modifier.offset(left.dp, 46.dp), shadow = searchShadow(),
             )
         }
         results.forEachIndexed { i, r ->
@@ -151,9 +152,9 @@ private fun ResultCard(vm: LauncherViewModel, r: SearchResult, focused: Boolean,
         }
         PText(
             r.label, 12.sp, FontWeight.SemiBold, searchInk().copy(alpha = if (focused) 1f else 0.85f),
-            Modifier.padding(top = if (focused) 12.dp else 8.dp), align = TextAlign.Center, shadow = true,
+            Modifier.padding(top = if (focused) 12.dp else 8.dp), align = TextAlign.Center, shadow = searchShadow(),
         )
-        PText(sub, 10.sp, FontWeight.Normal, searchInk().copy(alpha = 0.6f), align = TextAlign.Center, shadow = true)
+        PText(sub, 10.sp, FontWeight.Normal, searchInk().copy(alpha = 0.6f), align = TextAlign.Center, shadow = searchShadow())
     }
 }
 
@@ -161,3 +162,7 @@ private fun ResultCard(vm: LauncherViewModel, r: SearchResult, focused: Boolean,
 @Composable
 private fun searchInk(): Color =
     if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) com.prismtv.launcher.ui.theme.LocalPrism.current.palette.textPrimary else Color.White
+
+/** A soft shadow under white text only: under dark text (Light) it just smudges it. */
+@Composable
+private fun searchShadow(): Boolean = searchInk().luminance() > 0.5f

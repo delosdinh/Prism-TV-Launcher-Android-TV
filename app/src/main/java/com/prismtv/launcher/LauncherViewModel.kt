@@ -1681,6 +1681,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             Overlay.Switcher -> sounds.play(Cue.SwitcherClose)
             else -> sounds.play(Cue.Back)
         }
+        // Home leaves Search and Prism's keyboard too (they draw over Home whatever the overlay).
+        val typing = keyboard != null || searchOpen
+        if (typing && dialog == null && contextMenu == null && movingId == null && overlay == Overlay.None) sounds.play(Cue.Back)
+        if (typing) closeKeyboard()
         dialog = null
         contextMenu = null
         movingId = null
