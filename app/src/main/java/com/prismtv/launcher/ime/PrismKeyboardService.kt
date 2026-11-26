@@ -74,7 +74,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
     /** The Settings backdrop's veil and glow for the launcher's Colour Mode, as on the side keyboard. */
     private var veil by mutableStateOf(Color(0xFF454B76).copy(alpha = 0.50f))
     private var glow by mutableStateOf(Color(0xFF71628E))
-    /** How much of the Settings veil's opacity the bottom grid uses. */
+    /** How much of the Settings veil's opacity the bottom grid uses: all of it in Light, which read too see-through. */
     private var veilScale by mutableStateOf(0.8f)
     /** True when Android blurs the app behind the ABC grid (Android 12+ with cross-window blur on). */
     private var frosted by mutableStateOf(false)
@@ -343,7 +343,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         // Brighter and frostier than the Settings veil: the same opacity, a third of the way to white.
         veil = androidx.compose.ui.graphics.lerp(veil.copy(alpha = 1f), Color.White, 0.35f).copy(alpha = veil.alpha)
         glow = pal.bgAccent
-        veilScale = 0.8f
+        veilScale = if (pal.isDark) 0.8f else 1f
         window?.window?.let { configureGlass(it) }
         val type = attribute?.inputType ?: InputType.TYPE_CLASS_TEXT
         val cls = type and InputType.TYPE_MASK_CLASS
