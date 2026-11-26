@@ -1,0 +1,54 @@
+captured 65-shizuku-steps
+captured 65a-adb-allow-prompt
+tapped "Always allow from this computer"
+always allow ticked
+tapped "Allow"
+own adb client: 11-26 15:37:02.828 14640 14640 I PrismAdb: result=Ok(output=prism-adb-ok
+captured 65b-shizuku-downloading
+captured 65c-shizuku-installer
+tapped "Install"
+captured 65d-shizuku-installed
+installed: package:/data/app/~~ifs1XBtczkt80cHtzrJDQg==/moe.shizuku.privileged.api-QFPa0JZlFqKi9FlyOtgYcA==/base.apk
+captured 65d2-shizuku-starting
+captured 65d1-adb-prompt-again
+tapped "Always allow from this computer"
+always allow ticked
+tapped "Allow"
+(asked again)
+started by Prism TV: 11-26 15:37:39.627 14640 14676 I PrismShizuku: info: starting server...
+11-26 15:37:39.627 14640 14676 I PrismShizuku: info: shizuku_server pid is 15184
+11-26 15:37:39.627 14640 14676 I PrismShizuku: info: shizuku_starter exit with 0
+server: 15184 shell        shizuku_server 15198 u0_a82       moe.shizuku.privileged.api 
+11-26 15:37:38.722 15179 15179 D Shizuku : start_server
+11-26 15:37:38.723 15184 15184 D Shizuku : child
+11-26 15:37:38.723 15184 15184 D Shizuku : exec app_process
+11-26 15:37:38.791 15184 15184 W shizuku_server: ART APEX data files are untrusted.
+11-26 15:37:38.791 15184 15184 W shizuku_server: Could not reserve sentinel fault page
+11-26 15:37:38.776 15184 15184 W shizuku_server: type=1400 audit(0.0:123): avc: denied { read } for name="u:object_r:odsign_prop:s0" dev="tmpfs" ino=205 scontext=u:r:shell:s0 tcontext=u:object_r:odsign_prop:s0 tclass=file permissive=0
+11-26 15:37:38.850 15184 15184 D shizuku_server: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-26 15:37:38.850 15184 15184 D shizuku_server: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt68l.dat
+11-26 15:37:38.857 15184 15184 W shizuku_server: Unexpected CPU variant for X86 using defaults: x86
+11-26 15:37:38.857 15184 15184 W shizuku_server: ClassLoaderContext shared library size mismatch. Expected=1, found=0 (PCL[]{PCL[/system_ext/framework/androidx.window.sidecar.jar*3539530913]} | PCL[])
+11-26 15:37:38.871 15184 15184 D AndroidRuntime: Calling main entry rikka.shizuku.server.ShizukuService
+11-26 15:37:38.877 15184 15184 I ConfigManager: no existing config file /data/user_de/0/com.android.shell/shizuku.json; starting empty
+11-26 15:37:38.908 14640 14651 D ShizukuProvider: binder received
+11-26 15:37:38.909 14640 14651 I ShizukuApplication: attachApplication
+11-26 15:37:38.910 15184 15184 V Service : Add 0:moe.shizuku.privileged.api to power save temp whitelist for 30s
+11-26 15:37:38.917   493   534 I ActivityManager: Start proc 15198:moe.shizuku.privileged.api/u0a82 for content provider {moe.shizuku.privileged.api/moe.shizuku.manager.ShizukuManagerProvider}
+11-26 15:37:38.935 15184 15195 V Service : Add 0:moe.shizuku.privileged.api to power save temp whitelist for 30s
+11-26 15:37:38.946 15198 15198 V GraphicsEnvironment: ANGLE Developer option for 'moe.shizuku.privileged.api' set to: 'default'
+11-26 15:37:38.980 15184 15195 I Service : send binder to user app moe.shizuku.privileged.api in user 0
+11-26 15:37:38.981 15198 15208 I ShizukuApplication: attachApplication
+11-26 15:37:38.981 15184 15184 I Service : send binder to user app moe.shizuku.privileged.api in user 0
+captured 65e-shizuku-running
+captured 65f-shizuku-allow-prompt
+tapped "Allow all the time"
+captured 65g-shizuku-allowed
+before: pid=14276
+recents before:   * Recent #0: Task{cdcd19b #39 type=standard A=10064:com.google.android.youtube.tv.main U=0 visible=true mode=fullscreen translucent=false sz=1}
+  * Recent #1: Task{2a99471 #46 type=standard A=10064:com.google.android.youtube.tv U=0 visible=false mode=fullscreen translucent=true sz=0}
+after: pid= stopped=true
+recents after: 0 card(s)
+all cards before clear: 5
+all cards after clear: 1 (A=10080:com.prismtv.launcher )
+11-26 15:38:21.518 14640 14640 I PrismClose: pkg=com.google.android.youtube.tv method=Shizuku stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
