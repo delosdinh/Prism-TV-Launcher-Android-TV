@@ -122,10 +122,10 @@ data class KeyboardMetrics(
         /** Prism's own text entry (over the Home Screen). */
         val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f, gridKeyH = 37f)
         /** The ABC grid down the left of the screen, as on Apple TV (Prism's own Search and text entry). */
-        val Side = KeyboardMetrics(width = 300f, keyH = 36f, gap = 5f, pad = 0f, barH = 30f, gridKeyH = 36f)
+        val Side = KeyboardMetrics(width = 330f, keyH = 40f, gap = 6f, pad = 0f, barH = 32f, gridKeyH = 40f)
         /** The system keyboard's ABC grid in other apps: compact, at the bottom centre, the app visible either side. */
-        /** The same grid as [Side] (300 wide, 36-high keys), plus its padding. */
-        val SystemGrid = KeyboardMetrics(width = 300f + 2 * 12f, keyH = 36f, gap = 5f, pad = 12f, barH = 30f, gridKeyH = 36f)
+        /** The same grid as [Side] (330 wide, 40-high keys), plus its padding. */
+        val SystemGrid = KeyboardMetrics(width = 330f + 2 * 12f, keyH = 40f, gap = 6f, pad = 12f, barH = 32f, gridKeyH = 40f)
         /** The system keyboard in other apps: a little shorter so more of the app stays visible. */
         val System = KeyboardMetrics(width = 880f, keyH = 40f, gap = 7f, pad = 10f, barH = 32f, gridKeyH = 33f)
     }
@@ -587,8 +587,9 @@ fun KeyboardOverlay(
 
 /** Where the side keyboard sits on the 960 × 540 canvas; Search puts its results to the right of it. */
 object SideKeyboardLayout {
-    const val Left = 44f
-    const val Top = 34f
+    const val Left = 56f
+    /** The field, chips and grid (about 400 high) centred on the 540-high screen. */
+    const val Top = 64f
     val Width: Float get() = KeyboardMetrics.Side.width
     val Right: Float get() = Left + Width
 }
@@ -616,14 +617,13 @@ private fun SideKeyboard(
     Box(
         Modifier
             .fillMaxSize()
-            .graphicsLayer {
-                alpha = t
-                val s = lerpF(1.04f, 1f, t)
-                scaleX = s
-                scaleY = s
-            }
-            // The Settings backdrop: frosted Home Screen in the Colour Mode's veil, a glow of its accent.
-            .glass(androidx.compose.ui.graphics.RectangleShape, theme.settingsVeil(), GlassSource.SceneUi, rimStrength = 0f, lens = false, frosted = true)
+            .graphicsLayer { alpha = t }
+            // Solid underneath, so no edge of the screen (or a video-layer aerial) shows through the frost.
+            .background(theme.settingsVeil().copy(alpha = 1f))
+            // The Settings backdrop: frosted screen in the Colour Mode's veil, a glow of its accent. It reads
+            // the whole screen (Full): the Home-only source sat a few pixels off out here, showing sharp
+            // slivers of wallpaper at the left and top edges.
+            .glass(androidx.compose.ui.graphics.RectangleShape, theme.settingsVeil(), GlassSource.Full, rimStrength = 0f, lens = false, frosted = true)
             .drawBehind {
                 drawRect(
                     Brush.radialGradient(
@@ -659,7 +659,7 @@ private fun SideField(vm: LauncherViewModel, req: com.prismtv.launcher.KeyboardR
     val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
     Row(Modifier.width(m.width.dp).height(44.dp), verticalAlignment = Alignment.CenterVertically) {
         if (vm.searchOpen) {
-            PIcon(Icons.Rounded.Search, ink.copy(alpha = 0.85f), 26.dp)
+            PIcon(Icons.Rounded.Search, ink.copy(alpha = 0.85f), 28.dp)
             HSpace(10.dp)
         }
         val text = vm.keyboardText

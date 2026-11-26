@@ -3061,6 +3061,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (overlay != Overlay.None && overlay != Overlay.Settings) overlay = Overlay.None
         openKeyboard("", "", "Search Apps, Titles and Settings") { q -> search(q).firstOrNull()?.let { openSearchResult(it) } }
         keyboardController.actionLabel = "search"
+        // Search isn't a sentence: lowercase from the first letter, as on Apple TV.
+        keyboardController.autoCapOn = false
+        keyboardController.updateAutoCap()
         searchOpen = true
         searchFocus = -1
     }
