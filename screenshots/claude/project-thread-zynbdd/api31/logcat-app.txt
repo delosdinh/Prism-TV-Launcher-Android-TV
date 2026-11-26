@@ -1,58 +1,60 @@
-11-26 15:39:22.394   493  1269 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:39:47.519   493   577 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:39:55.965   493  1269 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:40:02.129 16068 16068 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-26 15:40:02.131 16068 16068 I AndroidRuntime: Using default boot image
-11-26 15:40:02.131 16068 16068 I AndroidRuntime: Leaving lock profiling enabled
-11-26 15:40:02.188 16068 16068 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-26 15:40:03.284 16068 16068 D AndroidRuntime: Shutting down VM
-11-26 15:40:16.874   493   519 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:40:22.851 16148 16148 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-26 15:40:22.853 16148 16148 I AndroidRuntime: Using default boot image
-11-26 15:40:22.853 16148 16148 I AndroidRuntime: Leaving lock profiling enabled
-11-26 15:40:22.913 16148 16148 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-26 15:40:23.957 16148 16148 D AndroidRuntime: Shutting down VM
-11-26 15:40:38.413   493   552 I ActivityManager: Killing 14640:com.prismtv.launcher/u0a80 (adj 0): permissions revoked
-11-26 15:40:38.414   493   552 W ActivityManager: Scheduling restart of crashed service com.prismtv.launcher/.system.PrismNotificationListener in 1000ms for connection
-11-26 15:40:38.418   493   525 W ActivityManager: ProcessRecord{f68491f 0:com.prismtv.launcher/u0a80} is attached to a previous process 14640
-11-26 15:40:38.430   493  3639 V ActivityManager: Got obituary of 14640:com.prismtv.launcher
-11-26 15:40:38.430   493  1418 I WindowManager: WIN DEATH: Window{6989a07 u0 com.prismtv.launcher/com.prismtv.launcher.MainActivity}
-11-26 15:40:38.430   493  1418 W InputManager-JNI: Input channel object '6989a07 com.prismtv.launcher/com.prismtv.launcher.MainActivity (client)' was disposed without first being removed with the input manager!
-11-26 15:40:38.430   493  2413 D NotificationListeners: Removing active service ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-26 15:40:38.431   493   493 V NotificationListeners: 0 notification listener connection lost: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-26 15:40:38.432   493   671 D ConnectivityService: releasing NetworkRequest [ REQUEST id=137, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ] (release request)
-11-26 15:40:38.439   493   534 I ActivityManager: Start proc 16242:com.prismtv.launcher/u0a80 for top-activity {com.prismtv.launcher/com.prismtv.launcher.MainActivity}
-11-26 15:40:38.450   493   577 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:40:38.462 15184 15778 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
-11-26 15:40:38.468 15184 16241 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
-11-26 15:40:38.481 16242 16242 V GraphicsEnvironment: ANGLE Developer option for 'com.prismtv.launcher' set to: 'default'
-11-26 15:40:38.496 15184 16241 I Service : send binder to user app com.prismtv.launcher in user 0
-11-26 15:40:38.496 15184 15778 I Service : send binder to user app com.prismtv.launcher in user 0
-11-26 15:40:38.497 15184 15778 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
-11-26 15:40:38.502 15184 15778 I Service : send binder to user app com.prismtv.launcher in user 0
-11-26 15:40:38.668   493  1418 D ConnectivityService: requestNetwork for uid/pid:10080/16242 activeRequest: null callbackRequest: 148 [NetworkRequest [ REQUEST id=149, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]] callback flags: 0 priority: 2147483647
-11-26 15:40:38.669   493   664 D WifiNetworkFactory: got request NetworkRequest [ REQUEST id=149, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]
-11-26 15:40:38.669   493   664 D UntrustedWifiNetworkFactory: got request NetworkRequest [ REQUEST id=149, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]
-11-26 15:40:38.669   493   664 D OemPaidWifiNetworkFactory: got request NetworkRequest [ REQUEST id=149, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]
-11-26 15:40:38.718   493   493 V NotificationListeners: 0 notification listener service connected: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
-11-26 15:40:39.181   493   525 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{42e6ed4 u0 com.prismtv.launcher/.MainActivity t41}
-11-26 15:40:39.182   493   525 W ActivityTaskManager: Activity pause timeout for ActivityRecord{42e6ed4 u0 com.prismtv.launcher/.MainActivity t41}
-11-26 15:40:43.789 16382 16382 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
-11-26 15:40:43.790 16382 16382 I AndroidRuntime: Using default boot image
-11-26 15:40:43.790 16382 16382 I AndroidRuntime: Leaving lock profiling enabled
-11-26 15:40:43.849 16382 16382 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
-11-26 15:40:44.061 16242 16398 D ProfileInstaller: Installing profile for com.prismtv.launcher
-11-26 15:40:44.871 16382 16382 D AndroidRuntime: Shutting down VM
-11-26 15:40:46.329 16307 16307 V GrantPermissionsViewModel: Logged buttons presented and clicked permissionGroupName=android.permission.READ_TV_LISTINGS uid=10080 selectedLocations=0 package=com.prismtv.launcher presentedButtons=9 clickedButton=8 sessionId=-6267645866600531415 targetSdk=35
-11-26 15:40:46.329 16307 16307 V GrantPermissionsViewModel: Permission grant result requestId=-6267645866600531415 callingUid=10080 callingPackage=com.prismtv.launcher permission=android.permission.READ_TV_LISTINGS isImplicit=false result=6
-11-26 15:40:47.902   493  1418 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:41:07.490   493   574 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:41:23.582   493   574 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:41:44.263   493  1418 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:41:49.508   493   574 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:42:01.521   493  3630 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:42:13.761   493  1269 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:42:30.959   493  2413 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:42:43.252   493   657 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
-11-26 15:42:43.307 16242 16251 I rismtv.launche: JIT allocated 52KB for compiled code of void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
-11-26 15:42:43.307 16242 16251 I rismtv.launche: Compiler allocated 4590KB to compile void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
+11-26 17:22:16.281 16248 16248 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-26 17:22:16.283 16248 16248 I AndroidRuntime: Using default boot image
+11-26 17:22:16.283 16248 16248 I AndroidRuntime: Leaving lock profiling enabled
+11-26 17:22:16.349 16248 16248 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-26 17:22:17.439 16248 16248 D AndroidRuntime: Shutting down VM
+11-26 17:22:31.228   496   523 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:22:37.284 16329 16329 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-26 17:22:37.287 16329 16329 I AndroidRuntime: Using default boot image
+11-26 17:22:37.287 16329 16329 I AndroidRuntime: Leaving lock profiling enabled
+11-26 17:22:37.350 16329 16329 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-26 17:22:38.406 16329 16329 D AndroidRuntime: Shutting down VM
+11-26 17:22:52.952   496   558 I ActivityManager: Killing 14817:com.prismtv.launcher/u0a80 (adj 0): permissions revoked
+11-26 17:22:52.952   496   558 W ActivityManager: Scheduling restart of crashed service com.prismtv.launcher/.system.PrismNotificationListener in 1000ms for connection
+11-26 17:22:52.955   496   529 W ActivityManager: ProcessRecord{d14f4c6 0:com.prismtv.launcher/u0a80} is attached to a previous process 14817
+11-26 17:22:52.956 15364 15969 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-26 17:22:52.956   496  3507 W ActivityManager: ProcessRecord{d14f4c6 0:com.prismtv.launcher/u0a80} is attached to a previous process 14817
+11-26 17:22:52.969   496   523 V ActivityManager: Got obituary of 14817:com.prismtv.launcher
+11-26 17:22:52.969   496  3521 D NotificationListeners: Removing active service ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-26 17:22:52.969   496  3521 I WindowManager: WIN DEATH: Window{af350bd u0 com.prismtv.launcher/com.prismtv.launcher.MainActivity}
+11-26 17:22:52.969   496  3521 W InputManager-JNI: Input channel object 'af350bd com.prismtv.launcher/com.prismtv.launcher.MainActivity (client)' was disposed without first being removed with the input manager!
+11-26 17:22:52.969   496   674 D ConnectivityService: releasing NetworkRequest [ REQUEST id=134, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ] (release request)
+11-26 17:22:52.971   496   496 V NotificationListeners: 0 notification listener connection lost: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-26 17:22:52.977   496   539 I ActivityManager: Start proc 16421:com.prismtv.launcher/u0a80 for top-activity {com.prismtv.launcher/com.prismtv.launcher.MainActivity}
+11-26 17:22:52.978   496  3521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:22:53.006 15364 16419 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-26 17:22:53.019 16421 16421 V GraphicsEnvironment: ANGLE Developer option for 'com.prismtv.launcher' set to: 'default'
+11-26 17:22:53.035 15364 16419 I Service : send binder to user app com.prismtv.launcher in user 0
+11-26 17:22:53.035 15364 15969 I Service : send binder to user app com.prismtv.launcher in user 0
+11-26 17:22:53.036 15364 15969 V Service : Add 0:com.prismtv.launcher to power save temp whitelist for 30s
+11-26 17:22:53.036 15364 15969 I Service : send binder to user app com.prismtv.launcher in user 0
+11-26 17:22:53.225   496  3507 D ConnectivityService: requestNetwork for uid/pid:10080/16421 activeRequest: null callbackRequest: 145 [NetworkRequest [ REQUEST id=146, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]] callback flags: 0 priority: 2147483647
+11-26 17:22:53.225   496   667 D WifiNetworkFactory: got request NetworkRequest [ REQUEST id=146, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]
+11-26 17:22:53.225   496   667 D UntrustedWifiNetworkFactory: got request NetworkRequest [ REQUEST id=146, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]
+11-26 17:22:53.225   496   667 D OemPaidWifiNetworkFactory: got request NetworkRequest [ REQUEST id=146, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10080 RequestorUid: 10080 RequestorPkg: com.prismtv.launcher] ]
+11-26 17:22:53.280   496   496 V NotificationListeners: 0 notification listener service connected: ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.system.PrismNotificationListener}
+11-26 17:22:53.740   496   529 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{c987125 u0 com.prismtv.launcher/.MainActivity t41}
+11-26 17:22:53.741   496   529 W ActivityTaskManager: Activity pause timeout for ActivityRecord{c987125 u0 com.prismtv.launcher/.MainActivity t41}
+11-26 17:22:58.085 16561 16561 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-26 17:22:58.088 16561 16561 I AndroidRuntime: Using default boot image
+11-26 17:22:58.088 16561 16561 I AndroidRuntime: Leaving lock profiling enabled
+11-26 17:22:58.221 16561 16561 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-26 17:22:58.796 16421 16580 D ProfileInstaller: Installing profile for com.prismtv.launcher
+11-26 17:22:59.276 16561 16561 D AndroidRuntime: Shutting down VM
+11-26 17:23:00.746 16489 16489 V GrantPermissionsViewModel: Logged buttons presented and clicked permissionGroupName=android.permission.READ_TV_LISTINGS uid=10080 selectedLocations=0 package=com.prismtv.launcher presentedButtons=9 clickedButton=8 sessionId=-6345309139443099574 targetSdk=35
+11-26 17:23:00.747 16489 16489 V GrantPermissionsViewModel: Permission grant result requestId=-6345309139443099574 callingUid=10080 callingPackage=com.prismtv.launcher permission=android.permission.READ_TV_LISTINGS isImplicit=false result=6
+11-26 17:23:02.352   496  3021 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:23:21.885   496  3021 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:23:38.337   496  2036 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:23:58.772   496  3021 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:24:04.018   496  1277 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:24:16.573   496  1277 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:24:28.912   496  3521 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:24:46.255   496  3507 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:24:46.278 16421 16429 I rismtv.launche: JIT allocated 52KB for compiled code of void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
+11-26 17:24:46.278 16421 16429 I rismtv.launche: Compiler allocated 4695KB to compile void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
+11-26 17:24:58.637   496   523 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:25:12.031   496  3668 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:25:17.784   496   844 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} from uid 2000
+11-26 17:25:17.809 16421 16429 I rismtv.launche: JIT allocated 57KB for compiled code of void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
+11-26 17:25:17.809 16421 16429 I rismtv.launche: Compiler allocated 4597KB to compile void com.prismtv.launcher.LauncherViewModel.applyDebug(android.os.Bundle)
