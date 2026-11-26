@@ -174,6 +174,7 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
             backdropArt, blurred = gridMode, palette = p, backdrop = LocalBackdrop.current,
             card = if (spotlight) vm.currentArt else null, expanded = expanded,
             aerial = aerial,
+            aerialSave = vm.prefs.aerialSave.count,
         )
 
         HeroOverlay(
@@ -281,6 +282,8 @@ private fun HomeBackdrop(
     card: HeroArt? = null,
     expanded: Boolean = false,
     aerial: Boolean = false,
+    /** Settings › Screensaver › Save on This TV: how many aerials to keep on the TV (0: stream). */
+    aerialSave: Int = 0,
 ) {
     val blur = animateFloatAsState(if (blurred) 1f else 0f, tween(650, easing = FastOutSlowInEasing), label = "wallBlur")
     val spot = card != null
@@ -320,7 +323,7 @@ private fun HomeBackdrop(
         if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(
             blur = { blur.value },
             modifier = Modifier.fillMaxSize(),
-            save = vm.prefs.aerialSave.count,
+            save = aerialSave,
             onShown = { aerialShown = it },
             onLiveBlur = { aerialGlBlur = it },
         )
