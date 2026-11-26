@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.launch
 import com.prismtv.launcher.data.AerialQuality
 import com.prismtv.launcher.data.AerialRange
 
@@ -146,8 +148,26 @@ fun AerialWallpaper(
     // would be replayed by every glass surface drawing Home's backdrop, and the video moves to wherever it
     // was drawn last (on the AM9 it ended up a rectangle above the dock, with black around it).
     DisposableEffect(player, onVideoLayer) {
-        if (onVideoLayer) AerialVideoLayer.player = player
-        onDispose { if (AerialVideoLayer.player === player) AerialVideoLayer.player = null }
+        if (onVideoLayer) {
+            AerialVideoLayer.videos = list
+            AerialVideoLayer.player = player
+        }
+        // A new shot: a poster of it a few seconds in, once it's playing (see AerialVideoLayer.poster).
+        val posterListener = object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                posterHandler.removeCallbacksAndMessages(null)
+                posterHandler.postDelayed({ if (AerialVideoLayer.player === player) AerialVideoLayer.refreshPoster() }, 4000)
+            }
+        }
+        if (onVideoLayer) {
+            player.addListener(posterListener)
+            posterHandler.postDelayed({ if (AerialVideoLayer.player === player) AerialVideoLayer.refreshPoster(sameShotOk = true) }, 4000)
+        }
+        onDispose {
+            player.removeListener(posterListener)
+            posterHandler.removeCallbacksAndMessages(null)
+            if (AerialVideoLayer.player === player) AerialVideoLayer.player = null
+        }
     }
     if (onVideoLayer) return
     // Always drawn at full strength (a TextureView that's never drawn never gets its first frame):
@@ -221,6 +241,56 @@ fun AerialWallpaper(
 /** The Home aerial's player while it plays on the video layer (see [AerialVideoLayerHost]). Snapshot state. */
 object AerialVideoLayer {
     var player by mutableStateOf<ExoPlayer?>(null)
+
+    /**
+     * A frame of the shot that's playing, for what can't show the video plane (the App Switcher's Home
+     * card): the app can't read the plane back (PixelCopy gives black or green on Amlogic). Null until
+     * one has been grabbed.
+     */
+    var poster by mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
+        private set
+    private var posterId: String? = null
+    internal var videos: List<AerialVideo> = emptyList()
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main.immediate)
+    private var job: kotlinx.coroutines.Job? = null
+
+    /**
+     * Grabs a frame of the shot playing now, near where it is, from its lightest stream (one keyframe:
+     * a small ranged download). [sameShotOk] skips it when the poster is already from this shot.
+     */
+    fun refreshPoster(sameShotOk: Boolean = false) {
+        val p = player ?: return
+        val video = videos.getOrNull(p.currentMediaItemIndex) ?: return
+        if (sameShotOk && posterId == video.id && poster != null) return
+        val atUs = p.currentPosition.coerceAtLeast(0L) * 1000L
+        val url = if (Resume.http) video.posterUrl.replaceFirst("https://", "http://") else video.posterUrl
+        job?.cancel()
+        job = scope.launch {
+            val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { grabFrame(url, atUs) }
+            if (bmp != null) {
+                poster = bmp
+                posterId = video.id
+            }
+        }
+    }
+
+    private fun grabFrame(url: String, atUs: Long): androidx.compose.ui.graphics.ImageBitmap? {
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        val r = android.media.MediaMetadataRetriever()
+        return try {
+            r.setDataSource(url, emptyMap())
+            val opt = android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+            val frame = if (android.os.Build.VERSION.SDK_INT >= 27) r.getScaledFrameAtTime(atUs, opt, 960, 540)
+            else r.getFrameAtTime(atUs, opt)
+            android.util.Log.i("PrismAerial", "Home wallpaper: poster ${frame?.width}x${frame?.height} in ${android.os.SystemClock.elapsedRealtime() - t0} ms")
+            frame?.asImageBitmap()
+        } catch (t: Throwable) {
+            android.util.Log.w("PrismAerial", "Home wallpaper: no poster frame", t)
+            null
+        } finally {
+            runCatching { r.release() }
+        }
+    }
 }
 
 /**
@@ -239,6 +309,8 @@ fun AerialVideoLayerHost(modifier: Modifier = Modifier) {
         )
     }
 }
+
+private val posterHandler = Handler(Looper.getMainLooper())
 
 /** The OpenGL path's pieces, shared between the TextureView's listener and the player's disposal. */
 private class GlHolder {

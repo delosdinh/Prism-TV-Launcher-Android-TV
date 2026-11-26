@@ -19,7 +19,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /** One aerial video. [url] is the preferred stream; [fallbackUrl] is the same file over HTTP. */
-data class AerialVideo(val id: String, val label: String, val url: String, val key: String = "") {
+data class AerialVideo(
+    val id: String,
+    val label: String,
+    val url: String,
+    val key: String = "",
+    /** The lightest stream of the same shot (1080p H.264 where there is one), for grabbing a poster frame. */
+    val posterUrl: String = url,
+) {
     val fallbackUrl: String get() = url.replaceFirst("https://", "http://")
 }
 
@@ -127,6 +134,9 @@ object AerialCatalog {
         }
     }
 
+    /** Streams cheapest to decode one frame from, best first. */
+    private val PosterKeys = listOf("url-1080-H264", "url-1080-SDR", "url-4K-SDR")
+
     private fun parse(json: String, keys: List<String>): List<AerialVideo> {
         val assets = JSONObject(json).optJSONArray("assets") ?: return emptyList()
         val out = ArrayList<AerialVideo>(assets.length())
@@ -134,7 +144,8 @@ object AerialCatalog {
             val a = assets.optJSONObject(i) ?: continue
             val url = keys.firstNotNullOfOrNull { k -> a.optString(k).takeIf { it.startsWith("http") } } ?: continue
             val label = a.optString("accessibilityLabel").ifBlank { a.optString("title") }
-            out += AerialVideo(a.optString("id", url), label, url, keys.first { k -> a.optString(k) == url })
+            val poster = PosterKeys.firstNotNullOfOrNull { k -> a.optString(k).takeIf { it.startsWith("http") } } ?: url
+            out += AerialVideo(a.optString("id", url), label, url, keys.first { k -> a.optString(k) == url }, poster)
         }
         return out
     }
