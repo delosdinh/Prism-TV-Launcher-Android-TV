@@ -178,6 +178,22 @@ internal object AerialStore {
         Log.i(TAG, "Saved aerials: deleted")
     }
 
+    /**
+     * `adb shell dumpsys activity com.prismtv.launcher/.MainActivity aerials`: what's saved, shot by shot (MB saved
+     * of its size), and everything Prism TV has downloaded since the TV started, to see the saving on a TV.
+     */
+    fun report(): String {
+        val rx = android.net.TrafficStats.getUidRxBytes(android.os.Process.myUid())
+        val c = cache ?: return "saved aerials: none open; Prism downloaded ${rx / MB} MB since boot"
+        val shots = c.keys.sorted().map { k ->
+            val len = ContentMetadata.getContentLength(c.getContentMetadata(k))
+            val have = c.getCachedBytes(k, 0, if (len > 0) len else C.LENGTH_UNSET.toLong())
+            "${k.substringAfterLast('/').take(24)} ${have / MB}/${if (len > 0) "${len / MB}" else "?"}"
+        }
+        return "saved aerials: ${shots.size} shots, ${c.cacheSpace / MB} MB; fit ${fit?.let { "${it.second} of ${it.first}" } ?: "-"}; " +
+            "Prism downloaded ${rx / MB} MB since boot; ${shots.joinToString(", ")}"
+    }
+
     // ------------------------------------------------------------------------------------ sizes
 
     private const val MB = 1024L * 1024

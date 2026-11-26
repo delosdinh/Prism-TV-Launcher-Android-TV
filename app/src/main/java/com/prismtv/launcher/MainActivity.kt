@@ -311,6 +311,8 @@ class MainActivity : ComponentActivity() {
             done.await(2, java.util.concurrent.TimeUnit.SECONDS)
             writer.println("$prefix  perf: $result")
         }
+        // `… MainActivity aerials`: Home's saved aerials (Settings › Screensaver › Save on This TV).
+        if (args?.any { it == "aerials" } == true) writer.println("$prefix  ${com.prismtv.launcher.aerial.AerialStore.report()}")
         if (args?.any { it == "hwtest" } == true) writer.println("$prefix  ${com.prismtv.launcher.system.HardwareProbe.run()}")
         runCatching { vm.memoryReport(collect) }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
         writer.println("${prefix}Prism memory history (a line a minute when anything happened):")
