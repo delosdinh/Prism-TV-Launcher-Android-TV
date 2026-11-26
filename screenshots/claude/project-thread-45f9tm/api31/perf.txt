@@ -1,24 +1,24 @@
-apk bytes: 4934459
-apk dex 1714591, images 2362661, audio 275054 (0 compressed), other 517350
-cold start ms:  2482 2766 2168 1916 2161  (median 2168)
+apk bytes: 4950843
+apk dex 1739814, images 2362661, audio 275054 (0 compressed), other 517346
+cold start ms:  3002 3028 2938 2497 2099  (median 2938)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  205 220 198 209 195  (median 205)
-walk: Total frames rendered: 72
-walk: Janky frames: 72 (100.00%)
-walk: Janky frames (legacy): 72 (100.00%)
+back to home ms:  237 250 222 234 225  (median 234)
+walk: Total frames rendered: 65
+walk: Janky frames: 65 (100.00%)
+walk: Janky frames (legacy): 65 (100.00%)
 walk: 50th percentile: 250ms
-walk: 90th percentile: 350ms
-walk: 99th percentile: 1000ms
-walk: Number Slow UI thread: 35
-rapid: Total frames rendered: 74
-rapid: Janky frames: 74 (100.00%)
-rapid: Janky frames (legacy): 74 (100.00%)
+walk: 90th percentile: 400ms
+walk: 99th percentile: 1550ms
+walk: Number Slow UI thread: 27
+rapid: Total frames rendered: 64
+rapid: Janky frames: 64 (100.00%)
+rapid: Janky frames (legacy): 64 (100.00%)
 rapid: 90th percentile: 150ms
-rapid: Number Slow UI thread: 46
-memory: Native Heap    33185    33168        0       34    34212    50208    34823     3834
-memory: Java Heap:     6160                          19048
-memory: Native Heap:    33168                          34212
+rapid: Number Slow UI thread: 25
+memory: Native Heap    29657    29636        0       31    30720    46084    31005     3208
+memory: Java Heap:     7876                          25328
+memory: Native Heap:    29636                          30720
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    63884            TOTAL RSS:   158452       TOTAL SWAP PSS:      256
-idle on home, 60 s: 283 ticks
+memory: TOTAL PSS:    64340            TOTAL RSS:   162076       TOTAL SWAP PSS:      136
+idle on home, 60 s: 15 ticks
 behind another app, 60 s: 1 ticks
