@@ -50,6 +50,7 @@ import com.prismtv.launcher.data.AerialRange
 import com.prismtv.launcher.data.StartAfterChoices
 import com.prismtv.launcher.data.DeepLinks
 import com.prismtv.launcher.data.KeyboardColour
+import com.prismtv.launcher.data.KeyboardLayoutStyle
 import com.prismtv.launcher.data.TextScales
 import com.prismtv.launcher.data.TopShelfStyle
 import com.prismtv.launcher.data.UriArt
@@ -1393,6 +1394,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         kb.autoCapOn = true
         kb.micOn = true
         kb.actionLabel = "done"
+        com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical = prefs.keyboardLayout == KeyboardLayoutStyle.Abc
         kb.reset()
         if (dictation == null) dictation = com.prismtv.launcher.ime.Dictation(ctx, kb)
         keyboard = KeyboardRequest(title, initial, placeholder, onDone)
@@ -3059,6 +3061,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (overlay != Overlay.None && overlay != Overlay.Settings) overlay = Overlay.None
         openKeyboard("", "", "Search Apps, Titles and Settings") { q -> search(q).firstOrNull()?.let { openSearchResult(it) } }
         keyboardController.actionLabel = "search"
+        // Search isn't a sentence: lowercase from the first letter, as on Apple TV.
+        keyboardController.autoCapOn = false
+        keyboardController.updateAutoCap()
         searchOpen = true
         searchFocus = -1
     }
@@ -3069,12 +3074,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (searchFocus >= 0) {
             when (k) {
                 NavKey.Left -> if (searchFocus > 0) { searchFocus--; cue(Cue.FocusSmall) }
+                    // The first result is next to the side keyboard: Left goes back to it.
+                    else if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) { searchFocus = -1; cue(Cue.FocusSmall) }
                 NavKey.Right -> if (searchFocus < results.size - 1) { searchFocus++; cue(Cue.FocusSmall) }
                 NavKey.Down, NavKey.Menu -> { searchFocus = -1; cue(Cue.FocusSmall) }
                 NavKey.Select -> results.getOrNull(searchFocus)?.let { openSearchResult(it) }
                 else -> Unit
             }
             return true
+        }
+        // ABC keyboard down the left: Right from the end of a row goes across to the results.
+        val side = com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical
+        if (side) {
+            if (k == NavKey.Right && results.isNotEmpty() && keyboardController.atRowEnd()) {
+                searchFocus = 0
+                cue(Cue.FocusSmall)
+                return true
+            }
+            return false
         }
         if (k == NavKey.Up && !keyboardController.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up, wrapUp = results.isEmpty())) {
             // Up from the keyboard's top row goes to the results.
@@ -4439,6 +4456,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         )
         SettingsPage.Keyboard -> resumeTick.let { _ -> listOf(
             SettingsRow("kb:system", "Prism Keyboard", "SYSTEM KEYBOARD", keyboardStatus(), chevron = true),
+            SettingsRow("kbLayout", "Keyboard Layout", "APPEARANCE", prefs.keyboardLayout.label),
             SettingsRow("kbColour", "Keyboard Colour", "APPEARANCE", keyboardColourLabel()),
             SettingsRow("kbField", "Text Field Colour", "APPEARANCE", fieldColourLabel()),
             SettingsRow("kb:autocorrect", "Auto-Correction", "TYPING", onOff(prefs.autoCorrect)),
@@ -4869,6 +4887,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
+            r.id == "kbLayout" -> updatePrefs(p.copy(keyboardLayout = KeyboardLayoutStyle.entries[(p.keyboardLayout.ordinal + 1) % KeyboardLayoutStyle.entries.size]))
             r.id == "kbColour" -> updatePrefs(p.copy(keyboardColour = KeyboardColour.entries[(p.keyboardColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "kbField" -> updatePrefs(p.copy(keyboardFieldColour = KeyboardColour.entries[(p.keyboardFieldColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "textSize" -> pushPage(SettingsPage.TextSize)
@@ -5738,6 +5757,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             topShelfStyle = if (b.getString("topShelf").equals("spotlight", true)) TopShelfStyle.Spotlight else TopShelfStyle.FullScreen,
             textSize = b.getInt("textSize", com.prismtv.launcher.data.DefaultTextSize).coerceIn(0, TextScales.size - 1),
             keyboardColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("keyboardColour"), true) } ?: KeyboardColour.Automatic,
+            keyboardLayout = if (b.getString("kbLayout").equals("abc", true)) KeyboardLayoutStyle.Abc else KeyboardLayoutStyle.Qwerty,
             keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("fieldColour"), true) } ?: KeyboardColour.Automatic,
             widgets = when (b.getString("widgets")) {
                 "above" -> mapOf("all:continue" to WidgetPlace.Above)

@@ -19,6 +19,14 @@ interface KeyboardEditor {
     /** The return / Go / Search key. */
     fun action()
     fun batch(block: () -> Unit) = block()
+    /** Everything in the field (the Clear key). Returns what was there, for Delete to put back. */
+    fun clearAll(): String {
+        val all = textBefore(4096)
+        deleteBefore(all.length)
+        return all
+    }
+    /** Puts back what [clearAll] removed. */
+    fun restore(text: String) = commit(text)
 }
 
 enum class KbNav { Up, Down, Left, Right, Select, LongSelect, Delete }
@@ -92,14 +100,17 @@ class KeyboardController(
     private var lastCorrection: Pair<String, String>? = null
     /** A word the user undid a correction for: left alone at the next space (and learnt). */
     private var keepWord: String? = null
+    /** What the Clear key just removed: the next Delete puts it back. */
+    private var lastCleared: String? = null
     private val predictor: WordPredictor? get() = WordPredictor.peek()
 
     /** A new field (or Prism's own entry) starts: [numbers] opens on 123. */
     fun reset(numbers: Boolean = false) {
         layer = if (numbers) KeyboardLayout.Numbers else KeyboardLayout.Letters
         capsLock = false
-        row = 1
-        col = 4
+        val (r, c) = if (numbers) 1 to 4 else KeyboardLayout.startKey()
+        row = r
+        col = c
         listening = false
         partial = ""
         notice = null
@@ -137,8 +148,8 @@ class KeyboardController(
     fun debugState(layer: Int, row: Int, col: Int, accent: Int = -1) {
         this.layer = layer.coerceIn(0, KeyboardLayout.Emoji)
         accents = null
-        this.row = if (this.layer == KeyboardLayout.Emoji) row.coerceIn(0, 3) else row.coerceIn(-1, 3)
-        this.col = col
+        this.row = if (this.layer == KeyboardLayout.Emoji) row.coerceIn(0, 3) else row.coerceIn(-1, KeyboardLayout.of(this.layer).size - 1)
+        this.col = if (this.row >= 0 && this.layer != KeyboardLayout.Emoji) col.coerceIn(0, KeyboardLayout.of(this.layer)[this.row].size - 1) else col
         if (this.layer == KeyboardLayout.Emoji) { emojiCategory = 1; emojiIndex = if (this.row < 3) row * 10 + col else 0 }
         refresh()
         // The accent strip open on that key, with variant [accent] focused.
@@ -165,6 +176,11 @@ class KeyboardController(
         clearOldNotice()
         if (accents != null) return accentNav(n)
         if (n == KbNav.Delete) { delete(); return true }
+        if (n == KbNav.Select || n == KbNav.LongSelect) {
+            // Only a Delete straight after Clear undoes it.
+            val k = if (row >= 0 && layer != KeyboardLayout.Emoji) KeyboardLayout.of(layer).getOrNull(row)?.getOrNull(col) else null
+            if (k?.kind != KeyKind.Delete) lastCleared = null
+        }
         if (layer == KeyboardLayout.Emoji) return emojiNav(n, wrapUp)
         val rows = KeyboardLayout.of(layer)
         val bar = suggestions.isNotEmpty() && !listening
@@ -233,6 +249,14 @@ class KeyboardController(
         }
         sound(if (moved) Cue.FocusKey else Cue.FocusSmall)
         return moved
+    }
+
+    /** True on the last key of a row (or the last suggestion): where Search's Right goes across to its results. */
+    fun atRowEnd(): Boolean {
+        if (accents != null || layer == KeyboardLayout.Emoji) return false
+        val bar = suggestions.isNotEmpty() && !listening
+        return if (row == -1) bar && col == suggestions.size - 1
+        else col == KeyboardLayout.of(layer).getOrNull(row)?.size?.minus(1)
     }
 
     /** Suggestion slots sit over the left, middle and right thirds of the keys. */
@@ -304,6 +328,7 @@ class KeyboardController(
             KeyKind.Char -> typeChar(if (shift || capsLock) k.label.uppercase() else k.label, ed)
             KeyKind.Space -> space(ed)
             KeyKind.Delete -> delete()
+            KeyKind.Clear -> clearAll()
             KeyKind.Shift -> {
                 val now = SystemClock.uptimeMillis()
                 when {
@@ -314,7 +339,7 @@ class KeyboardController(
                 lastShiftAt = now
                 sound(Cue.Toggle)
             }
-            KeyKind.Layer -> switchLayer(k.target)
+            KeyKind.Layer -> switchLayer(k.target, fromLayerKey = true)
             KeyKind.Emoji -> switchLayer(KeyboardLayout.Emoji)
             KeyKind.Mic -> toggleDictation()
             KeyKind.EmojiCategory -> {
@@ -352,8 +377,12 @@ class KeyboardController(
         }
     }
 
-    private fun switchLayer(target: Int) {
-        val x = if (row >= 0 && layer != KeyboardLayout.Emoji) KeyboardLayout.centre(layer, row.coerceAtMost(3), col) else 5f
+    /** [fromLayerKey]: 123 / ABC / #+= lands on the new layer's own switch key, so a second press goes back. */
+    private fun switchLayer(target: Int, fromLayerKey: Boolean = false) {
+        val x = if (row >= 0 && layer != KeyboardLayout.Emoji) {
+            val r = row.coerceAtMost(KeyboardLayout.of(layer).size - 1)
+            KeyboardLayout.centre(layer, r, col)
+        } else 5f
         layer = target
         if (target == KeyboardLayout.Emoji) {
             row = 3
@@ -361,9 +390,16 @@ class KeyboardController(
             emojiCategory = if (recentEmoji.isNotEmpty()) 0 else 1
             emojiIndex = 0
             emojiFirstRow = 0
+        } else if (fromLayerKey && KeyboardLayout.alphabetical) {
+            // The ABC grid's switches are the same row on every layer: stay on the one you pressed.
+            row = 0
+            col = col.coerceIn(0, KeyboardLayout.of(target)[0].size - 1)
+            updateAutoCap()
         } else {
-            row = 3
-            col = KeyboardLayout.nearest(target, 3, x)
+            val last = KeyboardLayout.of(target).size - 1
+            row = last
+            val switchKey = if (fromLayerKey) KeyboardLayout.of(target)[last].indexOfFirst { it.kind == KeyKind.Layer } else -1
+            col = if (switchKey >= 0) switchKey else KeyboardLayout.nearest(target, last, x)
             updateAutoCap()
         }
         sound(Cue.Toggle)
@@ -454,6 +490,15 @@ class KeyboardController(
 
     fun delete() {
         val ed = editor ?: return
+        lastCleared?.let { gone ->
+            // Delete straight after Clear puts the text back, in case Clear was a slip.
+            lastCleared = null
+            ed.restore(gone)
+            sound(Cue.Delete)
+            updateAutoCap()
+            refresh()
+            return
+        }
         val lc = lastCorrection
         if (lc != null && ed.textBefore(lc.second.length + 1) == lc.second + " ") {
             // Delete right after an auto-correction puts back what you typed (and keeps it next time).
@@ -475,6 +520,22 @@ class KeyboardController(
         ed.deleteBefore(lastGraphemeLength(before))
         lastCorrection = null
         sound(Cue.Delete)
+        updateAutoCap()
+        refresh()
+    }
+
+    /** The Clear key: empties the field. */
+    fun clearAll() {
+        val ed = editor ?: return
+        val gone = ed.clearAll()
+        if (gone.isEmpty()) {
+            sound(Cue.FocusSmall)
+            return
+        }
+        lastCleared = gone
+        lastCorrection = null
+        keepWord = null
+        sound(Cue.Clear)
         updateAutoCap()
         refresh()
     }

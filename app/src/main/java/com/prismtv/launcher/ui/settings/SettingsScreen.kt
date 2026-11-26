@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.SortByAlpha
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.FormatSize
@@ -328,6 +329,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "banner" to glyph(Icons.Rounded.Image, 0xFFFF9F0A, 0xFFE06A00),
     "profiles" to glyph(Icons.Rounded.Groups, 0xFF3D9BFF, 0xFF0A5FE0),
     "restrictions" to glyph(Icons.Rounded.Lock, 0xFFFF9F0A, 0xFFE06A00),
+    "kbLayout" to glyph(Icons.Rounded.SortByAlpha, 0xFF9C9CA3, 0xFF5E5E64),
     "kbField" to glyph(Icons.Rounded.TextFields, 0xFF9C9CA3, 0xFF5E5E64),
     "ss:pictures" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),
     "acc:photos" to glyph(Icons.Rounded.PhotoLibrary, 0xFFFFCC00, 0xFFFF9500),

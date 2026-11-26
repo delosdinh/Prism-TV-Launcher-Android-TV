@@ -44,6 +44,9 @@ enum class TopShelfStyle(val label: String) { FullScreen("Full Screen"), Spotlig
 /** Keyboard colour; Clear is clear Liquid Glass (over the Home Screen) or smoked see-through glass (other apps). */
 enum class KeyboardColour(val label: String) { Automatic("Automatic"), Light("Light"), Balanced("Balanced"), Dark("Dark"), Clear("Clear") }
 
+/** The letter keys of Prism's keyboard: QWERTY, or A to Z in a grid tuned for the D-pad. */
+enum class KeyboardLayoutStyle(val label: String) { Qwerty("QWERTY"), Abc("ABC") }
+
 /** Where a widget row sits on the Home Screen. */
 enum class WidgetPlace(val label: String) { Off("Off"), Above("Above Dock"), Below("Below Dock") }
 
@@ -130,6 +133,7 @@ data class LauncherPrefs(
     /** Widget rows (by row key) placed above or below the dock. */
     val widgets: Map<String, WidgetPlace> = mapOf("all:continue" to WidgetPlace.Below),
     val keyboardColour: KeyboardColour = KeyboardColour.Automatic,
+    val keyboardLayout: KeyboardLayoutStyle = KeyboardLayoutStyle.Qwerty,
     /** With the Power & Home Button service on: show Prism TV after the TV restarts (Google TV). */
     val openAtStartup: Boolean = true,
     /** tvOS-style focus motion: a springy settle, a lean toward the move and a nudge at edges. */
@@ -243,6 +247,7 @@ class PrefsStore(context: Context) {
             // Never saved → the default rows; saved empty → you turned every row off.
             widgets = sp.getString("widgets", null)?.let { parseWidgets(it) } ?: d.widgets,
             keyboardColour = enumOr(sp.getString("keyboardColour", null), d.keyboardColour),
+            keyboardLayout = enumOr(sp.getString("keyboardLayout", null), d.keyboardLayout),
             openAtStartup = sp.getBoolean("openAtStartup", d.openAtStartup),
             focusEffect = enumOr(sp.getString("focusEffect", null), d.focusEffect),
             labels = enumOr(sp.getString("labels", null), d.labels),
@@ -358,6 +363,7 @@ class PrefsStore(context: Context) {
             .putString("wallpaper", p.wallpaper)
             .putString("widgets", p.widgets.entries.joinToString("\n") { "${it.key}\t${it.value.name}" })
             .putString("keyboardColour", p.keyboardColour.name)
+            .putString("keyboardLayout", p.keyboardLayout.name)
             .putBoolean("openAtStartup", p.openAtStartup)
             .apply()
     }

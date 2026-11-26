@@ -174,4 +174,16 @@ class KeyboardControllerTest {
         assertTrue(kb.nav(KbNav.Down)) // the bar -> top of the grid
         assertEquals(0, kb.row)
     }
+
+    @Test
+    fun qwertyHasAClearKeyToo() {
+        at("hello world", 3, 0)
+        val col = KeyboardLayout.of(KeyboardLayout.Letters)[3].indexOfFirst { it.kind == KeyKind.Clear }
+        assertTrue(col >= 0)
+        kb.debugState(KeyboardLayout.Letters, 3, col)
+        kb.nav(KbNav.Select)
+        assertEquals("", field.text.toString())
+        kb.nav(KbNav.Delete) // straight after Clear: puts it back
+        assertEquals("hello world", field.text.toString())
+    }
 }
