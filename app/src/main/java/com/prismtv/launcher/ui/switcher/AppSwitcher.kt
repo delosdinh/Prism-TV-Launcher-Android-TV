@@ -198,7 +198,12 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                 // whole app (AerialVideoLayerHost), and Home clears its own wallpaper away over it, so the scene
                 // has no wallpaper in it there: the card showed its dark fill. The video plane can't be read
                 // back (PixelCopy gives black or green on Amlogic), so the wallpaper's still stands in for it.
-                val videoLayerStill = if (com.prismtv.launcher.aerial.AerialVideoLayer.player != null) {
+                // Keyed on the aerial wallpaper being chosen, not on the player: where the aerial draws in
+                // the app (TextureView) the scene covers the still, so it only shows where the scene is clear.
+                val videoLayerStill = if (
+                    com.prismtv.launcher.aerial.AerialVideoLayer.player != null ||
+                    vm.wallpaperKey == com.prismtv.launcher.AerialWallpaperKey
+                ) {
                     (vm.wallpaperArt ?: vm.currentArt)?.full
                 } else null
                 Box(
