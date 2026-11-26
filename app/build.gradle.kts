@@ -33,12 +33,18 @@ android {
             // private (docs/editions.md). Override with -PprismUpdateRepo=owner/name.
             val updateRepo = (project.findProperty("prismUpdateRepo") as String?) ?: "delosdinh/Prism-TV-Launcher-Releases"
             buildConfigField("String", "UPDATE_URL", "\"https://github.com/$updateRepo/releases/download/preview\"")
+            // Invite codes (data/Invite.kt): the key that makes them, from the PRISM_INVITE_KEY secret in CI.
+            // Never in the repository. Without it a build can't check codes (installs from before still work).
+            val inviteKey = (System.getenv("PRISM_INVITE_KEY") ?: (project.findProperty("prismInviteKey") as String?) ?: "")
+                .trim().filter { it.isLetterOrDigit() }
+            buildConfigField("String", "INVITE_KEY", "\"$inviteKey\"")
         }
         create("play") {
             dimension = "store"
             applicationIdSuffix = ".play"
             buildConfigField("boolean", "PLAY", "true")
             buildConfigField("String", "UPDATE_URL", "\"\"")
+            buildConfigField("String", "INVITE_KEY", "\"\"")
         }
     }
 
