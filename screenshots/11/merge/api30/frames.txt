@@ -1,0 +1,52 @@
+full: Total frames rendered: 131
+full: Janky frames: 131 (100.00%)
+full: 50th percentile: 150ms
+full: 90th percentile: 250ms
+full: 99th percentile: 700ms
+full: Number Slow UI thread: 72
+full: Number Slow bitmap uploads: 6
+full: Number Slow issue draw commands: 131
+lite: Total frames rendered: 115
+lite: Janky frames: 115 (100.00%)
+lite: 50th percentile: 125ms
+lite: 90th percentile: 150ms
+lite: 99th percentile: 200ms
+lite: Number Slow UI thread: 59
+lite: Number Slow bitmap uploads: 3
+lite: Number Slow issue draw commands: 115
+idle-still: 20 s on Home: 0 frames, scene re-recorded 2x
+idle-advancing: 20 s on Home: 44 frames, scene re-recorded 3x
+settings: Total frames rendered: 282
+settings: Janky frames: 282 (100.00%)
+settings: 50th percentile: 109ms
+settings: 90th percentile: 133ms
+settings: 99th percentile: 150ms
+settings: Number Slow UI thread: 132
+settings: 24 presses, page composed 2x, rows composed 58x
+open-new: Control Centre open+close: 12 frames, composed 2x, scene re-recorded 4x
+open-old: Control Centre open+close: 13 frames, composed 8x, scene re-recorded 6x
+open-new-again: Control Centre open+close: 12 frames, composed 2x, scene re-recorded 5x
+cc-new: Total frames rendered: 84
+cc-new: Janky frames: 84 (100.00%)
+cc-new: 50th percentile: 77ms
+cc-new: 90th percentile: 129ms
+cc-new: 99th percentile: 300ms
+cc-new: Number Slow UI thread: 37
+cc-new: Number Slow issue draw commands: 84
+cc-new: Control Centre composed 11x, scene re-recorded 4x, full 4x
+cc-old: Total frames rendered: 85
+cc-old: Janky frames: 85 (100.00%)
+cc-old: 50th percentile: 73ms
+cc-old: 90th percentile: 150ms
+cc-old: 99th percentile: 250ms
+cc-old: Number Slow UI thread: 37
+cc-old: Number Slow issue draw commands: 85
+cc-old: Control Centre composed 16x, scene re-recorded 6x, full 6x
+cc-new-again: Total frames rendered: 84
+cc-new-again: Janky frames: 84 (100.00%)
+cc-new-again: 50th percentile: 73ms
+cc-new-again: 90th percentile: 150ms
+cc-new-again: 99th percentile: 250ms
+cc-new-again: Number Slow UI thread: 35
+cc-new-again: Number Slow issue draw commands: 84
+cc-new-again: Control Centre composed 11x, scene re-recorded 5x, full 5x
