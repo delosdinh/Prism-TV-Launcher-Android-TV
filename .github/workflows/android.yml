@@ -158,6 +158,11 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write   # to update the "preview" release
+    env:
+      PRISM_SIGNED: ${{ needs.build.outputs.signed }}
+      PRISM_SIGNER_SHA256: ${{ needs.build.outputs.signer }}
+      PRISM_VC: ${{ needs.build.outputs.vc }}
+      PRISM_VN: ${{ needs.build.outputs.vn }}
     steps:
       - uses: actions/checkout@v4
 
@@ -166,18 +171,32 @@ jobs:
           name: prism-tv-apks
           path: apks
 
-      # A stable direct-download link for sideloading (e.g. the Downloader app on Android TV):
-      # https://github.com/<owner>/<repo>/releases/download/preview/prismtv.apk
-      - name: Publish preview release
+      # Which channels this push feeds (docs/release-signing.md, "Release channels"):
+      # - preview on this repository (the test TVs): every branch, or only the branches in the repository
+      #   variable PREVIEW_BRANCHES (space-separated) once it's set;
+      # - the public releases-only repository (everyone else's TVs, which update from it): main only, so a
+      #   work-in-progress branch never reaches them.
+      - name: Choose channels
+        id: channels
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          PRISM_SIGNED: ${{ needs.build.outputs.signed }}
-          PRISM_SIGNER_SHA256: ${{ needs.build.outputs.signer }}
-          PRISM_VC: ${{ needs.build.outputs.vc }}
-          PRISM_VN: ${{ needs.build.outputs.vn }}
+          PREVIEW_BRANCHES: ${{ vars.PREVIEW_BRANCHES }}
         run: |
-          # Only the real optimised build, signed with the permanent key, is ever published as prismtv.apk.
+          preview=false
+          if [ -z "$PREVIEW_BRANCHES" ] || [[ " $PREVIEW_BRANCHES " == *" $GITHUB_REF_NAME "* ]]; then preview=true; fi
+          stable=false
+          [ "$GITHUB_REF_NAME" = "${{ github.event.repository.default_branch }}" ] && stable=true
+          echo "preview=$preview" >> "$GITHUB_OUTPUT"
+          echo "stable=$stable" >> "$GITHUB_OUTPUT"
+          echo "::notice::${GITHUB_REF_NAME}: preview=$preview, releases repository=$stable"
+
+      # The files both channels publish. Only the real optimised build, signed with the permanent key, is
+      # ever published as prismtv.apk.
+      - name: Prepare release files
+        if: steps.channels.outputs.preview == 'true' || steps.channels.outputs.stable == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # update-notes.sh reads the last published notes
+          GH_REPO: ${{ github.repository }}
+        run: |
           if [ "$PRISM_SIGNED" != "true" ] || [ ! -f apks/github/release/app-github-release.apk ]; then
             echo "::error::No release APK signed with the permanent key, so nothing was published."
             exit 1
@@ -185,18 +204,6 @@ jobs:
           mkdir -p dist
           cp apks/github/release/app-github-release.apk dist/prismtv.apk
           cp apks/github/debug/app-github-debug.apk dist/prismtv-debug.apk
-          NOTES="Latest build of \`${GITHUB_REF_NAME}\` (${GITHUB_SHA::7}).
-
-          Install on Android TV with Downloader: \`https://github.com/${GITHUB_REPOSITORY}/releases/download/preview/prismtv.apk\`
-
-          - prismtv.apk: optimised build (recommended)
-          - prismtv-debug.apk: debug build"
-          if gh release view preview >/dev/null 2>&1; then
-            gh release edit preview --prerelease --title "Preview build" --notes "$NOTES"
-          else
-            gh release create preview --prerelease --title "Preview build" --target "$GITHUB_SHA" --notes "$NOTES"
-          fi
-          gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk --clobber
           # Software Update manifest (the check above means it's signed with the permanent key, so the
           # app never offers an update Android would refuse to install over it).
           NOTES="$(bash scripts/update-notes.sh)"
@@ -213,13 +220,35 @@ jobs:
           }, indent=2))
           PY
           cat dist/update.json
-          gh release upload preview dist/update.json --clobber
+
+      # A stable direct-download link for sideloading (e.g. the Downloader app on Android TV):
+      # https://github.com/<owner>/<repo>/releases/download/preview/prismtv.apk
+      - name: Publish preview release
+        if: steps.channels.outputs.preview == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          NOTES="Latest build of \`${GITHUB_REF_NAME}\` (${GITHUB_SHA::7}).
+
+          Install on Android TV with Downloader: \`https://github.com/${GITHUB_REPOSITORY}/releases/download/preview/prismtv.apk\`
+
+          - prismtv.apk: optimised build (recommended)
+          - prismtv-debug.apk: debug build"
+          if gh release view preview >/dev/null 2>&1; then
+            gh release edit preview --prerelease --title "Preview build" --notes "$NOTES"
+          else
+            gh release create preview --prerelease --title "Preview build" --target "$GITHUB_SHA" --notes "$NOTES"
+          fi
+          gh release upload preview dist/prismtv.apk dist/prismtv-debug.apk dist/update.json --clobber
 
       # The same files on a public releases-only repository, so this code repository can be made private
       # and TVs still update without signing in (docs/editions.md). Needs the repository variable
       # RELEASES_REPO (e.g. delosdinh/Prism-TV-Launcher-Releases) and the secret RELEASES_TOKEN (a fine-grained token
-      # with Contents: read and write on that repository only). Skipped until both are set.
+      # with Contents: read and write on that repository only). Skipped until both are set, and on any
+      # branch but main.
       - name: Publish to the releases-only repository
+        if: steps.channels.outputs.stable == 'true'
         env:
           RELEASES_REPO: ${{ vars.RELEASES_REPO }}
           RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
