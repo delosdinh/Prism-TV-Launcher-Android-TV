@@ -207,7 +207,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 // accent, bare letters, only the focused key a cap in the keyboard colour. Where Android
                 // can blur another app (frosted) the window itself is the frosted veil; elsewhere a lighter
                 // veil, so the app stays visible through it.
-                val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * 0.6f)
+                val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * 0.8f)
                 Box(
                     Modifier
                         .then(if (clear) Modifier.background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f))), shape)
@@ -271,7 +271,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             w.attributes = w.attributes.also { it.y = bar + (6 * px).toInt() }
             w.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = 26 * px
-                setColor(android.graphics.Color.argb((veil.alpha * 0.6f * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
+                setColor(android.graphics.Color.argb((veil.alpha * 0.8f * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
             })
             w.setBackgroundBlurRadius((24 * px).toInt())
             frosted = true
