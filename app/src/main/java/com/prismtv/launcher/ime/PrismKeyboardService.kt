@@ -74,6 +74,8 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
     /** The Settings backdrop's veil and glow for the launcher's Colour Mode, as on the side keyboard. */
     private var veil by mutableStateOf(Color(0xFF454B76).copy(alpha = 0.50f))
     private var glow by mutableStateOf(Color(0xFF71628E))
+    /** How much of the Settings veil's opacity the bottom grid uses: all of it in Light, which read too see-through. */
+    private var veilScale by mutableStateOf(0.8f)
     /** True when Android blurs the app behind the ABC grid (Android 12+ with cross-window blur on). */
     private var frosted by mutableStateOf(false)
     private var plainBackground: android.graphics.drawable.Drawable? = null
@@ -207,7 +209,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 // accent, bare letters, only the focused key a cap in the keyboard colour. Where Android
                 // can blur another app (frosted) the window itself is the frosted veil; elsewhere a lighter
                 // veil, so the app stays visible through it.
-                val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * 0.8f)
+                val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * veilScale)
                 Box(
                     Modifier
                         .then(if (clear) Modifier.background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f))), shape)
@@ -271,9 +273,9 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             w.attributes = w.attributes.also { it.y = bar + (6 * px).toInt() }
             w.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = 26 * px
-                setColor(android.graphics.Color.argb((veil.alpha * 0.8f * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
+                setColor(android.graphics.Color.argb((veil.alpha * veilScale * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
             })
-            w.setBackgroundBlurRadius((32 * px).toInt())
+            w.setBackgroundBlurRadius((24 * px).toInt())
             frosted = true
         } else {
             w.setBackgroundBlurRadius(0)
@@ -338,9 +340,10 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             com.prismtv.launcher.data.UiTransparency.Medium -> 0.56f
             com.prismtv.launcher.data.UiTransparency.Low -> 0.72f
         })
-        // Brighter and frostier than the Settings veil: the same opacity, nearly half way to white.
-        veil = androidx.compose.ui.graphics.lerp(veil.copy(alpha = 1f), Color.White, 0.45f).copy(alpha = veil.alpha)
+        // Brighter and frostier than the Settings veil: the same opacity, a third of the way to white.
+        veil = androidx.compose.ui.graphics.lerp(veil.copy(alpha = 1f), Color.White, 0.35f).copy(alpha = veil.alpha)
         glow = pal.bgAccent
+        veilScale = if (pal.isDark) 0.8f else 1f
         window?.window?.let { configureGlass(it) }
         val type = attribute?.inputType ?: InputType.TYPE_CLASS_TEXT
         val cls = type and InputType.TYPE_MASK_CLASS
