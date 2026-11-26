@@ -539,7 +539,9 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             CompositionLocalProvider(LocalPrism provides uiTheme) { DialogLayer(vm) }
             com.prismtv.launcher.ui.home.ProfilePicker(vm)
             CompositionLocalProvider(LocalPrism provides uiTheme) { KeyboardOverlay(vm, keyboardLook, clear = keyboardClear, fieldLook = fieldLook, fieldClear = fieldClear) }
-            com.prismtv.launcher.ui.search.SearchResults(vm)
+            // Over the ABC keyboard's backdrop (drawn in uiTheme) the results take uiTheme's text colour too:
+            // dark in Light, so they read on the light frost.
+            CompositionLocalProvider(LocalPrism provides uiTheme) { com.prismtv.launcher.ui.search.SearchResults(vm) }
             CompositionLocalProvider(LocalPrism provides uiTheme) { com.prismtv.launcher.ui.home.PasscodePad(vm) }
             LaunchOverlay(vm)
             // Banners take the Home Screen's Material and Material Colour; Settings and dialogs stay frosted.

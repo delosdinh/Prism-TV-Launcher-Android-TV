@@ -127,7 +127,7 @@ emu_key() { # linux code, hold seconds
   adb emu event send "1:$1:0" "0:0:0" >/dev/null 2>&1
 }
 
-B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false --es net wifi3)
+B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false --es net wifi3 --es invite ok)
 DARK=(--es appearance dark --es glass liquid)
 
 # Play edition: Settings › Prism Pro during the trial and after it, a page of locked settings, and the
@@ -260,6 +260,14 @@ shot 44e-keyboard-accents-quote-clear "${B[@]}" "${DARK[@]}" --es keyboardColour
 # Next-word predictions after a space: "I am " (a three-word phrase), "new " (York, capitalised).
 shot 44g-keyboard-next-word        "${B[@]}" "${DARK[@]}" --es screen keyboard --es text "'I am '" --ei keyRow -1 --ei keyCol 0
 shot 44h-keyboard-next-word-light  "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --es text "'Visit new '" --ei keyRow 0 --ei keyCol 4
+# ABC layout (Settings › Keyboard › Keyboard Layout): a tvOS-style grid, six across, switches on top.
+shot 44i-keyboard-abc-dark         "${B[@]}" "${DARK[@]}" --es kbLayout abc --es screen keyboard --es text teh --ei keyRow 5 --ei keyCol 2
+shot 44j-keyboard-abc-clear        "${B[@]}" "${DARK[@]}" --es kbLayout abc --es keyboardColour clear --es screen keyboard --es text Prism --ei keyRow 3 --ei keyCol 3
+shot 44k-keyboard-abc-light        "${B[@]}" --es appearance light --es glass liquid --es kbLayout abc --es screen keyboard --ei keyRow 1 --ei keyCol 0
+shot 44l-keyboard-abc-123-balanced "${B[@]}" --es appearance balanced --es glass liquid --es kbLayout abc --es screen keyboard --ei layer 1 --ei keyRow 0 --ei keyCol 1
+shot 44m-keyboard-qwerty-clear-key "${B[@]}" "${DARK[@]}" --es screen keyboard --es text "'Hello world'" --ei keyRow 3 --ei keyCol 4
+shot 44n-search-abc-side           "${B[@]}" "${DARK[@]}" --es kbLayout abc --es screen search --es text Pri --ei keyRow 1 --ei keyCol 5
+shot 44o-search-abc-side-result    "${B[@]}" --es appearance balanced --es glass liquid --es kbLayout abc --es screen search --es text Pri --ei keyRow 1 --ei keyCol 5 --ei focus 0
 # Driven: hold e, Right to é, Select — "café", and no auto-correction back to "cafe".
 start "${B[@]}" "${DARK[@]}" --es screen keyboard --es text caf --ei keyRow 0 --ei keyCol 2; sleep 3
 adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 1.2
@@ -824,6 +832,11 @@ start "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 2; sleep 4
 record motion-control-centre 8
 key KEYCODE_MENU 1.6; key KEYCODE_DPAD_RIGHT 0.9; key KEYCODE_DPAD_DOWN 0.9; key KEYCODE_DPAD_DOWN 0.9; key KEYCODE_DPAD_LEFT 1; key KEYCODE_BACK 1.5
 finish motion-control-centre
+
+# GitHub edition without an invite code (last: going without Pro puts paid settings back to free ones).
+WAIT=5 shot invite-01-settings-root-locked "${B[@]}" "${DARK[@]}" --es invite locked --es screen settings --ei focus 0
+WAIT=5 shot invite-02-pro-page-locked      "${B[@]}" "${DARK[@]}" --es invite locked --es screen settings --es page Pro --ei focus 0
+key KEYCODE_DPAD_CENTER 2; cap invite-03-code-keyboard
 
 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
 grep -E "FATAL|AndroidRuntime|prismtv" "$OUT/logcat.txt" | tail -60 > "$OUT/logcat-app.txt" || true

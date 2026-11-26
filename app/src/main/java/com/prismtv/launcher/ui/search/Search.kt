@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -57,13 +58,17 @@ fun SearchResults(vm: LauncherViewModel) {
     if (!tState.atLeast(0.01f)) return
     val results = vm.searchResults
     val focus = vm.searchFocus
+    val ink = searchInk()
+    // With the ABC keyboard down the left (as on Apple TV) the results sit to its right.
+    val left = if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) com.prismtv.launcher.ui.keyboard.SideKeyboardLayout.Right + 32f else RowLeft
     // The row scrolls so the focused card stays on screen.
-    val visible = ((960f - RowLeft * 2) / (CardW + Gap)).toInt()
+    val visible = ((960f - left - RowLeft) / (CardW + Gap)).toInt().coerceAtLeast(1)
     val first = if (focus < 0) 0 else (focus - visible + 2).coerceIn(0, (results.size - visible).coerceAtLeast(0))
     val scroll by animateFloatAsState(first * (CardW + Gap), spring(dampingRatio = 0.9f, stiffness = 260f), label = "searchScroll")
 
-    // A deeper shade over the top of the screen, so results read clearly over the Top Shelf.
-    Box(
+    // A deeper shade over the top of the screen, so results read clearly over the Top Shelf (the ABC
+    // keyboard brings its own backdrop instead).
+    if (!com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) Box(
         Modifier
             .fillMaxSize()
             .graphicsLayer { alpha = t }
@@ -75,18 +80,18 @@ fun SearchResults(vm: LauncherViewModel) {
             .graphicsLayer { alpha = t; translationY = (1f - t) * -24.dp.toPx() }
     ) {
         PText(
-            vm.searchHeading, 14.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.78f),
-            Modifier.offset(RowLeft.dp, 22.dp), shadow = true,
+            vm.searchHeading, 14.sp, FontWeight.SemiBold, ink.copy(alpha = 0.78f),
+            Modifier.offset(left.dp, 22.dp), shadow = searchShadow(),
         )
         if (results.isEmpty() && vm.keyboardText.isNotBlank()) {
             PText(
-                "Try another word, or an app's name.", 13.sp, FontWeight.Normal, Color.White.copy(alpha = 0.6f),
-                Modifier.offset(RowLeft.dp, 46.dp), shadow = true,
+                "Try another word, or an app's name.", 13.sp, FontWeight.Normal, ink.copy(alpha = 0.6f),
+                Modifier.offset(left.dp, 46.dp), shadow = searchShadow(),
             )
         }
         results.forEachIndexed { i, r ->
             key(r.key) {
-                val x = RowLeft + i * (CardW + Gap) - scroll
+                val x = left + i * (CardW + Gap) - scroll
                 if (x > -CardW - 40f && x < 1000f) ResultCard(vm, r, i == focus, x)
             }
         }
@@ -146,9 +151,18 @@ private fun ResultCard(vm: LauncherViewModel, r: SearchResult, focused: Boolean,
             is SettingSearchResult -> r.where
         }
         PText(
-            r.label, 12.sp, FontWeight.SemiBold, Color.White.copy(alpha = if (focused) 1f else 0.85f),
-            Modifier.padding(top = if (focused) 12.dp else 8.dp), align = TextAlign.Center, shadow = true,
+            r.label, 12.sp, FontWeight.SemiBold, searchInk().copy(alpha = if (focused) 1f else 0.85f),
+            Modifier.padding(top = if (focused) 12.dp else 8.dp), align = TextAlign.Center, shadow = searchShadow(),
         )
-        PText(sub, 10.sp, FontWeight.Normal, Color.White.copy(alpha = 0.6f), align = TextAlign.Center, shadow = true)
+        PText(sub, 10.sp, FontWeight.Normal, searchInk().copy(alpha = 0.6f), align = TextAlign.Center, shadow = searchShadow())
     }
 }
+
+/** White over the Home Screen; the Colour Mode's text colour over the ABC keyboard's Settings-style backdrop. */
+@Composable
+private fun searchInk(): Color =
+    if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) com.prismtv.launcher.ui.theme.LocalPrism.current.palette.textPrimary else Color.White
+
+/** A soft shadow under white text only: under dark text (Light) it just smudges it. */
+@Composable
+private fun searchShadow(): Boolean = searchInk().luminance() > 0.5f

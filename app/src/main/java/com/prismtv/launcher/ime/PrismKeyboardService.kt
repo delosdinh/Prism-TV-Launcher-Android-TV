@@ -19,6 +19,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -68,6 +71,14 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
     private var soundsOn = true
     private var look by mutableStateOf(Appearance.Dark)
     private var clear by mutableStateOf(false)
+    /** The Settings backdrop's veil and glow for the launcher's Colour Mode, as on the side keyboard. */
+    private var veil by mutableStateOf(Color(0xFF454B76).copy(alpha = 0.50f))
+    private var glow by mutableStateOf(Color(0xFF71628E))
+    /** How much of the Settings veil's opacity the bottom grid uses: all of it in Light, which read too see-through. */
+    private var veilScale by mutableStateOf(0.8f)
+    /** True when Android blurs the app behind the ABC grid (Android 12+ with cross-window blur on). */
+    private var frosted by mutableStateOf(false)
+    private var plainBackground: android.graphics.drawable.Drawable? = null
     private var info: EditorInfo? = null
     private val handler = Handler(Looper.getMainLooper())
     private var unlisten: (() -> Unit)? = null
@@ -95,6 +106,15 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             return (ic?.getCursorCapsMode(type) ?: 0) != 0
         }
         override fun action() = performAction()
+        /** Clear empties the whole field, after the cursor too. */
+        override fun clearAll(): String {
+            val c = ic ?: return ""
+            val before = c.getTextBeforeCursor(4096, 0)?.toString().orEmpty()
+            val after = c.getTextAfterCursor(4096, 0)?.toString().orEmpty()
+            if (before.isEmpty() && after.isEmpty()) return ""
+            c.deleteSurroundingText(before.length, after.length)
+            return before + after
+        }
         override fun batch(block: () -> Unit) {
             val c = ic
             c?.beginBatchEdit()
@@ -168,13 +188,40 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             ?: base.density * (min(cfg.screenWidthDp / 960f, cfg.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f)
         CompositionLocalProvider(LocalDensity provides Density(px, base.fontScale)) {
             val c = keyColoursFor(look, clear)
-            val m = KeyboardMetrics.System
+            val grid = com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical
+            val m = if (grid) KeyboardMetrics.SystemGrid else KeyboardMetrics.System
             val solid = c.panel.copy(alpha = 1f)
             // Clear: an app's screen can't be read by a keyboard, so there's no lens or blur here, just
             // smoked see-through glass with a bright top edge.
             val fill = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
             else Brush.verticalGradient(listOf(lift(solid), solid))
-            Box(
+            // ABC: a compact grid floating at the bottom centre, the app visible either side and through it
+            // (see-through like Prism's own keyboard panel), lifted clear of any navigation bar (the AM9 has one).
+            if (grid) Box(
+                if (frosted) Modifier else Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(androidx.compose.foundation.layout.WindowInsets.navigationBars)
+                    .padding(bottom = 6.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                val shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
+                // The side keyboard's glass: the Settings veil over a frosted screen with a glow of its
+                // accent, bare letters, only the focused key a cap in the keyboard colour. Where Android
+                // can blur another app (frosted) the window itself is the frosted veil; elsewhere a lighter
+                // veil, so the app stays visible through it.
+                val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * veilScale)
+                Box(
+                    Modifier
+                        .then(if (clear) Modifier.background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f))), shape)
+                        else Modifier.background(tint, shape).background(
+                            Brush.radialGradient(listOf(glow.copy(alpha = 0.22f), Color.Transparent)), shape,
+                        ))
+                        .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.14f), Color.White.copy(alpha = 0.03f))), shape)
+                        .padding(m.pad.dp),
+                ) {
+                    KeyboardKeys(kb, c, m, bare = true, chips = true)
+                }
+            } else Box(
                 Modifier
                     .fillMaxWidth()
                     .background(fill)
@@ -194,6 +241,52 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         blue = c.blue + (1f - c.blue) * 0.06f,
     )
 
+    override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
+        super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
+        configureGlass(win)
+    }
+
+    /**
+     * ABC grid on Android 12+: the window shrinks to the grid's card, sits above any navigation bar,
+     * and Android frosts the app behind it (cross-window blur), the same glass as the side keyboard.
+     * Anything else keeps the usual full-width window with nothing behind the keys.
+     */
+    private fun configureGlass(w: android.view.Window) {
+        if (plainBackground == null) plainBackground = w.decorView.background
+        val grid = com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical
+        val wm = getSystemService(android.view.WindowManager::class.java)
+        val can = grid && !clear && android.os.Build.VERSION.SDK_INT >= 31 && runCatching { wm.isCrossWindowBlurEnabled }.getOrDefault(false)
+        if (android.os.Build.VERSION.SDK_INT < 31) {
+            frosted = false
+            return
+        }
+        if (can) {
+            val px = canvasDensity() ?: resources.displayMetrics.density
+            val m = KeyboardMetrics.SystemGrid
+            val wPx = (m.width * px).toInt()
+            val hPx = ((m.pad * 2 + m.barH + m.gap + m.keysH) * px).toInt() + 1
+            val bar = runCatching {
+                wm.currentWindowMetrics.windowInsets.getInsets(android.view.WindowInsets.Type.navigationBars()).bottom
+            }.getOrDefault(0)
+            w.setLayout(wPx, hPx)
+            w.setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL)
+            w.attributes = w.attributes.also { it.y = bar + (6 * px).toInt() }
+            w.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = 26 * px
+                setColor(android.graphics.Color.argb((veil.alpha * veilScale * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
+            })
+            w.setBackgroundBlurRadius((24 * px).toInt())
+            frosted = true
+        } else {
+            w.setBackgroundBlurRadius(0)
+            w.setBackgroundDrawable(plainBackground ?: android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            w.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+            w.setGravity(android.view.Gravity.BOTTOM)
+            w.attributes = w.attributes.also { it.y = 0 }
+            frosted = false
+        }
+    }
+
     /** Shown over the app, never as a full-screen editor. */
     override fun onEvaluateFullscreenMode(): Boolean = false
 
@@ -208,6 +301,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         super.onStartInputView(attribute, restarting)
         info = attribute
         val prefs = PrefsStore(this).load()
+        com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical = prefs.keyboardLayout == com.prismtv.launcher.data.KeyboardLayoutStyle.Abc
         soundsOn = prefs.sounds
         sounds.enabled = prefs.sounds
         clear = prefs.keyboardColour == KeyboardColour.Clear
@@ -226,6 +320,31 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 }
             }
         }
+        val system = when (prefs.appearance) {
+            AppearanceSetting.Light -> Appearance.Light
+            AppearanceSetting.Balanced -> Appearance.Balanced
+            AppearanceSetting.Dark -> Appearance.Dark
+            AppearanceSetting.Automatic -> {
+                val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                if (h >= 19 || h < 7) Appearance.Dark else Appearance.Light
+            }
+        }
+        // Same as PrismTheme.settingsVeil(), which the side keyboard's backdrop uses.
+        val pal = com.prismtv.launcher.ui.theme.Palettes.of(system)
+        veil = if (pal.isDark) pal.bgBase.copy(alpha = when (prefs.uiTransparency) {
+            com.prismtv.launcher.data.UiTransparency.High -> 0.50f
+            com.prismtv.launcher.data.UiTransparency.Medium -> 0.64f
+            com.prismtv.launcher.data.UiTransparency.Low -> 0.80f
+        }) else Color.White.copy(alpha = when (prefs.uiTransparency) {
+            com.prismtv.launcher.data.UiTransparency.High -> 0.42f
+            com.prismtv.launcher.data.UiTransparency.Medium -> 0.56f
+            com.prismtv.launcher.data.UiTransparency.Low -> 0.72f
+        })
+        // Brighter and frostier than the Settings veil: the same opacity, a third of the way to white.
+        veil = androidx.compose.ui.graphics.lerp(veil.copy(alpha = 1f), Color.White, 0.35f).copy(alpha = veil.alpha)
+        glow = pal.bgAccent
+        veilScale = if (pal.isDark) 0.8f else 1f
+        window?.window?.let { configureGlass(it) }
         val type = attribute?.inputType ?: InputType.TYPE_CLASS_TEXT
         val cls = type and InputType.TYPE_MASK_CLASS
         val variation = type and InputType.TYPE_MASK_VARIATION

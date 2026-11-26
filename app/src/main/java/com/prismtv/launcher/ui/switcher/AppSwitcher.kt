@@ -29,12 +29,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prismtv.launcher.LauncherViewModel
@@ -49,6 +53,7 @@ import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.LocalBackdrop
 import com.prismtv.launcher.ui.glass.glass
+import kotlin.math.roundToInt
 
 /**
  * App Switcher, laid out like tvOS: Home shrinks into a centred card with recent apps stacked in a
@@ -65,6 +70,21 @@ fun AppSwitcher(vm: LauncherViewModel) {
     )
     if (open < 0.002f) return
     val backdrop = LocalBackdrop.current
+    androidx.compose.runtime.LaunchedEffect(visible) {
+        // For checking the Home card on a TV: what it has to draw the wallpaper with.
+        if (visible) android.util.Log.i(
+            "PrismSwitcher",
+            "open: wallpaper=${vm.wallpaperKey} videoLayer=${com.prismtv.launcher.aerial.AerialVideoLayer.player != null} " +
+                "poster=${com.prismtv.launcher.aerial.AerialVideoLayer.poster != null} still=${(vm.wallpaperArt ?: vm.currentArt)?.full?.let { "${it.width}x${it.height}" }}",
+        )
+        // The poster is grabbed a few seconds into each shot. If that one is over a minute old, a frame from
+        // about now, once the deck has opened: the grab (a second or so, and a decoder) made the opening
+        // animation stutter on the AM9.
+        if (visible) {
+            kotlinx.coroutines.delay(1200)
+            com.prismtv.launcher.aerial.AerialVideoLayer.refreshPoster(maxAgeMs = 60_000L)
+        }
+    }
     DisposableEffect(backdrop) {
         backdrop.lensSuspended = true
         onDispose { backdrop.lensSuspended = false }
@@ -189,7 +209,19 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                 .background(Color(0xFF15161A))
         ) {
             if (app == null) {
-                // A live miniature of the Home Screen.
+                // A live miniature of the Home Screen. A slow TV's aerial plays on the video layer, under the
+                // whole app (AerialVideoLayerHost), and Home clears its own wallpaper away over it, so the scene
+                // has no wallpaper in it there: the card showed its dark fill. The video plane can't be read
+                // back (PixelCopy gives black or green on Amlogic), so the wallpaper's still stands in for it.
+                // Keyed on the aerial wallpaper being chosen, not on the player: where the aerial draws in
+                // the app (TextureView) the scene covers the still, so it only shows where the scene is clear.
+                val videoLayerStill = if (
+                    com.prismtv.launcher.aerial.AerialVideoLayer.player != null ||
+                    vm.wallpaperKey == com.prismtv.launcher.AerialWallpaperKey
+                ) {
+                    // A frame of the shot playing, once one's been grabbed; the wallpaper's still until then.
+                    com.prismtv.launcher.aerial.AerialVideoLayer.poster ?: (vm.wallpaperArt ?: vm.currentArt)?.full
+                } else null
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -197,6 +229,7 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                             val root = backdrop.rootSize
                             val f = size.width / root.width.toFloat()
                             withTransform({ scale(f, f, pivot = Offset.Zero) }) {
+                                if (videoLayerStill != null) drawCropped(videoLayerStill, root)
                                 drawLayer(backdrop.scene)
                             }
                         }
@@ -237,4 +270,20 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
             if (shade > 0.005f) Box(Modifier.fillMaxSize().drawBehind { drawRect(Color.Black.copy(alpha = shade)) })
         }
     }
+}
+
+/** [img] filling [dst] from the origin, centre-cropped like ContentScale.Crop (as Home draws its wallpaper). */
+private fun DrawScope.drawCropped(img: ImageBitmap, dst: IntSize) {
+    if (img.width <= 0 || img.height <= 0 || dst.width <= 0 || dst.height <= 0) return
+    val s = maxOf(dst.width / img.width.toFloat(), dst.height / img.height.toFloat())
+    val sw = (dst.width / s).roundToInt().coerceIn(1, img.width)
+    val sh = (dst.height / s).roundToInt().coerceIn(1, img.height)
+    drawImage(
+        image = img,
+        srcOffset = IntOffset((img.width - sw) / 2, (img.height - sh) / 2),
+        srcSize = IntSize(sw, sh),
+        dstOffset = IntOffset.Zero,
+        dstSize = dst,
+        filterQuality = FilterQuality.Low,
+    )
 }

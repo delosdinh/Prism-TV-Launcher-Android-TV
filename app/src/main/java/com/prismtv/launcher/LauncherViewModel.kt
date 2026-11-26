@@ -50,6 +50,7 @@ import com.prismtv.launcher.data.AerialRange
 import com.prismtv.launcher.data.StartAfterChoices
 import com.prismtv.launcher.data.DeepLinks
 import com.prismtv.launcher.data.KeyboardColour
+import com.prismtv.launcher.data.KeyboardLayoutStyle
 import com.prismtv.launcher.data.TextScales
 import com.prismtv.launcher.data.TopShelfStyle
 import com.prismtv.launcher.data.UriArt
@@ -416,8 +417,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------------------------------------------------------- Prism Pro (Play edition)
 
-    /** Pro is on: always in the GitHub edition; bought, or in the free trial, in the Play edition. */
-    var proActive by mutableStateOf(!BuildConfig.PLAY)
+    /** Pro is on: with an invite code (or from before them) in the GitHub edition; bought, or in the free trial, in the Play edition. */
+    var proActive by mutableStateOf(!BuildConfig.PLAY && com.prismtv.launcher.data.Pro.active(app))
         private set
     /** Pro's price from Google Play, in the viewer's currency (null until Play has said). */
     private var proPrice by mutableStateOf<String?>(null)
@@ -429,12 +430,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      * ([com.prismtv.launcher.data.Pro.freeOnly]), so a trial that ended (or a refund) leaves nothing paid on.
      */
     private fun refreshPro() {
-        if (!BuildConfig.PLAY) return
         val on = com.prismtv.launcher.data.Pro.active(ctx)
-        val allowed = com.prismtv.launcher.data.Pro.playOnly(prefs).let { if (on) it else com.prismtv.launcher.data.Pro.freeOnly(it) }
+        val edition = if (BuildConfig.PLAY) com.prismtv.launcher.data.Pro.playOnly(prefs) else prefs
+        val allowed = if (on) edition else com.prismtv.launcher.data.Pro.freeOnly(edition)
         if (allowed != prefs) updatePrefs(allowed)
         if (proActive != on) {
-            if (proActive && !on) showBanner("Prism Pro", "Your free trial of Prism Pro has ended. Settings › Prism Pro unlocks it again.", Icons.Rounded.Info)
+            if (proActive && !on) showBanner(
+                "Prism Pro",
+                if (BuildConfig.PLAY) "Your free trial of Prism Pro has ended. Settings › Prism Pro unlocks it again."
+                else "Prism Pro needs an invite code on this TV. Settings › Prism Pro shows how to get one.",
+                Icons.Rounded.Info,
+            )
             proActive = on
         }
     }
@@ -465,12 +471,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun proLabel(): String = when {
+        !BuildConfig.PLAY -> if (proActive) "Unlocked" else "Invite Code"
         proActive && com.prismtv.launcher.data.Pro.owned(ctx) -> "Unlocked"
         proActive -> com.prismtv.launcher.data.Pro.trialDaysLeft(ctx).let { "Trial · $it ${if (it == 1) "Day" else "Days"} Left" }
         else -> proPrice ?: "Unlock"
     }
 
     private fun proRows(): List<SettingsRow> {
+        if (!BuildConfig.PLAY) return inviteRows()
         val owned = com.prismtv.launcher.data.Pro.owned(ctx)
         val days = com.prismtv.launcher.data.Pro.trialDaysLeft(ctx)
         val top = if (owned) {
@@ -489,8 +497,67 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun openPro(feature: String) {
         pushPage(SettingsPage.Pro)
         settingsFocus[SettingsPage.Pro] = 0
-        com.prismtv.launcher.data.ProStore.refresh()
-        showBanner("Prism Pro", "$feature is part of Prism Pro.", Icons.Rounded.Info)
+        if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
+        showBanner(
+            "Prism Pro",
+            if (BuildConfig.PLAY) "$feature is part of Prism Pro." else "$feature is part of Prism Pro. An invite code unlocks it.",
+            Icons.Rounded.Info,
+        )
+    }
+
+    /** GitHub edition: Settings › Prism Pro, with this TV's ID to send for an invite code. */
+    private fun inviteRows(): List<SettingsRow> {
+        val top = if (proActive) {
+            listOf(SettingsRow("pro:status", "Prism Pro", "PRISM PRO", "Unlocked"))
+        } else {
+            listOf(
+                SettingsRow("pro:invite", "Enter Invite Code", "PRISM PRO", chevron = true),
+                SettingsRow("pro:id", "This TV's ID", "SEND THIS ID TO GET A CODE", com.prismtv.launcher.data.Invite.deviceId(ctx)),
+            )
+        }
+        return top + ProFeatures.mapIndexed { i, f -> SettingsRow("pro:what:$i", f, "WHAT'S IN PRO") }
+    }
+
+    /** Prism's keyboard for an invite code; checked on the TV, no internet needed. */
+    private fun enterInviteCode() {
+        val id = com.prismtv.launcher.data.Invite.deviceId(ctx)
+        openKeyboard("Invite Code for $id", "", "XXXXX-XXXXX", plain = true) { code ->
+            if (code.isBlank()) return@openKeyboard
+            if (com.prismtv.launcher.data.Invite.redeem(ctx, code)) {
+                refreshPro()
+                resumeTick++
+                showBanner("Prism Pro", "Prism Pro is unlocked on this TV. Enjoy!", Icons.Rounded.CheckCircle, Cue.Confirm)
+            } else {
+                showBanner(
+                    "Prism Pro",
+                    if (com.prismtv.launcher.data.Invite.configured) "That code isn't for this TV ($id). Check it and try again."
+                    else "This build can't check invite codes. Update Prism TV, then try again.",
+                    Icons.Rounded.Info,
+                    Cue.Error,
+                )
+            }
+        }
+    }
+
+    /** GitHub edition, first run of a fresh install: ask once for an invite code. */
+    private fun maybeAskForInvite() {
+        if (BuildConfig.PLAY || debugDriven || isEmulator || dialog != null) return
+        if (!com.prismtv.launcher.data.Invite.shouldPrompt(ctx)) return
+        com.prismtv.launcher.data.Invite.prompted(ctx)
+        val id = com.prismtv.launcher.data.Invite.deviceId(ctx)
+        dialog = DialogSpec(
+            "Welcome to Prism TV",
+            "Prism Pro is unlocked with an invite code made for this TV. Send this TV's ID to the person who " +
+                "shared Prism TV with you, then enter the code they send back. Without one, Prism TV works with its free features.",
+            listOf(
+                DialogButton("Enter Code") { enterInviteCode() },
+                DialogButton("Not Now") {},
+            ),
+            code = id,
+            codeNote = "This TV's ID. Settings › Prism Pro shows it again.",
+        )
+        dialogFocus = 0
+        cue(Cue.Notify)
     }
 
     /** MainActivity: Google Play's purchase sheet couldn't open. */
@@ -848,7 +915,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (BuildConfig.PLAY || updateJob?.isActive == true) return
         updateJob = viewModelScope.launch {
             updateStatus = "Checking…"
-            val result = Updater.check()
+            val result = Updater.check(testing = prefs.updateTesting)
             updateSp.edit().putLong("lastCheck", System.currentTimeMillis()).apply()
             result.onSuccess { info ->
                 availableUpdate = info
@@ -886,20 +953,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun startUpdate(info: UpdateInfo) {
         if (BuildConfig.PLAY) return // Google Play installs the Play edition's updates
         if (!Updater.canInstall(ctx)) {
-            dialog = DialogSpec(
-                "Allow Updates",
-                "To update itself, Prism TV needs permission to install apps. Turn on Prism TV on the next screen, then press Back — the update continues automatically.",
-                listOf(
-                    DialogButton("Open Settings") {
-                        pendingAfterPermission = info
-                        if (!SystemActions.start(ctx, Updater.permissionIntent(ctx))) {
-                            SystemActions.start(ctx, Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        }
-                    },
-                    DialogButton("Cancel") {},
-                ),
+            // Android's own switch, or granted through the shell in one press (Do It for Me).
+            shellDialog(
+                title = "Allow Updates",
+                intro = "To update itself, Prism TV needs permission to install apps. Select Open Settings and turn on Prism TV, " +
+                    "then press Back (the update continues automatically). Or select Do It for Me, or type this command yourself:",
+                command = "appops set ${ctx.packageName} REQUEST_INSTALL_PACKAGES allow",
+                done = { Updater.canInstall(ctx).also { if (it) viewModelScope.launch { startUpdate(info) } } },
+                doneMessage = "Done. Updating Prism TV…",
+                open = "Open Settings" to {
+                    pendingAfterPermission = info
+                    if (!SystemActions.start(ctx, Updater.permissionIntent(ctx))) {
+                        SystemActions.start(ctx, Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }
+                    Unit
+                },
             )
-            dialogFocus = 0
             return
         }
         updateJob?.cancel()
@@ -1385,14 +1454,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================================================================= keyboard
 
-    fun openKeyboard(title: String, initial: String, placeholder: String = "", onDone: (String) -> Unit) {
+    /** [plain]: a code, not words (no predictions, corrections, capitals or dictation). */
+    fun openKeyboard(title: String, initial: String, placeholder: String = "", plain: Boolean = false, onDone: (String) -> Unit) {
         keyboardEditor.text = initial
         val kb = keyboardController
-        kb.suggestionsOn = prefs.predictive || prefs.autoCorrect
-        kb.autoCorrectOn = prefs.autoCorrect
-        kb.autoCapOn = true
-        kb.micOn = true
+        kb.suggestionsOn = !plain && (prefs.predictive || prefs.autoCorrect)
+        kb.autoCorrectOn = !plain && prefs.autoCorrect
+        kb.autoCapOn = !plain
+        kb.micOn = !plain
         kb.actionLabel = "done"
+        com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical = prefs.keyboardLayout == KeyboardLayoutStyle.Abc
         kb.reset()
         if (dictation == null) dictation = com.prismtv.launcher.ime.Dictation(ctx, kb)
         keyboard = KeyboardRequest(title, initial, placeholder, onDone)
@@ -1679,6 +1750,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             Overlay.Switcher -> sounds.play(Cue.SwitcherClose)
             else -> sounds.play(Cue.Back)
         }
+        // Home leaves Search and Prism's keyboard too (they draw over Home whatever the overlay).
+        val typing = keyboard != null || searchOpen
+        if (typing && dialog == null && contextMenu == null && movingId == null && overlay == Overlay.None) sounds.play(Cue.Back)
+        if (typing) closeKeyboard()
         dialog = null
         contextMenu = null
         movingId = null
@@ -1700,6 +1775,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         noteInteraction()
         resumeTick++
         refreshPro()
+        maybeAskForInvite()
         if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
         refreshRecommendations()
         maybeAutoCheckForUpdate()
@@ -3059,6 +3135,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (overlay != Overlay.None && overlay != Overlay.Settings) overlay = Overlay.None
         openKeyboard("", "", "Search Apps, Titles and Settings") { q -> search(q).firstOrNull()?.let { openSearchResult(it) } }
         keyboardController.actionLabel = "search"
+        // Search isn't a sentence: lowercase from the first letter, as on Apple TV.
+        keyboardController.autoCapOn = false
+        keyboardController.updateAutoCap()
         searchOpen = true
         searchFocus = -1
     }
@@ -3069,12 +3148,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         if (searchFocus >= 0) {
             when (k) {
                 NavKey.Left -> if (searchFocus > 0) { searchFocus--; cue(Cue.FocusSmall) }
+                    // The first result is next to the side keyboard: Left goes back to it.
+                    else if (com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical) { searchFocus = -1; cue(Cue.FocusSmall) }
                 NavKey.Right -> if (searchFocus < results.size - 1) { searchFocus++; cue(Cue.FocusSmall) }
                 NavKey.Down, NavKey.Menu -> { searchFocus = -1; cue(Cue.FocusSmall) }
                 NavKey.Select -> results.getOrNull(searchFocus)?.let { openSearchResult(it) }
                 else -> Unit
             }
             return true
+        }
+        // ABC keyboard down the left: Right from the end of a row goes across to the results.
+        val side = com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical
+        if (side) {
+            if (k == NavKey.Right && results.isNotEmpty() && keyboardController.atRowEnd()) {
+                searchFocus = 0
+                cue(Cue.FocusSmall)
+                return true
+            }
+            return false
         }
         if (k == NavKey.Up && !keyboardController.nav(com.prismtv.launcher.ui.keyboard.KbNav.Up, wrapUp = results.isEmpty())) {
             // Up from the keyboard's top row goes to the results.
@@ -3759,25 +3850,46 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private val homeIntent get() = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
 
-    /** The TV's Home app right now (its package), or null when Android would ask. */
-    private fun currentHomePackage(): String? = runCatching {
-        ctx.packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
-            ?.takeIf { it != "android" }
+    /** The activity Android opens for Home right now, or null when Android would ask. */
+    private fun resolvedHome(): android.content.pm.ActivityInfo? = runCatching {
+        ctx.packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo
+            ?.takeIf { it.packageName != "android" }
     }.getOrNull()
 
-    /** The TV's own launcher (Google TV, Android TV Home…): package and activity. */
+    /** The TV's Home app right now (its package), or null when Android would ask. */
+    private fun currentHomePackage(): String? = resolvedHome()?.packageName
+
+    private fun isSetupWizard(pkg: String, cls: String?): Boolean {
+        val label = runCatching {
+            if (cls != null) ctx.packageManager.getActivityInfo(android.content.ComponentName(pkg, cls), PackageManager.MATCH_DISABLED_COMPONENTS)
+                .loadLabel(ctx.packageManager).toString()
+            else appName(pkg)
+        }.getOrNull()
+        return com.prismtv.launcher.system.HomeApps.isSetupWizard(pkg, cls, label)
+    }
+
+    /**
+     * The TV's setup wizard, when it's still what Android opens for Home. It should switch that off when
+     * setup ends; some TVs (a Xiaomi) don't, and it then outranks any Home app the person picks.
+     */
+    private fun stuckSetupWizard(): android.content.pm.ActivityInfo? =
+        resolvedHome()?.takeIf { it.packageName != ctx.packageName && isSetupWizard(it.packageName, it.name) }
+
+    /** The TV's own launcher (Google TV, Android TV Home, PatchWall…): package and activity. Never the setup wizard. */
     private fun stockLauncher(): android.content.ComponentName? {
-        prefs.hiddenLauncher.takeIf { it.contains('/') }?.let { return android.content.ComponentName.unflattenFromString(it) }
-        val known = listOf(
-            "com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher", "com.google.android.leanbacklauncher",
-            "com.amazon.tv.launcher", "com.android.tv.launcher",
-        )
+        prefs.hiddenLauncher.takeIf { it.contains('/') }?.let { android.content.ComponentName.unflattenFromString(it) }
+            ?.takeIf { !isSetupWizard(it.packageName, it.className) }?.let { return it }
+        val known = com.prismtv.launcher.system.HomeApps.knownLaunchers
         @Suppress("DEPRECATION")
         val all = runCatching {
             ctx.packageManager.queryIntentActivities(homeIntent, PackageManager.MATCH_DISABLED_COMPONENTS)
         }.getOrDefault(emptyList())
+            .filter { ri ->
+                val ai = ri.activityInfo
+                ai.packageName != ctx.packageName && ai.packageName != "com.android.settings" && ai.packageName != "com.android.tv.settings" &&
+                    !com.prismtv.launcher.system.HomeApps.isSetupWizard(ai.packageName, ai.name, runCatching { ri.loadLabel(ctx.packageManager).toString() }.getOrNull())
+            }
             .map { android.content.ComponentName(it.activityInfo.packageName, it.activityInfo.name) }
-            .filter { it.packageName != ctx.packageName && it.packageName != "com.android.settings" && it.packageName != "com.android.tv.settings" }
         return all.minByOrNull { c -> known.indexOf(c.packageName).let { if (it < 0) 99 else it } }
     }
 
@@ -3827,7 +3939,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val isPrism = home == ctx.packageName
         val isStock = stock != null && home == stock.packageName
         val ready = isStock && !hidden
+        val wizard = stuckSetupWizard()
         return listOfNotNull(
+            if (wizard != null) {
+                SettingsRow("ha:wizard", "Finish ${appName(wizard.packageName)}", "THE TV'S SETUP WIZARD IS STILL HOME", chevron = true)
+            } else null,
             SettingsRow("ha:prism", "Prism TV", "HOME APP", selectable = true, checked = isPrism),
             if (stock != null) {
                 SettingsRow("ha:stock", stockName, "HOME APP", if (hidden) "Hidden" else null, selectable = true, checked = isStock)
@@ -3846,6 +3962,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         val stockName = stock?.let { appName(it.packageName) } ?: "the TV's launcher"
         when (id) {
             "ha:prism" -> makePrismHome()
+            "ha:wizard" -> stuckSetupWizard()?.let { askFinishWizard(it.packageName) }
+                ?: showBanner("Home App", "The setup wizard isn't the Home app any more.", Icons.Rounded.CheckCircle, Cue.Confirm)
             "ha:stock", "ha:restore" -> when {
                 stock == null -> showBanner("Home App", "This TV has no other launcher to go back to.", Icons.Rounded.Info)
                 currentHomePackage() == stock.packageName && !launcherHidden(stock) ->
@@ -3899,6 +4017,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     return@launch
                 }
                 resumeTick++
+                stuckSetupWizard()?.let {
+                    askFinishWizard(it.packageName)
+                    return@launch
+                }
                 if (stock == null) {
                     showBanner("Home App", "Android didn't change the Home app. Press Home and choose Prism TV if Android asks.", Icons.Rounded.Info)
                     return@launch
@@ -3911,6 +4033,35 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                     listOf(DialogButton("Hide $stockName") { hideLauncher(stock, stockName) }, DialogButton("Not Now") {}),
                 )
                 dialogFocus = 0
+            }
+        }
+    }
+
+    /** The setup wizard still answers Home: offer to do what it should have done when setup ended. */
+    private fun askFinishWizard(wizardPackage: String) {
+        val name = appName(wizardPackage)
+        dialog = DialogSpec(
+            "Finish $name?",
+            "$name is still set to open when you press Home, so Android keeps it as the Home app whatever you choose. " +
+                "Prism TV can finish it: mark setup as done, turn $name off and make Prism TV the Home app. " +
+                "Your apps and accounts aren't touched. To undo it, run pm enable $wizardPackage.",
+            listOf(DialogButton("Finish Setup") { finishWizard(wizardPackage, name) }, DialogButton("Cancel") {}),
+        )
+        dialogFocus = 0
+    }
+
+    private fun finishWizard(wizardPackage: String, name: String) {
+        val main = "${ctx.packageName}/com.prismtv.launcher.MainActivity"
+        runShellSteps("Finish $name", com.prismtv.launcher.system.HomeApps.finishWizardCommand(wizardPackage, main)) { ok ->
+            if (!ok) return@runShellSteps
+            viewModelScope.launch {
+                val done = settles(6000) { currentHomePackage() == ctx.packageName }
+                resumeTick++
+                when {
+                    done -> showBanner("Home App", "$name is finished and Prism TV is now the Home app.", Icons.Rounded.CheckCircle, Cue.Confirm)
+                    stuckSetupWizard() == null -> showBanner("Home App", "$name is finished. Press Home and choose Prism TV if Android asks.", Icons.Rounded.Info)
+                    else -> showBanner("Home App", "Android kept $name as Home. Restart the TV, then choose Prism TV here again.", Icons.Rounded.Info)
+                }
             }
         }
     }
@@ -4375,7 +4526,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // user comes back from Android's settings.
         // Grouped like tvOS: you and how it looks, then apps, the remote, and the system.
         SettingsPage.Root -> resumeTick.let { _ -> listOfNotNull(
-            if (BuildConfig.PLAY) SettingsRow("pro", "Prism Pro", "GENERAL", proLabel(), chevron = true) else null,
+            if (BuildConfig.PLAY || !proActive) SettingsRow("pro", "Prism Pro", "GENERAL", proLabel(), chevron = true) else null,
             SettingsRow("profile", "Profiles", "GENERAL", profileName(), chevron = true),
             SettingsRow("appearance", "Appearance", "GENERAL", prefs.appearance.label, chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
@@ -4439,6 +4590,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         )
         SettingsPage.Keyboard -> resumeTick.let { _ -> listOf(
             SettingsRow("kb:system", "Prism Keyboard", "SYSTEM KEYBOARD", keyboardStatus(), chevron = true),
+            SettingsRow("kbLayout", "Keyboard Layout", "APPEARANCE", prefs.keyboardLayout.label),
             SettingsRow("kbColour", "Keyboard Colour", "APPEARANCE", keyboardColourLabel()),
             SettingsRow("kbField", "Text Field Colour", "APPEARANCE", fieldColourLabel()),
             SettingsRow("kb:autocorrect", "Auto-Correction", "TYPING", onOff(prefs.autoCorrect)),
@@ -4498,6 +4650,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 chevron = true,
             ),
             SettingsRow("upd:auto", "Check Automatically", "PRISM TV LAUNCHER", onOff(prefs.updateCheck)),
+            SettingsRow("upd:channel", "Update Channel", "PRISM TV LAUNCHER", if (prefs.updateTesting) "Testing" else "Stable"),
             SettingsRow("upd:ver", "Installed Version", "PRISM TV LAUNCHER", BuildConfig.VERSION_NAME),
         )
         SettingsPage.TextSize -> emptyList()
@@ -4680,8 +4833,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         when {
             r.id == "pro" -> {
                 pushPage(SettingsPage.Pro)
-                com.prismtv.launcher.data.ProStore.refresh()
+                if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
             }
+            r.id == "pro:invite" -> enterInviteCode()
             r.id == "pro:buy" -> purchaseTick++
             r.id == "pro:restore" -> {
                 com.prismtv.launcher.data.ProStore.refresh()
@@ -4754,7 +4908,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "kb:mic" -> if (hasMicAccess()) {
                 showBanner("Dictation", "Prism Keyboard can already use your remote's microphone.", Icons.Rounded.Info)
             } else {
-                micPermissionTick++
+                allowMicrophone()
             }
             r.id.startsWith("ui:") -> updatePrefs(p.copy(uiTransparency = UiTransparency.valueOf(r.id.removePrefix("ui:"))))
             r.id == "wobble" -> updatePrefs(p.copy(focusWobble = !p.focusWobble))
@@ -4869,6 +5023,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
+            r.id == "kbLayout" -> updatePrefs(p.copy(keyboardLayout = KeyboardLayoutStyle.entries[(p.keyboardLayout.ordinal + 1) % KeyboardLayoutStyle.entries.size]))
             r.id == "kbColour" -> updatePrefs(p.copy(keyboardColour = KeyboardColour.entries[(p.keyboardColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "kbField" -> updatePrefs(p.copy(keyboardFieldColour = KeyboardColour.entries[(p.keyboardFieldColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "textSize" -> pushPage(SettingsPage.TextSize)
@@ -5073,6 +5228,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id == "upd:check" -> availableUpdate?.let { offerUpdate(it) } ?: checkForUpdates(manual = true)
             r.id == "upd:auto" -> updatePrefs(p.copy(updateCheck = !p.updateCheck))
+            r.id == "upd:channel" -> {
+                updatePrefs(p.copy(updateTesting = !p.updateTesting))
+                // What's on offer depends on the channel: look again.
+                availableUpdate = null
+                updateStatus = ""
+            }
             r.id == "weather" -> {
                 updatePrefs(p.copy(weather = !p.weather))
                 if (prefs.weather) refreshWeather(force = true)
@@ -5420,20 +5581,36 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun openKeyboardSetup() {
         val ime = com.prismtv.launcher.ime.PrismIme
-        when {
-            ime.isCurrent(ctx) -> showBanner("Prism Keyboard", "Prism Keyboard is your TV's keyboard.", Icons.Rounded.CheckCircle, Cue.Confirm)
-            ime.isEnabled(ctx) -> if (!ime.showPicker(ctx)) ime.openSettings(ctx)
-            else -> {
-                val opened = ime.openSettings(ctx)
-                dialog = DialogSpec(
-                    "Use Prism Keyboard",
-                    (if (opened) "Turn on Prism Keyboard in the list, then press Back and choose it here again. " else "") +
-                        "From a computer or ATV Connect's Shell: ime enable ${ime.ID} then ime set ${ime.ID}",
-                    listOf(DialogButton("OK") {}),
-                )
-                dialogFocus = 0
-            }
+        if (ime.isCurrent(ctx)) {
+            showBanner("Prism Keyboard", "Prism Keyboard is your TV's keyboard.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            return
         }
+        // Turned on and chosen in one go through the shell (Shizuku, root or the TV's own debugging), or by
+        // hand: Android's keyboard list, then its keyboard picker.
+        val id = "${ctx.packageName}/com.prismtv.launcher.ime.PrismKeyboardService"
+        val enabled = ime.isEnabled(ctx)
+        shellDialog(
+            title = "Use Prism Keyboard",
+            intro = (if (enabled) "Choose Prism Keyboard in Android's keyboard list. " else "Open Keyboard Settings and turn on Prism Keyboard, then choose it here again. ") +
+                "Or select Do It for Me, or type this command yourself:",
+            command = "ime enable $id && ime set $id",
+            done = { ime.isCurrent(ctx) },
+            doneMessage = "Done. Prism Keyboard is now your TV's keyboard.",
+            open = if (enabled) "Choose Keyboard" to { if (!ime.showPicker(ctx)) ime.openSettings(ctx); Unit }
+            else "Open Keyboard Settings" to { ime.openSettings(ctx); Unit },
+        )
+    }
+
+    /** Dictation: Android's own question, or granted through the shell (some TVs stop asking after a No). */
+    private fun allowMicrophone() {
+        shellDialog(
+            title = "Allow Microphone",
+            intro = "Lets Prism Keyboard hear your remote's microphone for dictation. Select Ask Android or Do It for Me, or type this command yourself:",
+            command = "pm grant ${ctx.packageName} android.permission.RECORD_AUDIO",
+            done = { hasMicAccess() },
+            doneMessage = "Done. Hold the mic key on Prism Keyboard to dictate.",
+            open = "Ask Android" to { micPermissionTick++; Unit },
+        )
     }
 
     // ---------------------------------------------------------------- wallpaper shuffle
@@ -5738,6 +5915,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             topShelfStyle = if (b.getString("topShelf").equals("spotlight", true)) TopShelfStyle.Spotlight else TopShelfStyle.FullScreen,
             textSize = b.getInt("textSize", com.prismtv.launcher.data.DefaultTextSize).coerceIn(0, TextScales.size - 1),
             keyboardColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("keyboardColour"), true) } ?: KeyboardColour.Automatic,
+            keyboardLayout = if (b.getString("kbLayout").equals("abc", true)) KeyboardLayoutStyle.Abc else KeyboardLayoutStyle.Qwerty,
             keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("fieldColour"), true) } ?: KeyboardColour.Automatic,
             widgets = when (b.getString("widgets")) {
                 "above" -> mapOf("all:continue" to WidgetPlace.Above)
@@ -5783,6 +5961,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // Play edition: Prism Pro as on a trial, after it, or bought.
         b.getString("pro")?.let {
             com.prismtv.launcher.data.Pro.debugSet(ctx, it)
+            refreshPro()
+        }
+        // GitHub edition: unlocked as with an invite code ("ok"), or not ("locked").
+        b.getString("invite")?.let {
+            if (!BuildConfig.PLAY) com.prismtv.launcher.data.Invite.debugSet(ctx, it)
             refreshPro()
         }
         // A banner that stays up for the screenshot.
