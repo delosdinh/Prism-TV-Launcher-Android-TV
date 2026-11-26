@@ -953,20 +953,22 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun startUpdate(info: UpdateInfo) {
         if (BuildConfig.PLAY) return // Google Play installs the Play edition's updates
         if (!Updater.canInstall(ctx)) {
-            dialog = DialogSpec(
-                "Allow Updates",
-                "To update itself, Prism TV needs permission to install apps. Turn on Prism TV on the next screen, then press Back — the update continues automatically.",
-                listOf(
-                    DialogButton("Open Settings") {
-                        pendingAfterPermission = info
-                        if (!SystemActions.start(ctx, Updater.permissionIntent(ctx))) {
-                            SystemActions.start(ctx, Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        }
-                    },
-                    DialogButton("Cancel") {},
-                ),
+            // Android's own switch, or granted through the shell in one press (Do It for Me).
+            shellDialog(
+                title = "Allow Updates",
+                intro = "To update itself, Prism TV needs permission to install apps. Select Open Settings and turn on Prism TV, " +
+                    "then press Back (the update continues automatically). Or select Do It for Me, or type this command yourself:",
+                command = "appops set ${ctx.packageName} REQUEST_INSTALL_PACKAGES allow",
+                done = { Updater.canInstall(ctx).also { if (it) viewModelScope.launch { startUpdate(info) } } },
+                doneMessage = "Done. Updating Prism TV…",
+                open = "Open Settings" to {
+                    pendingAfterPermission = info
+                    if (!SystemActions.start(ctx, Updater.permissionIntent(ctx))) {
+                        SystemActions.start(ctx, Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }
+                    Unit
+                },
             )
-            dialogFocus = 0
             return
         }
         updateJob?.cancel()
@@ -4906,7 +4908,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             r.id == "kb:mic" -> if (hasMicAccess()) {
                 showBanner("Dictation", "Prism Keyboard can already use your remote's microphone.", Icons.Rounded.Info)
             } else {
-                micPermissionTick++
+                allowMicrophone()
             }
             r.id.startsWith("ui:") -> updatePrefs(p.copy(uiTransparency = UiTransparency.valueOf(r.id.removePrefix("ui:"))))
             r.id == "wobble" -> updatePrefs(p.copy(focusWobble = !p.focusWobble))
@@ -5579,20 +5581,36 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun openKeyboardSetup() {
         val ime = com.prismtv.launcher.ime.PrismIme
-        when {
-            ime.isCurrent(ctx) -> showBanner("Prism Keyboard", "Prism Keyboard is your TV's keyboard.", Icons.Rounded.CheckCircle, Cue.Confirm)
-            ime.isEnabled(ctx) -> if (!ime.showPicker(ctx)) ime.openSettings(ctx)
-            else -> {
-                val opened = ime.openSettings(ctx)
-                dialog = DialogSpec(
-                    "Use Prism Keyboard",
-                    (if (opened) "Turn on Prism Keyboard in the list, then press Back and choose it here again. " else "") +
-                        "From a computer or ATV Connect's Shell: ime enable ${ime.ID} then ime set ${ime.ID}",
-                    listOf(DialogButton("OK") {}),
-                )
-                dialogFocus = 0
-            }
+        if (ime.isCurrent(ctx)) {
+            showBanner("Prism Keyboard", "Prism Keyboard is your TV's keyboard.", Icons.Rounded.CheckCircle, Cue.Confirm)
+            return
         }
+        // Turned on and chosen in one go through the shell (Shizuku, root or the TV's own debugging), or by
+        // hand: Android's keyboard list, then its keyboard picker.
+        val id = "${ctx.packageName}/com.prismtv.launcher.ime.PrismKeyboardService"
+        val enabled = ime.isEnabled(ctx)
+        shellDialog(
+            title = "Use Prism Keyboard",
+            intro = (if (enabled) "Choose Prism Keyboard in Android's keyboard list. " else "Open Keyboard Settings and turn on Prism Keyboard, then choose it here again. ") +
+                "Or select Do It for Me, or type this command yourself:",
+            command = "ime enable $id && ime set $id",
+            done = { ime.isCurrent(ctx) },
+            doneMessage = "Done. Prism Keyboard is now your TV's keyboard.",
+            open = if (enabled) "Choose Keyboard" to { if (!ime.showPicker(ctx)) ime.openSettings(ctx); Unit }
+            else "Open Keyboard Settings" to { ime.openSettings(ctx); Unit },
+        )
+    }
+
+    /** Dictation: Android's own question, or granted through the shell (some TVs stop asking after a No). */
+    private fun allowMicrophone() {
+        shellDialog(
+            title = "Allow Microphone",
+            intro = "Lets Prism Keyboard hear your remote's microphone for dictation. Select Ask Android or Do It for Me, or type this command yourself:",
+            command = "pm grant ${ctx.packageName} android.permission.RECORD_AUDIO",
+            done = { hasMicAccess() },
+            doneMessage = "Done. Hold the mic key on Prism Keyboard to dictate.",
+            open = "Ask Android" to { micPermissionTick++; Unit },
+        )
     }
 
     // ---------------------------------------------------------------- wallpaper shuffle

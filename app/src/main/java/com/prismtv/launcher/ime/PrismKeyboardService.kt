@@ -219,7 +219,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                         .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.14f), Color.White.copy(alpha = 0.03f))), shape)
                         .padding(m.pad.dp),
                 ) {
-                    KeyboardKeys(kb, c, m, bare = true)
+                    KeyboardKeys(kb, c, m, bare = true, chips = true)
                 }
             } else Box(
                 Modifier
