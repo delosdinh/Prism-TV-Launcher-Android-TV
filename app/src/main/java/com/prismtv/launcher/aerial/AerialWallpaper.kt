@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.Looper
 import android.view.Surface
+import android.view.SurfaceView
 import android.view.TextureView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -30,8 +31,14 @@ import com.prismtv.launcher.data.AerialRange
 
 /**
  * Settings › Wallpaper › Apple TV Aerials: the aerials play, silently, behind the Home Screen. 1080p
- * SDR (light on the TV's decoder), shown only while Home is on screen; the still underneath shows
+ * SDR (light on the TV's decoder; on the video layer, below, the screensaver's resolution), shown only while Home is on screen; the still underneath shows
  * until the first frame and in Lite Mode. Drawn through a TextureView so Liquid Glass can see it.
+ *
+ * On a TV measured too slow for that ([GlassPerf.slowTv]: every video frame in a TextureView redraws all
+ * of Home, which ran at 29 ms a frame on a Ugoos AM9 Pro) it plays through a SurfaceView instead, on the
+ * hardware video layer under Home, as the screensaver does: Home only redraws when something on it
+ * moves, and the aerial never has to hold still. The glass over it then can't refract the video, and
+ * behind the app grid the blurred still covers it.
  *
  * Behind the app grid it blurs: with RenderEffect on Android 12 and later, through [AerialGlRenderer] on
  * Android 11 and older ([onLiveBlur] says when that's running, so the blurred still can stay away).
@@ -46,10 +53,24 @@ fun AerialWallpaper(
 ) {
     val ctx = LocalContext.current
     val liveBlur by rememberUpdatedState(onLiveBlur)
-    var videos by remember { mutableStateOf(Resume.list) }
+    // A TV measured too slow for the glass (see below); decided once, so the stream and buffer match.
+    val videoLayer = remember { com.prismtv.launcher.ui.glass.GlassPerf.slowTv && android.os.Build.VERSION.SDK_INT >= 31 }
+    var videos by remember { mutableStateOf(Resume.list?.takeIf { Resume.videoLayer == videoLayer }) }
     LaunchedEffect(Unit) {
         if (videos == null) {
-            videos = AerialCatalog.load(ctx, AerialQuality.HD, AerialRange.SDR).shuffled().take(12).also { Resume.list = it }
+            // On the video layer, the same resolution as the screensaver (4K on a 4K panel, by default):
+            // a TV that matches its output to the video (Ugoos AM9 Pro, auto frame rate) otherwise
+            // switched to 1080p a few seconds in and back to 4K when the aerial stopped, blacking out
+            // the screen for a moment each time. In a TextureView, 4K would cost the GPU too much.
+            val quality = if (videoLayer) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.prismtv.launcher.data.PrefsStore(ctx).load().aerialQuality
+                }
+            } else AerialQuality.HD
+            videos = AerialCatalog.load(ctx, quality, AerialRange.SDR).shuffled().take(12).also {
+                Resume.list = it
+                Resume.videoLayer = videoLayer
+            }
         }
         android.util.Log.i("PrismAerial", "Home wallpaper: ${videos?.size ?: 0} aerials")
     }
@@ -59,7 +80,7 @@ fun AerialWallpaper(
     val gl = remember { GlHolder() }
     val player = remember {
         if (AerialNet.preferHttp(ctx)) Resume.http = true
-        ExoPlayer.Builder(ctx).setLoadControl(AerialBuffer.wallpaper()).build().apply {
+        ExoPlayer.Builder(ctx).setLoadControl(if (videoLayer) AerialBuffer.screensaver() else AerialBuffer.wallpaper()).build().apply {
             volume = 0f
             repeatMode = Player.REPEAT_MODE_ALL
             trackSelectionParameters = trackSelectionParameters.buildUpon()
@@ -68,17 +89,6 @@ fun AerialWallpaper(
             setMediaItems(list.map { MediaItem.fromUri(if (Resume.http) it.fallbackUrl else it.url) }, Resume.index.coerceIn(0, list.size - 1), Resume.position)
             prepare()
             playWhenReady = true
-        }
-    }
-    // A GPU measured too slow over a moving aerial (GlassPerf): the aerial pauses behind the app grid,
-    // where the blurred still covers it anyway, and while you move around Home; it plays on after.
-    LaunchedEffect(player) {
-        snapshotFlow {
-            com.prismtv.launcher.ui.glass.GlassPerf.cheap &&
-                (blur() > 0.98f || com.prismtv.launcher.ui.glass.GlassPerf.navigating)
-        }.collect { hold ->
-            if (player.playWhenReady == hold) android.util.Log.i("PrismAerial", "Home wallpaper: ${if (hold) "holding still (slow GPU)" else "playing on"}")
-            player.playWhenReady = !hold
         }
     }
     DisposableEffect(player) {
@@ -127,6 +137,19 @@ fun AerialWallpaper(
             gl.renderer?.setBlur(b)
         }
     }
+    // Also once measured slow mid-session (its stream is still 1080p then; 4K from the next time Home shows).
+    val onVideoLayer = (videoLayer || com.prismtv.launcher.ui.glass.GlassPerf.slowTv) && !useGl
+    LaunchedEffect(onVideoLayer) {
+        android.util.Log.i("PrismAerial", "Home wallpaper: ${if (onVideoLayer) "SurfaceView (slow GPU)" else "TextureView"}")
+    }
+    // On the video layer the SurfaceView is drawn by [AerialVideoLayerHost], under all of Home: in here it
+    // would be replayed by every glass surface drawing Home's backdrop, and the video moves to wherever it
+    // was drawn last (on the AM9 it ended up a rectangle above the dock, with black around it).
+    DisposableEffect(player, onVideoLayer) {
+        if (onVideoLayer) AerialVideoLayer.player = player
+        onDispose { if (AerialVideoLayer.player === player) AerialVideoLayer.player = null }
+    }
+    if (onVideoLayer) return
     // Always drawn at full strength (a TextureView that's never drawn never gets its first frame):
     // the still above it fades away once the aerial is playing.
     key(useGl) {
@@ -195,6 +218,28 @@ fun AerialWallpaper(
     }
 }
 
+/** The Home aerial's player while it plays on the video layer (see [AerialVideoLayerHost]). Snapshot state. */
+object AerialVideoLayer {
+    var player by mutableStateOf<ExoPlayer?>(null)
+}
+
+/**
+ * The Home aerial's SurfaceView on a slow TV: drawn once, full screen, under everything else on the
+ * screen and outside every Liquid Glass backdrop. A SurfaceView's video follows where its view was last
+ * drawn, and a backdrop is drawn again, offset, by each glass surface over it. It punches a hole through
+ * the black under it; Home's backdrop above it stays clear where the aerial plays.
+ */
+@Composable
+fun AerialVideoLayerHost(modifier: Modifier = Modifier) {
+    val p = AerialVideoLayer.player ?: return
+    key(p) {
+        AndroidView(
+            factory = { c -> SurfaceView(c).also { p.setVideoSurfaceView(it) } },
+            modifier = modifier,
+        )
+    }
+}
+
 /** The OpenGL path's pieces, shared between the TextureView's listener and the player's disposal. */
 private class GlHolder {
     var renderer: AerialGlRenderer? = null
@@ -212,4 +257,6 @@ private object Resume {
     var http = false
     /** OpenGL wouldn't start on this TV: the still stands in behind the grid, as before. */
     var glFailed = false
+    /** Whether [list] was picked for the video layer (the screensaver's resolution) or a TextureView (1080p). */
+    var videoLayer = false
 }

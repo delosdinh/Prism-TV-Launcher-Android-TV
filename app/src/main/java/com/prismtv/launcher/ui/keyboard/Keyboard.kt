@@ -33,6 +33,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -179,6 +180,8 @@ private fun AccentStrip(kb: KeyboardController, c: KeyColours, m: KeyboardMetric
         Modifier
             .offset(x.dp, y.dp)
             .size(stripW.dp, stripH.dp)
+            // Over the held key, which is raised as the focused key (it overlaps its top by a few dp).
+            .zIndex(2f)
             .graphicsLayer {
                 val a = appear.value
                 alpha = a.coerceIn(0f, 1f)
@@ -241,6 +244,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
                     Modifier
                         .offset((cc * cell).dp, (gridTop + vr * rowH).dp)
                         .size(m.unit.dp, rowH.dp)
+                        .zIndex(if (focused || s > 1.001f) 1f else 0f)
                         .graphicsLayer { scaleX = s; scaleY = s }
                         .then(if (focused) Modifier.shadow(10.dp, RoundedCornerShape(10.dp)).background(c.focus, RoundedCornerShape(10.dp)) else Modifier),
                     contentAlignment = Alignment.Center,
@@ -263,6 +267,7 @@ private fun EmojiKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics,
                 Modifier
                     .offset(x.dp, y.dp)
                     .size(w.dp, m.keyH.dp)
+                    .zIndex(if (focused || s > 1.001f) 1f else 0f)
                     .graphicsLayer { scaleX = s; scaleY = s }
                     .background(
                         when {
@@ -324,6 +329,7 @@ private fun SuggestionBar(kb: KeyboardController, c: KeyColours, m: KeyboardMetr
                         Modifier
                             .offset((i * slotW).dp, 0.dp)
                             .size(slotW.dp, m.barH.dp)
+                            .zIndex(if (focused || sc > 1.001f) 1f else 0f)
                             .padding(horizontal = 3.dp)
                             .graphicsLayer { scaleX = sc; scaleY = sc }
                             .background(
@@ -387,6 +393,9 @@ private fun KeyCap(
     }
     Box(
         modifier
+            // The focused key pops out over its neighbours (a key drawn after it, like the mic beside the
+            // space bar, covered its edge), and stays on top while it settles back.
+            .zIndex(if (focused || s > 1.001f) 1f else 0f)
             .graphicsLayer {
                 scaleX = s
                 scaleY = s
@@ -462,7 +471,8 @@ fun KeyboardOverlay(
             }
             val caret = rememberInfiniteTransition(label = "caret")
             val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
-            // The text field is Liquid Glass in its own colour (or the keyboard's): frosty, lavender, smoked or clear.
+            // The text field is Liquid Glass in its own colour (or the keyboard's): frosty, lavender, smoked or clear,
+            // always bending a softened copy of the screen, as iOS's search field does.
             val base = LocalPrism.current
             val fieldTheme = base.copy(palette = Palettes.of(fieldLook), material = GlassMaterial.Liquid, clearTint = fieldClear)
             val fieldInk = if (fieldLook == Appearance.Light && !fieldClear) Color(0xFF111318) else Color.White
@@ -476,7 +486,10 @@ fun KeyboardOverlay(
                             RoundedCornerShape(25.dp),
                             if (fieldClear) Color.White.copy(alpha = 0.08f)
                             else fieldTheme.palette.liquidTint.copy(alpha = if (fieldLook == Appearance.Light) 0.58f else 0.50f),
-                            GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f,
+                            // Over the blurred screen, like the Clear keyboard below it: sharp icons and
+                            // artwork behind a long field showed through as hard-edged slices (on TVs that
+                            // draw Refraction Bands, offset in the rim band too).
+                            GlassSource.Full, elevation = 18.dp, rimStrength = 1.2f, blurredLens = true,
                         )
                         .padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,

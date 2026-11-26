@@ -72,6 +72,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -236,6 +237,9 @@ fun HomeScreen(vm: LauncherViewModel, clock: String) {
 
 // ------------------------------------------------------------------------------------------ backdrop
 
+/** How much of the blurred still frosts over a video-layer aerial behind the app grid (the rest is the moving video). */
+private const val VideoLayerFrost = 0.50f
+
 @Composable
 private fun HomeBackdrop(
     art: HeroArt?,
@@ -253,14 +257,34 @@ private fun HomeBackdrop(
             .fillMaxSize()
             .backdropSource(backdrop, GlassSource.Background)
     ) {
-        Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(palette.bgAccent, palette.bgBase))))
         // Apple TV Aerials: the video sits under the still, which fades once the aerial is playing. Behind
         // the grid the aerial blurs live (Android 11 and older: through OpenGL; if that can't start there,
         // the still comes back, blurred, as before).
         var aerialShown by remember { mutableStateOf(false) }
         var aerialGlBlur by remember { mutableStateOf(false) }
         // Android 12+ blurs the video with RenderEffect, unless this GPU was measured too slow for it.
-        val aerialLiveBlur = aerialGlBlur || (android.os.Build.VERSION.SDK_INT >= 31 && !com.prismtv.launcher.ui.glass.GlassPerf.cheap)
+        // Never for an aerial on the video layer (AerialVideoLayerHost), which nothing in the app can blur: behind
+        // the grid the blurred still covers it (it was left sharp while the GPU was being measured again).
+        val aerialLiveBlur = (aerialGlBlur || (android.os.Build.VERSION.SDK_INT >= 31 && !com.prismtv.launcher.ui.glass.GlassPerf.cheap)) &&
+            com.prismtv.launcher.aerial.AerialVideoLayer.player == null
+        // The still fades out once the aerial plays, but comes straight back when it stops (Home paused
+        // under a system pop-up, the wallpaper changed): fading it in from nothing showed the dark gradient
+        // underneath for most of a second, a black flash on the TV.
+        val stillAnim = remember { Animatable(1f) }
+        val aerialOn = aerial && aerialShown
+        LaunchedEffect(aerialOn) {
+            if (aerialOn) stillAnim.animateTo(0f, tween(900)) else stillAnim.snapTo(1f)
+        }
+        val stillAlpha by stillAnim.asState()
+        // A slow TV's aerial plays under Home (AerialVideoLayerHost): what's drawn here has to clear away
+        // as the still does, or the gradient would hide it.
+        val underHome = com.prismtv.launcher.aerial.AerialVideoLayer.player != null
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = if (underHome) stillAlpha else 1f }
+                .background(Brush.linearGradient(listOf(palette.bgAccent, palette.bgBase)))
+        )
         if (aerial) com.prismtv.launcher.aerial.AerialWallpaper(
             blur = { blur.value },
             modifier = Modifier.fillMaxSize(),
@@ -273,19 +297,34 @@ private fun HomeBackdrop(
             com.prismtv.launcher.ui.glass.GlassPerf.aerialPlaying = aerial
             if (!aerial) aerialShown = false
         }
-        val stillAlpha by animateFloatAsState(if (aerial && aerialShown) 0f else 1f, tween(900), label = "aerialStill")
         // Lite Mode: a quicker cross-fade (two full-screen images are drawn while it runs).
         Crossfade(
             targetState = art,
             animationSpec = tween(if (LocalPrism.current.lite) 350 else 900),
             label = "heroArt",
             modifier = Modifier.graphicsLayer {
-                alpha = if (aerialLiveBlur) stillAlpha else maxOf(stillAlpha, blur.value)
+                // An aerial on the video layer can't be blurred, so behind the grid the blurred still lies over
+                // it like frosted glass: most of the way, so the motion reads through as soft, moving colour.
+                alpha = when {
+                    aerialLiveBlur -> stillAlpha
+                    underHome -> maxOf(stillAlpha, blur.value * VideoLayerFrost)
+                    else -> maxOf(stillAlpha, blur.value)
+                }
+                // Once only the blurred copy draws (below), its alpha can go straight onto it: no offscreen
+                // layer to fill and blend back, which costs a tiled GPU like the AM9's a flush each frame.
+                compositingStrategy = if (blur.value >= 1f) CompositingStrategy.ModulateAlpha else CompositingStrategy.Auto
             },
         ) { a ->
             if (a != null) {
                 Box(Modifier.fillMaxSize()) {
-                    Image(a.full, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    // Hidden under the opaque blurred copy once it's fully in, so not drawn then.
+                    Image(
+                        a.full, null,
+                        Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = if (blur.value >= 1f) 0f else 1f },
+                        contentScale = ContentScale.Crop,
+                    )
                     Image(
                         a.heavy, null,
                         Modifier
@@ -325,6 +364,12 @@ private fun HomeBackdrop(
                 .fillMaxSize()
                 .graphicsLayer { alpha = blur.value }
                 .background(palette.bgBase.copy(alpha = palette.backgroundDim * 0.6f))
+        )
+        if (underHome) Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = blur.value * (1f - stillAlpha) }
+                .background(Color.Black.copy(alpha = 0.12f))
         )
         if (spot) SpotlightCard(card, expanded, visible = !blurred)
     }

@@ -1505,7 +1505,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun onKey(k: NavKey, repeat: Boolean = false): Boolean {
         keyRepeat = repeat
         noteInteraction()
-        if (launchAnim != null) return true
+        if (launchAnim != null) {
+            if (k == NavKey.Menu) android.util.Log.i("PrismKeys", "Menu: ignored during an app launch")
+            return true
+        }
         val focusBefore = focusSignature()
         val surfaceBefore = surfaceSignature()
         val overlayBefore = overlay
@@ -1518,6 +1521,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         } finally {
             inKey = false
         }
+        // Menu is the one button two paths deliver (Power & Home Button and the screen): say where it went.
+        if (k == NavKey.Menu && !repeat) android.util.Log.i("PrismKeys", "Menu: overlay $overlayBefore -> $overlay, handled $handled")
         if (k in arrowKeys && dialog == null && contextMenu == null && keyboard == null && movingId == null &&
             (overlay == Overlay.None || overlay == Overlay.Folder) && surfaceSignature() == surfaceBefore
         ) {

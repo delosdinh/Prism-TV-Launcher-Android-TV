@@ -40,6 +40,7 @@ import com.prismtv.launcher.ui.theme.uiBlurRadius
 import com.prismtv.launcher.ui.theme.uiSaturation
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -503,16 +504,27 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
             // a new recording makes Liquid Glass's copy and the blurred twin render the whole Home Screen
             // again in that frame, although nothing on it changed. A plain layer draws exactly the same.
             val isolate = if (vm.isolateScene) Modifier.graphicsLayer() else Modifier
+            // A slow TV's Home aerial, on the video layer under everything (see AerialVideoLayerHost).
+            com.prismtv.launcher.aerial.AerialVideoLayerHost(Modifier.fillMaxSize())
             Box(
                 Modifier
                     .fillMaxSize()
                     .then(isolate)
                     .backdropSource(backdrop, GlassSource.Full)
             ) {
+                // While something is open over Home (Control Centre, the sidebar, a folder, Settings…), Home is
+                // kept as one rendered picture: every frame of the overlay otherwise re-issued all of Home's
+                // drawing (each tile, image and glass surface) under it. On the AM9 that was most of a
+                // Control Centre frame. Home renders into it again only when something on it changes.
+                val sceneCached = vm.overlay != Overlay.None
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .then(isolate)
+                        .then(
+                            if (vm.isolateScene || sceneCached) Modifier.graphicsLayer {
+                                compositingStrategy = if (sceneCached) CompositingStrategy.Offscreen else CompositingStrategy.Auto
+                            } else Modifier
+                        )
                         .backdropSource(backdrop, GlassSource.Scene)
                 ) {
                     HomeScreen(vm, clock)
@@ -565,7 +577,6 @@ private class RemoteKeys(private val vm: LauncherViewModel, private val scope: C
 
     fun handle(e: KeyEvent): Boolean {
         val native = e.nativeKeyEvent
-        if (native.action == AndroidKeyEvent.ACTION_DOWN) com.prismtv.launcher.ui.glass.GlassPerf.noteNav()
         val key = when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_UP -> NavKey.Up
             AndroidKeyEvent.KEYCODE_DPAD_DOWN -> NavKey.Down
@@ -593,7 +604,12 @@ private class RemoteKeys(private val vm: LauncherViewModel, private val scope: C
             }
             else -> return false
         }
-        if (native.action == AndroidKeyEvent.ACTION_DOWN) vm.onKey(key, repeat = native.repeatCount > 0)
+        if (native.action == AndroidKeyEvent.ACTION_DOWN) {
+            // The same Menu press may already have come through Power & Home Button (Foreground.claimMenu).
+            val dupe = native.keyCode == AndroidKeyEvent.KEYCODE_MENU && native.repeatCount == 0 &&
+                !com.prismtv.launcher.system.Foreground.claimMenu(native.downTime, "screen")
+            if (!dupe) vm.onKey(key, repeat = native.repeatCount > 0)
+        }
         return true
     }
 

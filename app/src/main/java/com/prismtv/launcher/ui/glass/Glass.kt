@@ -194,7 +194,8 @@ fun Modifier.glass(
     val reduce = theme.reduceTransparency || (!liquid && !liveBlur && source == GlassSource.Full)
     val edge = theme.palette.liquidEdge
     val isDark = theme.palette.isDark
-    // Android 13+ TVs measured too slow for the refraction shader draw the bands instead (GlassPerf).
+    // Android 13+ TVs measured too slow for the refraction shader draw a lighter approximation instead
+    // (GlassPerf): the backdrop once, with a rim light, and no refracting band.
     // (Only slow over a moving aerial: the shader stays, the aerial holds still instead. On the AM9's Mali
     // the bands cost more GPU than the shader, 11 ms against 5-7.)
     val gpuOk = GlassPerf.shaderOk
@@ -291,6 +292,35 @@ fun Modifier.glass(
                     }
                 }
 
+                // The pre-blurred wallpaper still, in root coordinates (the caller has translated to them).
+                fun DrawScope.drawStill(alpha: Float = 1f) {
+                    val img = backdrop.fallbackHeavy
+                    if (img != null) {
+                        drawImage(
+                            image = img,
+                            srcOffset = IntOffset.Zero,
+                            srcSize = IntSize(img.width, img.height),
+                            dstOffset = IntOffset.Zero,
+                            dstSize = backdrop.rootSize,
+                            alpha = alpha,
+                            filterQuality = FilterQuality.Low,
+                        )
+                        drawRect(
+                            backdrop.fallbackDim,
+                            size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()),
+                            alpha = alpha,
+                        )
+                    }
+                }
+
+                // Lens glass over an aerial on the video layer shows the video through it (the app can't bend or
+                // blur it); a little of the blurred still under it frosts the glass a touch there. Over anything
+                // else the lens draws opaque on top, so this only shows where the video does.
+                fun DrawScope.frostOverVideo() {
+                    if (com.prismtv.launcher.aerial.AerialVideoLayer.player == null) return
+                    translate(-origin.x, -origin.y) { drawStill(LensVideoFrost) }
+                }
+
                 fun DrawScope.drawBlurred(d: Float = 0f) {
                     val sx = (1f - 2f * d / size.width).coerceAtLeast(0.2f)
                     val sy = (1f - 2f * d / size.height).coerceAtLeast(0.2f)
@@ -299,23 +329,13 @@ fun Modifier.glass(
                         translate(-origin.x, -origin.y)
                     }) {
                         if (liveBlur) {
+                            // An aerial on the video layer leaves Home's backdrop clear (the app can't read or blur
+                            // the video), so frosted glass would show the sharp screen through it. The blurred still
+                            // goes under it there, as behind the app grid.
+                            if (com.prismtv.launcher.aerial.AerialVideoLayer.player != null) drawStill()
                             drawLayer(backdrop.blurred(source))
                         } else {
-                            val img = backdrop.fallbackHeavy
-                            if (img != null) {
-                                drawImage(
-                                    image = img,
-                                    srcOffset = IntOffset.Zero,
-                                    srcSize = IntSize(img.width, img.height),
-                                    dstOffset = IntOffset.Zero,
-                                    dstSize = backdrop.rootSize,
-                                    filterQuality = FilterQuality.Low,
-                                )
-                                drawRect(
-                                    backdrop.fallbackDim,
-                                    size = Size(backdrop.rootSize.width.toFloat(), backdrop.rootSize.height.toFloat()),
-                                )
-                            }
+                            drawStill()
                         }
                     }
                 }
@@ -325,7 +345,7 @@ fun Modifier.glass(
                     !liquid || frosted -> clipPath(clip) {
                         drawBlurred()
                         drawRect(tint)
-                        if (liquid && bentRim) {
+                        if (liquid && bentRim && gpuOk) {
                             // Bend the (blurred) backdrop around the rim: thick-glass edges without
                             // sharp fragments of what's behind showing through.
                             clipPath(bentBand, clipOp = ClipOp.Difference) {
@@ -342,6 +362,7 @@ fun Modifier.glass(
                             }
                         }
                         clipPath(clip) {
+                            frostOverVideo()
                             translate(-margin, -margin) { drawLayer(lensLayer) }
                             drawRect(tint)
                         }
@@ -350,7 +371,8 @@ fun Modifier.glass(
                         drawBlurred(-strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                drawBlurred(strength * 0.40f)
+                                // A slow GPU draws the blurred backdrop once (Control Centre has a dozen of these).
+                                if (gpuOk) drawBlurred(strength * 0.40f)
                                 drawRect(rimLight)
                             }
                         }
@@ -358,11 +380,17 @@ fun Modifier.glass(
                         drawRect(specular)
                     }
                     else -> clipPath(clip) {
+                        frostOverVideo()
                         drawRaw(-strength * 0.04f, -strength * 0.04f)
                         if (lens) {
                             clipPath(rimBand, clipOp = ClipOp.Difference) {
-                                // A weak GPU skips the live blur under the rim too (a blur of a moving aerial runs every frame).
-                                if (liveBlur && gpuOk) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                // A TV measured too slow for the shader (Android 13+) draws no second copy in the rim:
+                                // unblurred, its step from the interior read as a hard panel inside every glass
+                                // (offset, and black where it reached past the screen's edge, on the AM9). The
+                                // glass stays seamless, with its rim light and edge, and draws the backdrop once.
+                                if (gpuOk) {
+                                    if (liveBlur) drawBlurred(strength * 0.40f) else drawRaw(strength * 0.30f, strength * 0.30f)
+                                }
                                 drawRect(rimLight)
                             }
                         }
@@ -374,6 +402,9 @@ fun Modifier.glass(
             }
         }
 }
+
+/** How much of the blurred still frosts lens glass over an aerial on the video layer (the rest is the video). */
+private const val LensVideoFrost = 0.20f
 
 /** Width of the blur applied to live backdrops, per material. */
 fun blurRadiusFor(liquid: Boolean): Dp = if (liquid) 22.dp else 34.dp
