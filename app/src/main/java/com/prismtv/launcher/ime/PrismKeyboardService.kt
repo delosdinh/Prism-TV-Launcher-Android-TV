@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.border
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -177,13 +178,25 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             ?: base.density * (min(cfg.screenWidthDp / 960f, cfg.screenHeightDp / 540f).takeIf { it > 0f } ?: 1f)
         CompositionLocalProvider(LocalDensity provides Density(px, base.fontScale)) {
             val c = keyColoursFor(look, clear)
-            val m = KeyboardMetrics.System
+            val grid = com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical
+            val m = if (grid) KeyboardMetrics.SystemGrid else KeyboardMetrics.System
             val solid = c.panel.copy(alpha = 1f)
             // Clear: an app's screen can't be read by a keyboard, so there's no lens or blur here, just
             // smoked see-through glass with a bright top edge.
             val fill = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
             else Brush.verticalGradient(listOf(lift(solid), solid))
-            Box(
+            // ABC: a compact grid at the bottom centre, the app left visible either side of it (no fade).
+            if (grid) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                val shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
+                Box(
+                    Modifier
+                        .background(fill, shape)
+                        .border(1.dp, Color.White.copy(alpha = if (clear) 0.28f else 0.10f), shape)
+                        .padding(start = m.pad.dp, end = m.pad.dp, top = m.pad.dp, bottom = (m.pad + 8f).dp),
+                ) {
+                    KeyboardKeys(kb, c, m, bare = true)
+                }
+            } else Box(
                 Modifier
                     .fillMaxWidth()
                     .background(fill)

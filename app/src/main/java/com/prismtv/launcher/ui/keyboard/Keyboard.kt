@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
@@ -119,7 +122,10 @@ data class KeyboardMetrics(
         /** Prism's own text entry (over the Home Screen). */
         val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f, gridKeyH = 37f)
         /** The ABC grid down the left of the screen, as on Apple TV (Prism's own Search and text entry). */
-        val Side = KeyboardMetrics(width = 316f, keyH = 34f, gap = 5f, pad = 14f, barH = 30f, gridKeyH = 34f)
+        val Side = KeyboardMetrics(width = 300f, keyH = 36f, gap = 5f, pad = 0f, barH = 30f, gridKeyH = 36f)
+        /** The system keyboard's ABC grid in other apps: compact, at the bottom centre, the app visible either side. */
+        /** The same grid as [Side] (300 wide, 36-high keys), plus its padding. */
+        val SystemGrid = KeyboardMetrics(width = 300f + 2 * 12f, keyH = 36f, gap = 5f, pad = 12f, barH = 30f, gridKeyH = 36f)
         /** The system keyboard in other apps: a little shorter so more of the app stays visible. */
         val System = KeyboardMetrics(width = 880f, keyH = 40f, gap = 7f, pad = 10f, barH = 32f, gridKeyH = 33f)
     }
@@ -134,12 +140,15 @@ fun KeyboardKeys(
     active: Boolean = true,
     /** Apple TV style: letters without key caps; only the focused key (and the lit switch) has a tile. */
     bare: Boolean = false,
+    /** False when the suggestions are drawn elsewhere (the side keyboard's chips). */
+    bar: Boolean = true,
 ) {
-    Box(Modifier.size((m.width - m.pad * 2).dp, (m.barH + m.gap + m.keysH).dp)) {
-        SuggestionBar(kb, c, m, active)
+    val top = if (bar) m.barH + m.gap else 0f
+    Box(Modifier.size((m.width - m.pad * 2).dp, (top + m.keysH).dp)) {
+        if (bar) SuggestionBar(kb, c, m, active)
         Box(
             Modifier
-                .offset(0.dp, (m.barH + m.gap).dp)
+                .offset(0.dp, top.dp)
                 .graphicsLayer { alpha = if (kb.listening) 0.45f else 1f }
         ) {
             if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m.forRows(4), active)
@@ -491,7 +500,7 @@ fun KeyboardOverlay(
     val m = KeyboardMetrics.Overlay
     val kb = vm.keyboardController
     if (KeyboardLayout.alphabetical) {
-        SideKeyboard(vm, req, t, live != null, look, clear, fieldLook, fieldClear)
+        SideKeyboard(vm, req, t, live != null, look, clear)
         return
     }
 
@@ -576,17 +585,18 @@ fun KeyboardOverlay(
     }
 }
 
-/** Where the side keyboard's panel sits on the 960 × 540 canvas; Search puts its results to the right of it. */
+/** Where the side keyboard sits on the 960 × 540 canvas; Search puts its results to the right of it. */
 object SideKeyboardLayout {
-    const val Left = 28f
-    const val Top = 28f
+    const val Left = 44f
+    const val Top = 34f
     val Width: Float get() = KeyboardMetrics.Side.width
     val Right: Float get() = Left + Width
 }
 
 /**
- * The ABC grid down the left of the screen, as on Apple TV: the text at the top, then suggestions and the
- * keys, on a Liquid Glass panel in the keyboard's colour. Search's results sit to the right.
+ * The ABC keyboard for Prism's own text entry, as on Apple TV: a full-screen backdrop in the Settings
+ * colours (no dark fade), the text in large type at the top left, suggestion chips under it, and the grid
+ * down the left without key caps. Search's results fill the right.
  */
 @Composable
 private fun SideKeyboard(
@@ -596,85 +606,125 @@ private fun SideKeyboard(
     active: Boolean,
     look: Appearance,
     clear: Boolean,
-    fieldLook: Appearance,
-    fieldClear: Boolean,
 ) {
-    val c = keyColoursFor(look, clear)
+    val theme = LocalPrism.current
+    val p = theme.palette
+    // Keys follow the keyboard colour; Clear has no panel to be clear over, so it takes the backdrop's shade.
+    val c = if (clear) keyColoursFor(if (p.isDark) Appearance.Dark else Appearance.Light) else keyColoursFor(look)
     val m = KeyboardMetrics.Side
     val kb = vm.keyboardController
-    val base = LocalPrism.current
-    Box(Modifier.fillMaxSize()) {
-        // Shade the left of the screen, where the panel is, more than the right, where results show.
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = t }
-                .background(Brush.horizontalGradient(0f to Color.Black.copy(alpha = 0.55f), 0.55f to Color.Black.copy(alpha = 0.25f), 1f to Color.Black.copy(alpha = 0.15f)))
-        )
-        val panelTheme = if (clear) base.copy(palette = Palettes.of(Appearance.Dark), material = GlassMaterial.Liquid, clearTint = true) else base
-        CompositionLocalProvider(LocalPrism provides panelTheme) {
-            Column(
-                Modifier
-                    .offset(SideKeyboardLayout.Left.dp, SideKeyboardLayout.Top.dp)
-                    .graphicsLayer { translationX = (1f - t) * -(m.width + 60f).dp.toPx(); alpha = t }
-                    .width(m.width.dp)
-                    .then(
-                        if (clear) Modifier.glass(RoundedCornerShape(28.dp), Color.Black.copy(alpha = 0.16f), GlassSource.Full, elevation = 26.dp, blurredLens = true, rimStrength = 1.3f)
-                        else Modifier.glass(RoundedCornerShape(28.dp), c.panel, GlassSource.Full, elevation = 26.dp, frosted = true)
-                    )
-                    .padding(m.pad.dp),
-            ) {
-                if (req.title.isNotBlank()) {
-                    PText(req.title, 13.sp, FontWeight.SemiBold, c.ink.copy(alpha = 0.75f), Modifier.padding(start = 4.dp, bottom = 6.dp), shadow = c.clear)
-                }
-                SideField(vm, req, fieldLook, fieldClear, m)
-                Box(Modifier.height(12.dp))
-                KeyboardKeys(kb, c, m, active = active, bare = true)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                alpha = t
+                val s = lerpF(1.04f, 1f, t)
+                scaleX = s
+                scaleY = s
             }
+            // The Settings backdrop: frosted Home Screen in the Colour Mode's veil, a glow of its accent.
+            .glass(androidx.compose.ui.graphics.RectangleShape, theme.settingsVeil(), GlassSource.SceneUi, rimStrength = 0f, lens = false, frosted = true)
+            .drawBehind {
+                drawRect(
+                    Brush.radialGradient(
+                        listOf(p.bgAccent.copy(alpha = 0.35f), Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.18f, size.height * 0.45f),
+                        radius = size.width * 0.5f,
+                    )
+                )
+            }
+    ) {
+        Column(
+            Modifier
+                .offset(SideKeyboardLayout.Left.dp, SideKeyboardLayout.Top.dp)
+                .graphicsLayer { translationX = (1f - t) * -40.dp.toPx() }
+                .width(m.width.dp),
+        ) {
+            if (req.title.isNotBlank()) {
+                PText(req.title, 14.sp, FontWeight.SemiBold, p.textSecondary, Modifier.padding(start = 2.dp, bottom = 4.dp))
+            }
+            SideField(vm, req, p.textPrimary, m)
+            Box(Modifier.height(10.dp))
+            SuggestionChips(kb, c, m, active)
+            Box(Modifier.height(10.dp))
+            KeyboardKeys(kb, c, m, active = active, bare = true, bar = false)
         }
     }
 }
 
-/** The text being typed, at the top of the side keyboard: a magnifier for Search, a blinking caret. */
+/** The text being typed, in large type: a magnifier for Search, a blinking caret, the end of long text in view. */
 @Composable
-private fun SideField(vm: LauncherViewModel, req: com.prismtv.launcher.KeyboardRequest, fieldLook: Appearance, fieldClear: Boolean, m: KeyboardMetrics) {
-    val base = LocalPrism.current
-    val fieldTheme = base.copy(palette = Palettes.of(fieldLook), material = GlassMaterial.Liquid, clearTint = fieldClear)
-    val fieldInk = if (fieldLook == Appearance.Light && !fieldClear) Color(0xFF111318) else Color.White
+private fun SideField(vm: LauncherViewModel, req: com.prismtv.launcher.KeyboardRequest, ink: Color, m: KeyboardMetrics) {
     val caret = rememberInfiniteTransition(label = "caret")
     val blink by caret.animateFloat(1f, 0f, infiniteRepeatable(tween(530), RepeatMode.Reverse), label = "blink")
-    CompositionLocalProvider(LocalPrism provides fieldTheme) {
-        Row(
+    Row(Modifier.width(m.width.dp).height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (vm.searchOpen) {
+            PIcon(Icons.Rounded.Search, ink.copy(alpha = 0.85f), 26.dp)
+            HSpace(10.dp)
+        }
+        val text = vm.keyboardText
+        if (text.isEmpty()) {
+            PText(req.placeholder.ifBlank { "Type" }.substringBefore(','), 22.sp, FontWeight.Medium, ink.copy(alpha = 0.4f), Modifier.weight(1f, fill = false))
+        } else {
+            PText(text.takeLast(18), 26.sp, FontWeight.SemiBold, ink, Modifier.weight(1f, fill = false), maxLines = 1)
+        }
+        Box(
             Modifier
-                .width((m.width - m.pad * 2).dp)
-                .height(44.dp)
-                .glass(
-                    RoundedCornerShape(22.dp),
-                    if (fieldClear) Color.White.copy(alpha = 0.08f)
-                    else fieldTheme.palette.liquidTint.copy(alpha = if (fieldLook == Appearance.Light) 0.58f else 0.50f),
-                    GlassSource.Full, elevation = 10.dp, rimStrength = 1.1f, blurredLens = true,
-                )
-                .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (vm.searchOpen) {
-                PIcon(Icons.Rounded.Search, fieldInk.copy(alpha = 0.7f), 18.dp)
-                HSpace(8.dp)
+                .padding(start = 2.dp)
+                .size(2.dp, 26.dp)
+                .graphicsLayer { alpha = if (blink > 0.5f) 1f else 0f }
+                .background(Color(0xFF0A84FF), RoundedCornerShape(1.dp))
+        )
+    }
+}
+
+/**
+ * Suggestions as chips above the keys (Up from the switches reaches them): each as wide as its word,
+ * the focused one never cut short, the row sliding sideways to keep it in view.
+ */
+@Composable
+private fun SuggestionChips(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean) {
+    val scroll = androidx.compose.foundation.rememberScrollState()
+    val focusedSlot = if (active && kb.row == -1) kb.col else -1
+    androidx.compose.runtime.LaunchedEffect(focusedSlot, kb.suggestions) {
+        val target = when {
+            focusedSlot <= 0 -> 0
+            focusedSlot >= kb.suggestions.size - 1 -> scroll.maxValue
+            else -> scroll.maxValue / 2
+        }
+        scroll.animateScrollTo(target)
+    }
+    Box(Modifier.width(m.width.dp).height(m.barH.dp)) {
+        val notice = kb.notice
+        when {
+            kb.listening -> PText(kb.partial.ifBlank { "Listening… speak into your remote" }, 14.sp, FontWeight.Medium, c.ink, Modifier.align(Alignment.CenterStart), maxLines = 1)
+            notice != null -> PText(notice, 13.sp, FontWeight.Medium, c.ink.copy(alpha = 0.8f), Modifier.align(Alignment.CenterStart))
+            else -> Row(
+                Modifier.fillMaxSize().horizontalScroll(scroll, enabled = false),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                kb.suggestions.take(3).forEachIndexed { i, s ->
+                    val focused = i == focusedSlot
+                    val corr = s.kind == Suggestion.Kind.Correction
+                    val sc by animateFloatAsState(if (focused) 1.08f else 1f, spring(dampingRatio = 0.7f, stiffness = 500f), label = "chip")
+                    Box(
+                        Modifier
+                            .padding(end = 8.dp)
+                            .height((m.barH - 2f).dp)
+                            .then(if (focused) Modifier else Modifier.widthIn(max = 130.dp))
+                            .graphicsLayer { scaleX = sc; scaleY = sc }
+                            .background(if (focused) c.focus else if (corr) c.key else c.function.copy(alpha = 0.55f), RoundedCornerShape(50))
+                            .padding(horizontal = 12.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        PText(
+                            if (s.kind == Suggestion.Kind.Typed) "“${s.text}”" else s.text,
+                            14.sp, if (corr) FontWeight.SemiBold else FontWeight.Medium,
+                            if (focused) c.focusInk else c.ink, maxLines = 1,
+                        )
+                    }
+                }
             }
-            val text = vm.keyboardText
-            if (text.isEmpty()) {
-                PText(req.placeholder.ifBlank { "Type" }, 15.sp, FontWeight.Normal, fieldInk.copy(alpha = 0.45f), Modifier.weight(1f, fill = false), shadow = fieldInk == Color.White)
-            } else {
-                // The end of long text stays in view, next to the caret.
-                PText(text.takeLast(26), 16.sp, FontWeight.Medium, fieldInk, Modifier.weight(1f, fill = false), maxLines = 1, shadow = fieldInk == Color.White)
-            }
-            Box(
-                Modifier
-                    .padding(start = 2.dp)
-                    .size(2.dp, 20.dp)
-                    .graphicsLayer { alpha = if (blink > 0.5f) 1f else 0f }
-                    .background(Color(0xFF0A84FF), RoundedCornerShape(1.dp))
-            )
         }
     }
 }
