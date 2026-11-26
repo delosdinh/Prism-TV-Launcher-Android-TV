@@ -1,0 +1,25 @@
+captured 65-shizuku-steps
+captured 65a-adb-allow-prompt
+tapped "Always allow from this computer"
+always allow ticked
+tapped "Allow"
+own adb client: 11-26 00:08:44.802 10324 10324 I PrismAdb: result=Ok(output=prism-adb-ok
+captured 65b-shizuku-downloading
+captured 65c-shizuku-installer
+no "Install" on screen
+captured 65d-shizuku-installed
+installed: 
+captured 65d2-shizuku-starting
+started by Prism TV: 
+server: 
+captured 65e-shizuku-running
+captured 65f-shizuku-allow-prompt
+no "Allow all the time" on screen
+captured 65g-shizuku-allowed
+before: pid=10027
+recents before:   * Recent #0: Task{919d46d #39 type=standard A=10094:com.google.android.youtube.tv.main}
+after: pid=10027 stopped=false
+recents after: 1 card(s)
+all cards before clear: 5
+all cards after clear: 1 (A=10122:com.prismtv.launcher )
+11-26 00:11:55.769 10324 10324 I PrismClose: pkg=com.google.android.youtube.tv method=MemoryOnly stopped=[] closed=[] failed=[] isStopped=false
