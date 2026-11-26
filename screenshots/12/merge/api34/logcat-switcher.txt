@@ -1,0 +1,1174 @@
+--------- beginning of main
+11-26 14:32:34.572 12466 12687 I CCodecBufferChannel: [c2.android.raw.decoder#739] Created output block pool with allocatorID 16 => poolID 306 - OK
+11-26 14:32:34.572 12466 12687 D CCodecBufferChannel: [c2.android.raw.decoder#739] Configured output block pool ids 306 => OK
+11-26 14:32:34.573   444 12688 D SimpleC2Component: Using output block pool with poolID 306 => got 306 - 0
+11-26 14:32:34.577 12466 12687 D CCodecBufferChannel: [c2.android.raw.decoder#739] MediaCodec discarded an unknown buffer
+11-26 14:32:34.577 12466 12687 D CCodecBufferChannel: [c2.android.raw.decoder#739] MediaCodec discarded an unknown buffer
+11-26 14:32:34.577 12466 12687 D CCodecBufferChannel: [c2.android.raw.decoder#739] MediaCodec discarded an unknown buffer
+11-26 14:32:34.577   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f851f8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.577 12466 12687 D MediaCodec: flushMediametrics
+11-26 14:32:34.579 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.579   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.579 12466 12689 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.579 12466 12690 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.580 12466 12690 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.580 12466 12690 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.580 12466 12690 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.581 12466 12690 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.581 12466 12690 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.581 12466 12690 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.581 12466 12690 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.581 12466 12690 D CCodecConfig: }
+11-26 14:32:34.581 12466 12690 D MediaCodec: flushMediametrics
+11-26 14:32:34.581 12466 12690 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.581 12466 12690 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.581 12466 12690 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.581 12466 12690 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.581 12466 12690 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.582 12466 12690 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.582 12466 12690 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.582 12466 12690 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.582 12466 12690 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.582 12466 12690 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.582 12466 12690 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.582 12466 12690 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.582 12466 12690 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.582 12466 12690 D CCodec  : }
+11-26 14:32:34.582 12466 12690 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.582 12466 12690 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.582 12466 12690 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.582 12466 12690 D CCodec  : }
+11-26 14:32:34.582 12466 12690 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.582 12466 12690 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.582 12466 12690 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.582 12466 12690 D CCodecBufferChannel: [c2.android.raw.decoder#468] Created input block pool with allocatorID 16 => poolID 28 - OK (0)
+11-26 14:32:34.582 12466 12690 I CCodecBufferChannel: [c2.android.raw.decoder#468] Created output block pool with allocatorID 16 => poolID 307 - OK
+11-26 14:32:34.582 12466 12690 D CCodecBufferChannel: [c2.android.raw.decoder#468] Configured output block pool ids 307 => OK
+11-26 14:32:34.583   444 12691 D SimpleC2Component: Using output block pool with poolID 307 => got 307 - 0
+11-26 14:32:34.585 12466 12690 D CCodecBufferChannel: [c2.android.raw.decoder#468] MediaCodec discarded an unknown buffer
+11-26 14:32:34.585 12466 12690 D CCodecBufferChannel: [c2.android.raw.decoder#468] MediaCodec discarded an unknown buffer
+11-26 14:32:34.585 12466 12690 D CCodecBufferChannel: [c2.android.raw.decoder#468] MediaCodec discarded an unknown buffer
+11-26 14:32:34.586   444 10185 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f84428 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.586 12466 12690 D MediaCodec: flushMediametrics
+11-26 14:32:34.587 12466 12692 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.587   444 10185 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.588 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.588 12466 12693 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.588 12466 12693 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.589 12466 12693 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.589 12466 12693 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.589 12466 12693 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.590 12466 12693 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.590 12466 12693 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.590 12466 12693 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.590 12466 12693 D CCodecConfig: }
+11-26 14:32:34.590 12466 12693 D MediaCodec: flushMediametrics
+11-26 14:32:34.590 12466 12693 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.590 12466 12693 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.590 12466 12693 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.590 12466 12693 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.590 12466 12693 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.590 12466 12693 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.590 12466 12693 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.590 12466 12693 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.590 12466 12693 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.590 12466 12693 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.590 12466 12693 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.590 12466 12693 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.590 12466 12693 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.590 12466 12693 D CCodec  : }
+11-26 14:32:34.590 12466 12693 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.590 12466 12693 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.590 12466 12693 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.590 12466 12693 D CCodec  : }
+11-26 14:32:34.590 12466 12693 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.591 12466 12693 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.591 12466 12693 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.591 12466 12693 D CCodecBufferChannel: [c2.android.raw.decoder#99] Created input block pool with allocatorID 16 => poolID 29 - OK (0)
+11-26 14:32:34.591 12466 12693 I CCodecBufferChannel: [c2.android.raw.decoder#99] Created output block pool with allocatorID 16 => poolID 308 - OK
+11-26 14:32:34.591 12466 12693 D CCodecBufferChannel: [c2.android.raw.decoder#99] Configured output block pool ids 308 => OK
+11-26 14:32:34.591   444 12694 D SimpleC2Component: Using output block pool with poolID 308 => got 308 - 0
+11-26 14:32:34.595 12466 12693 D CCodecBufferChannel: [c2.android.raw.decoder#99] MediaCodec discarded an unknown buffer
+11-26 14:32:34.595 12466 12693 D CCodecBufferChannel: [c2.android.raw.decoder#99] MediaCodec discarded an unknown buffer
+11-26 14:32:34.595 12466 12693 D CCodecBufferChannel: [c2.android.raw.decoder#99] MediaCodec discarded an unknown buffer
+11-26 14:32:34.596   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f84428 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.596 12466 12693 D MediaCodec: flushMediametrics
+11-26 14:32:34.598 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.598   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.598 12466 12695 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.598 12466 12696 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.599 12466 12696 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.599 12466 12696 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.599 12466 12696 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.599 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.600 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.600 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.600 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.600 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.600 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.600 12466 12696 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.600 12466 12696 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.600 12466 12696 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.600 12466 12696 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.600 12466 12696 D CCodecConfig: }
+11-26 14:32:34.600 12466 12696 D MediaCodec: flushMediametrics
+11-26 14:32:34.600 12466 12696 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.600 12466 12696 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.600 12466 12696 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.600 12466 12696 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.600 12466 12696 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.600 12466 12696 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.600 12466 12696 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.602 12466 12696 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.602 12466 12696 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.602 12466 12696 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.602 12466 12696 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.602 12466 12696 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.602 12466 12696 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.602 12466 12696 D CCodec  : }
+11-26 14:32:34.602 12466 12696 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.602 12466 12696 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.602 12466 12696 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.602 12466 12696 D CCodec  : }
+11-26 14:32:34.602 12466 12696 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.602 12466 12696 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.602 12466 12696 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.602 12466 12696 D CCodecBufferChannel: [c2.android.raw.decoder#401] Created input block pool with allocatorID 16 => poolID 30 - OK (0)
+11-26 14:32:34.602 12466 12696 I CCodecBufferChannel: [c2.android.raw.decoder#401] Created output block pool with allocatorID 16 => poolID 309 - OK
+11-26 14:32:34.602 12466 12696 D CCodecBufferChannel: [c2.android.raw.decoder#401] Configured output block pool ids 309 => OK
+11-26 14:32:34.603   444 12697 D SimpleC2Component: Using output block pool with poolID 309 => got 309 - 0
+11-26 14:32:34.606 12466 12696 D CCodecBufferChannel: [c2.android.raw.decoder#401] MediaCodec discarded an unknown buffer
+11-26 14:32:34.606 12466 12696 D CCodecBufferChannel: [c2.android.raw.decoder#401] MediaCodec discarded an unknown buffer
+11-26 14:32:34.606 12466 12696 D CCodecBufferChannel: [c2.android.raw.decoder#401] MediaCodec discarded an unknown buffer
+11-26 14:32:34.607   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f83cb8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.607 12466 12598 D MediaCodec: flushMediametrics
+11-26 14:32:34.608 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.608   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.608 12466 12698 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.608 12466 12699 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.609 12466 12699 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.609 12466 12699 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.609 12466 12699 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.610 12466 12699 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.610 12466 12699 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.610 12466 12699 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.610 12466 12699 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.610 12466 12699 D CCodecConfig: }
+11-26 14:32:34.610 12466 12699 D MediaCodec: flushMediametrics
+11-26 14:32:34.610 12466 12699 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.611 12466 12699 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.611 12466 12699 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.611 12466 12699 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.611 12466 12699 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.611 12466 12699 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.611 12466 12699 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.611 12466 12699 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.611 12466 12699 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.611 12466 12699 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.611 12466 12699 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.611 12466 12699 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.611 12466 12699 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.611 12466 12699 D CCodec  : }
+11-26 14:32:34.611 12466 12699 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.611 12466 12699 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.611 12466 12699 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.611 12466 12699 D CCodec  : }
+11-26 14:32:34.611 12466 12699 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.611 12466 12699 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.611 12466 12699 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.611 12466 12699 D CCodecBufferChannel: [c2.android.raw.decoder#100] Created input block pool with allocatorID 16 => poolID 31 - OK (0)
+11-26 14:32:34.611 12466 12699 I CCodecBufferChannel: [c2.android.raw.decoder#100] Created output block pool with allocatorID 16 => poolID 310 - OK
+11-26 14:32:34.611 12466 12699 D CCodecBufferChannel: [c2.android.raw.decoder#100] Configured output block pool ids 310 => OK
+11-26 14:32:34.612   444 12700 D SimpleC2Component: Using output block pool with poolID 310 => got 310 - 0
+11-26 14:32:34.613 12466 12699 D CCodecBufferChannel: [c2.android.raw.decoder#100] MediaCodec discarded an unknown buffer
+11-26 14:32:34.613 12466 12699 D CCodecBufferChannel: [c2.android.raw.decoder#100] MediaCodec discarded an unknown buffer
+11-26 14:32:34.613 12466 12699 D CCodecBufferChannel: [c2.android.raw.decoder#100] MediaCodec discarded an unknown buffer
+11-26 14:32:34.614   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f83cb8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.614 12466 12699 D MediaCodec: flushMediametrics
+11-26 14:32:34.615 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.616   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.616 12466 12701 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.618 12466 12702 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.618 12466 12702 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.619 12466 12702 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.619 12466 12702 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.619 12466 12702 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.620 12466 12702 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.620 12466 12702 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.620 12466 12702 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.620 12466 12702 D CCodecConfig: }
+11-26 14:32:34.620 12466 12702 D MediaCodec: flushMediametrics
+11-26 14:32:34.620 12466 12702 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.620 12466 12702 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.620 12466 12702 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.620 12466 12702 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.620 12466 12702 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.620 12466 12702 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.620 12466 12702 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.620 12466 12702 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.620 12466 12702 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.620 12466 12702 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.620 12466 12702 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.620 12466 12702 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.620 12466 12702 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.620 12466 12702 D CCodec  : }
+11-26 14:32:34.620 12466 12702 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.620 12466 12702 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.620 12466 12702 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.620 12466 12702 D CCodec  : }
+11-26 14:32:34.620 12466 12702 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.620 12466 12702 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.621 12466 12702 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.621 12466 12702 D CCodecBufferChannel: [c2.android.raw.decoder#651] Created input block pool with allocatorID 16 => poolID 32 - OK (0)
+11-26 14:32:34.621 12466 12702 I CCodecBufferChannel: [c2.android.raw.decoder#651] Created output block pool with allocatorID 16 => poolID 311 - OK
+11-26 14:32:34.621 12466 12702 D CCodecBufferChannel: [c2.android.raw.decoder#651] Configured output block pool ids 311 => OK
+11-26 14:32:34.621   444 12703 D SimpleC2Component: Using output block pool with poolID 311 => got 311 - 0
+11-26 14:32:34.623 12466 12702 D CCodecBufferChannel: [c2.android.raw.decoder#651] MediaCodec discarded an unknown buffer
+11-26 14:32:34.623 12466 12702 D CCodecBufferChannel: [c2.android.raw.decoder#651] MediaCodec discarded an unknown buffer
+11-26 14:32:34.623 12466 12702 D CCodecBufferChannel: [c2.android.raw.decoder#651] MediaCodec discarded an unknown buffer
+11-26 14:32:34.623   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f851f8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.623 12466 12702 D MediaCodec: flushMediametrics
+11-26 14:32:34.625 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.625   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.625 12466 12704 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.625 12466 12705 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.626 12466 12705 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.626 12466 12705 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.626 12466 12705 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.626 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.626 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.626 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.627 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.627 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.627 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.627 12466 12705 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.627 12466 12705 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.627 12466 12705 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.627 12466 12705 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.627 12466 12705 D CCodecConfig: }
+11-26 14:32:34.627 12466 12705 D MediaCodec: flushMediametrics
+11-26 14:32:34.628 12466 12705 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.628 12466 12705 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.628 12466 12705 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.628 12466 12705 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.628 12466 12705 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.628 12466 12705 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.628 12466 12705 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.628 12466 12705 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.628 12466 12705 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.628 12466 12705 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.628 12466 12705 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.628 12466 12705 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.628 12466 12705 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.628 12466 12705 D CCodec  : }
+11-26 14:32:34.628 12466 12705 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.628 12466 12705 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.628 12466 12705 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.628 12466 12705 D CCodec  : }
+11-26 14:32:34.628 12466 12705 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.628 12466 12705 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.628 12466 12705 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.628 12466 12705 D CCodecBufferChannel: [c2.android.raw.decoder#548] Created input block pool with allocatorID 16 => poolID 33 - OK (0)
+11-26 14:32:34.628 12466 12705 I CCodecBufferChannel: [c2.android.raw.decoder#548] Created output block pool with allocatorID 16 => poolID 312 - OK
+11-26 14:32:34.628 12466 12705 D CCodecBufferChannel: [c2.android.raw.decoder#548] Configured output block pool ids 312 => OK
+11-26 14:32:34.629   444 12706 D SimpleC2Component: Using output block pool with poolID 312 => got 312 - 0
+11-26 14:32:34.632 12466 12705 D CCodecBufferChannel: [c2.android.raw.decoder#548] MediaCodec discarded an unknown buffer
+11-26 14:32:34.632 12466 12705 D CCodecBufferChannel: [c2.android.raw.decoder#548] MediaCodec discarded an unknown buffer
+11-26 14:32:34.632 12466 12705 D CCodecBufferChannel: [c2.android.raw.decoder#548] MediaCodec discarded an unknown buffer
+11-26 14:32:34.633   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f851f8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.633 12466 12598 D MediaCodec: flushMediametrics
+11-26 14:32:34.635 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.636   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.636 12466 12707 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.636 12466 12708 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.636 12466 12708 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.637 12466 12708 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.637 12466 12708 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.637 12466 12708 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.638 12466 12708 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.638 12466 12708 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.638 12466 12708 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.638 12466 12708 D CCodecConfig: }
+11-26 14:32:34.638 12466 12708 D MediaCodec: flushMediametrics
+11-26 14:32:34.638 12466 12708 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.638 12466 12708 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.638 12466 12708 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.638 12466 12708 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.638 12466 12708 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.638 12466 12708 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.638 12466 12708 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.638 12466 12708 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.638 12466 12708 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.638 12466 12708 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.638 12466 12708 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.638 12466 12708 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.638 12466 12708 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.638 12466 12708 D CCodec  : }
+11-26 14:32:34.638 12466 12708 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.638 12466 12708 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.638 12466 12708 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.638 12466 12708 D CCodec  : }
+11-26 14:32:34.638 12466 12708 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.639 12466 12708 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.639 12466 12708 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.639 12466 12708 D CCodecBufferChannel: [c2.android.raw.decoder#536] Created input block pool with allocatorID 16 => poolID 34 - OK (0)
+11-26 14:32:34.639 12466 12708 I CCodecBufferChannel: [c2.android.raw.decoder#536] Created output block pool with allocatorID 16 => poolID 313 - OK
+11-26 14:32:34.639 12466 12708 D CCodecBufferChannel: [c2.android.raw.decoder#536] Configured output block pool ids 313 => OK
+11-26 14:32:34.639   444 12709 D SimpleC2Component: Using output block pool with poolID 313 => got 313 - 0
+11-26 14:32:34.646 12466 12708 D CCodecBufferChannel: [c2.android.raw.decoder#536] MediaCodec discarded an unknown buffer
+11-26 14:32:34.646 12466 12708 D CCodecBufferChannel: [c2.android.raw.decoder#536] MediaCodec discarded an unknown buffer
+11-26 14:32:34.646 12466 12708 D CCodecBufferChannel: [c2.android.raw.decoder#536] MediaCodec discarded an unknown buffer
+11-26 14:32:34.647   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f84428 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.647 12466 12708 D MediaCodec: flushMediametrics
+11-26 14:32:34.648 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.649   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.649 12466 12710 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.649 12466 12711 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.650 12466 12711 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.650 12466 12711 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.650 12466 12711 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.651 12466 12711 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.651 12466 12711 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.651 12466 12711 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.651 12466 12711 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.651 12466 12711 D CCodecConfig: }
+11-26 14:32:34.651 12466 12711 D MediaCodec: flushMediametrics
+11-26 14:32:34.651 12466 12711 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.652 12466 12711 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.652 12466 12711 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.652 12466 12711 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.652 12466 12711 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.652 12466 12711 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.652 12466 12711 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.652 12466 12711 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.652 12466 12711 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.652 12466 12711 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.652 12466 12711 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.652 12466 12711 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.652 12466 12711 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.652 12466 12711 D CCodec  : }
+11-26 14:32:34.652 12466 12711 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.652 12466 12711 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.652 12466 12711 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.652 12466 12711 D CCodec  : }
+11-26 14:32:34.652 12466 12711 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.652 12466 12711 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.652 12466 12711 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.652 12466 12711 D CCodecBufferChannel: [c2.android.raw.decoder#499] Created input block pool with allocatorID 16 => poolID 35 - OK (0)
+11-26 14:32:34.652 12466 12711 I CCodecBufferChannel: [c2.android.raw.decoder#499] Created output block pool with allocatorID 16 => poolID 314 - OK
+11-26 14:32:34.652 12466 12711 D CCodecBufferChannel: [c2.android.raw.decoder#499] Configured output block pool ids 314 => OK
+11-26 14:32:34.653   444 12712 D SimpleC2Component: Using output block pool with poolID 314 => got 314 - 0
+11-26 14:32:34.654 12466 12711 D CCodecBufferChannel: [c2.android.raw.decoder#499] MediaCodec discarded an unknown buffer
+11-26 14:32:34.654 12466 12711 D CCodecBufferChannel: [c2.android.raw.decoder#499] MediaCodec discarded an unknown buffer
+11-26 14:32:34.654 12466 12711 D CCodecBufferChannel: [c2.android.raw.decoder#499] MediaCodec discarded an unknown buffer
+11-26 14:32:34.655   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f84428 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.655 12466 12711 D MediaCodec: flushMediametrics
+11-26 14:32:34.656 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.657   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.657 12466 12713 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.658 12466 12714 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.658 12466 12714 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.659 12466 12714 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.659 12466 12714 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.659 12466 12714 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.660 12466 12714 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.660 12466 12714 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.660 12466 12714 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.660 12466 12714 D CCodecConfig: }
+11-26 14:32:34.660 12466 12714 D MediaCodec: flushMediametrics
+11-26 14:32:34.660 12466 12714 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.660 12466 12714 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.660 12466 12714 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.660 12466 12714 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.660 12466 12714 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.660 12466 12714 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.660 12466 12714 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.660 12466 12714 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.660 12466 12714 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.660 12466 12714 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.660 12466 12714 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.660 12466 12714 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.660 12466 12714 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.660 12466 12714 D CCodec  : }
+11-26 14:32:34.660 12466 12714 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.660 12466 12714 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.660 12466 12714 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.660 12466 12714 D CCodec  : }
+11-26 14:32:34.660 12466 12714 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.661 12466 12714 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.661 12466 12714 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.661 12466 12714 D CCodecBufferChannel: [c2.android.raw.decoder#118] Created input block pool with allocatorID 16 => poolID 36 - OK (0)
+11-26 14:32:34.661 12466 12714 I CCodecBufferChannel: [c2.android.raw.decoder#118] Created output block pool with allocatorID 16 => poolID 315 - OK
+11-26 14:32:34.661 12466 12714 D CCodecBufferChannel: [c2.android.raw.decoder#118] Configured output block pool ids 315 => OK
+11-26 14:32:34.661   444 12715 D SimpleC2Component: Using output block pool with poolID 315 => got 315 - 0
+11-26 14:32:34.663 12466 12714 D CCodecBufferChannel: [c2.android.raw.decoder#118] MediaCodec discarded an unknown buffer
+11-26 14:32:34.663 12466 12714 D CCodecBufferChannel: [c2.android.raw.decoder#118] MediaCodec discarded an unknown buffer
+11-26 14:32:34.663 12466 12714 D CCodecBufferChannel: [c2.android.raw.decoder#118] MediaCodec discarded an unknown buffer
+11-26 14:32:34.663   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f83cb8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.664 12466 12714 D MediaCodec: flushMediametrics
+11-26 14:32:34.664   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.665 12466 12716 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.665 12466 12598 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+11-26 14:32:34.666 12466 12717 D CCodec  : allocate(c2.android.raw.decoder)
+11-26 14:32:34.666 12466 12717 I CCodec  : setting up 'default' as default (vendor) store
+11-26 14:32:34.667 12466 12717 I CCodec  : Created component [c2.android.raw.decoder]
+11-26 14:32:34.667 12466 12717 D CCodecConfig: read media type: audio/raw
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.max-count.values
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: output.subscribed-indices.values
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: input.buffers.allocator-ids.values
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.allocator-ids.values
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.allocator-ids.values
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+11-26 14:32:34.667 12466 12717 D ReflectedParamUpdater: extent() != 1 for single value type: algo.buffers.pool-ids.values
+11-26 14:32:34.668 12466 12717 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.668 12466 12717 D CCodecConfig: c2 config diff is Dict {
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   c2::u32 coded.bitrate.value = 64000
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 65536
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   c2::u32 input.delay.value = 0
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   string input.media-type.value = "audio/raw"
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   string output.media-type.value = "audio/raw"
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   c2::u32 raw.channel-count.value = 2
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   c2::u32 raw.pcm-encoding.value = 0
+11-26 14:32:34.668 12466 12717 D CCodecConfig:   c2::u32 raw.sample-rate.value = 44100
+11-26 14:32:34.668 12466 12717 D CCodecConfig: }
+11-26 14:32:34.668 12466 12717 D MediaCodec: flushMediametrics
+11-26 14:32:34.668 12466 12717 D CCodec  : [c2.android.raw.decoder] buffers are bound to CCodec for this session
+11-26 14:32:34.668 12466 12717 D CCodecConfig: no c2 equivalents for durationUs
+11-26 14:32:34.668 12466 12717 D CCodecConfig: no c2 equivalents for track-id
+11-26 14:32:34.668 12466 12717 D CCodecConfig: no c2 equivalents for bits-per-sample
+11-26 14:32:34.668 12466 12717 D CCodecConfig: no c2 equivalents for flags
+11-26 14:32:34.668 12466 12717 D CCodecConfig: config failed => CORRUPTED
+11-26 14:32:34.668 12466 12717 D CCodecConfig: c2 config diff is   c2::u32 raw.sample-rate.value = 48000
+11-26 14:32:34.668 12466 12717 W Codec2Client: query -- param skipped: index = 1107298332.
+11-26 14:32:34.668 12466 12717 D CCodec  : client requested max input size 18432, which is smaller than what component recommended (65536); overriding with component recommendation.
+11-26 14:32:34.668 12466 12717 W CCodec  : This behavior is subject to change. It is recommended that app developers double check whether the requested max input size is in reasonable range.
+11-26 14:32:34.668 12466 12717 D CCodec  : encoding statistics level = 0
+11-26 14:32:34.668 12466 12717 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t bitrate = 64000
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t max-input-size = 65536
+11-26 14:32:34.668 12466 12717 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.668 12466 12717 D CCodec  : }
+11-26 14:32:34.668 12466 12717 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t android._codec-pcm-encoding = 2
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t channel-count = 2
+11-26 14:32:34.668 12466 12717 D CCodec  :   string mime = "audio/raw"
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t pcm-encoding = 2
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t sample-rate = 48000
+11-26 14:32:34.668 12466 12717 D CCodec  :   int32_t android._config-pcm-encoding = 2
+11-26 14:32:34.668 12466 12717 D CCodec  : }
+11-26 14:32:34.668 12466 12717 I CCodecConfig: query failed after returning 8 values (BAD_INDEX)
+11-26 14:32:34.669 12466 12717 W Codec2Client: query -- param skipped: index = 1342179345.
+11-26 14:32:34.669 12466 12717 W Codec2Client: query -- param skipped: index = 2415921170.
+11-26 14:32:34.669 12466 12717 D CCodecBufferChannel: [c2.android.raw.decoder#838] Created input block pool with allocatorID 16 => poolID 37 - OK (0)
+11-26 14:32:34.669 12466 12717 I CCodecBufferChannel: [c2.android.raw.decoder#838] Created output block pool with allocatorID 16 => poolID 316 - OK
+11-26 14:32:34.669 12466 12717 D CCodecBufferChannel: [c2.android.raw.decoder#838] Configured output block pool ids 316 => OK
+11-26 14:32:34.669   444 12718 D SimpleC2Component: Using output block pool with poolID 316 => got 316 - 0
+11-26 14:32:34.672 12466 12717 D CCodecBufferChannel: [c2.android.raw.decoder#838] MediaCodec discarded an unknown buffer
+11-26 14:32:34.672 12466 12717 D CCodecBufferChannel: [c2.android.raw.decoder#838] MediaCodec discarded an unknown buffer
+11-26 14:32:34.672 12466 12717 D CCodecBufferChannel: [c2.android.raw.decoder#838] MediaCodec discarded an unknown buffer
+11-26 14:32:34.672   444  3124 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xf3f83cb8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+11-26 14:32:34.672 12466 12717 D MediaCodec: flushMediametrics
+11-26 14:32:34.673   444  3124 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.673 12466 12719 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+11-26 14:32:34.786 12466 12466 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+11-26 14:32:34.786 12466 12466 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+--------- beginning of system
+11-26 14:32:34.799   482   504 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{74a18f2 u0 com.prismtv.launcher/.MainActivity t42}
+11-26 14:32:34.799   482   504 W ActivityTaskManager: Activity pause timeout for ActivityRecord{74a18f2 u0 com.prismtv.launcher/.MainActivity t42}
+11-26 14:32:34.814 11385 12462 V BinderSender: Uid 10113 already starts
+11-26 14:32:34.814 11385 12462 V BinderSender: Uid 10113 already starts
+11-26 14:32:34.843 12628 12628 D CompatibilityChangeReporter: Compat change id reported: 210923482; UID 10113; state: ENABLED
+11-26 14:32:34.847   482  1802 D CompatibilityChangeReporter: Compat change id reported: 161145287; UID 10113; state: ENABLED
+11-26 14:32:34.849 12628 12628 D CompatibilityChangeReporter: Compat change id reported: 237531167; UID 10113; state: DISABLED
+11-26 14:32:34.849 12628 12628 W OpenGLRenderer: Unknown dataspace 0
+11-26 14:32:34.858 12466 12590 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+11-26 14:32:34.868 12628 12628 E ssioncontroller: Invalid resource ID 0x00000000.
+11-26 14:32:34.879 12628 12628 E Icon    : Unable to load resource 0x00000000 from pkg=com.android.providers.tv
+11-26 14:32:34.879 12628 12628 E Icon    : android.content.res.Resources$NotFoundException: Resource ID #0x0
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.content.res.ResourcesImpl.getValueForDensity(ResourcesImpl.java:243)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.content.res.Resources.getDrawableForDensity(Resources.java:993)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.content.res.Resources.getDrawable(Resources.java:933)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.graphics.drawable.Icon.loadDrawableInner(Icon.java:443)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.graphics.drawable.Icon.loadDrawable(Icon.java:356)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.widget.ImageView.setImageIcon(ImageView.java:623)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.television.GrantPermissionsViewHandlerImpl.updateUi(GrantPermissionsViewHandlerImpl.java:161)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity.showNextRequest(GrantPermissionsActivity.java:543)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity.onRequestInfoLoad(GrantPermissionsActivity.java:404)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity.$r8$lambda$TH56MVaS16ISfYT2_3EtlMeeZ_I(GrantPermissionsActivity.java:0)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity$$ExternalSyntheticLambda0.onChanged(R8$$SyntheticClass:0)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.considerNotify(LiveData.java:133)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.dispatchingValue(LiveData.java:151)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.setValue(LiveData.java:309)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.MutableLiveData.setValue(MutableLiveData.java:50)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.SmartUpdateMediatorLiveData.setValue(SmartUpdateMediatorLiveData.kt:87)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.model.GrantPermissionsViewModel$requestInfosLiveData$1.setRequestInfosFromGroupStates(GrantPermissionsViewModel.kt:604)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.model.GrantPermissionsViewModel$requestInfosLiveData$1.onUpdate(GrantPermissionsViewModel.kt:320)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.SmartUpdateMediatorLiveData.update(SmartUpdateMediatorLiveData.kt:105)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.SmartUpdateMediatorLiveData$setSourcesToDifference$1$observer$1.onChanged(SmartUpdateMediatorLiveData.kt:208)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.MediatorLiveData$Source.onChanged(MediatorLiveData.java:171)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.considerNotify(LiveData.java:133)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.dispatchingValue(LiveData.java:151)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.setValue(LiveData.java:309)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.MutableLiveData.setValue(MutableLiveData.java:50)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.SmartUpdateMediatorLiveData.setValue(SmartUpdateMediatorLiveData.kt:87)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.LightAppPermGroupLiveData.onUpdate(LightAppPermGroupLiveData.kt:131)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.SmartUpdateMediatorLiveData.update(SmartUpdateMediatorLiveData.kt:105)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.LightAppPermGroupLiveData$2.onChanged(LightAppPermGroupLiveData.kt:73)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.LightAppPermGroupLiveData$2.onChanged(LightAppPermGroupLiveData.kt:68)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.MediatorLiveData$Source.onChanged(MediatorLiveData.java:171)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.considerNotify(LiveData.java:133)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.dispatchingValue(LiveData.java:151)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData.setValue(LiveData.java:309)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.MutableLiveData.setValue(MutableLiveData.java:50)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.data.SmartUpdateMediatorLiveData.setValue(SmartUpdateMediatorLiveData.kt:87)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at androidx.lifecycle.LiveData$1.run(LiveData.java:93)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.os.Handler.handleCallback(Handler.java:958)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.os.Handler.dispatchMessage(Handler.java:99)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.os.Looper.loopOnce(Looper.java:205)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.os.Looper.loop(Looper.java:294)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at java.lang.reflect.Method.invoke(Native Method)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+11-26 14:32:34.879 12628 12628 E Icon    : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+11-26 14:32:34.880 12628 12628 I ImeTracker: com.google.android.permissioncontroller:e0fae131: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT
+11-26 14:32:34.880 12628 12628 I ImeTracker: com.google.android.permissioncontroller:e0fae131: onFailed at PHASE_CLIENT_VIEW_SERVED
+11-26 14:32:34.883   482  3270 D CoreBackPreview: Window{3b16e38 u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@6485902, mPriority=0, mIsAnimationCallback=false}
+11-26 14:32:34.889   380   753 W ServiceManagerCppClient: Permission failure: android.permission.ROTATE_SURFACE_FLINGER from uid=10113 pid=0
+11-26 14:32:34.889   380   753 D PermissionCache: checking android.permission.ROTATE_SURFACE_FLINGER for uid=10113 => denied (127 us)
+11-26 14:32:34.889   380   753 W ServiceManagerCppClient: Permission failure: android.permission.INTERNAL_SYSTEM_WINDOW from uid=10113 pid=0
+11-26 14:32:34.889   380   753 D PermissionCache: checking android.permission.INTERNAL_SYSTEM_WINDOW for uid=10113 => denied (44 us)
+11-26 14:32:34.889   380   753 W ServiceManagerCppClient: Permission failure: android.permission.ACCESS_SURFACE_FLINGER from uid=10113 pid=0
+11-26 14:32:34.889   380   753 D PermissionCache: checking android.permission.ACCESS_SURFACE_FLINGER for uid=10113 => denied (43 us)
+11-26 14:32:34.891 12628 12723 D libEGL  : loaded /vendor/lib/egl/libEGL_emulation.so
+11-26 14:32:34.892 12628 12723 D libEGL  : loaded /vendor/lib/egl/libGLESv1_CM_emulation.so
+11-26 14:32:34.893 12628 12723 D libEGL  : loaded /vendor/lib/egl/libGLESv2_emulation.so
+11-26 14:32:34.905   776   808 D WindowManagerShell: TvPipController: onTaskStackChanged()
+11-26 14:32:34.918   131   131 I hwservicemanager: getTransport: Cannot find entry android.hardware.configstore@1.0::ISurfaceFlingerConfigs/default in either framework or device VINTF manifest.
+11-26 14:32:34.919 12628 12723 W OpenGLRenderer: Failed to initialize 101010-2 format, error = EGL_SUCCESS
+11-26 14:32:34.939   131   131 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-26 14:32:34.939 12628 12723 I Gralloc4: mapper 4.x is not supported
+11-26 14:32:34.956 12466 12466 D PrismDraw: Full
+11-26 14:32:34.957 12466 12466 D PrismDraw: Scene
+11-26 14:32:34.957 12466 12466 D PrismDraw: Background
+11-26 14:32:35.226   482  3270 W ServiceManagerCppClient: Permission failure: android.permission.ROTATE_SURFACE_FLINGER from uid=10113 pid=0
+11-26 14:32:35.226   482  3270 D PermissionCache: checking android.permission.ROTATE_SURFACE_FLINGER for uid=10113 => denied (82 us)
+11-26 14:32:35.226   482  3270 W ServiceManagerCppClient: Permission failure: android.permission.INTERNAL_SYSTEM_WINDOW from uid=10113 pid=0
+11-26 14:32:35.226   482  3270 D PermissionCache: checking android.permission.INTERNAL_SYSTEM_WINDOW for uid=10113 => denied (10 us)
+11-26 14:32:35.226   482  3270 W ServiceManagerCppClient: Permission failure: android.permission.ACCESS_SURFACE_FLINGER from uid=10113 pid=0
+11-26 14:32:35.226   482  3270 D PermissionCache: checking android.permission.ACCESS_SURFACE_FLINGER for uid=10113 => denied (7 us)
+11-26 14:32:35.955 12466 12737 E SurfaceSyncGroup: Failed to receive transaction ready in 1000ms. Marking SurfaceSyncGroup(wmsSync-VRI[MainActivity]#0) as ready
+11-26 14:32:35.956 12466 12737 E SurfaceSyncGroup: Failed to receive transaction ready in 1000ms. Marking SurfaceSyncGroup(VRI[MainActivity]#1) as ready
+11-26 14:32:35.960   776   808 V WindowManagerShell: onTransitionReady android.os.BinderProxy@e272d2d: {id=300 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=OPEN f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x4402262 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1920, 1080) d=-1->0 r=-1->0:-1}]}
+11-26 14:32:35.960   776   808 V WindowManagerShell: Playing animation for (#300)android.os.BinderProxy@e272d2d@0
+11-26 14:32:35.960   776   808 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@337d57f
+11-26 14:32:35.960   776   808 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@10cc94c
+11-26 14:32:35.960   776   808 V WindowManagerShell:  try handler com.android.wm.shell.pip.tv.TvPipTransition@48f0d95
+11-26 14:32:35.961   776   808 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@d4a5eaa
+11-26 14:32:35.961   776   808 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=300 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=OPEN f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x4402262 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1920, 1080) d=-1->0 r=-1->0:-1}]}
+11-26 14:32:35.961   776   808 V WindowManagerShell:  Delegate animation for #300 to null
+11-26 14:32:35.961   776   808 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@2fe4a9b
+11-26 14:32:35.962   776   808 V WindowManagerShell: start default transition animation, info = {id=300 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=OPEN f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x4402262 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1920, 1080) d=-1->0 r=-1->0:-1}]}
+11-26 14:32:35.964   776   808 V WindowManagerShell: loadAnimation: anim=null animAttr=0x6 type=CLOSE isEntrance=true
+11-26 14:32:35.965   776   808 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#300)android.os.BinderProxy@e272d2d@0
+11-26 14:32:35.967   370   370 I android.hardware.power-service.example: Power isModeSupported: 6
+11-26 14:32:35.967   482   754 D CompatibilityChangeReporter: Compat change id reported: 214016041; UID 10113; state: ENABLED
+11-26 14:32:35.968   482   754 I ImeTracker: com.google.android.permissioncontroller:d49e58c7: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_ALWAYS_HIDDEN_STATE
+11-26 14:32:35.968   482   754 I ImeTracker: com.google.android.permissioncontroller:d49e58c7: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-26 14:32:35.969  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3264 
+11-26 14:32:35.970  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 0, locked = false
+11-26 14:32:35.970  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1899 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.permissioncontroller fieldId=0 fieldName=null extras=null hintLocales=[]}, false)
+11-26 14:32:35.970  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4091 ShouldHideHeaderOnInitialState = false
+11-26 14:32:35.970  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 1, locked = false
+11-26 14:32:35.972   482   505 W WindowManager: Failed to deliver inset control state change to w=Window{693d0b4 u0 com.prismtv.launcher/com.prismtv.launcher.MainActivity EXITING}
+11-26 14:32:35.972   482   505 W WindowManager: android.os.DeadObjectException
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.BinderProxy.transactNative(Native Method)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.BinderProxy.transact(BinderProxy.java:584)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.view.IWindow$Stub$Proxy.insetsControlChanged(IWindow.java:479)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.WindowState.notifyInsetsControlChanged(WindowState.java:3802)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.InsetsStateController.lambda$notifyPendingInsetsControlChanged$3(InsetsStateController.java:343)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.InsetsStateController.$r8$lambda$8yykPRG1GyNq_J17QvL9d5xANMc(InsetsStateController.java:0)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.InsetsStateController$$ExternalSyntheticLambda2.run(R8$$SyntheticClass:0)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.WindowAnimator.executeAfterPrepareSurfacesRunnables(WindowAnimator.java:294)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.RootWindowContainer.performSurfacePlacementNoTrace(RootWindowContainer.java:811)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.RootWindowContainer.performSurfacePlacement(RootWindowContainer.java:756)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacementLoop(WindowSurfacePlacer.java:177)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacement(WindowSurfacePlacer.java:126)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacement(WindowSurfacePlacer.java:115)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.wm.WindowSurfacePlacer$Traverser.run(WindowSurfacePlacer.java:57)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.Handler.handleCallback(Handler.java:958)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.Handler.dispatchMessage(Handler.java:99)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.Looper.loopOnce(Looper.java:205)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.Looper.loop(Looper.java:294)
+11-26 14:32:35.972   482   505 W WindowManager: 	at android.os.HandlerThread.run(HandlerThread.java:67)
+11-26 14:32:35.972   482   505 W WindowManager: 	at com.android.server.ServiceThread.run(ServiceThread.java:46)
+11-26 14:32:35.973   482   504 W ActivityManager: setHasOverlayUi called on unknown pid: 10928
+11-26 14:32:35.974   776   808 V WindowManagerShell: Track 0 became idle
+11-26 14:32:35.974   776   808 V WindowManagerShell: All active transition animations finished
+11-26 14:32:35.974   776   808 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@2fe4a9b
+11-26 14:32:35.974   776   808 V WindowManagerShell: Track 0 became idle
+11-26 14:32:35.974   776   808 V WindowManagerShell: All active transition animations finished
+11-26 14:32:35.974   482   501 I ActivityTaskManager: Displayed com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity for user 0: +934ms
+11-26 14:32:35.974   482   501 V WindowManager: Sent Transition #300 createdAt=11-26 14:32:33.662 via request=TransitionRequestInfo { type = CLOSE, triggerTask = null, remoteTransition = null, displayChange = null }
+11-26 14:32:35.974   482   501 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-26 14:32:35.974   482   501 V WindowManager:     info={id=300 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=OPEN f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x65cc605 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1920, 1080) d=-1->0 r=-1->0:-1}]}
+11-26 14:32:35.974   482   501 V WindowManager: Finish Transition #300: created at 11-26 14:32:33.662 collect-started=0.031ms request-sent=0.101ms started=4.343ms ready=1143.757ms sent=2295.702ms finished=2310.459ms
+11-26 14:32:36.189   380   380 E BpTransactionCompletedListener: Failed to transact (-32)
+11-26 14:32:36.995 12466 12589 I OpenGLRenderer: Davey! duration=2775ms; Flags=1, FrameTimelineVsyncId=128890, IntendedVsync=1901184582573, Vsync=1901384582565, InputEventId=0, HandleInputStart=1901399804774, AnimationStart=1901399808210, PerformTraversalsStart=1901399910802, DrawStart=1902025220499, FrameDeadline=1901201249239, FrameInterval=1901399711736, FrameStartTime=16666666, SyncQueued=1902121647441, SyncStart=1902179524949, IssueDrawCommandsStart=1902180264939, SwapBuffers=1903910168881, FrameCompleted=1904018058325, DequeueBufferDuration=4547, QueueBufferDuration=199467, GpuCompleted=1904018058325, SwapBuffersCompleted=1904009194170, DisplayPresentTime=0, CommandSubmissionCompleted=1903910168881, 
+11-26 14:32:37.051 12466 12466 I Choreographer: Skipped 161 frames!  The application may be doing too much work on its main thread.
+11-26 14:32:37.058  3438  5689 I FontLog : (REDACTED) Received query %s, URI %s
+11-26 14:32:37.058  3438  5689 I FontLog : (REDACTED) Query [%s] resolved to %s
+11-26 14:32:37.059  3438  5689 I FontLog : (REDACTED) Fetch %s end status %s
+11-26 14:32:37.061  3438  5689 I FontLog : (REDACTED) Pulling font file for id = %d, cache size = %d
+11-26 14:32:37.063  3438  5689 I FontLog : (REDACTED) Pulling font file for id = %d, cache size = %d
+11-26 14:32:37.103 12466 12466 D PrismDraw: Full
+11-26 14:32:37.103 12466 12466 D PrismDraw: Scene
+11-26 14:32:37.104 12466 12466 D PrismDraw: Background
+11-26 14:32:37.772 12466 12466 D PrismDraw: Scene
+11-26 14:32:37.772 12466 12466 D PrismDraw: Background
+11-26 14:32:38.236 12466 12590 D EGL_emulation: app_time_stats: avg=175.31ms min=100.44ms max=276.53ms count=7
+11-26 14:32:38.444 12451 12452 I AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification artd has clients: 1
+11-26 14:32:38.784 12747 12747 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-26 14:32:38.787 12747 12747 I AndroidRuntime: Using default boot image
+11-26 14:32:38.787 12747 12747 I AndroidRuntime: Leaving lock profiling enabled
+11-26 14:32:38.788 12747 12747 I app_process: Using CollectorTypeCC GC.
+11-26 14:32:38.824 12747 12747 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+11-26 14:32:38.830 12747 12747 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+11-26 14:32:38.830 12747 12747 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt72l.dat
+11-26 14:32:38.833 12747 12747 W app_process: Unexpected CPU variant for x86: x86.
+11-26 14:32:38.833 12747 12747 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-26 14:32:38.834 12747 12747 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]} | PCL[])
+11-26 14:32:38.835 12747 12747 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*4168958247]{PCL[/system/framework/android.test.base.jar*836642756]#PCL[/system/framework/android.test.mock.jar*3186112116]}#PCL[/system/framework/android.test.base.jar*836642756]} | PCL[/system/framework/android.test.runner.jar*4168958247])
+11-26 14:32:38.844 12747 12747 W libc    : Access denied finding property "ro.product.name_for_attestation"
+11-26 14:32:38.844 12747 12747 W libc    : Access denied finding property "ro.product.brand_for_attestation"
+11-26 14:32:38.844 12747 12747 W libc    : Access denied finding property "ro.product.model_for_attestation"
+11-26 14:32:38.845 12747 12747 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-26 14:32:38.846 12747 12747 D UiAutomationConnection: Created on user UserHandle{0}
+11-26 14:32:38.846 12747 12747 I UiAutomation: Initialized for user 0 on display 0
+11-26 14:32:38.846 12747 12747 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+11-26 14:32:38.847   482  1802 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+11-26 14:32:38.847   482  1802 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation) when called by user 0
+11-26 14:32:38.842 12747 12747 W main    : type=1400 audit(0.0:107): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
+11-26 14:32:38.849   482   482 D BatterySaverPolicy: accessibility changed to true, updating policy.
+11-26 14:32:38.853 12628 12628 V SafetyCenterAccessibilityListener: accessibility event occurred, safety center feature not enabled.
+11-26 14:32:38.842 12747 12747 W main    : type=1400 audit(0.0:108): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
+11-26 14:32:38.842 12747 12747 W main    : type=1400 audit(0.0:109): avc:  denied  { read } for  name="u:object_r:build_attestation_prop:s0" dev="tmpfs" ino=85 scontext=u:r:shell:s0 tcontext=u:object_r:build_attestation_prop:s0 tclass=file permissive=0
+11-26 14:32:39.292   444   774 D BufferPoolAccessor2.0: evictor expired: 4, evicted: 0
+11-26 14:32:39.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c5a78 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/8 (fetch/transfer)
+11-26 14:32:39.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c6848 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/8 (fetch/transfer)
+11-26 14:32:39.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c6a68 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/8 (fetch/transfer)
+11-26 14:32:39.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c6fb8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/22 (fetch/transfer)
+11-26 14:32:39.292 12466 12602 D BufferPoolAccessor2.0: evictor expired: 4, evicted: 4
+11-26 14:32:39.856 12747 12747 W AccessibilityNodeInfoDumper: Fetch time: 2ms
+11-26 14:32:39.857   482   754 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
+11-26 14:32:39.857 12747 12747 D AndroidRuntime: Shutting down VM
+11-26 14:32:39.860   482   482 D BatterySaverPolicy: accessibility changed to false, updating policy.
+11-26 14:32:40.074 12466 12763 D ProfileInstaller: Installing profile for com.prismtv.launcher
+11-26 14:32:40.292   444   774 D BufferPoolAccessor2.0: evictor expired: 17, evicted: 0
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c92c8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c95f8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 1/2 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32ca2b8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/10 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c1018 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/14 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c7c78 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/24 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c8b58 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 1/2 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c8d78 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/16 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c9a38 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/16 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c8a48 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/12 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32ca808 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/12 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c9818 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/12 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c7948 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/8 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c7838 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/34 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c9e78 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/16 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32c8c68 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 4/18 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32ca5e8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 1/2 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: bufferpool2 0xf32ca3c8 : 0(0 size) total buffers - 0(0 size) used buffers - 0/5 (recycle/alloc) - 2/4 (fetch/transfer)
+11-26 14:32:40.292 12466 12602 D BufferPoolAccessor2.0: evictor expired: 17, evicted: 17
+11-26 14:32:40.700   374  1210 D audioserver: FGS Logger Transaction failed
+11-26 14:32:40.700   374  1210 D audioserver: -129
+11-26 14:32:40.700  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3264 
+11-26 14:32:40.701  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 0, locked = false
+11-26 14:32:40.702  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1899 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.permissioncontroller fieldId=0 fieldName=null extras=null hintLocales=[]}, false)
+11-26 14:32:40.702  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4091 ShouldHideHeaderOnInitialState = false
+11-26 14:32:40.702  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 1, locked = false
+11-26 14:32:40.725 12628 12723 D EGL_emulation: app_time_stats: avg=1833.04ms min=133.95ms max=5172.84ms count=3
+11-26 14:32:40.770   374   467 D AudioFlinger: mixer(0xee725e20) throttle end: throttle time(33)
+11-26 14:32:40.860   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:32:40.860   374   467 D audioserver: -129
+11-26 14:32:41.321   374  1210 D audioserver: FGS Logger Transaction failed
+11-26 14:32:41.321   374  1210 D audioserver: -129
+11-26 14:32:41.321 12628 12628 V GrantPermissionsViewModel: Logged buttons presented and clicked permissionGroupName=android.permission.READ_TV_LISTINGS uid=10122 selectedPrecision=0 package=com.prismtv.launcher presentedButtons=9 clickedButton=8 isPermissionRationaleShown=false sessionId=-8073875687511482428 targetSdk=35
+11-26 14:32:41.322 12628 12628 V GrantPermissionsViewModel: Permission grant result requestId=-8073875687511482428 callingUid=10122 callingPackage=com.prismtv.launcher permission=android.permission.READ_TV_LISTINGS isImplicit=false result=6 isPermissionRationaleShown=false
+11-26 14:32:41.323   776   808 V WindowManagerShell: Transition requested: android.os.BinderProxy@267dbdc TransitionRequestInfo { type = CLOSE, triggerTask = null, remoteTransition = null, displayChange = null }
+11-26 14:32:41.326 12628 12628 E ssioncontroller: Invalid resource ID 0x00000000.
+11-26 14:32:41.326 12628 12628 E Icon    : Unable to load resource 0x00000000 from pkg=com.android.providers.tv
+11-26 14:32:41.326 12628 12628 E Icon    : android.content.res.Resources$NotFoundException: Resource ID #0x0
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.content.res.ResourcesImpl.getValueForDensity(ResourcesImpl.java:243)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.content.res.Resources.getDrawableForDensity(Resources.java:993)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.content.res.Resources.getDrawable(Resources.java:933)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.graphics.drawable.Icon.loadDrawableInner(Icon.java:443)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.graphics.drawable.Icon.loadDrawable(Icon.java:356)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.widget.ImageView.setImageIcon(ImageView.java:623)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.television.GrantPermissionsViewHandlerImpl.updateUi(GrantPermissionsViewHandlerImpl.java:161)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity.showNextRequest(GrantPermissionsActivity.java:543)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity.onPermissionGrantResult(GrantPermissionsActivity.java:644)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.GrantPermissionsActivity.onPermissionGrantResult(GrantPermissionsActivity.java:619)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.permissioncontroller.permission.ui.television.GrantPermissionsViewHandlerImpl.onClick(GrantPermissionsViewHandlerImpl.java:211)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.View.performClick(View.java:7659)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.View.performClickInternal(View.java:7636)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.View.onKeyUp(View.java:16403)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.widget.TextView.onKeyUp(TextView.java:9616)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.KeyEvent.dispatch(KeyEvent.java:2952)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.View.dispatchKeyEvent(View.java:15591)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewGroup.dispatchKeyEvent(ViewGroup.java:1966)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewGroup.dispatchKeyEvent(ViewGroup.java:1966)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewGroup.dispatchKeyEvent(ViewGroup.java:1966)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewGroup.dispatchKeyEvent(ViewGroup.java:1966)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewGroup.dispatchKeyEvent(ViewGroup.java:1966)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.internal.policy.DecorView.superDispatchKeyEvent(DecorView.java:478)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.internal.policy.PhoneWindow.superDispatchKeyEvent(PhoneWindow.java:1894)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.app.Activity.dispatchKeyEvent(Activity.java:4335)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at androidx.core.app.ComponentActivity.superDispatchKeyEvent(ComponentActivity.java:122)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at androidx.core.view.KeyEventDispatcher.dispatchKeyEvent(KeyEventDispatcher.java:85)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at androidx.core.app.ComponentActivity.dispatchKeyEvent(ComponentActivity.java:140)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.internal.policy.DecorView.dispatchKeyEvent(DecorView.java:392)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$ViewPostImeInputStage.processKeyEvent(ViewRootImpl.java:6945)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$ViewPostImeInputStage.onProcess(ViewRootImpl.java:6811)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:6229)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:6286)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:6252)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:6417)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:6260)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$AsyncInputStage.apply(ViewRootImpl.java:6474)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:6233)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:6286)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:6252)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:6260)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:6233)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:6286)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:6252)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:6450)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.ViewRootImpl$ImeInputStage.onFinishedInputEvent(ViewRootImpl.java:6661)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.inputmethod.InputMethodManager$PendingEvent.run(InputMethodManager.java:4278)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.inputmethod.InputMethodManager.invokeFinishedInputEventCallback(InputMethodManager.java:3715)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.inputmethod.InputMethodManager.finishedInputEvent(InputMethodManager.java:3706)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.inputmethod.InputMethodManager.-$$Nest$mfinishedInputEvent(Unknown Source:0)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.inputmethod.InputMethodManager$ImeInputEventSender.onInputEventFinished(InputMethodManager.java:4255)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.view.InputEventSender.dispatchInputEventFinished(InputEventSender.java:154)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.os.MessageQueue.nativePollOnce(Native Method)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.os.MessageQueue.next(MessageQueue.java:335)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.os.Looper.loopOnce(Looper.java:162)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.os.Looper.loop(Looper.java:294)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at java.lang.reflect.Method.invoke(Native Method)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+11-26 14:32:41.326 12628 12628 E Icon    : 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+11-26 14:32:41.327 12628 12778 I PermissionEventCleanupJobService: Job already scheduled.
+11-26 14:32:41.348   776   808 V WindowManagerShell: onTransitionReady android.os.BinderProxy@267dbdc: {id=301 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=CLOSE f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x35dd4e5 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-26 14:32:41.348   776   808 V WindowManagerShell: Playing animation for (#301)android.os.BinderProxy@267dbdc@0
+11-26 14:32:41.348   776   808 V WindowManagerShell:  try handler com.android.wm.shell.keyguard.KeyguardTransitionHandler@337d57f
+11-26 14:32:41.348   776   808 V WindowManagerShell:  try handler com.android.wm.shell.activityembedding.ActivityEmbeddingController@10cc94c
+11-26 14:32:41.348   776   808 V WindowManagerShell:  try handler com.android.wm.shell.pip.tv.TvPipTransition@48f0d95
+11-26 14:32:41.348   776   808 V WindowManagerShell:  try handler com.android.wm.shell.transition.RemoteTransitionHandler@d4a5eaa
+11-26 14:32:41.348   776   808 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=301 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=CLOSE f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x35dd4e5 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-26 14:32:41.348   776   808 V WindowManagerShell:  Delegate animation for #301 to null
+11-26 14:32:41.348   776   808 V WindowManagerShell:  try handler com.android.wm.shell.transition.DefaultTransitionHandler@2fe4a9b
+11-26 14:32:41.348   776   808 V WindowManagerShell: start default transition animation, info = {id=301 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=CLOSE f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x35dd4e5 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-26 14:32:41.348   776   808 V WindowManagerShell: loadAnimation: anim=null animAttr=0x7 type=CLOSE isEntrance=false
+11-26 14:32:41.348   776   808 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#301)android.os.BinderProxy@267dbdc@0
+11-26 14:32:41.348   482   501 V WindowManager: Sent Transition #301 createdAt=11-26 14:32:41.322 via request=TransitionRequestInfo { type = CLOSE, triggerTask = null, remoteTransition = null, displayChange = null }
+11-26 14:32:41.348   482   501 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-26 14:32:41.348   482   501 V WindowManager:     info={id=301 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{null m=CLOSE f=TRANSLUCENT|FILLS_TASK leash=Surface(name=ActivityRecord{679f7ea u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity)/@0x65cc605 sb=Rect(0, 0 - 1920, 1080) eb=Rect(0, 0 - 1920, 1080) d=0}]}
+11-26 14:32:41.379 12466 12466 D CompatibilityChangeReporter: Compat change id reported: 78294732; UID 10122; state: ENABLED
+11-26 14:32:41.381   482   501 V WindowManager: Finish Transition #301: created at 11-26 14:32:41.322 collect-started=0.024ms request-sent=0.05ms started=1.577ms ready=23.106ms sent=24.755ms finished=55.674ms
+11-26 14:32:41.399   776   808 V WindowManagerShell: Track 0 became idle
+11-26 14:32:41.399   776   808 V WindowManagerShell: All active transition animations finished
+11-26 14:32:41.399   776   808 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@2fe4a9b
+11-26 14:32:41.399   776   808 V WindowManagerShell: Track 0 became idle
+11-26 14:32:41.399   776   808 V WindowManagerShell: All active transition animations finished
+11-26 14:32:41.401   482   754 D CompatibilityChangeReporter: Compat change id reported: 214016041; UID 10122; state: ENABLED
+11-26 14:32:41.401   482   754 I ImeTracker: com.prismtv.launcher:c062c1da: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+11-26 14:32:41.401   482   754 I ImeTracker: com.prismtv.launcher:c062c1da: onCancelled at PHASE_SERVER_SHOULD_HIDE
+11-26 14:32:41.402  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3264 
+11-26 14:32:41.403  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 0, locked = false
+11-26 14:32:41.403  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1899 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.prismtv.launcher fieldId=0 fieldName=null extras=null hintLocales=[]}, false)
+11-26 14:32:41.403  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4091 ShouldHideHeaderOnInitialState = false
+11-26 14:32:41.403  1060  1060 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2111 repeatCheckTimes = 1, locked = false
+11-26 14:32:41.420 12628 12628 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=falsecallback=android.view.ViewRootImpl$$ExternalSyntheticLambda17@d1434fb
+11-26 14:32:41.420   482  3343 D CoreBackPreview: Window{3b16e38 u0 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity EXITING}: Setting back callback null
+11-26 14:32:41.420   482  3270 W InputManager-JNI: Input channel object '3b16e38 com.google.android.permissioncontroller/com.android.permissioncontroller.permission.ui.GrantPermissionsActivity (client)' was disposed without first being removed with the input manager!
+11-26 14:32:41.446   776   808 D WindowManagerShell: TvPipController: onTaskStackChanged()
+11-26 14:32:41.543   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:32:41.543   374   467 D audioserver: -129
+11-26 14:32:42.846 12451 12452 W ziparchive: Unable to open '/data/app/~~LGXejN6HTZ1Daa4EZYR3ng==/com.prismtv.launcher-MGkzxzg8wGuPk3Da5nxe0g==/base.dm': No such file or directory
+11-26 14:32:42.846 12451 12452 W ziparchive: Unable to open '/data/app/~~LGXejN6HTZ1Daa4EZYR3ng==/com.prismtv.launcher-MGkzxzg8wGuPk3Da5nxe0g==/base.dm': No such file or directory
+11-26 14:32:42.865   482  3426 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10122; state: DISABLED
+11-26 14:32:42.865   482  3426 W ActivityTaskManager: callingPackage for (uid=2000, pid=12787) has no WPC
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 265464455; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 265452344; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 266124927; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 265451093; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 265456536; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 255940284; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 236283604; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 263959004; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 264304459; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 264301586; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 254631730; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 273509367; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 263259275; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 174042980; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 174042936; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 181136395; UID 10122; state: DISABLED
+11-26 14:32:42.866   482  3426 D CompatibilityChangeReporter: Compat change id reported: 194480991; UID 10122; state: ENABLED
+11-26 14:32:42.867   482  3426 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+11-26 14:32:42.867   776   808 V WindowManagerShell: Transition requested: android.os.BinderProxy@484d9c8 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=42 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=1908414 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@f9bda61} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{9ebb986 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-26 14:32:42.868   482  3426 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+11-26 14:32:42.869   776   808 V WindowManagerShell: onTransitionReady android.os.BinderProxy@484d9c8: {id=302 t=OPEN f=0x0 trk=0 r=[] c=[]}
+11-26 14:32:42.869   776   808 V WindowManagerShell: No transition roots in (#302)android.os.BinderProxy@484d9c8@0 so abort
+11-26 14:32:42.869   776   808 V WindowManagerShell: Transition animation finished (aborted=true), notifying core (#302)android.os.BinderProxy@484d9c8@0
+11-26 14:32:42.869   482   501 V WindowManager: Sent Transition #302 createdAt=11-26 14:32:42.866 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=42 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=1908414 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{c7b0767 Task{b528b43 #42 type=home A=10122:com.prismtv.launcher}}} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{d4db914 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-26 14:32:42.869   482   501 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-26 14:32:42.869   482   501 V WindowManager:     info={id=302 t=OPEN f=0x0 trk=0 r=[] c=[]}
+11-26 14:32:42.871   482   501 V WindowManager: Finish Transition #302: created at 11-26 14:32:42.866 collect-started=0.035ms request-sent=0.623ms started=1.766ms ready=1.755ms sent=2.567ms finished=4.678ms
+11-26 14:32:42.871   776   808 V WindowManagerShell: Track 0 became idle
+11-26 14:32:42.871   776   808 V WindowManagerShell: All active transition animations finished
+11-26 14:32:42.906 12466 12466 D PrismDraw: Full
+11-26 14:32:42.906 12466 12466 D PrismDraw: Scene
+11-26 14:32:42.906 12466 12466 D PrismDraw: Background
+11-26 14:32:43.082 12466 12590 D EGL_emulation: app_time_stats: avg=2399.36ms min=111.97ms max=4686.75ms count=2
+11-26 14:32:43.146 12466 12466 D PrismComp: settings
+11-26 14:32:43.146 12466 12466 D PrismComp: row
+11-26 14:32:43.146 12466 12466 D PrismComp: row
+11-26 14:32:43.146 12466 12466 D PrismComp: row
+11-26 14:32:43.146 12466 12466 D PrismComp: row
+11-26 14:32:43.146 12466 12466 D PrismComp: row
+11-26 14:32:43.184 12466 12466 D PrismDraw: Full
+11-26 14:32:43.233 12466 12466 D PrismDraw: Scene
+11-26 14:32:43.233 12466 12466 D PrismDraw: Background
+11-26 14:32:44.407   326  2041 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 21999360
+11-26 14:32:44.467 12466 12590 D EGL_emulation: app_time_stats: avg=1385.06ms min=1385.06ms max=1385.06ms count=1
+11-26 14:32:44.483 12466 12466 I Choreographer: Skipped 76 frames!  The application may be doing too much work on its main thread.
+11-26 14:32:44.550   482   562 D ActivityManager: freezing 12459 com.google.android.youtube.tv.recommendations
+11-26 14:32:44.551   482   562 D ActivityManager: freezing 12505 com.google.android.gms
+11-26 14:32:44.551   482   562 D ActivityManager: freezing 12507 com.google.process.gservices
+11-26 14:32:44.797 12466 12589 I OpenGLRenderer: Davey! duration=1533ms; Flags=0, FrameTimelineVsyncId=129604, IntendedVsync=1910017915553, Vsync=1910151248881, InputEventId=0, HandleInputStart=1910157472367, AnimationStart=1910157475441, PerformTraversalsStart=1910216574278, DrawStart=1910216705814, FrameDeadline=1910201248879, FrameInterval=1910153658851, FrameStartTime=16666666, SyncQueued=1910269441166, SyncStart=1910269512883, IssueDrawCommandsStart=1910269679631, SwapBuffers=1911465136333, FrameCompleted=1911551382270, DequeueBufferDuration=5027, QueueBufferDuration=169933, GpuCompleted=1911551382270, SwapBuffersCompleted=1911537537104, DisplayPresentTime=0, CommandSubmissionCompleted=1911465136333, 
+11-26 14:32:44.826 12466 12485 W rismtv.launcher: Cleared Reference was only reachable from finalizer (only reported once)
+11-26 14:32:44.848 12466 12485 I rismtv.launcher: Background concurrent copying GC freed 50241(2845KB) AllocSpace objects, 20(540KB) LOS objects, 49% free, 5952KB/11MB, paused 41us,14us total 373.216ms
+11-26 14:32:44.850 12466 12487 W rismtv.launcher: ApkAssets: Deleting an ApkAssets object '<empty> and /system/priv-app/Shell/Shell.apk' with 1 weak references
+11-26 14:32:44.851 12466 12487 W rismtv.launcher: ApkAssets: Deleting an ApkAssets object '<empty> and /product/priv-app/TVLauncher/TVLauncher.apk' with 1 weak references
+11-26 14:32:44.851 12466 12487 W rismtv.launcher: ApkAssets: Deleting an ApkAssets object '<empty> and /system/framework/framework-res.apk' with 1 weak references
+11-26 14:32:44.966 12466 12589 I OpenGLRenderer: Davey! duration=1637ms; Flags=0, FrameTimelineVsyncId=129633, IntendedVsync=1910284582209, Vsync=1911551248825, InputEventId=0, HandleInputStart=1911764320922, AnimationStart=1911764326410, PerformTraversalsStart=1911790554078, DrawStart=1911790800454, FrameDeadline=1911917915477, FrameInterval=1911552892579, FrameStartTime=16666666, SyncQueued=1911792974394, SyncStart=1911897231337, IssueDrawCommandsStart=1911897575298, SwapBuffers=1911899061486, FrameCompleted=1912026027338, DequeueBufferDuration=7893328, QueueBufferDuration=671698, GpuCompleted=1912018063135, SwapBuffersCompleted=1912026027338, DisplayPresentTime=0, CommandSubmissionCompleted=1911899061486, 
+11-26 14:32:45.412 12466 12627 I PrismMem: Settings opened: native 29.0 MB → 28.9 MB
+11-26 14:32:45.895   374  1210 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-26 14:32:45.895   374  1210 D AF::TrackHandle: OpPlayAudio: track:162 usage:13 not muted
+11-26 14:32:45.896   374   399 D audioserver: FGS Logger Transaction failed
+11-26 14:32:45.896   374   399 D audioserver: -129
+11-26 14:32:45.942   374   467 D AudioFlinger: mixer(0xee725e20) throttle end: throttle time(33)
+11-26 14:32:46.192 12466 12590 D EGL_emulation: app_time_stats: avg=429.16ms min=80.13ms max=1155.95ms count=4
+11-26 14:32:47.008   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:32:47.008   374   467 D audioserver: -129
+11-26 14:32:48.455 12800 12800 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-26 14:32:48.455 12800 12800 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-26 14:32:48.463   131   131 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-26 14:32:48.463 12800 12801 I Gralloc4: mapper 4.x is not supported
+11-26 14:32:48.762   374   399 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-26 14:32:48.763   374   399 D AF::TrackHandle: OpPlayAudio: track:163 usage:13 not muted
+11-26 14:32:48.763   374   399 D audioserver: FGS Logger Transaction failed
+11-26 14:32:48.763   374   399 D audioserver: -129
+11-26 14:32:48.764   374   397 D audioserver: FGS Logger Transaction failed
+11-26 14:32:48.765   374   397 D audioserver: -129
+11-26 14:32:48.848 12466 12590 D EGL_emulation: app_time_stats: avg=1323.84ms min=77.99ms max=2569.70ms count=2
+11-26 14:32:49.161   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:32:49.161   374   467 D audioserver: -129
+11-26 14:32:49.413   374   397 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-26 14:32:49.414   374   397 D AF::TrackHandle: OpPlayAudio: track:164 usage:13 not muted
+11-26 14:32:49.416   374   397 D audioserver: FGS Logger Transaction failed
+11-26 14:32:49.416   374   397 D audioserver: -129
+11-26 14:32:49.418   374  1210 D audioserver: FGS Logger Transaction failed
+11-26 14:32:49.418   374  1210 D audioserver: -129
+11-26 14:32:49.434 11385 12822 E TransferThread: java.io.IOException: Stream closed
+11-26 14:32:49.434 11385 12822 E TransferThread: 	at java.io.BufferedInputStream.getBufIfOpen(BufferedInputStream.java:163)
+11-26 14:32:49.434 11385 12822 E TransferThread: 	at java.io.BufferedInputStream.read(BufferedInputStream.java:329)
+11-26 14:32:49.434 11385 12822 E TransferThread: 	at java.io.FilterInputStream.read(FilterInputStream.java:107)
+11-26 14:32:49.434 11385 12822 E TransferThread: 	at rikka.shizuku.Jj.run(SourceFile:9)
+11-26 14:32:49.503   374  1210 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-26 14:32:49.506   374  1210 D AF::TrackHandle: OpPlayAudio: track:165 usage:13 not muted
+11-26 14:32:49.507   374  1210 D audioserver: FGS Logger Transaction failed
+11-26 14:32:49.507   374  1210 D audioserver: -129
+11-26 14:32:49.530 12466 12466 D PrismComp: row
+11-26 14:32:49.896 12466 12590 D EGL_emulation: app_time_stats: avg=171.92ms min=74.72ms max=389.16ms count=6
+11-26 14:32:49.964   482   512 I ActivityManager: Test idle passed
+11-26 14:32:50.226   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:32:50.226   374   467 D audioserver: -129
+11-26 14:32:50.589   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:32:50.589   374   467 D audioserver: -129
+11-26 14:32:51.414   482   562 D ActivityManager: freezing 12628 com.google.android.permissioncontroller
+11-26 14:32:53.312 12466 12590 D EGL_emulation: app_time_stats: avg=1708.17ms min=71.83ms max=3344.51ms count=2
+11-26 14:32:53.456   326  2041 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 22364928
+11-26 14:32:54.964   482   512 I ActivityManager: Test idle passed
+11-26 14:32:56.617   482   496 W System  : A resource failed to call close. 
+11-26 14:32:58.444 12451 12452 I AidlLazyServiceRegistrar: Process has 0 (of 1 available) client(s) in use after notification artd has clients: 0
+11-26 14:32:58.444 12451 12452 I AidlLazyServiceRegistrar: Trying to shut down the service. No clients in use for any service in process.
+11-26 14:32:58.446 12451 12452 I AidlLazyServiceRegistrar: Unregistered all clients and exiting
+11-26 14:33:01.657 12851 12851 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-26 14:33:01.657 12851 12851 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-26 14:33:01.667   131   131 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-26 14:33:01.667 12851 12852 I Gralloc4: mapper 4.x is not supported
+11-26 14:33:02.117 12857 12857 I artd    : Starting artd
+11-26 14:33:02.117 12857 12857 I AidlLazyServiceRegistrar: Registering service artd
+11-26 14:33:02.125 12857 12858 W ziparchive: Unable to open '/data/app/~~LGXejN6HTZ1Daa4EZYR3ng==/com.prismtv.launcher-MGkzxzg8wGuPk3Da5nxe0g==/base.dm': No such file or directory
+11-26 14:33:02.125 12857 12858 W ziparchive: Unable to open '/data/app/~~LGXejN6HTZ1Daa4EZYR3ng==/com.prismtv.launcher-MGkzxzg8wGuPk3Da5nxe0g==/base.dm': No such file or directory
+11-26 14:33:02.180   482   545 W ActivityTaskManager: callingPackage for (uid=2000, pid=12869) has no WPC
+11-26 14:33:02.181   482   545 E CellBroadcastUtils: getDefaultCellBroadcastReceiverPackageName: no package found
+11-26 14:33:02.182   776   808 V WindowManagerShell: Transition requested: android.os.BinderProxy@f890247 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=42 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=1908414 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@5f1ca74} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{d5abb9d com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-26 14:33:02.182   482   545 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.prismtv.launcher/.MainActivity (has extras)} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=3
+11-26 14:33:02.183   482   501 V WindowManager: Sent Transition #303 createdAt=11-26 14:33:02.180 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=42 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10008000 cmp=com.prismtv.launcher/.MainActivity } baseActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} topActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} origActivity=null realActivity=ComponentInfo{com.prismtv.launcher/com.prismtv.launcher.MainActivity} numActivities=1 lastActiveTime=1908414 supportsMultiWindow=false resizeMode=0 isResizeable=false minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{c7b0767 Task{b528b43 #42 type=home A=10122:com.prismtv.launcher}}} topActivityType=2 pictureInPictureParams=null shouldDockBigOverlays=true launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{d4db914 com.prismtv.launcher.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+11-26 14:33:02.183   482   501 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+11-26 14:33:02.183   482   501 V WindowManager:     info={id=303 t=OPEN f=0x0 trk=0 r=[] c=[]}
+11-26 14:33:02.183   776   808 V WindowManagerShell: onTransitionReady android.os.BinderProxy@f890247: {id=303 t=OPEN f=0x0 trk=0 r=[] c=[]}
+11-26 14:33:02.183   776   808 V WindowManagerShell: No transition roots in (#303)android.os.BinderProxy@f890247@0 so abort
+11-26 14:33:02.183   776   808 V WindowManagerShell: Transition animation finished (aborted=true), notifying core (#303)android.os.BinderProxy@f890247@0
+11-26 14:33:02.184   482   501 V WindowManager: Finish Transition #303: created at 11-26 14:33:02.180 collect-started=0.029ms request-sent=0.665ms started=1.675ms ready=1.664ms sent=2.152ms finished=3.05ms
+11-26 14:33:02.184   776   808 V WindowManagerShell: Track 0 became idle
+11-26 14:33:02.184   776   808 V WindowManagerShell: All active transition animations finished
+11-26 14:33:02.187   374  1210 W AudioFlinger: createTrack_l(): mismatch between requested flags (00000004) and output flags (00000002)
+11-26 14:33:02.187   374  1210 D AF::TrackHandle: OpPlayAudio: track:166 usage:13 not muted
+11-26 14:33:02.188   374  1210 D audioserver: FGS Logger Transaction failed
+11-26 14:33:02.188   374  1210 D audioserver: -129
+11-26 14:33:02.189   374   399 D audioserver: FGS Logger Transaction failed
+11-26 14:33:02.189   374   399 D audioserver: -129
+11-26 14:33:02.235   374   467 D AudioFlinger: mixer(0xee725e20) throttle end: throttle time(33)
+11-26 14:33:02.274 12466 12466 D PrismComp: settings
+11-26 14:33:02.274 12466 12466 D PrismComp: row
+11-26 14:33:02.274 12466 12466 D PrismComp: row
+11-26 14:33:02.274 12466 12466 D PrismComp: row
+11-26 14:33:02.274 12466 12466 D PrismComp: row
+11-26 14:33:02.274 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.275 12466 12466 D PrismComp: row
+11-26 14:33:02.338 12466 12466 D PrismDraw: Full
+11-26 14:33:02.338 12466 12466 D PrismDraw: Scene
+11-26 14:33:02.338 12466 12466 D PrismDraw: Background
+11-26 14:33:02.627 12466 12590 D EGL_emulation: app_time_stats: avg=1861.95ms min=67.15ms max=8994.77ms count=5
+11-26 14:33:02.774 12466 12466 D PrismDraw: Full
+11-26 14:33:02.789 12466 12466 I PrismSwitcher: open: wallpaper=scene:prism-dusk videoLayer=false poster=false still=1920x1080
+11-26 14:33:02.852 12466 12466 D PrismDraw: Full
+11-26 14:33:02.913 12466 12485 I rismtv.launcher: NativeAlloc concurrent copying GC freed 21200(1059KB) AllocSpace objects, 6(148KB) LOS objects, 49% free, 6695KB/13MB, paused 45us,16us total 202.967ms
+11-26 14:33:02.915 12466 12487 W System  : A resource failed to call close. 
+11-26 14:33:03.028   374   467 D audioserver: FGS Logger Transaction failed
+11-26 14:33:03.028   374   467 D audioserver: -129
+11-26 14:33:03.445 12857 12858 I AidlLazyServiceRegistrar: Process has 1 (of 1 available) client(s) in use after notification artd has clients: 1
+11-26 14:33:04.384 12466 12590 D EGL_emulation: app_time_stats: avg=878.10ms min=77.15ms max=1679.04ms count=2
+11-26 14:33:04.405 12466 12466 I Choreographer: Skipped 95 frames!  The application may be doing too much work on its main thread.
+11-26 14:33:04.420 12466 12613 I OpenGLRenderer: Davey! duration=2000ms; Flags=0, FrameTimelineVsyncId=129901, IntendedVsync=1929467914775, Vsync=1929701248099, InputEventId=0, HandleInputStart=1929701898735, AnimationStart=1929701902050, PerformTraversalsStart=1929819017923, DrawStart=1929819146694, FrameDeadline=1929801248095, FrameInterval=1929701740190, FrameStartTime=16666666, SyncQueued=1929857056900, SyncStart=1929857123178, IssueDrawCommandsStart=1929857437866, SwapBuffers=1931382068594, FrameCompleted=1931468038816, DequeueBufferDuration=5899, QueueBufferDuration=161410, GpuCompleted=1931468038816, SwapBuffersCompleted=1931453810777, DisplayPresentTime=0, CommandSubmissionCompleted=1931382068594, 
+11-26 14:33:04.436 12466 12466 D PrismDraw: Full
+11-26 14:33:04.875 12466 12627 I PrismMem: Switcher opened: native 31.1 MB → 47.2 MB
+11-26 14:33:04.995 12466 12613 I OpenGLRenderer: Davey! duration=1975ms; Flags=0, FrameTimelineVsyncId=129931, IntendedVsync=1929884581425, Vsync=1931467914695, InputEventId=0, HandleInputStart=1931475106653, AnimationStart=1931475109797, PerformTraversalsStart=1931495609415, DrawStart=1931495773309, FrameDeadline=1931734581351, FrameInterval=1931474923360, FrameStartTime=16666666, SyncQueued=1931506600816, SyncStart=1931697557138, IssueDrawCommandsStart=1931697936261, SwapBuffers=1931938437420, FrameCompleted=1932051374644, DequeueBufferDuration=5258, QueueBufferDuration=445232, GpuCompleted=1932051374644, SwapBuffersCompleted=1932044841267, DisplayPresentTime=0, CommandSubmissionCompleted=1931938437420, 
+11-26 14:33:05.896   326  2041 D android.hardware.audio@7.1-impl.ranchu: threadLoop: entering standby, frames: 22545536
+11-26 14:33:06.243 12880 12880 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+11-26 14:33:06.243 12880 12880 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+11-26 14:33:06.253   131   131 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+11-26 14:33:06.253 12880 12881 I Gralloc4: mapper 4.x is not supported
