@@ -193,12 +193,13 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(androidx.compose.foundation.layout.WindowInsets.navigationBars)
-                    .padding(bottom = 26.dp),
+                    .padding(bottom = 6.dp),
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 val shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
                 val glass = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
-                else Brush.verticalGradient(listOf(lift(c.panel), c.panel))
+                // Well see-through, like the side keyboard's frosted panel (an app's screen can't be blurred here).
+                else Brush.verticalGradient(listOf(lift(c.panel).copy(alpha = 0.52f), c.panel.copy(alpha = 0.62f)))
                 Box(
                     Modifier
                         .background(glass, shape)

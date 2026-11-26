@@ -122,10 +122,10 @@ data class KeyboardMetrics(
         /** Prism's own text entry (over the Home Screen). */
         val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f, gridKeyH = 37f)
         /** The ABC grid down the left of the screen, as on Apple TV (Prism's own Search and text entry). */
-        val Side = KeyboardMetrics(width = 330f, keyH = 40f, gap = 6f, pad = 0f, barH = 32f, gridKeyH = 40f)
+        val Side = KeyboardMetrics(width = 300f, keyH = 36f, gap = 5f, pad = 0f, barH = 30f, gridKeyH = 36f)
         /** The system keyboard's ABC grid in other apps: compact, at the bottom centre, the app visible either side. */
-        /** The same grid as [Side] (330 wide, 40-high keys), plus its padding. */
-        val SystemGrid = KeyboardMetrics(width = 330f + 2 * 12f, keyH = 40f, gap = 6f, pad = 12f, barH = 32f, gridKeyH = 40f)
+        /** The same grid as [Side] (300 wide, 36-high keys), plus its padding. */
+        val SystemGrid = KeyboardMetrics(width = 300f + 2 * 12f, keyH = 36f, gap = 5f, pad = 12f, barH = 30f, gridKeyH = 36f)
         /** The system keyboard in other apps: a little shorter so more of the app stays visible. */
         val System = KeyboardMetrics(width = 880f, keyH = 40f, gap = 7f, pad = 10f, barH = 32f, gridKeyH = 33f)
     }
@@ -414,13 +414,17 @@ private fun KeyCap(
     /** No key cap unless focused or lit, and icons for the wide labels (the narrow Apple TV-style grid). */
     bare: Boolean = false,
 ) {
-    val s by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.8f, stiffness = 520f), label = "key")
+    // Quick to pop and to settle, so the last key doesn't trail behind the new one.
+    val s by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.85f, stiffness = 1100f), label = "key")
+    // On the bare (side) grid the focused key is a key cap in the keyboard's colour (lavender, white…);
+    // a dark keyboard's grey cap wouldn't stand out, so that one keeps the bright focus.
+    val bareFocus = bare && c.key.luminance() > 0.12f
     val shape = RoundedCornerShape(10.dp)
     val isFunction = key.kind != KeyKind.Char && key.kind != KeyKind.Space
     val action = key.kind == KeyKind.Done && actionLabel != "return"
     val mic = key.kind == KeyKind.Mic && listening
     val bg = when {
-        focused -> c.focus
+        focused -> if (bareFocus) c.key else c.focus
         mic -> Color(0xFFFF375F)
         action -> Color(0xFF0A84FF)
         selected -> if (bare) c.function else c.key
@@ -430,7 +434,7 @@ private fun KeyCap(
         else -> c.key
     }
     val ink = when {
-        focused -> c.focusInk
+        focused -> if (bareFocus) c.ink else c.focusInk
         mic || action -> Color.White
         else -> c.ink
     }
@@ -443,7 +447,9 @@ private fun KeyCap(
                 scaleX = s
                 scaleY = s
                 // See-through Clear keys would show their own shadow through them, so only the focused key has one.
-                val lift = ((s - 1f) / 0.14f).coerceIn(0f, 1f)
+                // The shadow belongs to the focused key only: it goes the moment focus leaves (it used to
+                // fade with the settling key, a smudge trailing a step behind).
+                val lift = if (focused) ((s - 1f) / 0.14f).coerceIn(0f, 1f) else 0f
                 shadowElevation = (if (c.clear || bare) lerpF(0f, 14f, lift) else lerpF(1f, 14f, lift)).dp.toPx()
                 this.shape = shape
                 clip = true
@@ -586,14 +592,12 @@ fun KeyboardOverlay(
 }
 
 /** Where the side keyboard sits on the 960 × 540 canvas; Search puts its results to the right of it. */
-private const val SidePad = 12f
-
 object SideKeyboardLayout {
-    const val Left = 56f
+    const val Left = 52f
     /** The field, chips and grid (about 400 high) centred on the 540-high screen. */
-    const val Top = 52f
+    const val Top = 48f
     val Width: Float get() = KeyboardMetrics.Side.width
-    val Right: Float get() = Left + Width + SidePad * 2
+    val Right: Float get() = Left + Width
 }
 
 /**
@@ -612,8 +616,8 @@ private fun SideKeyboard(
 ) {
     val theme = LocalPrism.current
     val p = theme.palette
-    // Key caps in the keyboard colour, on a panel like the bottom keyboard's.
-    val c = keyColoursFor(look, clear)
+    // Keys follow the keyboard colour; Clear has no panel to be clear over, so it takes the backdrop's shade.
+    val c = if (clear) keyColoursFor(if (p.isDark) Appearance.Dark else Appearance.Light) else keyColoursFor(look)
     val m = KeyboardMetrics.Side
     val kb = vm.keyboardController
     Box(
@@ -646,24 +650,10 @@ private fun SideKeyboard(
             }
             SideField(vm, req, p.textPrimary, m)
             Box(Modifier.height(10.dp))
-            // The suggestions and keys on Prism's keyboard panel: frosted in the keyboard colour (clear Liquid
-            // Glass for Clear), key caps like the bottom keyboard.
-            val base = LocalPrism.current
-            val panelTheme = if (clear) base.copy(palette = Palettes.of(Appearance.Dark), material = GlassMaterial.Liquid, clearTint = true) else base
-            CompositionLocalProvider(LocalPrism provides panelTheme) {
-                Column(
-                    Modifier
-                        .then(
-                            if (clear) Modifier.glass(RoundedCornerShape(26.dp), Color.Black.copy(alpha = 0.16f), GlassSource.Full, elevation = 22.dp, blurredLens = true, rimStrength = 1.3f)
-                            else Modifier.glass(RoundedCornerShape(26.dp), c.panel, GlassSource.Full, elevation = 22.dp, frosted = true)
-                        )
-                        .padding(SidePad.dp),
-                ) {
-                    SuggestionChips(kb, c, m, active)
-                    Box(Modifier.height(m.gap.dp))
-                    KeyboardKeys(kb, c, m, active = active, bar = false)
-                }
-            }
+            SuggestionChips(kb, c, m, active)
+            Box(Modifier.height(10.dp))
+            // Letters without key caps, as on Apple TV; the focused key pops out as a cap in the keyboard colour.
+            KeyboardKeys(kb, c, m, active = active, bare = true, bar = false)
         }
     }
 }
