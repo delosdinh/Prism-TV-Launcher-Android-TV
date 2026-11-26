@@ -586,12 +586,14 @@ fun KeyboardOverlay(
 }
 
 /** Where the side keyboard sits on the 960 × 540 canvas; Search puts its results to the right of it. */
+private const val SidePad = 12f
+
 object SideKeyboardLayout {
     const val Left = 56f
     /** The field, chips and grid (about 400 high) centred on the 540-high screen. */
-    const val Top = 64f
+    const val Top = 52f
     val Width: Float get() = KeyboardMetrics.Side.width
-    val Right: Float get() = Left + Width
+    val Right: Float get() = Left + Width + SidePad * 2
 }
 
 /**
@@ -610,8 +612,8 @@ private fun SideKeyboard(
 ) {
     val theme = LocalPrism.current
     val p = theme.palette
-    // Keys follow the keyboard colour; Clear has no panel to be clear over, so it takes the backdrop's shade.
-    val c = if (clear) keyColoursFor(if (p.isDark) Appearance.Dark else Appearance.Light) else keyColoursFor(look)
+    // Key caps in the keyboard colour, on a panel like the bottom keyboard's.
+    val c = keyColoursFor(look, clear)
     val m = KeyboardMetrics.Side
     val kb = vm.keyboardController
     Box(
@@ -637,17 +639,31 @@ private fun SideKeyboard(
         Column(
             Modifier
                 .offset(SideKeyboardLayout.Left.dp, SideKeyboardLayout.Top.dp)
-                .graphicsLayer { translationX = (1f - t) * -40.dp.toPx() }
-                .width(m.width.dp),
+                .graphicsLayer { translationX = (1f - t) * -40.dp.toPx() },
         ) {
             if (req.title.isNotBlank()) {
                 PText(req.title, 14.sp, FontWeight.SemiBold, p.textSecondary, Modifier.padding(start = 2.dp, bottom = 4.dp))
             }
             SideField(vm, req, p.textPrimary, m)
             Box(Modifier.height(10.dp))
-            SuggestionChips(kb, c, m, active)
-            Box(Modifier.height(10.dp))
-            KeyboardKeys(kb, c, m, active = active, bare = true, bar = false)
+            // The suggestions and keys on Prism's keyboard panel: frosted in the keyboard colour (clear Liquid
+            // Glass for Clear), key caps like the bottom keyboard.
+            val base = LocalPrism.current
+            val panelTheme = if (clear) base.copy(palette = Palettes.of(Appearance.Dark), material = GlassMaterial.Liquid, clearTint = true) else base
+            CompositionLocalProvider(LocalPrism provides panelTheme) {
+                Column(
+                    Modifier
+                        .then(
+                            if (clear) Modifier.glass(RoundedCornerShape(26.dp), Color.Black.copy(alpha = 0.16f), GlassSource.Full, elevation = 22.dp, blurredLens = true, rimStrength = 1.3f)
+                            else Modifier.glass(RoundedCornerShape(26.dp), c.panel, GlassSource.Full, elevation = 22.dp, frosted = true)
+                        )
+                        .padding(SidePad.dp),
+                ) {
+                    SuggestionChips(kb, c, m, active)
+                    Box(Modifier.height(m.gap.dp))
+                    KeyboardKeys(kb, c, m, active = active, bar = false)
+                }
+            }
         }
     }
 }

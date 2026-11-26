@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -185,16 +186,25 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             // smoked see-through glass with a bright top edge.
             val fill = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
             else Brush.verticalGradient(listOf(lift(solid), solid))
-            // ABC: a compact grid at the bottom centre, the app left visible either side of it (no fade).
-            if (grid) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
-                val shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
+            // ABC: a compact grid floating at the bottom centre, the app visible either side and through it
+            // (see-through like Prism's own keyboard panel), lifted clear of any navigation bar (the AM9 has one).
+            if (grid) Box(
+                Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(androidx.compose.foundation.layout.WindowInsets.navigationBars)
+                    .padding(bottom = 26.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                val shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
+                val glass = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
+                else Brush.verticalGradient(listOf(lift(c.panel), c.panel))
                 Box(
                     Modifier
-                        .background(fill, shape)
-                        .border(1.dp, Color.White.copy(alpha = if (clear) 0.28f else 0.10f), shape)
-                        .padding(start = m.pad.dp, end = m.pad.dp, top = m.pad.dp, bottom = (m.pad + 8f).dp),
+                        .background(glass, shape)
+                        .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.22f), Color.White.copy(alpha = 0.04f))), shape)
+                        .padding(m.pad.dp),
                 ) {
-                    KeyboardKeys(kb, c, m, bare = true)
+                    KeyboardKeys(kb, c, m)
                 }
             } else Box(
                 Modifier
