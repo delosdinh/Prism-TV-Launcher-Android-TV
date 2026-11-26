@@ -5,7 +5,8 @@ import com.prismtv.launcher.BuildConfig
 
 /**
  * Prism Pro: the one-time unlock sold through Google Play (Play edition). The GitHub edition, for you
- * and friends, has Pro on always. A new Play install gets [TrialDays] days of Pro first.
+ * and friends, unlocks it with an invite code made for the TV ([Invite]); without one it works like the
+ * Play edition after its trial. A new Play install gets [TrialDays] days of Pro first.
  *
  * What's Pro follows the pricing plan: wallpapers beyond Prism's own, Card Spotlight and Title Logos,
  * Widgets, Lift & Shine and Focus Wobble, choosing Material Colour by hand, transparency levels, icon
@@ -20,9 +21,6 @@ object Pro {
     const val ProductId = "prism_pro"
     const val TrialDays = 7
     private const val DayMs = 24L * 60 * 60 * 1000
-
-    /** The GitHub edition: everything unlocked. */
-    val alwaysOn: Boolean get() = !BuildConfig.PLAY
 
     private fun sp(ctx: Context) = ctx.applicationContext.getSharedPreferences("prism_pro", Context.MODE_PRIVATE)
 
@@ -57,7 +55,8 @@ object Pro {
         sp(ctx).edit().putLong("trialStart", start).putBoolean("owned", state == "owned").apply()
     }
 
-    fun active(ctx: Context): Boolean = alwaysOn || owned(ctx) || trialDaysLeft(ctx) > 0
+    fun active(ctx: Context): Boolean =
+        if (BuildConfig.PLAY) owned(ctx) || trialDaysLeft(ctx) > 0 else Invite.unlocked(ctx)
 
     /**
      * Settings as they are without Pro: what was set with Pro goes back to the free choice, so nothing

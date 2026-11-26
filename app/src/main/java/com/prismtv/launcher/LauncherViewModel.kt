@@ -417,8 +417,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------------------------------------------------------- Prism Pro (Play edition)
 
-    /** Pro is on: always in the GitHub edition; bought, or in the free trial, in the Play edition. */
-    var proActive by mutableStateOf(!BuildConfig.PLAY)
+    /** Pro is on: with an invite code (or from before them) in the GitHub edition; bought, or in the free trial, in the Play edition. */
+    var proActive by mutableStateOf(!BuildConfig.PLAY && com.prismtv.launcher.data.Pro.active(app))
         private set
     /** Pro's price from Google Play, in the viewer's currency (null until Play has said). */
     private var proPrice by mutableStateOf<String?>(null)
@@ -430,12 +430,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
      * ([com.prismtv.launcher.data.Pro.freeOnly]), so a trial that ended (or a refund) leaves nothing paid on.
      */
     private fun refreshPro() {
-        if (!BuildConfig.PLAY) return
         val on = com.prismtv.launcher.data.Pro.active(ctx)
-        val allowed = com.prismtv.launcher.data.Pro.playOnly(prefs).let { if (on) it else com.prismtv.launcher.data.Pro.freeOnly(it) }
+        val edition = if (BuildConfig.PLAY) com.prismtv.launcher.data.Pro.playOnly(prefs) else prefs
+        val allowed = if (on) edition else com.prismtv.launcher.data.Pro.freeOnly(edition)
         if (allowed != prefs) updatePrefs(allowed)
         if (proActive != on) {
-            if (proActive && !on) showBanner("Prism Pro", "Your free trial of Prism Pro has ended. Settings › Prism Pro unlocks it again.", Icons.Rounded.Info)
+            if (proActive && !on) showBanner(
+                "Prism Pro",
+                if (BuildConfig.PLAY) "Your free trial of Prism Pro has ended. Settings › Prism Pro unlocks it again."
+                else "Prism Pro needs an invite code on this TV. Settings › Prism Pro shows how to get one.",
+                Icons.Rounded.Info,
+            )
             proActive = on
         }
     }
@@ -466,12 +471,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun proLabel(): String = when {
+        !BuildConfig.PLAY -> if (proActive) "Unlocked" else "Invite Code"
         proActive && com.prismtv.launcher.data.Pro.owned(ctx) -> "Unlocked"
         proActive -> com.prismtv.launcher.data.Pro.trialDaysLeft(ctx).let { "Trial · $it ${if (it == 1) "Day" else "Days"} Left" }
         else -> proPrice ?: "Unlock"
     }
 
     private fun proRows(): List<SettingsRow> {
+        if (!BuildConfig.PLAY) return inviteRows()
         val owned = com.prismtv.launcher.data.Pro.owned(ctx)
         val days = com.prismtv.launcher.data.Pro.trialDaysLeft(ctx)
         val top = if (owned) {
@@ -490,8 +497,67 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun openPro(feature: String) {
         pushPage(SettingsPage.Pro)
         settingsFocus[SettingsPage.Pro] = 0
-        com.prismtv.launcher.data.ProStore.refresh()
-        showBanner("Prism Pro", "$feature is part of Prism Pro.", Icons.Rounded.Info)
+        if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
+        showBanner(
+            "Prism Pro",
+            if (BuildConfig.PLAY) "$feature is part of Prism Pro." else "$feature is part of Prism Pro. An invite code unlocks it.",
+            Icons.Rounded.Info,
+        )
+    }
+
+    /** GitHub edition: Settings › Prism Pro, with this TV's ID to send for an invite code. */
+    private fun inviteRows(): List<SettingsRow> {
+        val top = if (proActive) {
+            listOf(SettingsRow("pro:status", "Prism Pro", "PRISM PRO", "Unlocked"))
+        } else {
+            listOf(
+                SettingsRow("pro:invite", "Enter Invite Code", "PRISM PRO", chevron = true),
+                SettingsRow("pro:id", "This TV's ID", "SEND THIS ID TO GET A CODE", com.prismtv.launcher.data.Invite.deviceId(ctx)),
+            )
+        }
+        return top + ProFeatures.mapIndexed { i, f -> SettingsRow("pro:what:$i", f, "WHAT'S IN PRO") }
+    }
+
+    /** Prism's keyboard for an invite code; checked on the TV, no internet needed. */
+    private fun enterInviteCode() {
+        val id = com.prismtv.launcher.data.Invite.deviceId(ctx)
+        openKeyboard("Invite Code for $id", "", "XXXXX-XXXXX", plain = true) { code ->
+            if (code.isBlank()) return@openKeyboard
+            if (com.prismtv.launcher.data.Invite.redeem(ctx, code)) {
+                refreshPro()
+                resumeTick++
+                showBanner("Prism Pro", "Prism Pro is unlocked on this TV. Enjoy!", Icons.Rounded.CheckCircle, Cue.Confirm)
+            } else {
+                showBanner(
+                    "Prism Pro",
+                    if (com.prismtv.launcher.data.Invite.configured) "That code isn't for this TV ($id). Check it and try again."
+                    else "This build can't check invite codes. Update Prism TV, then try again.",
+                    Icons.Rounded.Info,
+                    Cue.Error,
+                )
+            }
+        }
+    }
+
+    /** GitHub edition, first run of a fresh install: ask once for an invite code. */
+    private fun maybeAskForInvite() {
+        if (BuildConfig.PLAY || debugDriven || isEmulator || dialog != null) return
+        if (!com.prismtv.launcher.data.Invite.shouldPrompt(ctx)) return
+        com.prismtv.launcher.data.Invite.prompted(ctx)
+        val id = com.prismtv.launcher.data.Invite.deviceId(ctx)
+        dialog = DialogSpec(
+            "Welcome to Prism TV",
+            "Prism Pro is unlocked with an invite code made for this TV. Send this TV's ID to the person who " +
+                "shared Prism TV with you, then enter the code they send back. Without one, Prism TV works with its free features.",
+            listOf(
+                DialogButton("Enter Code") { enterInviteCode() },
+                DialogButton("Not Now") {},
+            ),
+            code = id,
+            codeNote = "This TV's ID. Settings › Prism Pro shows it again.",
+        )
+        dialogFocus = 0
+        cue(Cue.Notify)
     }
 
     /** MainActivity: Google Play's purchase sheet couldn't open. */
@@ -1386,13 +1452,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     // ================================================================= keyboard
 
-    fun openKeyboard(title: String, initial: String, placeholder: String = "", onDone: (String) -> Unit) {
+    /** [plain]: a code, not words (no predictions, corrections, capitals or dictation). */
+    fun openKeyboard(title: String, initial: String, placeholder: String = "", plain: Boolean = false, onDone: (String) -> Unit) {
         keyboardEditor.text = initial
         val kb = keyboardController
-        kb.suggestionsOn = prefs.predictive || prefs.autoCorrect
-        kb.autoCorrectOn = prefs.autoCorrect
-        kb.autoCapOn = true
-        kb.micOn = true
+        kb.suggestionsOn = !plain && (prefs.predictive || prefs.autoCorrect)
+        kb.autoCorrectOn = !plain && prefs.autoCorrect
+        kb.autoCapOn = !plain
+        kb.micOn = !plain
         kb.actionLabel = "done"
         com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical = prefs.keyboardLayout == KeyboardLayoutStyle.Abc
         kb.reset()
@@ -1706,6 +1773,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         noteInteraction()
         resumeTick++
         refreshPro()
+        maybeAskForInvite()
         if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
         refreshRecommendations()
         maybeAutoCheckForUpdate()
@@ -4456,7 +4524,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // user comes back from Android's settings.
         // Grouped like tvOS: you and how it looks, then apps, the remote, and the system.
         SettingsPage.Root -> resumeTick.let { _ -> listOfNotNull(
-            if (BuildConfig.PLAY) SettingsRow("pro", "Prism Pro", "GENERAL", proLabel(), chevron = true) else null,
+            if (BuildConfig.PLAY || !proActive) SettingsRow("pro", "Prism Pro", "GENERAL", proLabel(), chevron = true) else null,
             SettingsRow("profile", "Profiles", "GENERAL", profileName(), chevron = true),
             SettingsRow("appearance", "Appearance", "GENERAL", prefs.appearance.label, chevron = true),
             SettingsRow("home", "Home Screen", "GENERAL", chevron = true),
@@ -4762,8 +4830,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         when {
             r.id == "pro" -> {
                 pushPage(SettingsPage.Pro)
-                com.prismtv.launcher.data.ProStore.refresh()
+                if (BuildConfig.PLAY) com.prismtv.launcher.data.ProStore.refresh()
             }
+            r.id == "pro:invite" -> enterInviteCode()
             r.id == "pro:buy" -> purchaseTick++
             r.id == "pro:restore" -> {
                 com.prismtv.launcher.data.ProStore.refresh()
@@ -5867,6 +5936,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // Play edition: Prism Pro as on a trial, after it, or bought.
         b.getString("pro")?.let {
             com.prismtv.launcher.data.Pro.debugSet(ctx, it)
+            refreshPro()
+        }
+        // GitHub edition: unlocked as with an invite code ("ok"), or not ("locked").
+        b.getString("invite")?.let {
+            if (!BuildConfig.PLAY) com.prismtv.launcher.data.Invite.debugSet(ctx, it)
             refreshPro()
         }
         // A banner that stays up for the screenshot.
