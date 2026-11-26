@@ -205,14 +205,14 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 val shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
                 // The side keyboard's glass: the Settings veil over a frosted screen with a glow of its
                 // accent, bare letters, only the focused key a cap in the keyboard colour. Where Android
-                // can blur another app (frosted) the window itself is the frosted veil; elsewhere the veil
-                // is laid on a little thicker so the letters stay readable over a sharp picture.
-                val tint = if (frosted) Color.Transparent else veil.copy(alpha = maxOf(veil.alpha, 0.80f))
+                // can blur another app (frosted) the window itself is the frosted veil; elsewhere a lighter
+                // veil, so the app stays visible through it.
+                val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * 0.6f)
                 Box(
                     Modifier
                         .then(if (clear) Modifier.background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f))), shape)
                         else Modifier.background(tint, shape).background(
-                            Brush.radialGradient(listOf(glow.copy(alpha = 0.35f), Color.Transparent)), shape,
+                            Brush.radialGradient(listOf(glow.copy(alpha = 0.22f), Color.Transparent)), shape,
                         ))
                         .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.14f), Color.White.copy(alpha = 0.03f))), shape)
                         .padding(m.pad.dp),
@@ -271,9 +271,9 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             w.attributes = w.attributes.also { it.y = bar + (6 * px).toInt() }
             w.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = 26 * px
-                setColor(android.graphics.Color.argb((veil.alpha * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
+                setColor(android.graphics.Color.argb((veil.alpha * 0.6f * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
             })
-            w.setBackgroundBlurRadius((40 * px).toInt())
+            w.setBackgroundBlurRadius((24 * px).toInt())
             frosted = true
         } else {
             w.setBackgroundBlurRadius(0)
