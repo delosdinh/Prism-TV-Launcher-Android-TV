@@ -14,7 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 
-enum class KeyKind { Char, Shift, Delete, Layer, Space, Done, Emoji, Mic, EmojiCategory }
+enum class KeyKind { Char, Shift, Delete, Clear, Layer, Space, Done, Emoji, Mic, EmojiCategory }
 
 /** A key: [units] wide (10 per row); [target] is the layer (Layer) or category (EmojiCategory). */
 data class Key(val label: String, val kind: KeyKind = KeyKind.Char, val units: Float = 1f, val target: Int = 0)
@@ -28,13 +28,14 @@ object KeyboardLayout {
 
     private fun chars(s: String) = s.map { Key(it.toString()) }
 
-    /** 123 · emoji · space · mic · return — the mic sits between space and the return key. */
+    /** 123 · emoji · space · mic · clear · return. Clear empties the field (Delete straight after puts it back). */
     private fun bottom(switchLabel: String, switchTarget: Int) = listOf(
-        Key(switchLabel, KeyKind.Layer, 1.5f, target = switchTarget),
-        Key("emoji", KeyKind.Emoji, 1.25f),
+        Key(switchLabel, KeyKind.Layer, 1.25f, target = switchTarget),
+        Key("emoji", KeyKind.Emoji, 1f),
         Key("space", KeyKind.Space, 4f),
-        Key("mic", KeyKind.Mic, 1.25f),
-        Key("return", KeyKind.Done, 2f),
+        Key("mic", KeyKind.Mic, 1f),
+        Key("clear", KeyKind.Clear, 1f),
+        Key("return", KeyKind.Done, 1.75f),
     )
 
     private val letterRows: List<List<Key>> = listOf(
@@ -62,43 +63,60 @@ object KeyboardLayout {
         Key("delete", KeyKind.Delete, 1f)
 
     /**
-     * Settings › Keyboard › Layout: the ABC grid instead of QWERTY (the letters only; 123, #+= and emoji
-     * are shared). Set from the saved setting wherever a keyboard opens.
+     * Settings › Keyboard › Keyboard Layout: the tvOS-style ABC grid (with its own 123 and #+= grids)
+     * instead of QWERTY; emoji is shared. Set from the saved setting wherever a keyboard opens.
      */
     var alphabetical by mutableStateOf(false)
 
-    private const val AbcUnits = 10f / 7f
-    private fun abc(s: String) = s.map { Key(it.toString(), units = AbcUnits) }
+    private const val GridUnits = 10f / 6f
+    private fun grid(s: String) = s.map { Key(it.toString(), units = GridUnits) }
 
     /**
-     * ABC: A to Z in rows of seven, tuned for the D-pad. Short rows wrap round quickly (no key is more
-     * than three presses away along its row), space sits at the end of the second row (beside h and m,
-     * one Right from m, one Left from h), delete after z, and the rarer keys get a row of their own
-     * under the letters so they don't lengthen the letter rows. Over common English text this averages
-     * about 2.7 moves per letter against QWERTY's 2.9 (see tools/keyboard/abc_layout.py).
+     * ABC, laid out like tvOS: a row of switches on top (abc · 123 · #+= · emoji · mic · return, with the
+     * current one lit; abc again toggles capitals), then the characters six across in reading order, and
+     * space · delete · clear after the last two. Each switch sits over a column of the grid.
      */
-    private val abcRows: List<List<Key>> = listOf(
-        abc("abcdefg"),
-        abc("hijklm") + Key("space", KeyKind.Space, AbcUnits),
-        abc("nopqrst"),
-        abc("uvwxyz") + Key("delete", KeyKind.Delete, AbcUnits),
-        listOf(
-            Key("shift", KeyKind.Shift, 2f),
-            Key("123", KeyKind.Layer, 2f, target = Numbers),
-            Key("emoji", KeyKind.Emoji, 2f),
-            Key("mic", KeyKind.Mic, 2f),
-            Key("return", KeyKind.Done, 2f),
-        ),
+    private fun gridTop(current: Int) = listOf(
+        if (current == Letters) Key("abc", KeyKind.Shift, GridUnits) else Key("abc", KeyKind.Layer, GridUnits, target = Letters),
+        Key("123", KeyKind.Layer, GridUnits, target = Numbers),
+        Key("#+=", KeyKind.Layer, GridUnits, target = Symbols),
+        Key("emoji", KeyKind.Emoji, GridUnits),
+        Key("mic", KeyKind.Mic, GridUnits),
+        Key("return", KeyKind.Done, GridUnits),
     )
 
+    /** Six across, then the last two characters with space, delete and clear. */
+    private fun gridRows(current: Int, chars: String): List<List<Key>> {
+        val full = chars.length - 2
+        return listOf(gridTop(current)) +
+            (0 until full step 6).map { grid(chars.substring(it, it + 6)) } +
+            listOf(
+                grid(chars.substring(full)) + listOf(
+                    Key("space", KeyKind.Space, GridUnits * 2),
+                    Key("delete", KeyKind.Delete, GridUnits),
+                    Key("clear", KeyKind.Clear, GridUnits),
+                ),
+            )
+    }
+
+    private val abcRows = gridRows(Letters, "abcdefghijklmnopqrstuvwxyz")
+    private val abcNumberRows = gridRows(Numbers, "1234567890.,?!'\"-/@#$%&*:;")
+    private val abcSymbolRows = gridRows(Symbols, "()[]{}<>+=_~\\|^`¿¡€£¥¢°§…•")
+
+    /** The row of switches on the ABC grid (row 0 of every layer but emoji). */
+    fun isSwitchRow(layer: Int, row: Int): Boolean = alphabetical && layer != Emoji && row == 0
+
     fun of(layer: Int): List<List<Key>> = when (layer) {
-        Numbers -> numberRows
-        Symbols -> symbolRows
+        Numbers -> if (alphabetical) abcNumberRows else numberRows
+        Symbols -> if (alphabetical) abcSymbolRows else symbolRows
         Emoji -> listOf(emojiBar)
         else -> if (alphabetical) abcRows else letterRows
     }
 
-    /** Where focus starts on the letters: g on QWERTY, h on ABC (the closest on average to a first letter). */
+    /** The most rows any layer has: the size the keyboard is drawn at. */
+    fun rows(): Int = if (alphabetical) 6 else 4
+
+    /** Where focus starts: g on QWERTY, a on ABC (as on tvOS). */
     fun startKey(): Pair<Int, Int> = if (alphabetical) 1 to 0 else 1 to 4
 
     /** Row starts in key units: QWERTY's second letter row is indented half a key, like iOS. */

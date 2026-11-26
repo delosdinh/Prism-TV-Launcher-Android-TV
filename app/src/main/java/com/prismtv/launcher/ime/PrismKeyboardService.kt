@@ -95,6 +95,15 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             return (ic?.getCursorCapsMode(type) ?: 0) != 0
         }
         override fun action() = performAction()
+        /** Clear empties the whole field, after the cursor too. */
+        override fun clearAll(): String {
+            val c = ic ?: return ""
+            val before = c.getTextBeforeCursor(4096, 0)?.toString().orEmpty()
+            val after = c.getTextAfterCursor(4096, 0)?.toString().orEmpty()
+            if (before.isEmpty() && after.isEmpty()) return ""
+            c.deleteSurroundingText(before.length, after.length)
+            return before + after
+        }
         override fun batch(block: () -> Unit) {
             val c = ic
             c?.beginBatchEdit()

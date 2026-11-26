@@ -150,7 +150,7 @@ private val Exact: Map<String, String> = mapOf(
     // Keyboard
     "kb:system" to "Use Prism Keyboard for typing in every app.",
     "kbColour" to "The keyboard's colour. Automatic follows Colour Mode; Clear is clear Liquid Glass.",
-    "kbLayout" to "QWERTY, or ABC: A to Z in rows of seven with space after M, which takes fewer presses with the remote.",
+    "kbLayout" to "QWERTY, or ABC: A to Z six across like Apple TV, with abc / 123 switches on top and space, delete and clear below.",
     "kbField" to "The colour of the text box above Prism's own keyboard. Other apps draw their own.",
     "kb:autocorrect" to "Fixes common typos as you type.",
     "kb:predictive" to "Suggests words above the keyboard as you type, and the likely next word after a space (learning the phrases you use, on this TV only).",

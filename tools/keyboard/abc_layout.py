@@ -87,7 +87,7 @@ def keys(s, u=1.0):
     return [(ch, u) for ch in s]
 
 
-QWERTY_BOTTOM = [("123", 1.5), ("emoji", 1.25), (SP, 4), ("mic", 1.25), ("return", 2)]
+QWERTY_BOTTOM = [("123", 1.25), ("emoji", 1), (SP, 4), ("mic", 1), ("clear", 1), ("return", 1.75)]
 QWERTY = [keys("qwertyuiop"), keys("asdfghjkl"), [("shift", 1.5)] + keys("zxcvbnm") + [("delete", 1.5)], QWERTY_BOTTOM]
 U7 = 10 / 7
 FUNCTION_ROW = [("shift", 2), ("123", 2), ("emoji", 2), ("mic", 2), ("return", 2)]
@@ -97,7 +97,8 @@ LAYOUTS = {
     "ABC, 9 a row, QWERTY's bottom row": ([keys("abcdefghi"), keys("jklmnopqr"), keys("stuvwxyz") + [("delete", 2)], QWERTY_BOTTOM], None),
     "ABC, 7 a row, keys at the row ends": ([keys("abcdefg") + [("delete", 3)], keys("hijklmn") + [(SP, 3)], keys("opqrstu") + [("shift", 1.5), ("return", 1.5)], keys("vwxyz") + [("123", 1.5), ("emoji", 1.25), ("mic", 1.25), ("'", 1)]], None),
     "ABC, 6 a row + function row (6 rows)": ([keys("abcdef"), keys("ghijkl"), keys("mnopqr"), keys("stuvwx"), keys("yz") + [(SP, 1)] + [("delete", 1)] + [("x1", 1), ("x2", 1)], FUNCTION_ROW], None),
-    "ABC, 7 a row, space after m + function row (Prism's ABC)": ([keys("abcdefg", U7), keys("hijklm", U7) + [(SP, U7)], keys("nopqrst", U7), keys("uvwxyz", U7) + [("delete", U7)], FUNCTION_ROW], None),
+    "ABC, 7 a row, space after m + function row (first draft)": ([keys("abcdefg", U7), keys("hijklm", U7) + [(SP, U7)], keys("nopqrst", U7), keys("uvwxyz", U7) + [("delete", U7)], FUNCTION_ROW], None),
+    "ABC like tvOS: switches on top, 6 a row, space/delete/clear after y z (Prism's ABC)": ([[("abc", 10 / 6), ("123", 10 / 6), ("#+=", 10 / 6), ("emoji", 10 / 6), ("mic", 10 / 6), ("return", 10 / 6)], keys("abcdef", 10 / 6), keys("ghijkl", 10 / 6), keys("mnopqr", 10 / 6), keys("stuvwx", 10 / 6), keys("yz", 10 / 6) + [(SP, 20 / 6), ("delete", 10 / 6), ("clear", 10 / 6)]], None),
 }
 
 if __name__ == "__main__":

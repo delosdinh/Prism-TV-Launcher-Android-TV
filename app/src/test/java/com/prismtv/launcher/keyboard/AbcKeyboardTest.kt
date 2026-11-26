@@ -57,89 +57,126 @@ class AbcKeyboardTest {
     private fun focused() = letters[kb.row][kb.col]
 
     @Test
-    fun lettersRunAToZThenTheKeysYouNeed() {
+    fun laidOutLikeTvOS() {
         val chars = letters.flatten().filter { it.kind == KeyKind.Char }.joinToString("") { it.label }
         assertEquals("abcdefghijklmnopqrstuvwxyz", chars)
-        assertEquals(5, letters.size)
-        assertEquals(KeyKind.Space, letters[1].last().kind) // after m
-        assertEquals(KeyKind.Delete, letters[3].last().kind) // after z
+        assertEquals(6, letters.size)
+        assertEquals(listOf("abc", "123", "#+=", "emoji", "mic", "return"), letters[0].map { it.label })
+        (1..4).forEach { assertEquals(6, letters[it].size) }
         assertEquals(
-            listOf(KeyKind.Shift, KeyKind.Layer, KeyKind.Emoji, KeyKind.Mic, KeyKind.Done),
-            letters[4].map { it.kind },
+            listOf(KeyKind.Char, KeyKind.Char, KeyKind.Space, KeyKind.Delete, KeyKind.Clear),
+            letters[5].map { it.kind },
         )
-        // Every row is the keyboard's full ten units wide.
-        letters.forEach { r -> assertEquals(10f, r.sumOf { it.units.toDouble() }.toFloat(), 0.001f) }
+        // 123 and #+= are the same grid, with the same switches on top.
+        for (layer in listOf(KeyboardLayout.Numbers, KeyboardLayout.Symbols)) {
+            val rows = KeyboardLayout.of(layer)
+            assertEquals(6, rows.size)
+            assertEquals(letters[0].map { it.label }, rows[0].map { it.label })
+            assertEquals(26, rows.flatten().count { it.kind == KeyKind.Char })
+        }
+        // Every row of every layer is the keyboard's full ten units wide.
+        for (layer in listOf(KeyboardLayout.Letters, KeyboardLayout.Numbers, KeyboardLayout.Symbols)) {
+            KeyboardLayout.of(layer).forEach { r -> assertEquals(10f, r.sumOf { it.units.toDouble() }.toFloat(), 0.001f) }
+        }
     }
 
     @Test
     fun nearestFindsEachKeyFromItsOwnCentre() {
-        letters.forEachIndexed { r, keys ->
-            keys.indices.forEach { c ->
-                assertEquals("row $r col $c", c, KeyboardLayout.nearest(KeyboardLayout.Letters, r, KeyboardLayout.centre(KeyboardLayout.Letters, r, c)))
+        for (layer in listOf(KeyboardLayout.Letters, KeyboardLayout.Numbers, KeyboardLayout.Symbols)) {
+            KeyboardLayout.of(layer).forEachIndexed { r, keys ->
+                keys.indices.forEach { c ->
+                    assertEquals("layer $layer row $r col $c", c, KeyboardLayout.nearest(layer, r, KeyboardLayout.centre(layer, r, c)))
+                }
             }
         }
     }
 
     @Test
-    fun startsOnH() {
+    fun startsOnA() {
         field.text.setLength(0)
         kb.reset()
-        assertEquals("h", focused().label)
-    }
-
-    @Test
-    fun spaceIsOnePressFromHAndM() {
-        at("Hello. ", 1, 0) // h
-        assertTrue(kb.nav(KbNav.Left)) // wraps round to space
-        assertEquals(KeyKind.Space, focused().kind)
-        kb.debugState(KeyboardLayout.Letters, 1, 5) // m
-        assertTrue(kb.nav(KbNav.Right))
-        assertEquals(KeyKind.Space, focused().kind)
+        assertEquals("a", focused().label)
     }
 
     @Test
     fun columnsLineUpDownTheGrid() {
-        at("Hello. ", 0, 2) // c
-        kb.nav(KbNav.Down); assertEquals("j", focused().label)
-        kb.nav(KbNav.Down); assertEquals("p", focused().label)
-        kb.nav(KbNav.Down); assertEquals("w", focused().label)
+        at("Hello. ", 1, 0) // a
+        kb.nav(KbNav.Down); assertEquals("g", focused().label)
+        kb.nav(KbNav.Down); assertEquals("m", focused().label)
+        kb.nav(KbNav.Down); assertEquals("s", focused().label)
+        kb.nav(KbNav.Down); assertEquals("y", focused().label)
+        kb.debugState(KeyboardLayout.Letters, 4, 2) // u
+        kb.nav(KbNav.Down); assertEquals(KeyKind.Space, focused().kind)
     }
 
     @Test
-    fun upAndDownWrapThroughTheBarAndTheFunctionRow() {
-        at("I am ", 0, 0) // a, with next-word predictions showing
+    fun leftAndRightWrapRoundARow() {
+        at("Hello. ", 1, 0) // a
+        assertTrue(kb.nav(KbNav.Left)); assertEquals("f", focused().label)
+        assertTrue(kb.nav(KbNav.Right)); assertEquals("a", focused().label)
+    }
+
+    @Test
+    fun upAndDownWrapThroughTheSwitchesAndTheBar() {
+        at("I am ", 1, 0) // a, with next-word predictions showing
         assertTrue(kb.suggestions.size > 1)
-        kb.nav(KbNav.Up) // a -> the bar
+        kb.nav(KbNav.Up) // a -> abc
+        assertEquals(0, kb.row); assertEquals("abc", focused().label)
+        kb.nav(KbNav.Up) // -> the bar
         assertEquals(-1, kb.row)
         kb.nav(KbNav.Up) // the bar wraps round to the bottom row
-        assertEquals(4, kb.row)
+        assertEquals(5, kb.row)
         kb.nav(KbNav.Down) // and back
         assertEquals(-1, kb.row)
-        kb.nav(KbNav.Down)
-        assertEquals(0, kb.row)
     }
 
     @Test
     fun typingUsesAutoCorrection() {
-        at("", 3, 6) // delete
-        kb.debugState(KeyboardLayout.Letters, 2, 6); kb.nav(KbNav.Select) // t
-        kb.debugState(KeyboardLayout.Letters, 0, 4); kb.nav(KbNav.Select) // e
-        kb.debugState(KeyboardLayout.Letters, 1, 0); kb.nav(KbNav.Select) // h
+        at("", 1, 0)
+        kb.debugState(KeyboardLayout.Letters, 4, 1); kb.nav(KbNav.Select) // t
+        kb.debugState(KeyboardLayout.Letters, 1, 4); kb.nav(KbNav.Select) // e
+        kb.debugState(KeyboardLayout.Letters, 2, 1); kb.nav(KbNav.Select) // h
         assertEquals("teh", field.text.toString())
-        kb.nav(KbNav.Left) // h -> space
-        kb.nav(KbNav.Select)
+        kb.debugState(KeyboardLayout.Letters, 5, 2); kb.nav(KbNav.Select) // space
         assertEquals("the ", field.text.toString())
     }
 
     @Test
-    fun oneTwoThreeAndBackLandsOnTheSwitchKey() {
-        at("", 4, 1) // 123
+    fun theSwitchesStayPutAcrossLayers() {
+        at("", 0, 1) // 123
         kb.nav(KbNav.Select)
         assertEquals(KeyboardLayout.Numbers, kb.layer)
-        assertEquals(KeyKind.Layer, KeyboardLayout.of(KeyboardLayout.Numbers)[kb.row][kb.col].kind) // ABC
-        kb.nav(KbNav.Select)
+        assertEquals(0, kb.row); assertEquals(1, kb.col)
+        kb.nav(KbNav.Right); kb.nav(KbNav.Select) // #+=
+        assertEquals(KeyboardLayout.Symbols, kb.layer)
+        assertEquals(0, kb.row); assertEquals(2, kb.col)
+        kb.debugState(KeyboardLayout.Symbols, 0, 0); kb.nav(KbNav.Select) // abc
         assertEquals(KeyboardLayout.Letters, kb.layer)
-        assertEquals(4, kb.row)
-        assertEquals("123", focused().label)
+        assertEquals(0, kb.row); assertEquals("abc", focused().label)
+    }
+
+    @Test
+    fun abcTogglesCapitals() {
+        at("x", 0, 0) // abc
+        kb.nav(KbNav.Select)
+        assertTrue(kb.shift)
+        kb.debugState(KeyboardLayout.Letters, 1, 1); kb.nav(KbNav.Select) // B
+        assertEquals("xB", field.text.toString())
+        assertTrue(!kb.shift)
+    }
+
+    @Test
+    fun clearEmptiesTheFieldAndDeleteBringsItBack() {
+        at("hello world", 5, 4) // clear
+        assertEquals(KeyKind.Clear, focused().kind)
+        kb.nav(KbNav.Select)
+        assertEquals("", field.text.toString())
+        kb.nav(KbNav.Delete)
+        assertEquals("hello world", field.text.toString())
+        // Only straight after: a letter in between makes Delete delete again.
+        kb.nav(KbNav.Select)
+        kb.debugState(KeyboardLayout.Letters, 1, 0); kb.nav(KbNav.Select) // a
+        kb.nav(KbNav.Delete)
+        assertEquals("", field.text.toString())
     }
 }

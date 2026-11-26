@@ -32,7 +32,8 @@ Prism Keyboard also learns the phrases you type (kept on the TV, at most 1,500) 
 
 ## ABC layout
 
-`abc_layout.py` estimates the D-pad presses per character of the QWERTY layout and the ABC grid
+`abc_layout.py` estimates the D-pad presses per character of the QWERTY layout and ABC grid
 candidates over common English text, with Prism's wrap-around navigation and the suggestion bar.
-Prism's ABC layout (rows of seven, space after m, delete after z, a function row underneath) came out
-at about 2.7 moves per character against QWERTY's 2.9.
+Prism's ABC layout follows tvOS (switches on top, six across, space · delete · clear after y and z) and
+comes out level with QWERTY at about 2.9 moves per character; a seven-across grid with space after m
+would be about 2.7.

@@ -260,10 +260,12 @@ shot 44e-keyboard-accents-quote-clear "${B[@]}" "${DARK[@]}" --es keyboardColour
 # Next-word predictions after a space: "I am " (a three-word phrase), "new " (York, capitalised).
 shot 44g-keyboard-next-word        "${B[@]}" "${DARK[@]}" --es screen keyboard --es text "'I am '" --ei keyRow -1 --ei keyCol 0
 shot 44h-keyboard-next-word-light  "${B[@]}" --es appearance light --es glass liquid --es screen keyboard --es text "'Visit new '" --ei keyRow 0 --ei keyCol 4
-# ABC layout (Settings › Keyboard › Keyboard Layout): A to Z in rows of seven, space after m.
-shot 44i-keyboard-abc-dark         "${B[@]}" "${DARK[@]}" --es kbLayout abc --es screen keyboard --es text teh --ei keyRow 1 --ei keyCol 6
-shot 44j-keyboard-abc-clear        "${B[@]}" "${DARK[@]}" --es kbLayout abc --es keyboardColour clear --es screen keyboard --es text Prism --ei keyRow 2 --ei keyCol 3
-shot 44k-keyboard-abc-light        "${B[@]}" --es appearance light --es glass liquid --es kbLayout abc --es screen keyboard --ei keyRow 4 --ei keyCol 4
+# ABC layout (Settings › Keyboard › Keyboard Layout): a tvOS-style grid, six across, switches on top.
+shot 44i-keyboard-abc-dark         "${B[@]}" "${DARK[@]}" --es kbLayout abc --es screen keyboard --es text teh --ei keyRow 5 --ei keyCol 2
+shot 44j-keyboard-abc-clear        "${B[@]}" "${DARK[@]}" --es kbLayout abc --es keyboardColour clear --es screen keyboard --es text Prism --ei keyRow 3 --ei keyCol 3
+shot 44k-keyboard-abc-light        "${B[@]}" --es appearance light --es glass liquid --es kbLayout abc --es screen keyboard --ei keyRow 1 --ei keyCol 0
+shot 44l-keyboard-abc-123-balanced "${B[@]}" --es appearance balanced --es glass liquid --es kbLayout abc --es screen keyboard --ei layer 1 --ei keyRow 0 --ei keyCol 1
+shot 44m-keyboard-qwerty-clear-key "${B[@]}" "${DARK[@]}" --es screen keyboard --es text "'Hello world'" --ei keyRow 3 --ei keyCol 4
 # Driven: hold e, Right to é, Select — "café", and no auto-correction back to "cafe".
 start "${B[@]}" "${DARK[@]}" --es screen keyboard --es text caf --ei keyRow 0 --ei keyCol 2; sleep 3
 adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 1.2

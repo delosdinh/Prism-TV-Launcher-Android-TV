@@ -97,20 +97,28 @@ fun keyColoursFor(look: Appearance, clear: Boolean = false): KeyColours = if (cl
 }
 
 /** Sizes for one place the keyboard appears. */
-data class KeyboardMetrics(val width: Float, val keyH: Float, val gap: Float, val pad: Float, val barH: Float) {
+data class KeyboardMetrics(
+    val width: Float,
+    val keyH: Float,
+    val gap: Float,
+    val pad: Float,
+    val barH: Float,
+    /** Key height on the ABC grid, which has six rows. */
+    val gridKeyH: Float = keyH,
+) {
     val unit: Float get() = (width - pad * 2 - gap * 9) / 10f
-    val keysH: Float get() = keyH * 4 + gap * 3
+    /** Four rows of QWERTY, or six of the ABC grid (every layer is drawn at that height). */
+    val keysH: Float get() = if (KeyboardLayout.rows() > 4) gridKeyH * 6 + gap * 5 else keyH * 4 + gap * 3
     val height: Float get() = pad * 2 + barH + gap + keysH
 
-    /** The same block of keys split into [rows] rows (ABC letters have five): shorter keys, same height. */
-    fun forRows(rows: Int): KeyboardMetrics =
-        if (rows <= 4) this else copy(keyH = (keysH - gap * (rows - 1)) / rows)
+    /** The block of keys split into [rows] rows: the ABC grid's 123 and emoji layers get taller keys. */
+    fun forRows(rows: Int): KeyboardMetrics = copy(keyH = (keysH - gap * (rows - 1)) / rows)
 
     companion object {
         /** Prism's own text entry (over the Home Screen). */
-        val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f)
+        val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f, gridKeyH = 37f)
         /** The system keyboard in other apps: a little shorter so more of the app stays visible. */
-        val System = KeyboardMetrics(width = 880f, keyH = 40f, gap = 7f, pad = 10f, barH = 32f)
+        val System = KeyboardMetrics(width = 880f, keyH = 40f, gap = 7f, pad = 10f, barH = 32f, gridKeyH = 33f)
     }
 }
 
@@ -124,7 +132,7 @@ fun KeyboardKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, acti
                 .offset(0.dp, (m.barH + m.gap).dp)
                 .graphicsLayer { alpha = if (kb.listening) 0.45f else 1f }
         ) {
-            if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m, active)
+            if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m.forRows(4), active)
             else {
                 val lm = m.forRows(KeyboardLayout.of(kb.layer).size)
                 LetterKeys(kb, c, lm, active)
@@ -151,6 +159,11 @@ private fun LetterKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics
                 listening = kb.listening,
                 actionLabel = kb.actionLabel,
                 c = c,
+                // ABC grid: the switch for the layer you're on is lit, like tvOS's abc / 123.
+                selected = KeyboardLayout.isSwitchRow(layer, r) && (
+                    (key.kind == KeyKind.Shift && layer == KeyboardLayout.Letters) ||
+                        (key.kind == KeyKind.Layer && key.target == layer)
+                    ),
                 modifier = Modifier
                     .offset(x.dp, y.dp)
                     .size(w.dp, m.keyH.dp),
@@ -377,6 +390,7 @@ private fun KeyCap(
     actionLabel: String,
     c: KeyColours,
     modifier: Modifier,
+    selected: Boolean = false,
 ) {
     val s by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.8f, stiffness = 520f), label = "key")
     val shape = RoundedCornerShape(10.dp)
@@ -387,6 +401,7 @@ private fun KeyCap(
         focused -> c.focus
         mic -> Color(0xFFFF375F)
         action -> Color(0xFF0A84FF)
+        selected -> c.key
         key.kind == KeyKind.Shift && shift -> c.key
         isFunction -> c.function
         else -> c.key
@@ -416,8 +431,12 @@ private fun KeyCap(
     ) {
         when (key.kind) {
             KeyKind.Char -> PText(if (shift) key.label.uppercase() else key.label, 21.sp, FontWeight.Normal, ink, shadow = c.clear && !focused)
-            KeyKind.Shift -> PIcon(if (capsLock) Icons.Rounded.KeyboardCapslock else Icons.Rounded.ArrowUpward, ink, 21.dp)
+            // The ABC grid's abc switch shows the case it types: abc, ABC, or a bold ABC for caps lock.
+            KeyKind.Shift -> if (key.label == "abc") PText(
+                if (shift) "ABC" else "abc", 16.sp, if (capsLock) FontWeight.Bold else FontWeight.Medium, ink,
+            ) else PIcon(if (capsLock) Icons.Rounded.KeyboardCapslock else Icons.Rounded.ArrowUpward, ink, 21.dp)
             KeyKind.Delete -> PIcon(Icons.AutoMirrored.Rounded.Backspace, ink, 21.dp)
+            KeyKind.Clear -> PText("clear", 15.sp, FontWeight.Medium, ink)
             KeyKind.Layer -> PText(key.label, 16.sp, FontWeight.Medium, ink)
             KeyKind.Space -> PText("space", 15.sp, FontWeight.Medium, ink.copy(alpha = 0.75f), shadow = c.clear && !focused)
             KeyKind.Emoji -> PIcon(Icons.Rounded.EmojiEmotions, ink, 22.dp)
