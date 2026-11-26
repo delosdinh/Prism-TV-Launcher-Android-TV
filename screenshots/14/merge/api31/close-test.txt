@@ -1,10 +1,11 @@
 close test target: com.google.android.youtube.tv
-before: pid=14262 stopped=false
+before: pid=13990 stopped=false
 after: pid= stopped=true
 --------- beginning of main
-11-26 15:37:13.062 10122 10122 I PrismClose: pressed Force Stop for com.google.android.youtube.tv after 1259ms
-11-26 15:37:14.823 10122 10122 I PrismClose: pressed OK after 734ms
-11-26 15:37:15.923 10122 10122 I PrismClose: back
-11-26 15:37:17.057 10122 10122 I PrismClose: back in com.prismtv.launcher after 1437ms
-11-26 15:37:17.057 10122 10122 I PrismClose: done: [com.google.android.youtube.tv]
-11-26 15:37:17.077 10122 10122 I PrismClose: pkg=com.google.android.youtube.tv method=Accessibility stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
+11-26 17:15:43.638 10059 10059 I PrismClose: pressed Force Stop for com.google.android.youtube.tv after 1072ms
+11-26 17:15:45.175 10059 10059 I PrismClose: pressed OK after 415ms
+11-26 17:15:46.512 10059 10059 I PrismClose: back
+11-26 17:15:47.772 10059 10059 I PrismClose: Settings still open: bringing Prism TV back
+11-26 17:15:48.185 10059 10059 I PrismClose: back in com.prismtv.launcher after 2453ms
+11-26 17:15:48.185 10059 10059 I PrismClose: done: [com.google.android.youtube.tv]
+11-26 17:15:48.187 10059 10059 I PrismClose: pkg=com.google.android.youtube.tv method=Accessibility stopped=[com.google.android.youtube.tv] closed=[com.google.android.youtube.tv] failed=[] isStopped=true
