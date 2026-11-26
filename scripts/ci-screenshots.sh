@@ -127,7 +127,7 @@ emu_key() { # linux code, hold seconds
   adb emu event send "1:$1:0" "0:0:0" >/dev/null 2>&1
 }
 
-B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false --es net wifi3)
+B=(--ez demo true --ez autorotate false --es clock "9:41" --ez bannersOver false --es net wifi3 --es invite ok)
 DARK=(--es appearance dark --es glass liquid)
 
 # Play edition: Settings › Prism Pro during the trial and after it, a page of locked settings, and the
@@ -832,6 +832,11 @@ start "${B[@]}" "${DARK[@]}" --es screen grid --ei row 1 --ei col 2; sleep 4
 record motion-control-centre 8
 key KEYCODE_MENU 1.6; key KEYCODE_DPAD_RIGHT 0.9; key KEYCODE_DPAD_DOWN 0.9; key KEYCODE_DPAD_DOWN 0.9; key KEYCODE_DPAD_LEFT 1; key KEYCODE_BACK 1.5
 finish motion-control-centre
+
+# GitHub edition without an invite code (last: going without Pro puts paid settings back to free ones).
+WAIT=5 shot invite-01-settings-root-locked "${B[@]}" "${DARK[@]}" --es invite locked --es screen settings --ei focus 0
+WAIT=5 shot invite-02-pro-page-locked      "${B[@]}" "${DARK[@]}" --es invite locked --es screen settings --es page Pro --ei focus 0
+key KEYCODE_DPAD_CENTER 2; cap invite-03-code-keyboard
 
 adb logcat -d -t 3000 > "$OUT/logcat.txt" 2>&1 || true
 grep -E "FATAL|AndroidRuntime|prismtv" "$OUT/logcat.txt" | tail -60 > "$OUT/logcat-app.txt" || true

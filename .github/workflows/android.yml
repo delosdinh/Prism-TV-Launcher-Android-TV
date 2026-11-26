@@ -24,6 +24,9 @@ jobs:
       # tokens that can write, and (b) save the build log to the ci-results branch when a build fails.
       # Once the key is in repo secrets (docs/release-signing.md), (a) goes away.
       contents: write
+    env:
+      # Invite codes (app/src/main/java/com/prismtv/launcher/data/Invite.kt): built into the GitHub edition.
+      PRISM_INVITE_KEY: ${{ secrets.PRISM_INVITE_KEY }}
     outputs:
       signed: ${{ steps.result.outputs.signed }}
       signer: ${{ steps.result.outputs.signer }}

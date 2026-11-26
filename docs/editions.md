@@ -7,7 +7,7 @@ Prism TV is built two ways from this one repository. Every bug fix lands in both
 | File | `prismtv.apk` (sideloaded with Downloader) | `app-play-release.aab`, uploaded to Play Console |
 | Package name | `com.prismtv.launcher` | `com.prismtv.launcher.play` |
 | Updates | Prism TV updates itself (Settings › Software Update) | Google Play updates it |
-| Prism Pro | Always unlocked | 7-day free trial, then a one-time purchase through Google Play |
+| Prism Pro | Unlocked by an invite code made for the TV (installs from before invite codes stay unlocked) | 7-day free trial, then a one-time purchase through Google Play |
 | Shizuku, root, "Do It for Me" (the TV's own adb) | Yes | No (Play doesn't allow them); the commands are shown to type yourself |
 | Closing apps completely | Shizuku, root, or Power & Home Button pressing Force Stop | Frees memory only |
 | App Snapshots | Yes | No (Power & Home Button can't take screenshots there) |
@@ -22,6 +22,24 @@ In the code, `BuildConfig.PLAY` is `true` in the Play edition. The Play edition'
 its accessibility service (`app/src/play/res/xml/accessibility_service.xml`) can't read the screen or
 take screenshots. Prism Pro's rules are in `data/Pro.kt`, and Google Play Billing in
 `app/src/play/java/.../ProStore.kt`.
+
+## Invite codes (GitHub edition)
+
+Anyone who finds the download can install the GitHub edition, so Prism Pro needs an invite code there.
+Without one it works like the Play edition after its trial: free features on, Pro settings marked Pro.
+
+- On first run (and in Settings › Prism Pro) the TV shows its **TV ID**, 8 characters like `DZ77-MGEE`.
+  It comes from Android's ANDROID_ID, so it stays the same through updates and reinstalls, and changes
+  only after a factory reset.
+- The friend sends the ID; you make the code on your PC with `invite-code.py` (kept outside this
+  repository, next to its `invite-key.txt`): `python invite-code.py DZ77-MGEE`. The code (10 characters,
+  `XXXXX-XXXXX`) works only on that TV, checked on the TV with no internet.
+- The key is the repository secret `PRISM_INVITE_KEY`; CI builds it into the GitHub edition. A build
+  without it can't check codes. Changing the key makes every code made so far stop working.
+- Installs that existed before invite codes (they've been updated at least once) keep Pro without a code.
+- The code is a keyed hash (HMAC-SHA256) of the TV ID, short enough to type with a remote. A real
+  signature would be over 100 characters. Someone who takes the APK apart could find the key, but they
+  could just as well remove the check; it's meant to stop casual downloads, not determined crackers.
 
 ## Making the code repository private without breaking updates
 
