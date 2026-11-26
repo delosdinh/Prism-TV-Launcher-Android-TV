@@ -1,24 +1,24 @@
-apk bytes: 4918075
-apk dex 1711702, images 2362661, audio 275054 (0 compressed), other 517322
-cold start ms:  1095 957 1000 976 965  (median 976)
+apk bytes: 4934459
+apk dex 1716178, images 2362661, audio 275054 (0 compressed), other 516867
+cold start ms:  1438 1113 1265 1074 1187  (median 1187)
 other app: com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity
-back to home ms:  153 150 122 125 154  (median 150)
-walk: Total frames rendered: 63
-walk: Janky frames: 62 (98.41%)
-walk: Janky frames (legacy): 63 (100.00%)
+back to home ms:  172 159 149 162 163  (median 162)
+walk: Total frames rendered: 61
+walk: Janky frames: 61 (100.00%)
+walk: Janky frames (legacy): 61 (100.00%)
 walk: 50th percentile: 150ms
 walk: 90th percentile: 200ms
 walk: 99th percentile: 450ms
-walk: Number Slow UI thread: 36
-rapid: Total frames rendered: 0
-rapid: Janky frames: 0 (0.00%)
-rapid: Janky frames (legacy): 0 (0.00%)
-rapid: 90th percentile: 4950ms
-rapid: Number Slow UI thread: 0
-memory: Native Heap    46144    46132        0       29    47004    63084    49149     2856
-memory: Java Heap:     6700                          21740
-memory: Native Heap:    46132                          47004
+walk: Number Slow UI thread: 33
+rapid: Total frames rendered: 68
+rapid: Janky frames: 68 (100.00%)
+rapid: Janky frames (legacy): 68 (100.00%)
+rapid: 90th percentile: 200ms
+rapid: Number Slow UI thread: 41
+memory: Native Heap    37331    37312        4       28    38268    55340    41544     3195
+memory: Java Heap:     3872                          19292
+memory: Native Heap:    37312                          38268
 memory: Graphics:        0                              0
-memory: TOTAL PSS:    80269            TOTAL RSS:   182472       TOTAL SWAP PSS:      281
-idle on home, 60 s: 777 ticks
-behind another app, 60 s: 0 ticks
+memory: TOTAL PSS:    69477            TOTAL RSS:   171952       TOTAL SWAP PSS:      271
+idle on home, 60 s: 820 ticks
+behind another app, 60 s: 1 ticks
