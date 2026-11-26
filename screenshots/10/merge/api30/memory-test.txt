@@ -1,11 +1,11 @@
 home: .Heap     4272     4272        0        0     4272                           
-home: .LOS      517      480        0        0     2116                           
-home: Native Heap:    43008                          44792
+home: .LOS      514      480        0        0     2116                           
+home: Native Heap:    43872                          45648
 home: Graphics:        0                              0
-home: TOTAL PSS:   127436            TOTAL RSS:   239268       TOTAL SWAP PSS:        4
+home: TOTAL PSS:   128140            TOTAL RSS:   240496       TOTAL SWAP PSS:        4
 home: AppContexts:        6           Activities:        1
     Prism memory:
-      PSS 124.8 MB: native heap 42.0 MB, graphics 0.0 MB, Java heap 10.7 MB, code 57.6 MB, private other 5.4 MB
+      PSS 125.5 MB: native heap 42.9 MB, graphics 0.0 MB, Java heap 10.7 MB, code 57.4 MB, private other 5.4 MB
       Java heap in use 6.7 MB, native heap in use 26.4 MB
       after collecting garbage: Java heap in use 6.5 MB, native heap in use 26.4 MB
       app banners (0 apps): 0 bitmaps, native 0.0 MB, graphics 0.0 MB
@@ -18,44 +18,44 @@ home: AppContexts:        6           Activities:        1
       banners from your pictures: 0 bitmaps, native 0.0 MB, graphics 0.0 MB
       Now Playing artwork and icons: 0 bitmaps, native 0.0 MB, graphics 0.0 MB
     Prism memory history (a line a minute when anything happened):
-      06:36 start: native 17.7 MB, Java 4.2 MB
-      06:36 Settings opened: native 27.7 MB → 24.1 MB
+      10:00 start: native 17.8 MB, Java 4.6 MB
+      10:01 Settings opened: native 27.7 MB → 28.7 MB
 summary:  App Summary
 summary:                        Pss(KB)                        Rss(KB)
 summary:                         ------                         ------
-summary:            Java Heap:    10780                          24048
-summary:          Native Heap:    43020                          44804
-summary:                 Code:    58956                         162308
-summary:                Stack:      892                            896
+summary:            Java Heap:    10732                          24048
+summary:          Native Heap:    43888                          45664
+summary:                 Code:    58828                         162636
+summary:                Stack:      876                            880
 summary:             Graphics:        0                              0
-summary:        Private Other:     5496
-summary:               System:     8488
-summary:              Unknown:                                    7704
+summary:        Private Other:     5504
+summary:               System:     8523
+summary:              Unknown:                                    7732
 summary:  
-summary:            TOTAL PSS:   127632            TOTAL RSS:   239760       TOTAL SWAP PSS:        4
-after cc x5: .Heap     4508     4508        0        0     4508                           
-after cc x5: .LOS      517      480        0        0     2116                           
-after cc x5: Native Heap:    40352                          42124
+summary:            TOTAL PSS:   128351            TOTAL RSS:   240960       TOTAL SWAP PSS:        4
+after cc x5: .Heap     4504     4504        0        0     4504                           
+after cc x5: .LOS      514      480        0        0     2116                           
+after cc x5: Native Heap:    45152                          46920
 after cc x5: Graphics:        0                              0
-after cc x5: TOTAL PSS:   125559            TOTAL RSS:   238088       TOTAL SWAP PSS:        4
+after cc x5: TOTAL PSS:   130263            TOTAL RSS:   243264       TOTAL SWAP PSS:        4
 after cc x5: AppContexts:        6           Activities:        1
-before free up memory: MemAvailable 1030600 kB, app processes 26
+before free up memory: MemAvailable 1040296 kB, app processes 27
 captured 47m-free-up-memory-working
 captured 47n-free-up-memory-done
-after free up memory: MemAvailable 1259676 kB, app processes 11
---------- beginning of system
-11-26 06:38:45.981 16352 16352 I PrismFree: closed 0, asked 76 packages, shell trims, Prism artwork let go 8 MB, available 1011 → best 1250 → 1250 MB after (11 readings), freed 239 MB in 1638 ms
-      PSS 125.1 MB: native heap 38.2 MB, graphics 0.0 MB, Java heap 10.9 MB, code 57.8 MB, private other 5.5 MB
+after free up memory: MemAvailable 1248728 kB, app processes 12
+--------- beginning of main
+11-26 10:03:11.350 16508 16508 I PrismFree: closed 0, asked 76 packages, shell trims, Prism artwork let go 8 MB, available 1018 → best 1239 → 1239 MB after (10 readings), freed 220 MB in 1439 ms
+      PSS 129.2 MB: native heap 42.2 MB, graphics 0.0 MB, Java heap 10.8 MB, code 58.0 MB, private other 5.6 MB
       backdrops (0.0 MB of 26.0 MB cache): 0 bitmaps, native 0.0 MB, graphics 0.0 MB
       cards (0.0 MB of 20.0 MB cache): 0 bitmaps, native 0.0 MB, graphics 0.0 MB
       artwork let go by Free Up Memory and still held on screen: 1
-after free up memory: .Heap     4576     4576        0        0     4576                           
-after free up memory: .LOS      555      480        0        0     2116                           
-after free up memory: Native Heap:    40416                          42168
+after free up memory: .Heap     4572     4572        0        0     4572                           
+after free up memory: .LOS      547      480        0        0     2116                           
+after free up memory: Native Heap:    45260                          47020
 after free up memory: Graphics:        0                              0
-after free up memory: TOTAL PSS:   129271            TOTAL RSS:   238440       TOTAL SWAP PSS:       10
+after free up memory: TOTAL PSS:   134111            TOTAL RSS:   243800       TOTAL SWAP PSS:        8
 after free up memory: AppContexts:        6           Activities:        1
---------- beginning of main
 --------- beginning of system
+--------- beginning of main
 captured 47o-free-up-memory-banner
-11-26 06:39:11.701 16352 16352 I PrismFree: closed 0, asked 76 packages, shell trims, Prism artwork let go 0 MB, available 1229 → best 1248 → 1248 MB after (10 readings), freed 18 MB in 1544 ms
+11-26 10:03:36.166 16508 16508 I PrismFree: closed 0, asked 76 packages, shell trims, Prism artwork let go 0 MB, available 1217 → best 1236 → 1236 MB after (9 readings), freed 19 MB in 1431 ms
