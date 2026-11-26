@@ -197,16 +197,19 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 val shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
+                // Like the side keyboard: bare letters over a see-through backdrop, only the focused key
+                // a cap in the keyboard colour. Dark smoked glass, since an app's screen can't be frosted
+                // from here, so white letters stay readable over anything.
+                val gc = if (clear) c else c.copy(ink = Color.White, function = Color.White.copy(alpha = 0.16f))
                 val glass = if (clear) Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f)))
-                // Well see-through, like the side keyboard's frosted panel (an app's screen can't be blurred here).
-                else Brush.verticalGradient(listOf(lift(c.panel).copy(alpha = 0.52f), c.panel.copy(alpha = 0.62f)))
+                else Brush.verticalGradient(listOf(Color(0xFF0E0F14).copy(alpha = 0.46f), Color(0xFF0E0F14).copy(alpha = 0.60f)))
                 Box(
                     Modifier
                         .background(glass, shape)
-                        .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.22f), Color.White.copy(alpha = 0.04f))), shape)
+                        .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.14f), Color.White.copy(alpha = 0.03f))), shape)
                         .padding(m.pad.dp),
                 ) {
-                    KeyboardKeys(kb, c, m)
+                    KeyboardKeys(kb, gc, m, bare = true)
                 }
             } else Box(
                 Modifier

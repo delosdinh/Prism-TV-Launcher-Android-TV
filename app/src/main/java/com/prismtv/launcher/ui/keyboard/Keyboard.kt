@@ -416,9 +416,8 @@ private fun KeyCap(
 ) {
     // Quick to pop and to settle, so the last key doesn't trail behind the new one.
     val s by animateFloatAsState(if (focused) 1.14f else 1f, spring(dampingRatio = 0.85f, stiffness = 1100f), label = "key")
-    // On the bare (side) grid the focused key is a key cap in the keyboard's colour (lavender, white…);
-    // a dark keyboard's grey cap wouldn't stand out, so that one keeps the bright focus.
-    val bareFocus = bare && c.key.luminance() > 0.12f
+    // On the bare grids the focused key is a key cap in the keyboard's colour (lavender, white, grey).
+    val bareFocus = bare && !c.clear
     val shape = RoundedCornerShape(10.dp)
     val isFunction = key.kind != KeyKind.Char && key.kind != KeyKind.Space
     val action = key.kind == KeyKind.Done && actionLabel != "return"
@@ -434,7 +433,8 @@ private fun KeyCap(
         else -> c.key
     }
     val ink = when {
-        focused -> if (bareFocus) c.ink else c.focusInk
+        // A white key cap (Light) takes dark ink, whatever the letters around it use.
+        focused -> if (bareFocus) (if (c.key.luminance() > 0.6f) Color(0xFF0B0C0F) else c.ink) else c.focusInk
         mic || action -> Color.White
         else -> c.ink
     }
