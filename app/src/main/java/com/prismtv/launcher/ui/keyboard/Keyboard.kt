@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -142,10 +143,14 @@ fun KeyboardKeys(
     bare: Boolean = false,
     /** False when the suggestions are drawn elsewhere (the side keyboard's chips). */
     bar: Boolean = true,
+    /** Suggestions as scrolling chips, each as wide as its word (the ABC grid at the bottom). */
+    chips: Boolean = false,
 ) {
     val top = if (bar) m.barH + m.gap else 0f
     Box(Modifier.size((m.width - m.pad * 2).dp, (top + m.keysH).dp)) {
-        if (bar) SuggestionBar(kb, c, m, active)
+        if (bar) {
+            if (chips) SuggestionChips(kb, c, m, active, width = m.width - m.pad * 2) else SuggestionBar(kb, c, m, active)
+        }
         Box(
             Modifier
                 .offset(0.dp, top.dp)
@@ -689,7 +694,8 @@ private fun SideField(vm: LauncherViewModel, req: com.prismtv.launcher.KeyboardR
  * the focused one never cut short, the row sliding sideways to keep it in view.
  */
 @Composable
-private fun SuggestionChips(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean) {
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+private fun SuggestionChips(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, active: Boolean, width: Float = m.width) {
     val scroll = androidx.compose.foundation.rememberScrollState()
     val focusedSlot = if (active && kb.row == -1) kb.col else -1
     androidx.compose.runtime.LaunchedEffect(focusedSlot, kb.suggestions) {
@@ -700,7 +706,7 @@ private fun SuggestionChips(kb: KeyboardController, c: KeyColours, m: KeyboardMe
         }
         scroll.animateScrollTo(target)
     }
-    Box(Modifier.width(m.width.dp).height(m.barH.dp)) {
+    Box(Modifier.width(width.dp).height(m.barH.dp)) {
         val notice = kb.notice
         when {
             kb.listening -> PText(kb.partial.ifBlank { "Listening… speak into your remote" }, 14.sp, FontWeight.Medium, c.ink, Modifier.align(Alignment.CenterStart), maxLines = 1)
@@ -717,7 +723,8 @@ private fun SuggestionChips(kb: KeyboardController, c: KeyColours, m: KeyboardMe
                         Modifier
                             .padding(end = 8.dp)
                             .height((m.barH - 2f).dp)
-                            .then(if (focused) Modifier else Modifier.widthIn(max = 130.dp))
+                            // The focused chip shows its whole word; one wider than the strip scrolls its text.
+                            .then(if (focused) Modifier.widthIn(max = width.dp) else Modifier.widthIn(max = 130.dp))
                             .graphicsLayer { scaleX = sc; scaleY = sc }
                             .background(if (focused) c.focus else if (corr) c.key else c.function.copy(alpha = 0.55f), RoundedCornerShape(50))
                             .padding(horizontal = 12.dp),
@@ -726,7 +733,9 @@ private fun SuggestionChips(kb: KeyboardController, c: KeyColours, m: KeyboardMe
                         PText(
                             if (s.kind == Suggestion.Kind.Typed) "“${s.text}”" else s.text,
                             14.sp, if (corr) FontWeight.SemiBold else FontWeight.Medium,
-                            if (focused) c.focusInk else c.ink, maxLines = 1,
+                            if (focused) c.focusInk else c.ink,
+                            if (focused) Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 700) else Modifier,
+                            maxLines = 1,
                         )
                     }
                 }
