@@ -292,7 +292,7 @@ fun AppArtwork(app: LauncherApp, modifier: Modifier = Modifier.fillMaxSize()) {
 /home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3048: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     var searchFocus by mutableStateOf(-1)
                        ~~~~~~~~~~~~~~
-/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3394: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
+/home/runner/work/Prism-TV-Launcher-Android-TV/Prism-TV-Launcher-Android-TV/app/src/main/java/com/prismtv/launcher/LauncherViewModel.kt:3406: Information: Prefer mutableIntStateOf instead of mutableStateOf [AutoboxingStateCreation from androidx.compose.runtime]
     private var screenTimeTick by mutableStateOf(0)
                                   ~~~~~~~~~~~~~~
 
