@@ -273,7 +273,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 cornerRadius = 26 * px
                 setColor(android.graphics.Color.argb((veil.alpha * 0.8f * 255).toInt(), (veil.red * 255).toInt(), (veil.green * 255).toInt(), (veil.blue * 255).toInt()))
             })
-            w.setBackgroundBlurRadius((24 * px).toInt())
+            w.setBackgroundBlurRadius((32 * px).toInt())
             frosted = true
         } else {
             w.setBackgroundBlurRadius(0)
@@ -338,8 +338,8 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
             com.prismtv.launcher.data.UiTransparency.Medium -> 0.56f
             com.prismtv.launcher.data.UiTransparency.Low -> 0.72f
         })
-        // Brighter and frostier than the Settings veil: the same opacity, a third of the way to white.
-        veil = androidx.compose.ui.graphics.lerp(veil.copy(alpha = 1f), Color.White, 0.35f).copy(alpha = veil.alpha)
+        // Brighter and frostier than the Settings veil: the same opacity, nearly half way to white.
+        veil = androidx.compose.ui.graphics.lerp(veil.copy(alpha = 1f), Color.White, 0.45f).copy(alpha = veil.alpha)
         glow = pal.bgAccent
         window?.window?.let { configureGlass(it) }
         val type = attribute?.inputType ?: InputType.TYPE_CLASS_TEXT
