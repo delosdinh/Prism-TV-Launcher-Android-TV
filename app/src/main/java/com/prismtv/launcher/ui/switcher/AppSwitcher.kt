@@ -16,8 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +32,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -36,11 +41,15 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.constrain
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.prismtv.launcher.BuildConfig
 import com.prismtv.launcher.LauncherViewModel
 import com.prismtv.launcher.Overlay
 import com.prismtv.launcher.data.RecentEntry
@@ -49,9 +58,11 @@ import com.prismtv.launcher.ui.SwitcherLayout
 import com.prismtv.launcher.ui.components.AppArtwork
 import com.prismtv.launcher.ui.components.HSpace
 import com.prismtv.launcher.ui.components.PText
+import com.prismtv.launcher.ui.components.atLeast
 import com.prismtv.launcher.ui.components.lerpF
 import com.prismtv.launcher.ui.glass.GlassSource
 import com.prismtv.launcher.ui.glass.LocalBackdrop
+import com.prismtv.launcher.ui.glass.PerfSwitches
 import com.prismtv.launcher.ui.glass.glass
 import kotlin.math.roundToInt
 
@@ -63,12 +74,18 @@ import kotlin.math.roundToInt
 @Composable
 fun AppSwitcher(vm: LauncherViewModel) {
     val visible = vm.overlay == Overlay.Switcher
-    val open by animateFloatAsState(
+    // Read only in layout, graphicsLayer and draw blocks (and here only whether it's past the threshold):
+    // reading it in composition rebuilt the whole deck, every card, label and image, on each frame of
+    // the opening and closing animation.
+    val open = animateFloatAsState(
         if (visible) 1f else 0f,
         spring(dampingRatio = 0.88f, stiffness = 210f),
         label = "switcherOpen",
     )
-    if (open < 0.002f) return
+    if (!open.atLeast(0.002f)) return
+    com.prismtv.launcher.ui.glass.HoldSceneCache()
+    // Debug builds: CI counts how often the deck and its cards recompose while it opens and closes.
+    if (BuildConfig.DEBUG) SideEffect { android.util.Log.d("PrismComp", "deck") }
     val backdrop = LocalBackdrop.current
     androidx.compose.runtime.LaunchedEffect(visible) {
         // For checking the Home card on a TV: what it has to draw the wallpaper with.
@@ -95,7 +112,7 @@ fun AppSwitcher(vm: LauncherViewModel) {
         Box(
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = open }
+                .graphicsLayer { alpha = open.value }
                 .glass(RectangleShape, Color.Black.copy(alpha = 0.30f), GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true)
         )
 
@@ -113,20 +130,23 @@ fun AppSwitcher(vm: LauncherViewModel) {
 }
 
 @Composable
-private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusIsLast: Boolean, open: Float) {
+private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusIsLast: Boolean, open: State<Float>) {
+    if (BuildConfig.DEBUG) SideEffect { android.util.Log.d("PrismComp", "deckCard") }
     val backdrop = LocalBackdrop.current
     val art = e.art
     // A screen-sized copy is plenty for a card (and far lighter than the full Top Shelf artwork).
     val heroArt = art?.let { vm.thumb(it, 960) }
 
+    // Like the deck's opening, these animated values are read only in layout, graphicsLayer and draw
+    // blocks, never in composition, so moving along the deck doesn't rebuild every card on each frame.
     val move = spring<Float>(dampingRatio = 0.9f, stiffness = 260f)
-    val left by animateFloatAsState(SwitcherLayout.cardLeft(rel, focusIsLast), move, label = "cardLeft")
-    val scale by animateFloatAsState(SwitcherLayout.cardScale(rel), move, label = "cardScale")
+    val left = animateFloatAsState(SwitcherLayout.cardLeft(rel, focusIsLast), move, label = "cardLeft")
+    val scale = animateFloatAsState(SwitcherLayout.cardScale(rel), move, label = "cardScale")
     // Cards further back in the deck sit a little in shadow.
-    val shade by animateFloatAsState(if (rel < 0) (0.10f + 0.06f * (-rel - 1)).coerceAtMost(0.34f) else 0f, move, label = "cardShade")
-    val labelInk by animateFloatAsState(if (rel == 0) 0.88f else 0.55f, tween(250), label = "labelInk")
+    val shade = animateFloatAsState(if (rel < 0) (0.10f + 0.06f * (-rel - 1)).coerceAtMost(0.34f) else 0f, move, label = "cardShade")
+    val labelInk = animateFloatAsState(if (rel == 0) 0.88f else 0.55f, tween(250), label = "labelInk")
     val dismissing = vm.dismissingKey == e.key
-    val lift by animateFloatAsState(
+    val lift = animateFloatAsState(
         when {
             dismissing -> 1f
             rel == 0 && vm.switcherLift -> 0.14f
@@ -141,36 +161,25 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
     val w = SwitcherLayout.CardW
     val h = SwitcherLayout.CardH
     val top = SwitcherLayout.CardTop
-    val x: Float
-    val y: Float
-    val cw: Float
-    val ch: Float
-    val alpha: Float
-    if (isHome) {
-        x = lerpF(0f, left, open)
-        y = lerpF(0f, top, open)
-        cw = lerpF(HomeLayout.ScreenW, w, open)
-        ch = lerpF(HomeLayout.ScreenH, h, open)
-        alpha = 1f
-    } else {
-        x = left - (1f - open) * 260f
-        y = top
-        cw = w
-        ch = h
-        alpha = open
-    }
-    val radius = if (isHome) lerpF(0f, SwitcherLayout.Radius, open) else SwitcherLayout.Radius
-    val shape = RoundedCornerShape(radius.dp)
+    fun x() = if (isHome) lerpF(0f, left.value, open.value) else left.value - (1f - open.value) * 260f
+    fun y() = if (isHome) lerpF(0f, top, open.value) else top
+    fun cw() = if (isHome) lerpF(HomeLayout.ScreenW, w, open.value) else w
+    fun ch() = if (isHome) lerpF(HomeLayout.ScreenH, h, open.value) else h
+    fun alpha() = if (isHome) 1f else open.value
+    val restShape = RoundedCornerShape(SwitcherLayout.Radius.dp)
+    fun shape(): Shape = if (isHome) RoundedCornerShape(lerpF(0f, SwitcherLayout.Radius, open.value).dp) else restShape
 
     // The app's icon and name just above its card (Home has none). Drawn outside the card's layer;
     // the deck's icons stack up like its cards, names only where there's room.
     val app = e.app
     if (app != null) {
-        val labelTop = y + ch * (1f - scale) / 2f - 36f - lift * 640f
         Row(
             Modifier
-                .offset { IntOffset((x + 12f).dp.roundToPx(), labelTop.dp.roundToPx()) }
-                .graphicsLayer { this.alpha = open * (1f - lift) },
+                .offset {
+                    val labelTop = y() + ch() * (1f - scale.value) / 2f - 36f - lift.value * 640f
+                    IntOffset((x() + 12f).dp.roundToPx(), labelTop.dp.roundToPx())
+                }
+                .graphicsLayer { this.alpha = open.value * (1f - lift.value) },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -182,30 +191,38 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
             ) { AppArtwork(app) }
             if (rel >= 0) {
                 HSpace(12.dp)
-                PText(app.label, 18.sp, FontWeight.Medium, Color.White.copy(alpha = labelInk), shadow = true)
+                CardLabel(app.label, labelInk)
             }
         }
     }
 
     Box(
         Modifier
-            .offset { IntOffset(x.dp.roundToPx(), (y - lift * 640f).dp.roundToPx()) }
-            .size(cw.dp, ch.dp)
+            .offset { IntOffset(x().dp.roundToPx(), (y() - lift.value * 640f).dp.roundToPx()) }
+            // Modifier.size, with the size read while measuring: only the Home card's changes as it opens.
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(constraints.constrain(Constraints.fixed(cw().dp.roundToPx(), ch().dp.roundToPx())))
+                layout(placeable.width, placeable.height) { placeable.placeRelative(0, 0) }
+            }
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+                scaleX = scale.value
+                scaleY = scale.value
                 transformOrigin = TransformOrigin(0f, 0.5f)
                 compositingStrategy = CompositingStrategy.ModulateAlpha
-                this.alpha = alpha * (1f - lift * 0.85f)
+                this.alpha = alpha() * (1f - lift.value * 0.85f)
                 shadowElevation = (if (rel == 0) 30.dp else 14.dp).toPx()
-                this.shape = shape
+                this.shape = shape()
                 clip = false
             }
     ) {
         Box(
             Modifier
                 .fillMaxSize()
-                .clip(shape)
+                // Modifier.clip, with the Home card's corners read in the layer.
+                .graphicsLayer {
+                    this.shape = shape()
+                    clip = true
+                }
                 .background(Color(0xFF15161A))
         ) {
             if (app == null) {
@@ -213,12 +230,10 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                 // whole app (AerialVideoLayerHost), and Home clears its own wallpaper away over it, so the scene
                 // has no wallpaper in it there: the card showed its dark fill. The video plane can't be read
                 // back (PixelCopy gives black or green on Amlogic), so the wallpaper's still stands in for it.
-                // Keyed on the aerial wallpaper being chosen, not on the player: where the aerial draws in
-                // the app (TextureView) the scene covers the still, so it only shows where the scene is clear.
-                val videoLayerStill = if (
-                    com.prismtv.launcher.aerial.AerialVideoLayer.player != null ||
-                    vm.wallpaperKey == com.prismtv.launcher.AerialWallpaperKey
-                ) {
+                // Only while the aerial plays on the video layer: otherwise Home's own backdrop is opaque
+                // (HomeBackdrop's gradient is fully drawn whenever there's no video-layer player) and covered
+                // the still completely, so drawing it was a hidden full-screen image on every frame.
+                val videoLayerStill = if (com.prismtv.launcher.aerial.AerialVideoLayer.player != null) {
                     // A frame of the shot playing, once one's been grabbed; the wallpaper's still until then.
                     com.prismtv.launcher.aerial.AerialVideoLayer.poster ?: (vm.wallpaperArt ?: vm.currentArt)?.full
                 } else null
@@ -228,9 +243,14 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                         .drawBehind {
                             val root = backdrop.rootSize
                             val f = size.width / root.width.toFloat()
+                            // While the card grows, shrinks or moves along the deck (PerfSwitches.switcherHomeCopy):
+                            // the scene's offscreen copy, rendered once at full size and scaled, instead of replaying
+                            // all of Home at every new size. At rest, Home itself, drawn sharp at the card's size.
+                            val moving = open.value != 1f || scale.value != SwitcherLayout.cardScale(rel)
+                            val home = if (PerfSwitches.switcherHomeCopy && moving) backdrop.sharp(GlassSource.Scene) else backdrop.scene
                             withTransform({ scale(f, f, pivot = Offset.Zero) }) {
                                 if (videoLayerStill != null) drawCropped(videoLayerStill, root)
-                                drawLayer(backdrop.scene)
+                                drawLayer(home)
                             }
                         }
                 )
@@ -267,9 +287,19 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                     }
                 }
             }
-            if (shade > 0.005f) Box(Modifier.fillMaxSize().drawBehind { drawRect(Color.Black.copy(alpha = shade)) })
+            val shaded by remember(shade) { derivedStateOf { shade.value > 0.005f } }
+            if (shaded) Box(Modifier.fillMaxSize().drawBehind { drawRect(Color.Black.copy(alpha = shade.value)) })
         }
     }
+}
+
+/**
+ * The app's name over its card. Its ink fades as focus moves, read here so that only this text
+ * recomposes. Not a layer alpha: that would fade the text's shadow with it.
+ */
+@Composable
+private fun CardLabel(text: String, ink: State<Float>) {
+    PText(text, 18.sp, FontWeight.Medium, Color.White.copy(alpha = ink.value), shadow = true)
 }
 
 /** [img] filling [dst] from the origin, centre-cropped like ContentScale.Crop (as Home draws its wallpaper). */
