@@ -72,13 +72,18 @@ fun AppSwitcher(vm: LauncherViewModel) {
     val backdrop = LocalBackdrop.current
     androidx.compose.runtime.LaunchedEffect(visible) {
         // For checking the Home card on a TV: what it has to draw the wallpaper with.
-        // The aerial's poster is from the start of the shot, or an earlier one: a frame from about now.
-        if (visible) com.prismtv.launcher.aerial.AerialVideoLayer.refreshPoster()
         if (visible) android.util.Log.i(
             "PrismSwitcher",
             "open: wallpaper=${vm.wallpaperKey} videoLayer=${com.prismtv.launcher.aerial.AerialVideoLayer.player != null} " +
                 "poster=${com.prismtv.launcher.aerial.AerialVideoLayer.poster != null} still=${(vm.wallpaperArt ?: vm.currentArt)?.full?.let { "${it.width}x${it.height}" }}",
         )
+        // The poster is grabbed a few seconds into each shot. If that one is over a minute old, a frame from
+        // about now, once the deck has opened: the grab (a second or so, and a decoder) made the opening
+        // animation stutter on the AM9.
+        if (visible) {
+            kotlinx.coroutines.delay(1200)
+            com.prismtv.launcher.aerial.AerialVideoLayer.refreshPoster(maxAgeMs = 60_000L)
+        }
     }
     DisposableEffect(backdrop) {
         backdrop.lensSuspended = true

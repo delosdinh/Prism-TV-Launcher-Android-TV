@@ -161,7 +161,7 @@ fun AerialWallpaper(
         }
         if (onVideoLayer) {
             player.addListener(posterListener)
-            posterHandler.postDelayed({ if (AerialVideoLayer.player === player) AerialVideoLayer.refreshPoster(sameShotOk = true) }, 4000)
+            posterHandler.postDelayed({ if (AerialVideoLayer.player === player) AerialVideoLayer.refreshPoster(maxAgeMs = Long.MAX_VALUE) }, 4000)
         }
         onDispose {
             player.removeListener(posterListener)
@@ -250,26 +250,36 @@ object AerialVideoLayer {
     var poster by mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
         private set
     private var posterId: String? = null
+    private var posterAt = 0L
     internal var videos: List<AerialVideo> = emptyList()
     private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main.immediate)
-    private var job: kotlinx.coroutines.Job? = null
+    /** One grab at a time: each holds a decoder, and a TV like the AM9 has few to spare. */
+    private var grabbing = false
 
     /**
      * Grabs a frame of the shot playing now, near where it is, from its lightest stream (one keyframe:
-     * a small ranged download). [sameShotOk] skips it when the poster is already from this shot.
+     * a small ranged download). Skipped while a grab is running, and when the poster is already from
+     * this shot and newer than [maxAgeMs].
      */
-    fun refreshPoster(sameShotOk: Boolean = false) {
+    fun refreshPoster(maxAgeMs: Long = 0L) {
         val p = player ?: return
+        if (grabbing) return
         val video = videos.getOrNull(p.currentMediaItemIndex) ?: return
-        if (sameShotOk && posterId == video.id && poster != null) return
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (posterId == video.id && poster != null && now - posterAt < maxAgeMs) return
         val atUs = p.currentPosition.coerceAtLeast(0L) * 1000L
         val url = if (Resume.http) video.posterUrl.replaceFirst("https://", "http://") else video.posterUrl
-        job?.cancel()
-        job = scope.launch {
-            val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { grabFrame(url, atUs) }
-            if (bmp != null) {
-                poster = bmp
-                posterId = video.id
+        grabbing = true
+        scope.launch {
+            try {
+                val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { grabFrame(url, atUs) }
+                if (bmp != null) {
+                    poster = bmp
+                    posterId = video.id
+                    posterAt = android.os.SystemClock.elapsedRealtime()
+                }
+            } finally {
+                grabbing = false
             }
         }
     }
