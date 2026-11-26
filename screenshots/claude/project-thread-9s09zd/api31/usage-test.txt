@@ -2,9 +2,5 @@ before: No operations.
 Default mode: default
 captured 66c-allow-recent-apps-dialog
 has Usage Access page
-captured 66d-adb-prompt
-tapped "Always allow from this computer"
-always allow ticked
-tapped "Allow"
 captured 66e-allow-recent-apps-done
 after: GET_USAGE_STATS: allow
