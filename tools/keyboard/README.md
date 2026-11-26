@@ -29,3 +29,10 @@ of the [Google Books Ngram Corpus](https://books.google.com/ngrams/), as cleaned
 [orgtre/google-books-ngram-frequency](https://github.com/orgtre/google-books-ngram-frequency), licensed
 under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Only words in `en_words.txt` are kept.
 Prism Keyboard also learns the phrases you type (kept on the TV, at most 1,500) and offers those first.
+
+## ABC layout
+
+`abc_layout.py` estimates the D-pad presses per character of the QWERTY layout and the ABC grid
+candidates over common English text, with Prism's wrap-around navigation and the suggestion bar.
+Prism's ABC layout (rows of seven, space after m, delete after z, a function row underneath) came out
+at about 2.7 moves per character against QWERTY's 2.9.

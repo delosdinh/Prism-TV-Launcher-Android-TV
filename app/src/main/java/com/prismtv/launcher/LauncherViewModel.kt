@@ -50,6 +50,7 @@ import com.prismtv.launcher.data.AerialRange
 import com.prismtv.launcher.data.StartAfterChoices
 import com.prismtv.launcher.data.DeepLinks
 import com.prismtv.launcher.data.KeyboardColour
+import com.prismtv.launcher.data.KeyboardLayoutStyle
 import com.prismtv.launcher.data.TextScales
 import com.prismtv.launcher.data.TopShelfStyle
 import com.prismtv.launcher.data.UriArt
@@ -1393,6 +1394,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         kb.autoCapOn = true
         kb.micOn = true
         kb.actionLabel = "done"
+        com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical = prefs.keyboardLayout == KeyboardLayoutStyle.Abc
         kb.reset()
         if (dictation == null) dictation = com.prismtv.launcher.ime.Dictation(ctx, kb)
         keyboard = KeyboardRequest(title, initial, placeholder, onDone)
@@ -4439,6 +4441,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         )
         SettingsPage.Keyboard -> resumeTick.let { _ -> listOf(
             SettingsRow("kb:system", "Prism Keyboard", "SYSTEM KEYBOARD", keyboardStatus(), chevron = true),
+            SettingsRow("kbLayout", "Keyboard Layout", "APPEARANCE", prefs.keyboardLayout.label),
             SettingsRow("kbColour", "Keyboard Colour", "APPEARANCE", keyboardColourLabel()),
             SettingsRow("kbField", "Text Field Colour", "APPEARANCE", fieldColourLabel()),
             SettingsRow("kb:autocorrect", "Auto-Correction", "TYPING", onOff(prefs.autoCorrect)),
@@ -4869,6 +4872,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             r.id.startsWith("ap:") -> updatePrefs(p.copy(appearance = AppearanceSetting.valueOf(r.id.removePrefix("ap:"))))
             r.id.startsWith("mat:") -> updatePrefs(p.copy(material = GlassMaterial.valueOf(r.id.removePrefix("mat:"))))
+            r.id == "kbLayout" -> updatePrefs(p.copy(keyboardLayout = KeyboardLayoutStyle.entries[(p.keyboardLayout.ordinal + 1) % KeyboardLayoutStyle.entries.size]))
             r.id == "kbColour" -> updatePrefs(p.copy(keyboardColour = KeyboardColour.entries[(p.keyboardColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "kbField" -> updatePrefs(p.copy(keyboardFieldColour = KeyboardColour.entries[(p.keyboardFieldColour.ordinal + 1) % KeyboardColour.entries.size]))
             r.id == "textSize" -> pushPage(SettingsPage.TextSize)
@@ -5738,6 +5742,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             topShelfStyle = if (b.getString("topShelf").equals("spotlight", true)) TopShelfStyle.Spotlight else TopShelfStyle.FullScreen,
             textSize = b.getInt("textSize", com.prismtv.launcher.data.DefaultTextSize).coerceIn(0, TextScales.size - 1),
             keyboardColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("keyboardColour"), true) } ?: KeyboardColour.Automatic,
+            keyboardLayout = if (b.getString("kbLayout").equals("abc", true)) KeyboardLayoutStyle.Abc else KeyboardLayoutStyle.Qwerty,
             keyboardFieldColour = KeyboardColour.entries.firstOrNull { it.name.equals(b.getString("fieldColour"), true) } ?: KeyboardColour.Automatic,
             widgets = when (b.getString("widgets")) {
                 "above" -> mapOf("all:continue" to WidgetPlace.Above)

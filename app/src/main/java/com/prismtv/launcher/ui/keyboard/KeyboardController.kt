@@ -98,8 +98,9 @@ class KeyboardController(
     fun reset(numbers: Boolean = false) {
         layer = if (numbers) KeyboardLayout.Numbers else KeyboardLayout.Letters
         capsLock = false
-        row = 1
-        col = 4
+        val (r, c) = if (numbers) 1 to 4 else KeyboardLayout.startKey()
+        row = r
+        col = c
         listening = false
         partial = ""
         notice = null
@@ -137,8 +138,8 @@ class KeyboardController(
     fun debugState(layer: Int, row: Int, col: Int, accent: Int = -1) {
         this.layer = layer.coerceIn(0, KeyboardLayout.Emoji)
         accents = null
-        this.row = if (this.layer == KeyboardLayout.Emoji) row.coerceIn(0, 3) else row.coerceIn(-1, 3)
-        this.col = col
+        this.row = if (this.layer == KeyboardLayout.Emoji) row.coerceIn(0, 3) else row.coerceIn(-1, KeyboardLayout.of(this.layer).size - 1)
+        this.col = if (this.row >= 0 && this.layer != KeyboardLayout.Emoji) col.coerceIn(0, KeyboardLayout.of(this.layer)[this.row].size - 1) else col
         if (this.layer == KeyboardLayout.Emoji) { emojiCategory = 1; emojiIndex = if (this.row < 3) row * 10 + col else 0 }
         refresh()
         // The accent strip open on that key, with variant [accent] focused.
@@ -314,7 +315,7 @@ class KeyboardController(
                 lastShiftAt = now
                 sound(Cue.Toggle)
             }
-            KeyKind.Layer -> switchLayer(k.target)
+            KeyKind.Layer -> switchLayer(k.target, fromLayerKey = true)
             KeyKind.Emoji -> switchLayer(KeyboardLayout.Emoji)
             KeyKind.Mic -> toggleDictation()
             KeyKind.EmojiCategory -> {
@@ -352,8 +353,12 @@ class KeyboardController(
         }
     }
 
-    private fun switchLayer(target: Int) {
-        val x = if (row >= 0 && layer != KeyboardLayout.Emoji) KeyboardLayout.centre(layer, row.coerceAtMost(3), col) else 5f
+    /** [fromLayerKey]: 123 / ABC / #+= lands on the new layer's own switch key, so a second press goes back. */
+    private fun switchLayer(target: Int, fromLayerKey: Boolean = false) {
+        val x = if (row >= 0 && layer != KeyboardLayout.Emoji) {
+            val r = row.coerceAtMost(KeyboardLayout.of(layer).size - 1)
+            KeyboardLayout.centre(layer, r, col)
+        } else 5f
         layer = target
         if (target == KeyboardLayout.Emoji) {
             row = 3
@@ -362,8 +367,10 @@ class KeyboardController(
             emojiIndex = 0
             emojiFirstRow = 0
         } else {
-            row = 3
-            col = KeyboardLayout.nearest(target, 3, x)
+            val last = KeyboardLayout.of(target).size - 1
+            row = last
+            val switchKey = if (fromLayerKey) KeyboardLayout.of(target)[last].indexOfFirst { it.kind == KeyKind.Layer } else -1
+            col = if (switchKey >= 0) switchKey else KeyboardLayout.nearest(target, last, x)
             updateAutoCap()
         }
         sound(Cue.Toggle)

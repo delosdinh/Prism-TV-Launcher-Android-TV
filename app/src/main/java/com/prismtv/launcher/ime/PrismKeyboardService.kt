@@ -208,6 +208,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         super.onStartInputView(attribute, restarting)
         info = attribute
         val prefs = PrefsStore(this).load()
+        com.prismtv.launcher.ui.keyboard.KeyboardLayout.alphabetical = prefs.keyboardLayout == com.prismtv.launcher.data.KeyboardLayoutStyle.Abc
         soundsOn = prefs.sounds
         sounds.enabled = prefs.sounds
         clear = prefs.keyboardColour == KeyboardColour.Clear

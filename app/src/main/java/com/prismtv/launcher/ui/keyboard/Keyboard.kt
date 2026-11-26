@@ -102,6 +102,10 @@ data class KeyboardMetrics(val width: Float, val keyH: Float, val gap: Float, va
     val keysH: Float get() = keyH * 4 + gap * 3
     val height: Float get() = pad * 2 + barH + gap + keysH
 
+    /** The same block of keys split into [rows] rows (ABC letters have five): shorter keys, same height. */
+    fun forRows(rows: Int): KeyboardMetrics =
+        if (rows <= 4) this else copy(keyH = (keysH - gap * (rows - 1)) / rows)
+
     companion object {
         /** Prism's own text entry (over the Home Screen). */
         val Overlay = KeyboardMetrics(width = 900f, keyH = 44f, gap = 8f, pad = 14f, barH = 34f)
@@ -122,8 +126,9 @@ fun KeyboardKeys(kb: KeyboardController, c: KeyColours, m: KeyboardMetrics, acti
         ) {
             if (kb.layer == KeyboardLayout.Emoji) EmojiKeys(kb, c, m, active)
             else {
-                LetterKeys(kb, c, m, active)
-                AccentStrip(kb, c, m, active)
+                val lm = m.forRows(KeyboardLayout.of(kb.layer).size)
+                LetterKeys(kb, c, lm, active)
+                AccentStrip(kb, c, lm, active)
             }
         }
     }

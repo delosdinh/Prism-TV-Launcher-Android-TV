@@ -9,6 +9,9 @@ import androidx.compose.material.icons.rounded.EmojiObjects
 import androidx.compose.material.icons.rounded.EmojiPeople
 import androidx.compose.material.icons.rounded.EmojiSymbols
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class KeyKind { Char, Shift, Delete, Layer, Space, Done, Emoji, Mic, EmojiCategory }
@@ -58,15 +61,48 @@ object KeyboardLayout {
         EmojiData.categories.indices.map { Key("cat", KeyKind.EmojiCategory, 1f, target = it) } +
         Key("delete", KeyKind.Delete, 1f)
 
+    /**
+     * Settings › Keyboard › Layout: the ABC grid instead of QWERTY (the letters only; 123, #+= and emoji
+     * are shared). Set from the saved setting wherever a keyboard opens.
+     */
+    var alphabetical by mutableStateOf(false)
+
+    private const val AbcUnits = 10f / 7f
+    private fun abc(s: String) = s.map { Key(it.toString(), units = AbcUnits) }
+
+    /**
+     * ABC: A to Z in rows of seven, tuned for the D-pad. Short rows wrap round quickly (no key is more
+     * than three presses away along its row), space sits at the end of the second row (beside h and m,
+     * one Right from m, one Left from h), delete after z, and the rarer keys get a row of their own
+     * under the letters so they don't lengthen the letter rows. Over common English text this averages
+     * about 2.7 moves per letter against QWERTY's 2.9 (see tools/keyboard/abc_layout.py).
+     */
+    private val abcRows: List<List<Key>> = listOf(
+        abc("abcdefg"),
+        abc("hijklm") + Key("space", KeyKind.Space, AbcUnits),
+        abc("nopqrst"),
+        abc("uvwxyz") + Key("delete", KeyKind.Delete, AbcUnits),
+        listOf(
+            Key("shift", KeyKind.Shift, 2f),
+            Key("123", KeyKind.Layer, 2f, target = Numbers),
+            Key("emoji", KeyKind.Emoji, 2f),
+            Key("mic", KeyKind.Mic, 2f),
+            Key("return", KeyKind.Done, 2f),
+        ),
+    )
+
     fun of(layer: Int): List<List<Key>> = when (layer) {
         Numbers -> numberRows
         Symbols -> symbolRows
         Emoji -> listOf(emojiBar)
-        else -> letterRows
+        else -> if (alphabetical) abcRows else letterRows
     }
 
-    /** Row starts in key units: the second letter row is indented half a key, like iOS. */
-    fun indent(layer: Int, row: Int): Float = if (layer == Letters && row == 1) 0.5f else 0f
+    /** Where focus starts on the letters: g on QWERTY, h on ABC (the closest on average to a first letter). */
+    fun startKey(): Pair<Int, Int> = if (alphabetical) 1 to 0 else 1 to 4
+
+    /** Row starts in key units: QWERTY's second letter row is indented half a key, like iOS. */
+    fun indent(layer: Int, row: Int): Float = if (layer == Letters && row == 1 && !alphabetical) 0.5f else 0f
 
     /** Horizontal centre (in units) of [col] in [row]. */
     fun centre(layer: Int, row: Int, col: Int): Float {
