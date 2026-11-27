@@ -12,6 +12,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.CompositionLocalProvider
@@ -53,6 +58,18 @@ import com.prismtv.launcher.ui.keyboard.keyColoursFor
 import com.prismtv.launcher.ui.theme.Appearance
 import java.util.Calendar
 import kotlin.math.min
+
+/** The ABC panel's edge over the app: a dark hairline, and a soft shadow where the window has room for it. */
+private object PanelShadow {
+    /** Over a white page: a clear line; over a dark one it doesn't show. */
+    val edge = Color(0xFF0B0C0F).copy(alpha = 0.18f)
+    val colour = Color.Black.copy(alpha = 0.22f)
+    /** BlurMaskFilter radius, in canvas dp (fades out about 1.8× this far from the edge). */
+    const val blur = 8f
+    const val drop = 3f
+    /** Window space above the panel so the shadow isn't cut off at the window's top edge. */
+    const val room = 14f
+}
 
 /**
  * Prism Keyboard for every app: the iOS-style keyboard, with suggestions, auto-correction, emoji and
@@ -201,7 +218,8 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 if (frosted) Modifier else Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(androidx.compose.foundation.layout.WindowInsets.navigationBars)
-                    .padding(bottom = 6.dp),
+                    // Room in the window for the panel's shadow above it.
+                    .padding(top = PanelShadow.room.dp, bottom = 6.dp),
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 val shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp)
@@ -212,12 +230,18 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 val tint = if (frosted) Color.Transparent else veil.copy(alpha = veil.alpha * veilScale)
                 Box(
                     Modifier
+                        // Over a white web page the light veil all but disappears, and the keys looked loose on
+                        // the page (Downloader). A soft shadow round the panel (where the window has room for
+                        // it) and a dark hairline edge keep its shape on any page; on dark ones they don't show.
+                        .then(if (!frosted && android.os.Build.VERSION.SDK_INT >= 28) Modifier.panelShadow(26.dp) else Modifier)
                         .then(if (clear) Modifier.background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.46f))), shape)
                         else Modifier.background(tint, shape).background(
                             Brush.radialGradient(listOf(glow.copy(alpha = 0.22f), Color.Transparent)), shape,
                         ))
-                        .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.14f), Color.White.copy(alpha = 0.03f))), shape)
-                        .padding(m.pad.dp),
+                        .border(1.dp, PanelShadow.edge, shape)
+                        .padding(1.dp)
+                        .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = if (clear) 0.30f else 0.14f), Color.White.copy(alpha = 0.03f))), androidx.compose.foundation.shape.RoundedCornerShape(25.dp))
+                        .padding((m.pad - 1f).dp),
                 ) {
                     KeyboardKeys(kb, c, m, bare = true, chips = true)
                 }
@@ -231,6 +255,27 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
                 contentAlignment = Alignment.TopCenter,
             ) {
                 KeyboardKeys(kb, c, m)
+            }
+        }
+    }
+
+    /**
+     * A soft shadow outside a rounded panel, never under it, so the see-through panel itself isn't darkened.
+     * Blur on a hardware canvas needs Android 9.
+     */
+    private fun Modifier.panelShadow(corner: androidx.compose.ui.unit.Dp): Modifier = drawWithCache {
+        val r = corner.toPx()
+        val dy = PanelShadow.drop.dp.toPx()
+        val outline = androidx.compose.ui.graphics.Path().apply {
+            addRoundRect(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, androidx.compose.ui.geometry.CornerRadius(r)))
+        }
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = PanelShadow.colour.toArgb()
+            maskFilter = android.graphics.BlurMaskFilter(PanelShadow.blur.dp.toPx(), android.graphics.BlurMaskFilter.Blur.NORMAL)
+        }
+        onDrawBehind {
+            clipPath(outline, androidx.compose.ui.graphics.ClipOp.Difference) {
+                drawIntoCanvas { it.nativeCanvas.drawRoundRect(0f, dy, size.width, size.height + dy, r, r, paint) }
             }
         }
     }
@@ -361,6 +406,7 @@ class PrismKeyboardService : InputMethodService(), LifecycleOwner, SavedStateReg
         )
         val noSuggest = type and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0
         kb.suggestionsOn = text && !password && !noSuggest && (prefs.predictive || prefs.autoCorrect)
+        kb.predictiveOn = prefs.predictive
         kb.autoCorrectOn = text && !password && !address && !noSuggest && prefs.autoCorrect
         kb.autoCapOn = text && !password && !address
         kb.micOn = !password

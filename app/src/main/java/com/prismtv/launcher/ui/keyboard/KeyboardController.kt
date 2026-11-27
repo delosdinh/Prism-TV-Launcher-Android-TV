@@ -53,6 +53,11 @@ class KeyboardController(
 
     // Per field.
     var suggestionsOn by mutableStateOf(true)
+    /**
+     * Settings › Keyboard › Predictive: completions as you type and the next word after a space. Off, the bar
+     * only shows auto-correction's fix beside the word you typed (so it can be kept), as iOS's correction bubble.
+     */
+    var predictiveOn by mutableStateOf(true)
     var autoCorrectOn by mutableStateOf(true)
     var autoCapOn by mutableStateOf(true)
     var actionLabel by mutableStateOf("return")
@@ -466,7 +471,7 @@ class KeyboardController(
 
     /** What you typed after which word, for next-word predictions (not in password fields). */
     private fun learnLastPair(ed: KeyboardEditor) {
-        if (!suggestionsOn) return
+        if (!suggestionsOn || !predictiveOn) return
         val (prev, last) = wordsBeforeSpace(ed) ?: return
         if (prev != null) predictor?.learnNext(prev, last)
     }
@@ -589,7 +594,7 @@ class KeyboardController(
         val out = ArrayList<Suggestion>()
         if (word.isEmpty()) {
             // After a word and a space: what usually comes next ("of" → the, a, his).
-            wordsBeforeSpace(ed)?.let { (prev, last) ->
+            if (predictiveOn) wordsBeforeSpace(ed)?.let { (prev, last) ->
                 val caps = ed.capsMode()
                 val loud = last.length > 1 && last.all { !it.isLetter() || it.isUpperCase() }
                 p.nextWords(prev, last, 3).forEach { w ->
@@ -611,10 +616,12 @@ class KeyboardController(
             out += Suggestion(word, Suggestion.Kind.Typed)
             val fix = if (autoCorrectOn && !word.equals(keepWord, true)) p.autoCorrection(word)?.let { matchCase(it, word) } else null
             if (fix != null && fix != word) out += Suggestion(fix, Suggestion.Kind.Correction)
-            val more = (p.complete(word, 3) + if (!p.isWord(word)) p.corrections(word, 3) else emptyList())
-                .map { matchCase(it, word) }
-                .filter { m -> m != word && out.none { it.text == m } }
-            more.forEach { if (out.size < 3) out += Suggestion(it, Suggestion.Kind.Completion) }
+            if (predictiveOn) {
+                val more = (p.complete(word, 3) + if (!p.isWord(word)) p.corrections(word, 3) else emptyList())
+                    .map { matchCase(it, word) }
+                    .filter { m -> m != word && out.none { it.text == m } }
+                more.forEach { if (out.size < 3) out += Suggestion(it, Suggestion.Kind.Completion) }
+            }
         }
         suggestions = if (out.size <= 1) emptyList() else out
         if (row == -1) {

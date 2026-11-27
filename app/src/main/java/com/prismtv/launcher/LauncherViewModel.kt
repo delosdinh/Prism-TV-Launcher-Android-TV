@@ -1459,6 +1459,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         keyboardEditor.text = initial
         val kb = keyboardController
         kb.suggestionsOn = !plain && (prefs.predictive || prefs.autoCorrect)
+        kb.predictiveOn = prefs.predictive
         kb.autoCorrectOn = !plain && prefs.autoCorrect
         kb.autoCapOn = !plain
         kb.micOn = !plain
