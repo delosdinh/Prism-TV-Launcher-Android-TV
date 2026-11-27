@@ -5,6 +5,11 @@ on:
     branches-ignore: [ci-results]
   pull_request:
   workflow_dispatch:
+    inputs:
+      test_release:
+        description: "Also put the GitHub-edition APK up as this branch's own test prerelease (test-<branch suffix>), for installing on a test TV by hand. No TV updates from it."
+        type: boolean
+        default: false
 
 # Read-only by default. Each job below asks for only what it needs, and says why.
 permissions:
@@ -132,6 +137,30 @@ jobs:
           name: prism-tv-apks
           path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error
+
+      # A test build to install by hand (`adb install -r`), at a plain URL: a prerelease of the branch's own
+      # (test-<last part of the branch name>), only when a manual run asks for it. Neither the preview release nor
+      # the releases repository, so no TV updates to it. Needs the permanent key, or it couldn't install over
+      # the TVs' builds.
+      - name: Test release
+        if: github.event_name == 'workflow_dispatch' && inputs.test_release && steps.result.outputs.signed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          TAG="test-${BRANCH##*[-/]}"
+          case "$TAG" in test-|test-main|preview|prism-signing-key) echo "::error::won't use the tag $TAG"; exit 1 ;; esac
+          mkdir -p test-dist
+          cp app/build/outputs/apk/github/release/app-github-release.apk test-dist/prismtv-test.apk
+          NOTES="Test build $PRISM_VN from $BRANCH ($GITHUB_SHA), signed with the permanent key. Not an update channel: install it by hand."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --prerelease --title "Test build $PRISM_VN ($BRANCH)" --notes "$NOTES"
+          else
+            gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "Test build $PRISM_VN ($BRANCH)" --notes "$NOTES"
+          fi
+          gh release upload "$TAG" test-dist/prismtv-test.apk --clobber
+          echo "https://github.com/$GH_REPO/releases/download/$TAG/prismtv-test.apk"
 
       # The Play edition, to upload in Play Console (docs/play-store.md). Kept with the run only, never published.
       - name: Upload Play bundle
