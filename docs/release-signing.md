@@ -76,19 +76,19 @@ each run's artifacts as `prism-tv-play-bundle`).
 
 ## Release channels
 
-A push publishes to two places (the `publish` job in `.github/workflows/android.yml`):
+A push publishes to up to three places (the `publish` job in `.github/workflows/android.yml`):
 
 - **This repository's `preview` release**, for the test TVs: every branch push, or, once the
   repository variable `PREVIEW_BRANCHES` is set (space-separated branch names), only those branches.
 - **The public releases-only repository** (`RELEASES_REPO`), which every other TV's Software Update
   reads first: only pushes to `main`, so work-in-progress branches never reach them. Merging a pull
   request is what releases it.
+- **The releases repository's `testing` release**: the same builds as preview. TVs set to
+  Settings › Software Update › **Update Channel › Testing** read it (and the stable channel, taking
+  whichever is newer), so test TVs keep updating themselves. Stable, the default, only gets `main`.
 
-Software Update takes the first source that answers, so a TV on a preview build newer than the
-releases repository simply sees no update until `main` catches up.
-
-A manual run (Actions › Android CI › Run workflow) publishes neither. With **test_release** ticked it
-also puts the GitHub-edition APK up as the branch's own prerelease, `test-<last part of the branch
+A manual run (Actions › Android CI › Run workflow) publishes none of these. With **test_release** ticked
+it also puts the GitHub-edition APK up as the branch's own prerelease, `test-<last part of the branch
 name>` (for `claude/project-thread-45f9tm`, `test-45f9tm`), at
 `https://github.com/<owner>/<repo>/releases/download/test-<suffix>/prismtv-test.apk`, to install on a
 test TV by hand with `adb install -r`. No TV updates from it; delete it once the test is done.

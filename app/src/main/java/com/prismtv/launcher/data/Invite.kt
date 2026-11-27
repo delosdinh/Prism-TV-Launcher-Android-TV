@@ -14,7 +14,7 @@ import javax.crypto.spec.SecretKeySpec
  * code for that ID with their invite key (kept out of this repository: CI builds it in from the
  * PRISM_INVITE_KEY secret). A code works only on the TV it was made for, and needs no internet.
  *
- * Installs from before invite codes keep Pro without one (see [grandfather]).
+ * Installs where an older Prism TV was used keep Pro without one (see [earlierInstall]).
  *
  * Kept in Pro's own preferences file, so Reset Launcher leaves it alone. Both the code and the
  * grandfathered mark are tied to the TV ID, so a backup restored on another TV doesn't carry them over.
@@ -79,22 +79,39 @@ object Invite {
     }
 
     /**
-     * Decided once, the first time this version runs. An install that has been updated (any install from
-     * before invite codes, since only the newest build can be downloaded) keeps Pro without a code. A
-     * fresh install needs one.
+     * Decided once, the first time this version runs, before anything else writes Prism's own files:
+     * an install where an older Prism TV has really been used keeps Pro without a code. A fresh install
+     * needs one, and so does a new user profile on a TV that has Prism (it has none of Prism's files).
      */
     private fun grandfather(ctx: Context) {
         val sp = sp(ctx)
         if (sp.getBoolean("inviteDecided", false)) return
+        val update = ctx.applicationContext.getSharedPreferences("prism_update", Context.MODE_PRIVATE)
         val updated = runCatching {
             val pi = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
             pi.lastUpdateTime > pi.firstInstallTime
         }.getOrDefault(false)
+        val keep = earlierInstall(
+            lastRunVersion = update.getInt("lastRunVersion", 0),
+            currentVersion = BuildConfig.VERSION_CODE,
+            updated = updated,
+            checkedForUpdates = update.getLong("lastCheck", 0L) > 0L,
+        )
         sp.edit().apply {
-            if (updated) putString("inviteGrandfathered", deviceId(ctx))
+            if (keep) putString("inviteGrandfathered", deviceId(ctx))
             putBoolean("inviteDecided", true)
         }.apply()
     }
+
+    /**
+     * Whether an older Prism TV ran here, from what older versions left in this user's own files:
+     * the version that last ran (written a few seconds after each start, in builds since 2026-11-23),
+     * or a Software Update check on an app that has since been updated. Install dates alone aren't
+     * enough: before Android 13 a new user profile shares the app's install dates, and an app installed
+     * over itself with adb before it was ever opened looks updated too.
+     */
+    fun earlierInstall(lastRunVersion: Int, currentVersion: Int, updated: Boolean, checkedForUpdates: Boolean): Boolean =
+        (lastRunVersion in 1 until currentVersion) || (updated && checkedForUpdates)
 
     /** First run of a fresh install: ask for a code once. */
     fun shouldPrompt(ctx: Context): Boolean = !unlocked(ctx) && !sp(ctx).getBoolean("invitePrompted", false)

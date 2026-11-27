@@ -99,6 +99,23 @@ class KeyboardControllerTest {
         assertNotNull(kb.suggestions.firstOrNull { it.text.startsWith("tel") })
     }
 
+    @Test
+    fun predictiveOffSuggestsNoWords() {
+        kb.predictiveOn = false
+        at("I am ", 1, 4)
+        assertTrue(kb.suggestions.isEmpty())
+        at("tel", 1, 4)
+        assertTrue(kb.suggestions.none { it.kind == Suggestion.Kind.Completion || it.kind == Suggestion.Kind.Prediction })
+    }
+
+    @Test
+    fun predictiveOffStillShowsTheAutoCorrection() {
+        kb.predictiveOn = false
+        at("rhe", 1, 4)
+        assertEquals(listOf(Suggestion.Kind.Typed, Suggestion.Kind.Correction), kb.suggestions.map { it.kind })
+        assertEquals("the", kb.suggestions[1].text)
+    }
+
     // ------------------------------------------------------------------ wrap-around navigation
 
     @Test

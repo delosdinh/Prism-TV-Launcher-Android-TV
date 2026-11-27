@@ -213,6 +213,7 @@ private val Exact: Map<String, String> = mapOf(
     // Software Update
     "upd:check" to "Checks for a new version, or installs one that's ready.",
     "upd:auto" to "Checks for updates on its own.",
+    "upd:channel" to "Stable gets finished releases. Testing also gets test builds, which can have problems.",
     "upd:ver" to "The version installed now.",
 
     // About
