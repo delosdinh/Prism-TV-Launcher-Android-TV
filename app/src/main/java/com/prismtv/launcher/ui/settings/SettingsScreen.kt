@@ -73,6 +73,7 @@ import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.HighQuality
+import androidx.compose.material.icons.rounded.DownloadForOffline
 import androidx.compose.material.icons.rounded.HighlightOff
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Terminal
@@ -165,6 +166,7 @@ fun SettingsScreen(vm: LauncherViewModel) {
     val tState = animateFloatAsState(if (visible) 1f else 0f, spring(dampingRatio = 0.9f, stiffness = 320f), label = "settings")
     val t by tState
     if (!tState.atLeast(0.002f)) return
+    com.prismtv.launcher.ui.glass.HoldSceneCache()
     if (com.prismtv.launcher.BuildConfig.DEBUG) androidx.compose.runtime.SideEffect { android.util.Log.d("PrismComp", "settings") }
     val theme = LocalPrism.current
     val p = theme.palette
@@ -343,6 +345,7 @@ private val Glyphs: Map<String, Glyph> = mapOf(
     "ss:source" to glyph(Icons.Rounded.Landscape, 0xFF64D2FF, 0xFF1A8FB8),
     "ss:location" to glyph(Icons.Rounded.Place, 0xFFFF6961, 0xFFD63A31),
     "ss:quality" to glyph(Icons.Rounded.HighQuality, 0xFFBF5AF2, 0xFF8E2DC4),
+    "ss:save" to glyph(Icons.Rounded.DownloadForOffline, 0xFF4CD964, 0xFF239B3E),
     "closing" to glyph(Icons.Rounded.HighlightOff, 0xFFFF6961, 0xFFD63A31),
     "cl:full" to glyph(Icons.Rounded.HighlightOff, 0xFFFF6961, 0xFFD63A31),
     "cl:using" to glyph(Icons.Rounded.Tune, 0xFF9C9CA3, 0xFF5E5E64),

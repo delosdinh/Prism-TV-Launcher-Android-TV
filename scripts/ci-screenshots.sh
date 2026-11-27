@@ -423,6 +423,34 @@ ccwalk() { # label, extra args
 ccwalk cc-new
 ccwalk cc-old --ez isolateScene false --ez directThresholds true
 ccwalk cc-new-again
+# The drawing shortcuts for overlay animations (PerfSwitches; `dumpsys activity … perf`), all on: Control Centre
+# again with them, for crashes and the counts.
+perf() { adb shell dumpsys activity "$ACT" perf "$@" >/dev/null 2>&1 || true; }
+perf ccSteadyLens on; perf ccPillAbove on
+overlayopen open-perf-switches
+ccwalk cc-perf-switches
+perf ccSteadyLens off; perf ccPillAbove off
+# Recent Apps opening and closing as the remote's double-press Home does it (a prism.action intent): frames, and
+# how often the deck and its cards recomposed (every card used to recompose on every frame of the animation).
+# Not on API 34, whose software renderer has stalled with the switcher open.
+switcheropen() { # label, extra args
+  local label="$1"; shift
+  start "${B[@]}" "${DARK[@]}" "$@" --es screen home --ei col 0; sleep 4
+  adb logcat -c
+  adb shell dumpsys gfxinfo "$PKG" reset >/dev/null 2>&1
+  start --es prism.action switcher; sleep 3
+  start --es prism.action switcher; sleep 3
+  adb shell dumpsys gfxinfo "$PKG" | grep -E "Total frames rendered|Janky frames|50th percentile|90th percentile|99th percentile|Slow UI thread|Slow issue draw" \
+    | sed "s/^ */$label: /" | tee -a "$OUT/frames.txt"
+  local log; log=$(adb logcat -d -s PrismComp:D PrismDraw:D)
+  echo "$label: Recent Apps open+close: deck composed $(grep -cE 'PrismComp: deck\s*$' <<<"$log")x, cards composed $(grep -c 'PrismComp: deckCard' <<<"$log")x, scene re-recorded $(grep -c 'PrismDraw: Scene' <<<"$log")x" | tee -a "$OUT/frames.txt"
+}
+if [ "$QUICK" = 0 ]; then
+  switcheropen switcher
+  perf switcherHomeCopy on
+  switcheropen switcher-home-copy
+  perf switcherHomeCopy off
+fi
 # Main-thread cost of building each Settings page's rows, and of preparing one Top Shelf backdrop.
 adb logcat -c || true
 start "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 0 --es bench settings; sleep 22

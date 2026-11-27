@@ -86,3 +86,9 @@ A push publishes to up to three places (the `publish` job in `.github/workflows/
 - **The releases repository's `testing` release**: the same builds as preview. TVs set to
   Settings › Software Update › **Update Channel › Testing** read it (and the stable channel, taking
   whichever is newer), so test TVs keep updating themselves. Stable, the default, only gets `main`.
+
+A manual run (Actions › Android CI › Run workflow) publishes none of these. With **test_release** ticked
+it also puts the GitHub-edition APK up as the branch's own prerelease, `test-<last part of the branch
+name>` (for `claude/project-thread-45f9tm`, `test-45f9tm`), at
+`https://github.com/<owner>/<repo>/releases/download/test-<suffix>/prismtv-test.apk`, to install on a
+test TV by hand with `adb install -r`. No TV updates from it; delete it once the test is done.

@@ -184,6 +184,9 @@ dependencies {
     // Installs the baseline profile (src/main/baseline-prof.txt) so Prism TV's code is compiled ahead of time.
     implementation(libs.androidx.profileinstaller)
     implementation(libs.media3.exoplayer)
+    // Settings › Screensaver › Save on This TV: Home's aerials kept on the TV (already part of ExoPlayer's own dependencies).
+    implementation(libs.media3.datasource)
+    implementation(libs.media3.database)
     // Optional: lets Shizuku users close apps completely (force stop) from the App Switcher. Compiled into
     // both editions, but the Play edition never calls it (BuildConfig.PLAY) and drops its provider, so R8
     // removes it there.

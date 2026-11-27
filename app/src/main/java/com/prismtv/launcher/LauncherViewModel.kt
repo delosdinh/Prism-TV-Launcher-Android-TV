@@ -47,6 +47,7 @@ import com.prismtv.launcher.aerial.AerialActivity
 import com.prismtv.launcher.aerial.AerialCatalog
 import com.prismtv.launcher.data.AerialQuality
 import com.prismtv.launcher.data.AerialRange
+import com.prismtv.launcher.data.AerialSaving
 import com.prismtv.launcher.data.StartAfterChoices
 import com.prismtv.launcher.data.DeepLinks
 import com.prismtv.launcher.data.KeyboardColour
@@ -357,6 +358,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         // The layout above is read before the profile is known: switch to this profile's own one.
         if (!prefs.demoContent && prefs.activeProfile.isNotEmpty() && prefs.activeProfile != com.prismtv.launcher.data.Profiles.MainId) {
             layout = loadLayout()
+        }
+        // Aerials saved for a Home Screen that no longer plays them (Save on This TV off, another wallpaper):
+        // their space back.
+        if (prefs.aerialSave == AerialSaving.Off || prefs.wallpaper != AerialWallpaperKey) {
+            viewModelScope.launch(Dispatchers.IO) { com.prismtv.launcher.aerial.AerialStore.clear(ctx) }
         }
     }
     /** Each profile keeps its own Home Screen layout (the first profile keeps the original one). */
@@ -4562,6 +4568,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingsRow("usage", "Recent Apps", "HOME SCREEN", if (status().usage) "Allowed" else "Not Allowed", chevron = !status().usage),
             SettingsRow("acc:photos", "Your Pictures", "WALLPAPER, SCREENSAVER & BANNERS", if (hasPhotoAccess()) "Allowed" else "Not Allowed", chevron = !hasPhotoAccess()),
             SettingsRow("kb:mic", "Dictation Microphone", "KEYBOARD", if (hasMicAccess()) "Allowed" else "Not Allowed", chevron = !hasMicAccess()),
+            // The same row as on the main page (Turn On for Me where Prism TV can run it): it sees remote presses.
+            SettingsRow("a11y", "Power & Home Button", "REMOTE & POWER", if (PrismAccessibilityService.isEnabled) "Allowed" else "Not Allowed", chevron = !PrismAccessibilityService.isEnabled),
         ) }
         // Colour Mode colours Settings and pop-ups (always frosted glass); Material and Material Colour
         // are the Home Screen glass (Automatic follows Colour Mode, Clear drops the tint).
@@ -4636,6 +4644,10 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 SettingsRow("ss:location", "Show Location", "WHAT TO SHOW", onOff(prefs.aerialShowLocation)),
                 if (aerials) SettingsRow("ss:quality", "Video Quality", "AERIALS", prefs.aerialQuality.label) else null,
                 if (aerials) SettingsRow("ss:range", "Dynamic Range", "AERIALS", rangeLabel()) else null,
+                // Home's aerials, so also with only the aerial wallpaper on.
+                if (!BuildConfig.PLAY && (aerials || prefs.wallpaper == AerialWallpaperKey)) {
+                    SettingsRow("ss:save", "Save on This TV", "AERIALS", aerialSaveLabel())
+                } else null,
                 SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
             )
         }
@@ -5212,6 +5224,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 updatePrefs(p.copy(aerialQuality = next))
             }
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
+            r.id == "ss:save" -> {
+                val next = AerialSaving.entries[(p.aerialSave.ordinal + 1) % AerialSaving.entries.size]
+                updatePrefs(p.copy(aerialSave = next))
+                // Off gives the space back now (a Home aerial that's playing starts again, streamed).
+                if (next == AerialSaving.Off) viewModelScope.launch(Dispatchers.IO) { com.prismtv.launcher.aerial.AerialStore.clear(ctx) }
+            }
             r.id == "ss:range" -> {
                 var next = AerialRange.entries[(p.aerialRange.ordinal + 1) % AerialRange.entries.size]
                 if (!proActive && next == AerialRange.DolbyVision) {
@@ -5697,6 +5715,17 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private fun widgetsLabel(): String {
         val n = prefs.widgets.count { (k, v) -> v != WidgetPlace.Off && widgetRows.any { it.key == k } }
         return if (n == 0) "None" else "$n On"
+    }
+
+    /** Save on This TV: the choice, or how many fit when the TV hasn't room for them all. */
+    private fun aerialSaveLabel(): String {
+        val want = prefs.aerialSave
+        val fit = com.prismtv.launcher.aerial.AerialStore.fit
+        return when {
+            want == AerialSaving.Off || fit == null || fit.first != want.count || fit.second >= want.count -> want.label
+            fit.second < 2 -> "No Room"
+            else -> "Room for ${fit.second}"
+        }
     }
 
     private fun rangeLabel(): String = when (prefs.aerialRange) {

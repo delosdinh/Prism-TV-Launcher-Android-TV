@@ -300,6 +300,19 @@ class MainActivity : ComponentActivity() {
             if (args?.any { it == "reprobe" } == true) runOnUiThread { com.prismtv.launcher.ui.glass.GlassPerf.reprobe(window) }
             writer.println("$prefix  ${com.prismtv.launcher.ui.glass.GlassPerf.report()}")
         }
+        // `… MainActivity perf [<name> on|off]`: the drawing shortcuts for overlay animations, to time and compare on a TV.
+        if (args?.any { it == "perf" } == true) {
+            val done = java.util.concurrent.CountDownLatch(1)
+            var result = ""
+            runOnUiThread {
+                result = com.prismtv.launcher.ui.glass.PerfSwitches.apply(args?.toList().orEmpty())
+                done.countDown()
+            }
+            done.await(2, java.util.concurrent.TimeUnit.SECONDS)
+            writer.println("$prefix  perf: $result")
+        }
+        // `… MainActivity aerials`: Home's saved aerials (Settings › Screensaver › Save on This TV).
+        if (args?.any { it == "aerials" } == true) writer.println("$prefix  ${com.prismtv.launcher.aerial.AerialStore.report()}")
         if (args?.any { it == "hwtest" } == true) writer.println("$prefix  ${com.prismtv.launcher.system.HardwareProbe.run()}")
         runCatching { vm.memoryReport(collect) }.getOrElse { listOf("unavailable: $it") }.forEach { writer.println("$prefix  $it") }
         writer.println("${prefix}Prism memory history (a line a minute when anything happened):")
@@ -515,8 +528,11 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
                 // While something is open over Home (Control Centre, the sidebar, a folder, Settings…), Home is
                 // kept as one rendered picture: every frame of the overlay otherwise re-issued all of Home's
                 // drawing (each tile, image and glass surface) under it. On the AM9 that was most of a
-                // Control Centre frame. Home renders into it again only when something on it changes.
-                val sceneCached = vm.overlay != Overlay.None
+                // Control Centre frame. Home renders into it again only when something on it changes. It stays
+                // cached until the overlay has finished closing: dropping it as soon as closing began drew all of
+                // Home again on every frame of the closing animation.
+                val sceneCached = vm.overlay != Overlay.None ||
+                    (com.prismtv.launcher.ui.glass.PerfSwitches.cacheUntilClosed && backdrop.overlaysShown > 0)
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -529,6 +545,7 @@ private fun PrismCanvas(vm: LauncherViewModel, windowW: Int, windowH: Int) {
                 ) {
                     HomeScreen(vm, clock)
                 }
+                com.prismtv.launcher.ui.home.TimePillAbove(vm, clock)
                 FolderOverlay(vm)
                 Sidebar(vm, clock)
                 ControlCentre(vm, clock)

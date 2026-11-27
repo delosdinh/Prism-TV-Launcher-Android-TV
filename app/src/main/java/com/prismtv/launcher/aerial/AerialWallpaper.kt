@@ -45,19 +45,37 @@ import com.prismtv.launcher.data.AerialRange
  * Behind the app grid it blurs: with RenderEffect on Android 12 and later, through [AerialGlRenderer] on
  * Android 11 and older ([onLiveBlur] says when that's running, so the blurred still can stay away).
  */
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun AerialWallpaper(
     blur: () -> Float,
     modifier: Modifier = Modifier,
+    /** Settings › Screensaver › Save on This TV: how many aerials to keep on the TV, 0 to stream them. */
+    save: Int = 0,
     onShown: (Boolean) -> Unit = {},
     onLiveBlur: (Boolean) -> Unit = {},
+) {
+    // Another choice there starts the aerials again, saved or streamed.
+    key(save) { HomeAerial(blur, modifier, save, onShown, onLiveBlur) }
+}
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@Composable
+private fun HomeAerial(
+    blur: () -> Float,
+    modifier: Modifier,
+    save: Int,
+    onShown: (Boolean) -> Unit,
+    onLiveBlur: (Boolean) -> Unit,
 ) {
     val ctx = LocalContext.current
     val liveBlur by rememberUpdatedState(onLiveBlur)
     // A TV measured too slow for the glass (see below); decided once, so the stream and buffer match.
     val videoLayer = remember { com.prismtv.launcher.ui.glass.GlassPerf.slowTv && android.os.Build.VERSION.SDK_INT >= 31 }
-    var videos by remember { mutableStateOf(Resume.list?.takeIf { Resume.videoLayer == videoLayer }) }
+    var videos by remember {
+        mutableStateOf(
+            Resume.list?.takeIf { Resume.videoLayer == videoLayer && Resume.save == save && !(Resume.saved && AerialStore.swapDue()) }
+        )
+    }
     LaunchedEffect(Unit) {
         if (videos == null) {
             // On the video layer, the same resolution as the screensaver (4K on a 4K panel, by default):
@@ -69,12 +87,24 @@ fun AerialWallpaper(
                     com.prismtv.launcher.data.PrefsStore(ctx).load().aerialQuality
                 }
             } else AerialQuality.HD
-            videos = AerialCatalog.load(ctx, quality, AerialRange.SDR).shuffled().take(12).also {
+            val all = AerialCatalog.load(ctx, quality, AerialRange.SDR)
+            // Saving: the set kept on the TV (null when there's no room for it, and they stream).
+            val saved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                if (save > 0) AerialStore.homeSet(ctx, all, save) else {
+                    AerialStore.clear(ctx) // anything saved before Off was chosen
+                    null
+                }
+            }
+            videos = (saved ?: all.shuffled().take(12)).also {
                 Resume.list = it
                 Resume.videoLayer = videoLayer
+                Resume.save = save
+                Resume.saved = saved != null
+                Resume.index = 0
+                Resume.position = 0L
             }
         }
-        android.util.Log.i("PrismAerial", "Home wallpaper: ${videos?.size ?: 0} aerials")
+        android.util.Log.i("PrismAerial", "Home wallpaper: ${videos?.size ?: 0} aerials${if (Resume.saved) ", saved on the TV" else ""}")
     }
     val list = videos ?: return
     if (list.isEmpty()) return
@@ -82,16 +112,21 @@ fun AerialWallpaper(
     val gl = remember { GlHolder() }
     val player = remember {
         if (AerialNet.preferHttp(ctx)) Resume.http = true
-        ExoPlayer.Builder(ctx).setLoadControl(if (videoLayer) AerialBuffer.screensaver() else AerialBuffer.wallpaper()).build().apply {
-            volume = 0f
-            repeatMode = Player.REPEAT_MODE_ALL
-            trackSelectionParameters = trackSelectionParameters.buildUpon()
-                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
-                .build()
-            setMediaItems(list.map { MediaItem.fromUri(if (Resume.http) it.fallbackUrl else it.url) }, Resume.index.coerceIn(0, list.size - 1), Resume.position)
-            prepare()
-            playWhenReady = true
-        }
+        // Saving: played from the TV once saved, saved as it downloads.
+        val saving = if (Resume.saved) AerialStore.writer(ctx) else null
+        ExoPlayer.Builder(ctx)
+            .setLoadControl(if (videoLayer) AerialBuffer.screensaver() else AerialBuffer.wallpaper())
+            .apply { if (saving != null) setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(saving)) }
+            .build().apply {
+                volume = 0f
+                repeatMode = Player.REPEAT_MODE_ALL
+                trackSelectionParameters = trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                    .build()
+                setMediaItems(list.map { MediaItem.fromUri(if (Resume.http) it.fallbackUrl else it.url) }, Resume.index.coerceIn(0, list.size - 1), Resume.position)
+                prepare()
+                playWhenReady = true
+            }
     }
     DisposableEffect(player) {
         var disposed = false
@@ -367,4 +402,7 @@ private object Resume {
     var glFailed = false
     /** Whether [list] was picked for the video layer (the screensaver's resolution) or a TextureView (1080p). */
     var videoLayer = false
+    /** The Save on This TV choice [list] was picked for, and whether it's the saved set (not streamed). */
+    var save = 0
+    var saved = false
 }

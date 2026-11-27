@@ -67,7 +67,41 @@ half4 main(float2 coord) {
 
 @RequiresApi(33)
 object LensShader {
+    private data class Key(
+        val width: Float,
+        val height: Float,
+        val margin: Float,
+        val radius: Float,
+        val bevel: Float,
+        val strength: Float,
+        val dark: Boolean,
+    )
+
+    /**
+     * Effects already made, by their uniforms. Each new RuntimeShader compiles the shader source again on the
+     * main thread, and every glass surface asked for one whenever it was first drawn: Control Centre's tiles
+     * compiled it a dozen times in the first frame of each opening, and Home's glass again each time the App
+     * Switcher closed. A RenderEffect can't change once made, so surfaces of the same size share one.
+     */
+    private val made = object : LinkedHashMap<Key, RenderEffect>(32, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, RenderEffect>?): Boolean = size > 64
+    }
+
     fun effect(
+        width: Float,
+        height: Float,
+        margin: Float,
+        radius: Float,
+        bevel: Float,
+        strength: Float,
+        dark: Boolean,
+    ): RenderEffect = synchronized(made) {
+        made.getOrPut(Key(width, height, margin, radius, bevel, strength, dark)) {
+            make(width, height, margin, radius, bevel, strength, dark)
+        }
+    }
+
+    private fun make(
         width: Float,
         height: Float,
         margin: Float,
