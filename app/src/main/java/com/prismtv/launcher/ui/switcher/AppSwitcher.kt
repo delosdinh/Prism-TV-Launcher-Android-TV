@@ -112,7 +112,7 @@ fun AppSwitcher(vm: LauncherViewModel) {
         Box(
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = open.value }
+                .graphicsLayer { alpha = open.value.coerceIn(0f, 1f) }
                 .glass(RectangleShape, Color.Black.copy(alpha = 0.30f), GlassSource.Scene, rimStrength = 0f, lens = false, frosted = true)
         )
 
@@ -161,13 +161,16 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
     val w = SwitcherLayout.CardW
     val h = SwitcherLayout.CardH
     val top = SwitcherLayout.CardTop
-    fun x() = if (isHome) lerpF(0f, left.value, open.value) else left.value - (1f - open.value) * 260f
-    fun y() = if (isHome) lerpF(0f, top, open.value) else top
-    fun cw() = if (isHome) lerpF(HomeLayout.ScreenW, w, open.value) else w
-    fun ch() = if (isHome) lerpF(HomeLayout.ScreenH, h, open.value) else h
-    fun alpha() = if (isHome) 1f else open.value
+    // The spring dips just below 0 as it settles closed: never below 0 here (a corner radius below 0 throws while
+    // drawing, which crashed Prism on the AM9 as Recent Apps closed). Above 1 as it opens is the bounce, kept.
+    fun o() = open.value.coerceAtLeast(0f)
+    fun x() = if (isHome) lerpF(0f, left.value, o()) else left.value - (1f - o()) * 260f
+    fun y() = if (isHome) lerpF(0f, top, o()) else top
+    fun cw() = if (isHome) lerpF(HomeLayout.ScreenW, w, o()) else w
+    fun ch() = if (isHome) lerpF(HomeLayout.ScreenH, h, o()) else h
+    fun alpha() = if (isHome) 1f else o()
     val restShape = RoundedCornerShape(SwitcherLayout.Radius.dp)
-    fun shape(): Shape = if (isHome) RoundedCornerShape(lerpF(0f, SwitcherLayout.Radius, open.value).dp) else restShape
+    fun shape(): Shape = if (isHome) RoundedCornerShape(lerpF(0f, SwitcherLayout.Radius, o()).dp) else restShape
 
     // The app's icon and name just above its card (Home has none). Drawn outside the card's layer;
     // the deck's icons stack up like its cards, names only where there's room.
@@ -179,7 +182,7 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
                     val labelTop = y() + ch() * (1f - scale.value) / 2f - 36f - lift.value * 640f
                     IntOffset((x() + 12f).dp.roundToPx(), labelTop.dp.roundToPx())
                 }
-                .graphicsLayer { this.alpha = open.value * (1f - lift.value) },
+                .graphicsLayer { this.alpha = (o() * (1f - lift.value)).coerceIn(0f, 1f) },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
