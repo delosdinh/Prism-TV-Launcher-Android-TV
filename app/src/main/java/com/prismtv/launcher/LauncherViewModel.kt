@@ -66,6 +66,7 @@ import com.prismtv.launcher.data.TemperatureUnit
 import com.prismtv.launcher.data.Weather
 import com.prismtv.launcher.data.WeatherRepository
 import com.prismtv.launcher.data.AerialSource
+import com.prismtv.launcher.data.ScreensaverClock
 import com.prismtv.launcher.data.AppItem
 import com.prismtv.launcher.data.AppRepository
 import com.prismtv.launcher.data.AppearanceSetting
@@ -193,6 +194,7 @@ private val ProFeatures = listOf(
     "More Remote Buttons and Hold Actions",
     "Keyboard Colours, Predictions and Dictation",
     "Screensaver Shuffle, 4K and Dolby Vision",
+    "Screensaver Clocks, Weather and Now Playing",
 )
 
 /** Prism Search results: apps, titles from apps' rows, and places in Settings. */
@@ -461,6 +463,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         id == "kbColour" || id == "kbField" -> true
         id == "kb:predictive" -> !p.predictive
         id == "bannersOver" -> !p.bannersOverApps
+        id == "ss:weather" -> !p.screensaverWeather
+        id == "ss:nowPlaying" -> !p.screensaverNowPlaying
         id == "pr:add" -> true
         // Limits already set can still be seen and removed.
         id == "pr:restrict" -> activeProfileSpec.blocked.isEmpty()
@@ -3218,6 +3222,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             SettingSearchResult("App Snapshots", "Home Screen", SettingsPage.HomeScreen, "snapshots"),
             SettingSearchResult("Weather", "Home Screen", SettingsPage.HomeScreen, "weather"),
             SettingSearchResult("Wi-Fi in the Time Pill", "Home Screen", SettingsPage.HomeScreen, "wifi"),
+            SettingSearchResult("Screensaver Clock", "Screensaver", SettingsPage.Screensaver, "ss:clock"),
+            SettingSearchResult("Weather on the Screensaver", "Screensaver", SettingsPage.Screensaver, "ss:weather"),
+            SettingSearchResult("Now Playing on the Screensaver", "Screensaver", SettingsPage.Screensaver, "ss:nowPlaying"),
             SettingSearchResult("Aerials", "Wallpaper", SettingsPage.Wallpaper, "wp:aerial"),
             SettingSearchResult("Screen Time", "Profiles", SettingsPage.ScreenTime),
             SettingSearchResult("Restrictions", "Profiles", SettingsPage.Restrictions),
@@ -4634,6 +4641,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 SettingsRow("ss:source", "Source", "WHAT TO SHOW", source.label),
                 if (pictures) SettingsRow("ss:pictures", "Pictures", "WHAT TO SHOW", screensaverPicturesLabel(), chevron = true) else null,
                 SettingsRow("ss:location", "Show Location", "WHAT TO SHOW", onOff(prefs.aerialShowLocation)),
+                SettingsRow("ss:clock", "Clock", "WHAT TO SHOW", prefs.screensaverClock.label),
+                SettingsRow("ss:weather", "Weather", "WHAT TO SHOW", onOff(prefs.screensaverWeather)),
+                SettingsRow("ss:nowPlaying", "Now Playing", "WHAT TO SHOW", onOff(prefs.screensaverNowPlaying)),
                 if (aerials) SettingsRow("ss:quality", "Video Quality", "AERIALS", prefs.aerialQuality.label) else null,
                 if (aerials) SettingsRow("ss:range", "Dynamic Range", "AERIALS", rangeLabel()) else null,
                 SettingsRow("ss:system", "Use as System Screensaver", "SYSTEM", chevron = true),
@@ -5212,6 +5222,20 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 updatePrefs(p.copy(aerialQuality = next))
             }
             r.id == "ss:location" -> updatePrefs(p.copy(aerialShowLocation = !p.aerialShowLocation))
+            r.id == "ss:clock" -> {
+                var next = ScreensaverClock.entries[(p.screensaverClock.ordinal + 1) % ScreensaverClock.entries.size]
+                if (!proActive && (next == ScreensaverClock.Large || next == ScreensaverClock.Centred)) {
+                    next = ScreensaverClock.Off
+                    showBanner("Prism Pro", "The Large and Centred clocks are part of Prism Pro.", Icons.Rounded.Info)
+                }
+                updatePrefs(p.copy(screensaverClock = next))
+            }
+            r.id == "ss:weather" -> updatePrefs(p.copy(screensaverWeather = !p.screensaverWeather))
+            r.id == "ss:nowPlaying" -> {
+                updatePrefs(p.copy(screensaverNowPlaying = !p.screensaverNowPlaying))
+                // It sees what's playing the way Control Centre does, through Notification access: ask for it.
+                if (!p.screensaverNowPlaying && !PrismNotificationListener.isEnabled(ctx)) settingsSelect(r.copy(id = "notif"))
+            }
             r.id == "ss:range" -> {
                 var next = AerialRange.entries[(p.aerialRange.ordinal + 1) % AerialRange.entries.size]
                 if (!proActive && next == AerialRange.DolbyVision) {
@@ -5974,6 +5998,14 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         banner = b.getString("banner")?.let { BannerSpec("Prism TV Updated", it, Icons.Rounded.CheckCircle) }
         b.getString("focusEffect")?.let { v -> FocusEffect.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(focusEffect = it) } }
         b.getString("aerial")?.let { v -> AerialSource.entries.firstOrNull { it.name.equals(v, true) }?.let { p = p.copy(aerialSource = it) } }
+        // The screensaver's clock, weather and Now Playing: as given, or the defaults (per shot).
+        p = p.copy(
+            screensaverClock = ScreensaverClock.entries.firstOrNull { it.name.equals(b.getString("ssClock"), true) } ?: ScreensaverClock.Small,
+            screensaverWeather = b.getBoolean("ssWeather", true),
+            screensaverNowPlaying = b.getBoolean("ssNowPlaying", true),
+        )
+        com.prismtv.launcher.aerial.AerialInfoLayer.demoWeather = Weather(24.0, 1, true, "Brisbane", 27.0, 18.0)
+        com.prismtv.launcher.aerial.AerialInfoLayer.demoClock = b.getString("clock")
         if (b.containsKey("autorotate")) p = p.copy(heroAutoRotate = b.getBoolean("autorotate"))
         if (b.containsKey("columns")) p = p.copy(columns = b.getInt("columns", 6).coerceIn(5, 6))
         // Remote Buttons: a Red button that opens Control Centre (Search when held), Guide → App Switcher.

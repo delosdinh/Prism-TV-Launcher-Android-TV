@@ -12,7 +12,8 @@ import com.prismtv.launcher.BuildConfig
  * Widgets, Lift & Shine and Focus Wobble, choosing Material Colour by hand, transparency levels, icon
  * packs and banners, keyboard colours, predictions and dictation, more profiles, Restrictions and Screen
  * Time, Banners Over Apps, more than one Remote Button and hold actions, and the screensaver's Shuffle,
- * 4K and Dolby Vision. Colour Mode and Material Colour › Automatic stay free.
+ * 4K, Dolby Vision, Large and Centred clocks, weather and Now Playing. Colour Mode and Material Colour ›
+ * Automatic stay free, and so does the screensaver's small clock.
  *
  * Kept in its own preferences file, so Reset Launcher (and restoring a backup) leave it alone.
  */
@@ -78,6 +79,10 @@ object Pro {
             aerialSource = if (p.aerialSource == AerialSource.Shuffle) AerialSource.Prism else p.aerialSource,
             aerialQuality = if (p.aerialQuality == AerialQuality.UHD) AerialQuality.Auto else p.aerialQuality,
             aerialRange = if (p.aerialRange == AerialRange.DolbyVision) AerialRange.Auto else p.aerialRange,
+            // The small clock (or none) is free; the Large and Centred clocks, weather and Now Playing are Pro.
+            screensaverClock = if (p.screensaverClock == ScreensaverClock.Off) ScreensaverClock.Off else ScreensaverClock.Small,
+            screensaverWeather = false,
+            screensaverNowPlaying = false,
             iconPack = "",
             customBanners = emptyMap(),
             keyboardColour = KeyboardColour.Automatic,

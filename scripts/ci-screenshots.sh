@@ -214,6 +214,7 @@ shot 25-home-liquid-light          "${B[@]}" --es appearance light --es glass li
 shot 26-settings-apps              "${B[@]}" "${DARK[@]}" --es screen settings --es page Apps --ei focus 2
 shot 27-settings-screensaver       "${B[@]}" "${DARK[@]}" --es screen settings --es page Screensaver --ei focus 1
 shot 27b-settings-root-screensaver "${B[@]}" "${DARK[@]}" --es screen settings --ei focus 3
+shot 27c-settings-screensaver-clock "${B[@]}" "${DARK[@]}" --es aerial prism --es ssClock large --es screen settings --es page Screensaver --ei focus 5
 shot 27c-settings-root-about-light "${B[@]}" --es appearance light --es glass liquid --es screen settings --ei focus 19
 shot 27f-settings-about             "${B[@]}" "${DARK[@]}" --es screen settings --es page About --ei focus 2
 shot 27g-settings-acknowledgements  "${B[@]}" "${DARK[@]}" --es screen settings --es page Acknowledgements --ei focus 1
@@ -465,6 +466,11 @@ adb shell input keyevent --longpress KEYCODE_DPAD_CENTER; sleep 2; cap 29-long-p
 key KEYCODE_BACK 1
 # Aerial screensaver: Prism scenes (offline) and Apple TV aerials (network).
 start "${B[@]}" "${DARK[@]}" --es aerial prism --es screen aerial; sleep 6; cap 30-aerial-prism-scenes
+adb shell input keyevent KEYCODE_BACK; sleep 2
+# The screensaver's Large and Centred clocks with weather, and Now Playing (no artwork: the note symbol).
+start "${B[@]}" "${DARK[@]}" --es aerial prism --es ssClock large --es nowPlaying "'Golden Hour'" --es screen aerial; sleep 6; cap 30b-aerial-clock-large-now-playing
+adb shell input keyevent KEYCODE_BACK; sleep 2
+start "${B[@]}" "${DARK[@]}" --es aerial prism --es ssClock centred --es screen aerial; sleep 6; cap 30c-aerial-clock-centred
 adb shell input keyevent KEYCODE_BACK; sleep 2
 if [ "$QUICK" = 0 ]; then
   start "${B[@]}" "${DARK[@]}" --es aerial apple --es screen aerial; sleep 20; cap 31-aerial-apple

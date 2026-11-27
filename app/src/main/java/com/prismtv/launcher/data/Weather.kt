@@ -9,8 +9,18 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
 
-/** Current conditions for the Home Screen pill. [code] is a WMO weather code. */
-data class Weather(val tempC: Double, val code: Int, val isDay: Boolean, val place: String)
+/**
+ * Current conditions for the Home Screen pill and the screensaver. [code] is a WMO weather code; [highC]
+ * and [lowC] are today's forecast (null when Open-Meteo didn't send them, or from before they were asked for).
+ */
+data class Weather(
+    val tempC: Double,
+    val code: Int,
+    val isDay: Boolean,
+    val place: String,
+    val highC: Double? = null,
+    val lowC: Double? = null,
+)
 
 enum class WeatherKind { Clear, PartlyCloudy, Cloudy, Fog, Drizzle, Rain, Snow, Storm }
 
@@ -33,9 +43,50 @@ fun useFahrenheit(unit: TemperatureUnit): Boolean = when (unit) {
     TemperatureUnit.Auto -> Locale.getDefault().country.uppercase() in setOf("US", "LR", "MM", "BS", "BZ", "KY", "PW")
 }
 
-fun Weather.label(unit: TemperatureUnit): String {
-    val t = if (useFahrenheit(unit)) tempC * 9.0 / 5.0 + 32.0 else tempC
+fun Weather.label(unit: TemperatureUnit): String = degrees(tempC, unit)
+
+/** A temperature as shown: rounded, in the chosen unit, with a degree sign. */
+fun degrees(celsius: Double, unit: TemperatureUnit): String {
+    val t = if (useFahrenheit(unit)) celsius * 9.0 / 5.0 + 32.0 else celsius
     return "${Math.round(t)}°"
+}
+
+/** The conditions in words, as the screensaver shows them ("Sunny" by day, "Clear" at night). */
+fun Weather.conditions(): String = when (kind()) {
+    WeatherKind.Clear -> if (isDay) "Sunny" else "Clear"
+    WeatherKind.PartlyCloudy -> "Partly Cloudy"
+    WeatherKind.Cloudy -> "Cloudy"
+    WeatherKind.Fog -> "Fog"
+    WeatherKind.Drizzle -> "Drizzle"
+    WeatherKind.Rain -> if (code in 80..82) "Showers" else "Rain"
+    WeatherKind.Snow -> "Snow"
+    WeatherKind.Storm -> "Thunderstorms"
+}
+
+/** Today's high and low ("H 15°  L 8°"), or null without a forecast. */
+fun Weather.highLow(unit: TemperatureUnit): String? {
+    val h = highC ?: return null
+    val l = lowC ?: return null
+    return "H ${degrees(h, unit)}  L ${degrees(l, unit)}"
+}
+
+/**
+ * Open-Meteo's answer ([json]) for [place]. Today's high and low are optional: an answer without them
+ * still gives the current conditions.
+ */
+fun parseOpenMeteo(json: String, place: String): Weather {
+    val root = JSONObject(json)
+    val cur = root.getJSONObject("current")
+    val daily = root.optJSONObject("daily")
+    fun today(key: String): Double? = daily?.optJSONArray(key)?.optDouble(0)?.takeIf { !it.isNaN() }
+    return Weather(
+        cur.getDouble("temperature_2m"),
+        cur.getInt("weather_code"),
+        cur.optInt("is_day", 1) == 1,
+        place,
+        today("temperature_2m_max"),
+        today("temperature_2m_min"),
+    )
 }
 
 /**
@@ -53,6 +104,8 @@ class WeatherRepository(context: Context) {
             sp.getInt("code", 0),
             sp.getBoolean("isDay", true),
             sp.getString("place", "") ?: "",
+            if (sp.contains("highC")) sp.getFloat("highC", 0f).toDouble() else null,
+            if (sp.contains("lowC")) sp.getFloat("lowC", 0f).toDouble() else null,
         )
     }
 
@@ -61,22 +114,22 @@ class WeatherRepository(context: Context) {
     suspend fun refresh(): Weather? = withContext(Dispatchers.IO) {
         runCatching {
             val loc = location() ?: return@runCatching null
+            // Today's high and low come in the same request (for the screensaver's Large clock).
             val url = "https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}" +
-                "&current=temperature_2m,weather_code,is_day&timezone=auto"
-            val cur = JSONObject(get(url)).getJSONObject("current")
-            val w = Weather(
-                cur.getDouble("temperature_2m"),
-                cur.getInt("weather_code"),
-                cur.optInt("is_day", 1) == 1,
-                loc.city,
-            )
-            sp.edit()
+                "&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min" +
+                "&forecast_days=1&timezone=auto"
+            val w = parseOpenMeteo(get(url), loc.city)
+            val edit = sp.edit()
                 .putFloat("tempC", w.tempC.toFloat())
                 .putInt("code", w.code)
                 .putBoolean("isDay", w.isDay)
                 .putString("place", w.place)
                 .putLong("fetchedAt", System.currentTimeMillis())
-                .apply()
+            val high = w.highC
+            val low = w.lowC
+            if (high != null && low != null) edit.putFloat("highC", high.toFloat()).putFloat("lowC", low.toFloat())
+            else edit.remove("highC").remove("lowC")
+            edit.apply()
             w
         }.onFailure { Log.w("PrismWeather", "Weather refresh failed", it) }.getOrNull()
     }

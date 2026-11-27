@@ -15,7 +15,6 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextClock
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.media3.common.MediaItem
@@ -59,13 +58,11 @@ class AerialView(context: Context) : FrameLayout(context) {
         setShadowLayer(dp(5f), 0f, dp(1f), 0x77000000)
         alpha = 0f
     }
-    private val clock = TextClock(context).apply {
-        setTextColor(Color.WHITE)
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
-        typeface = ResourcesCompat.getFont(context, R.font.inter_medium)
-        setShadowLayer(dp(4f), 0f, dp(1f), 0x66000000)
-        alpha = 0.92f
-    }
+    /** The clock, weather and Now Playing (Settings › Screensaver); the Pro ones only with Pro. */
+    private val info = AerialInfoLayer(
+        context,
+        if (com.prismtv.launcher.data.Pro.active(context)) prefs else com.prismtv.launcher.data.Pro.freeOnly(prefs),
+    )
 
     private var player: ExoPlayer? = null
     private var videos: List<AerialVideo> = emptyList()
@@ -109,19 +106,14 @@ class AerialView(context: Context) : FrameLayout(context) {
                 bottomMargin = dp(52f).toInt()
             },
         )
-        addView(
-            clock,
-            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.END).apply {
-                rightMargin = dp(56f).toInt()
-                topMargin = dp(40f).toInt()
-            },
-        )
+        addView(info, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         keepScreenOn = true
     }
 
     fun start() {
         if (started) return
         started = true
+        info.start()
         val source = prefs.aerialSource
         if (source == AerialSource.Prism) {
             startStills(sceneStills())
@@ -153,6 +145,8 @@ class AerialView(context: Context) : FrameLayout(context) {
     fun stop() {
         val was = started
         started = false
+        info.stop()
+        player?.let { logFrames(it, "screensaver closed") }
         scope.cancel()
         handler.removeCallbacksAndMessages(null)
         player?.release()
@@ -187,6 +181,7 @@ class AerialView(context: Context) : FrameLayout(context) {
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                logFrames(p, "shot ended")
                 onNewShot(mediaItem)
             }
 
@@ -209,6 +204,32 @@ class AerialView(context: Context) : FrameLayout(context) {
         onNewShot(p.currentMediaItem)
         resetWatchdog()
         handler.post(fadeWatcher)
+    }
+
+    // How smoothly each shot played (logcat PrismAerial): frames shown and dropped since the last line.
+    private var loggedRendered = 0
+    private var loggedDropped = 0
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun logFrames(p: ExoPlayer, why: String) {
+        val c = p.videoDecoderCounters ?: return
+        c.ensureUpdated()
+        val rendered = c.renderedOutputBufferCount
+        val dropped = c.droppedBufferCount
+        // A new decoder counts from zero again.
+        if (rendered < loggedRendered || dropped < loggedDropped) {
+            loggedRendered = 0
+            loggedDropped = 0
+        }
+        val shown = rendered - loggedRendered
+        val lost = dropped - loggedDropped
+        loggedRendered = rendered
+        loggedDropped = dropped
+        if (shown <= 0 && lost <= 0) return
+        Log.i(
+            "PrismAerial",
+            "Screensaver: $why, $shown frames shown, $lost dropped (longest run ${c.maxConsecutiveDroppedBufferCount}); ${info.summary}",
+        )
     }
 
     private fun items(): List<MediaItem> = videos.map { v ->
@@ -259,7 +280,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         curtain.animate().cancel()
         curtain.bringToFront()
         location.bringToFront()
-        clock.bringToFront()
+        info.bringToFront()
         startStills(if (shuffle) stills.ifEmpty { sceneStills() } else sceneStills())
     }
 
@@ -444,7 +465,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         sceneA.bringToFront()
         curtain.bringToFront()
         location.bringToFront()
-        clock.bringToFront()
+        info.bringToFront()
         stillIndex = (stillIndex + 1) % stills.size
         showStill(sceneA) { curtain.animate().alpha(0f).setStartDelay(0).setDuration(1400).start() }
         handler.postDelayed(nextStill, SCENE_MS)
@@ -455,7 +476,7 @@ class AerialView(context: Context) : FrameLayout(context) {
         val p = player ?: return
         curtain.bringToFront()
         location.bringToFront()
-        clock.bringToFront()
+        info.bringToFront()
         location.animate().cancel()
         location.animate().alpha(0f).setStartDelay(0).setDuration(500).start()
         curtain.animate().alpha(1f).setStartDelay(0).setDuration(1000).withEndAction {
@@ -483,7 +504,7 @@ class AerialView(context: Context) : FrameLayout(context) {
             incoming.bringToFront()
             curtain.bringToFront()
             location.bringToFront()
-            clock.bringToFront()
+            info.bringToFront()
             incoming.alpha = 0f
             showStill(incoming) {
                 incoming.animate().alpha(1f).setDuration(1800).withEndAction { outgoing.animate().cancel() }.start()

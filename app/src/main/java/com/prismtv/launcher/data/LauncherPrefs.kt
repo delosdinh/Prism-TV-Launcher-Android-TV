@@ -71,6 +71,14 @@ enum class AerialQuality(val label: String) {
     Auto("Automatic"), HD("1080p"), UHD("4K")
 }
 
+/**
+ * The screensaver's clock: Small is the time in the top corner (free); Large (top left, with the date) and
+ * Centred (top middle, under the date, like a lock screen) are Prism Pro.
+ */
+enum class ScreensaverClock(val label: String) {
+    Off("Off"), Small("Small"), Large("Large"), Centred("Centred")
+}
+
 enum class TemperatureUnit(val label: String) {
     Auto("Automatic"), Celsius("Celsius"), Fahrenheit("Fahrenheit")
 }
@@ -127,6 +135,12 @@ data class LauncherPrefs(
     val screensaverAllPictures: Boolean = true,
     /** Chosen albums ("album:<id>") and pictures ("photo:<id>") for the screensaver. */
     val screensaverPictures: Set<String> = emptySet(),
+    /** Settings › Screensaver › Clock. */
+    val screensaverClock: ScreensaverClock = ScreensaverClock.Small,
+    /** The temperature and conditions beside the screensaver's clock (Prism Pro). */
+    val screensaverWeather: Boolean = true,
+    /** What's playing, with its artwork, over the screensaver (Prism Pro; needs Notification access). */
+    val screensaverNowPlaying: Boolean = true,
     /** Index into [TextScales]. */
     val textSize: Int = DefaultTextSize,
     val topShelfStyle: TopShelfStyle = TopShelfStyle.Spotlight,
@@ -276,6 +290,9 @@ class PrefsStore(context: Context) {
             screensaverWaitForMedia = sp.getBoolean("screensaverWaitForMedia", d.screensaverWaitForMedia),
             screensaverAllPictures = sp.getBoolean("screensaverAllPictures", d.screensaverAllPictures),
             screensaverPictures = sp.getStringSet("screensaverPictures", null)?.toSet() ?: d.screensaverPictures,
+            screensaverClock = enumOr(sp.getString("screensaverClock", null), d.screensaverClock),
+            screensaverWeather = sp.getBoolean("screensaverWeather", d.screensaverWeather),
+            screensaverNowPlaying = sp.getBoolean("screensaverNowPlaying", d.screensaverNowPlaying),
             startupApp = sp.getString("startupApp", d.startupApp).orEmpty(),
             startupDelay = sp.getInt("startupDelay", d.startupDelay).takeIf { it in StartupDelays } ?: d.startupDelay,
             inputNames = parseStringMap(sp.getString("inputNames", null)),
@@ -329,6 +346,9 @@ class PrefsStore(context: Context) {
             .putBoolean("screensaverWaitForMedia", p.screensaverWaitForMedia)
             .putBoolean("screensaverAllPictures", p.screensaverAllPictures)
             .putStringSet("screensaverPictures", p.screensaverPictures)
+            .putString("screensaverClock", p.screensaverClock.name)
+            .putBoolean("screensaverWeather", p.screensaverWeather)
+            .putBoolean("screensaverNowPlaying", p.screensaverNowPlaying)
             .putString("startupApp", p.startupApp)
             .putInt("startupDelay", p.startupDelay)
             .putString("inputNames", encodeStringMap(p.inputNames))

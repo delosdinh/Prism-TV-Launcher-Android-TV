@@ -21,6 +21,9 @@ class ProTest {
         aerialSource = AerialSource.Shuffle,
         aerialQuality = AerialQuality.UHD,
         aerialRange = AerialRange.DolbyVision,
+        screensaverClock = ScreensaverClock.Large,
+        screensaverWeather = true,
+        screensaverNowPlaying = true,
         iconPack = "com.example.icons",
         customBanners = mapOf("app" to "photo:content://x/2"),
         keyboardColour = KeyboardColour.Dark,
@@ -47,6 +50,9 @@ class ProTest {
         assertEquals(AerialSource.Prism, free.aerialSource)
         assertEquals(AerialQuality.Auto, free.aerialQuality)
         assertEquals(AerialRange.Auto, free.aerialRange)
+        assertEquals(ScreensaverClock.Small, free.screensaverClock)
+        assertFalse(free.screensaverWeather)
+        assertFalse(free.screensaverNowPlaying)
         assertEquals("", free.iconPack)
         assertFalse(free.predictive)
         assertFalse(free.bannersOverApps)
@@ -63,6 +69,9 @@ class ProTest {
         assertEquals(6, free.columns)
         assertEquals(true, free.liteMode)
         assertEquals("scene:dunes", Pro.freeOnly(paid.copy(wallpaper = "scene:dunes")).wallpaper)
+        // No clock stays no clock; the small one stays small.
+        assertEquals(ScreensaverClock.Off, Pro.freeOnly(paid.copy(screensaverClock = ScreensaverClock.Off)).screensaverClock)
+        assertEquals(ScreensaverClock.Small, Pro.freeOnly(paid.copy(screensaverClock = ScreensaverClock.Small)).screensaverClock)
     }
 
     @Test

@@ -124,6 +124,11 @@ launcher counterpart to the Prism TV skin for Kodi.
   next aerial). **Pictures** chooses which of your photos they use: all of them, whole albums
   (Camera, Download…) or single pictures. **Wait While Media Plays** (on by default) holds the screensaver back while music
   or a video is playing. Available on demand and as the system screensaver ("Prism Aerials").
+  Over the screensaver: a **Clock** (Small in the corner; Prism Pro adds **Large**, top left with the
+  date, and **Centred**, a big time under the date like a lock screen), the **Weather** beside it
+  (Open-Meteo, no account; today's high and low with the Large clock) and **Now Playing** (the song
+  and its artwork while music plays, through Notification access). They only redraw when they change,
+  and move a couple of dp each minute so an OLED TV never keeps the same pixels lit.
 - **Inputs** (TVs with HDMI inputs): each input is a tile on the Home Screen, one press to the
   console or set-top box, like Projectivy's input shortcuts. Rename them (hold OK › Rename Input, or
   Settings › Inputs), hide them, move them or put them in folders like apps. Streaming boxes have no
