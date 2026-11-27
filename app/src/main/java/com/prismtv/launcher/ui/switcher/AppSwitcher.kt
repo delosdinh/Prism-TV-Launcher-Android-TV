@@ -159,7 +159,8 @@ private fun SwitcherCard(vm: LauncherViewModel, e: RecentEntry, rel: Int, focusI
         ch = h
         alpha = open
     }
-    val radius = if (isHome) lerpF(0f, SwitcherLayout.Radius, open) else SwitcherLayout.Radius
+    // Never below 0, even if the closing spring's dip below 0 reaches here: a negative corner throws while drawing.
+    val radius = if (isHome) lerpF(0f, SwitcherLayout.Radius, open.coerceAtLeast(0f)) else SwitcherLayout.Radius
     val shape = RoundedCornerShape(radius.dp)
 
     // The app's icon and name just above its card (Home has none). Drawn outside the card's layer;
